@@ -1,0 +1,12 @@
+# Created by http://gitignore.io
+
+### IntelliJ ###
+*.iml
+*.ipr
+*.iws
+.idea/
+
+### Maven ###
+target/
+
+.java-version
