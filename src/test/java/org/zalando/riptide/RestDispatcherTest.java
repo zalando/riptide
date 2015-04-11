@@ -30,7 +30,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 import static org.zalando.riptide.Binding.consume;
-import static org.zalando.riptide.Binding.handle;
 import static org.zalando.riptide.Binding.map;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
