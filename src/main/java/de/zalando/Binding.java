@@ -1,27 +1,25 @@
 package de.zalando;
 
-import com.google.common.reflect.TypeToken;
-import org.springframework.http.MediaType;
-
+import java.lang.reflect.Type;
 import java.util.function.Function;
 
-public final class Binding<I, O> implements Function<I, O> {
+public final class Binding<A, I, O> implements Function<I, O> {
 
-    private final MediaType contentType;
-    private final TypeToken<I> type;
+    private final A attribute;
+    private final Type type;
     private final Function<I, O> mapper;
 
-    Binding(MediaType contentType, TypeToken<I> type, Function<I, O> mapper) {
-        this.contentType = contentType;
+    Binding(A attribute, Type type, Function<I, O> mapper) {
+        this.attribute = attribute;
         this.type = type;
         this.mapper = mapper;
     }
 
-    public MediaType getContentType() {
-        return contentType;
+    public A getAttribute() {
+        return attribute;
     }
 
-    public TypeToken<I> getType() {
+    public Type getType() {
         return type;
     }
 
