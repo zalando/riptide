@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -17,6 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -31,13 +33,21 @@ public class RestSelectorTest {
     private final RestTemplate template = new RestTemplate();
     private final MockRestServiceServer server = MockRestServiceServer.createServer(template);
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectDuplicateAttributeValues() {
+        on(template, contentType()).dispatch(
+                handle(APPLICATION_JSON, Map.class, Object::toString),
+                handle(APPLICATION_JSON, Map.class, Object::toString)
+        );
+    }
+    
     @Test
     public void shouldConsumeTextPlain() {
         server.expect(requestTo(textUrl))
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
         template.execute(textUrl, GET, null, on(template, contentType()).dispatch(
-                handle(TEXT_PLAIN, String.class, String::toString),
+                handle(TEXT_PLAIN, String.class, Object::toString),
                 handle(APPLICATION_JSON, Map.class, m -> {
                     throw new AssertionError("Didn't expect json");
                 })
@@ -53,7 +63,7 @@ public class RestSelectorTest {
                 handle(TEXT_PLAIN, String.class, s -> {
                     throw new AssertionError("Didn't expect text");
                 }),
-                handle(APPLICATION_JSON, Map.class, Map::toString)
+                handle(APPLICATION_JSON, Map.class, Object::toString)
         ));
     }
 
@@ -106,6 +116,17 @@ public class RestSelectorTest {
                 }),
                 handle(HttpStatus.NOT_FOUND, String.class, Object::toString
                 )
+        ));
+    }
+    
+    @Test(expected = RestClientException.class)
+    public void shouldFailIfNoMatch() {
+        server.expect(requestTo(jsonUrl))
+                .andRespond(withSuccess("{}", APPLICATION_JSON));
+
+        template.execute(jsonUrl, GET, null, on(template, contentType()).dispatch(
+                handle(TEXT_PLAIN, String.class, Object::toString),
+                handle(APPLICATION_XML, String.class, Object::toString)
         ));
     }
 

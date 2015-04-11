@@ -66,7 +66,6 @@ public final class RestDispatcher<A> {
         };
     }
 
-    // TODO test
     // TODO document
     private <O> void ensureUniqueAttributeValues(Collection<Binding<A, ?, O>> bindings) {
         final List<A> duplicates = bindings.stream()
