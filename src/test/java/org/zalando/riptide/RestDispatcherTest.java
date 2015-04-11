@@ -29,8 +29,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-import static org.zalando.riptide.RestDispatcher.handle;
-import static org.zalando.riptide.RestDispatcher.map;
+import static org.zalando.riptide.Binding.consume;
+import static org.zalando.riptide.Binding.handle;
+import static org.zalando.riptide.Binding.map;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
@@ -41,7 +42,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-public class RestSelectorTest {
+public class RestDispatcherTest {
 
     private final String url = "http://localhost/path";
     private final String textUrl = "http://localhost/path.txt";
@@ -53,8 +54,8 @@ public class RestSelectorTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectDuplicateAttributeValues() {
         RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.handle(APPLICATION_JSON, Map.class, Object::toString),
-                RestDispatcher.handle(APPLICATION_JSON, Map.class, Object::toString)
+                consume(APPLICATION_JSON, Map.class, Object::toString),
+                consume(APPLICATION_JSON, Map.class, Object::toString)
         );
     }
     
@@ -64,8 +65,8 @@ public class RestSelectorTest {
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
         template.execute(textUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.handle(TEXT_PLAIN, String.class, Object::toString),
-                RestDispatcher.handle(APPLICATION_JSON, Map.class, m -> {
+                consume(TEXT_PLAIN, String.class, Object::toString),
+                consume(APPLICATION_JSON, Map.class, m -> {
                     throw new AssertionError("Didn't expect json");
                 })
         ));
@@ -77,10 +78,10 @@ public class RestSelectorTest {
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
         template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.handle(TEXT_PLAIN, String.class, s -> {
+                consume(TEXT_PLAIN, String.class, s -> {
                     throw new AssertionError("Didn't expect text");
                 }),
-                RestDispatcher.handle(APPLICATION_JSON, Map.class, Object::toString)
+                consume(APPLICATION_JSON, Map.class, Object::toString)
         ));
     }
 
@@ -90,8 +91,8 @@ public class RestSelectorTest {
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
         final ResponseEntity<String> response = template.execute(textUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.map(TEXT_PLAIN, String.class, Object::toString),
-                RestDispatcher.map(APPLICATION_JSON, Map.class, Object::toString)
+                map(TEXT_PLAIN, String.class, Object::toString),
+                map(APPLICATION_JSON, Map.class, Object::toString)
         ));
 
         assertThat(response.getBody(), is("It works!"));
@@ -103,8 +104,8 @@ public class RestSelectorTest {
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
         final ResponseEntity<String> response = template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.map(TEXT_PLAIN, String.class, Object::toString),
-                RestDispatcher.map(APPLICATION_JSON, Map.class, Object::toString)
+                map(TEXT_PLAIN, String.class, Object::toString),
+                map(APPLICATION_JSON, Map.class, Object::toString)
         ));
 
         assertThat(response.getBody(), is("{}"));
@@ -115,8 +116,8 @@ public class RestSelectorTest {
         server.expect(requestTo(url)).andRespond(withSuccess().body("It works!"));
 
         template.execute(url, GET, null, RestDispatcher.on(template, RestDispatcher.statusCode()).dispatch(
-                RestDispatcher.handle(HttpStatus.OK, String.class, Object::toString),
-                RestDispatcher.handle(HttpStatus.NOT_FOUND, String.class, s -> {
+                consume(HttpStatus.OK, String.class, Object::toString),
+                consume(HttpStatus.NOT_FOUND, String.class, s -> {
                     throw new AssertionError("Didn't expect 404");
                 })
         ));
@@ -128,10 +129,10 @@ public class RestSelectorTest {
 
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         template.execute(url, GET, null, RestDispatcher.on(template, RestDispatcher.statusCode()).dispatch(
-                RestDispatcher.handle(HttpStatus.OK, String.class, s -> {
+                consume(HttpStatus.OK, String.class, s -> {
                     throw new AssertionError("Didn't expect 200");
                 }),
-                RestDispatcher.handle(HttpStatus.NOT_FOUND, String.class, Object::toString
+                consume(HttpStatus.NOT_FOUND, String.class, Object::toString
                 )
         ));
     }
@@ -142,8 +143,8 @@ public class RestSelectorTest {
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
         template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
-                RestDispatcher.handle(TEXT_PLAIN, String.class, Object::toString),
-                RestDispatcher.handle(APPLICATION_XML, String.class, Object::toString)
+                consume(TEXT_PLAIN, String.class, Object::toString),
+                consume(APPLICATION_XML, String.class, Object::toString)
         ));
     }
 

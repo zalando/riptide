@@ -48,6 +48,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+// TODO code example here
 public final class RestDispatcher<A> {
 
     private final Supplier<List<HttpMessageConverter<?>>> converters;
@@ -58,6 +59,18 @@ public final class RestDispatcher<A> {
         this.selector = selector;
     }
 
+    /**
+     * Creates a {@link ResponseExtractor} that dispatches on the attribute selected by the
+     * {@link Selector} of {@code this} dispatcher.
+     * 
+     * @param first first binding
+     * @param second second binding
+     * @param rest optional additional bindings, might be empty 
+     * @param <O> generic output type parameter
+     * @return a {@link ResponseExtractor} for the requested output type
+     * @throws RestClientException if dispatching failed, due to a missing binding
+     * @throws IllegalArgumentException if any attribute value of the given bindings occured more than once
+     */
     @SafeVarargs
     public final <O> ResponseExtractor<ResponseEntity<O>> dispatch(Binding<A, ?, O> first,
                                                                    Binding<A, ?, O> second,
@@ -86,7 +99,6 @@ public final class RestDispatcher<A> {
         };
     }
 
-    // TODO document
     private <O> void ensureUniqueAttributeValues(Collection<Binding<A, ?, O>> bindings) {
         final List<A> duplicates = bindings.stream()
                 .map(Binding::getAttribute)
@@ -115,40 +127,27 @@ public final class RestDispatcher<A> {
         return (Binding<A, Object, O>) b;
     }
 
+    // TODO design better API here
     public static <A> RestDispatcher<A> on(RestTemplate template, Selector<A> selector) {
         return new RestDispatcher<>(template::getMessageConverters, selector);
     }
 
+    /**
+     * A {@link Selector} that selects the best binding based on the response's content type.
+     * 
+     * @return a Content-Type selector
+     */
     public static Selector<MediaType> contentType() {
         return new ContentTypeSelector();
     }
 
+    /**
+     * A {@link Selector} that selects a binding based on the response's status code.
+     * 
+     * @return an HTTP status code selector
+     */
     public static Selector<HttpStatus> statusCode() {
         return new StatusCodeSelector();
-    }
-
-    public static <A, I> Binding<A, I, Void> handle(A attribute, Class<I> type, Consumer<I> consumer) {
-        return new Binding<>(attribute, type, input -> {
-            consumer.accept(input);
-            return null;
-        });
-    }
-
-    public static <A, I> Binding<A, I, Void> handle(A attribute, ParameterizedTypeReference<I> type, Consumer<I> consumer) {
-        return new Binding<>(attribute, type.getType(), input -> {
-            consumer.accept(input);
-            return null;
-        });
-    }
-
-    // TODO find better name
-    public static <A, I, O> Binding<A, I, O> map(A attribute, Class<I> type, Function<I, O> mapper) {
-        return new Binding<>(attribute, type, mapper);
-    }
-
-    // TODO find better name
-    public static <A, I, O> Binding<A, I, O> map(A attribute, ParameterizedTypeReference<I> type, Function<I, O> mapper) {
-        return new Binding<>(attribute, type.getType(), mapper);
     }
 
 }

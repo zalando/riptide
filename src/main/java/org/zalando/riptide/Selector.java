@@ -25,10 +25,31 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A {@link Selector} can be used change the dispatching strategy. Its purpose is to select an attribute
+ * of the response and find a binding for it. 
+ * 
+ * @param <A> generic response attribute type
+ */
+@FunctionalInterface
 public interface Selector<A> {
 
+    /**
+     * Retrieves an attribute from the given response
+     * 
+     * @param response the incoming response
+     * @return an attribute based on the response which is then used to select the correct binding
+     */
     A attributeOf(ClientHttpResponse response);
-    
+
+    /**
+     * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
+     * 
+     * @param attribute the previously selected attribute
+     * @param bindings all bindings
+     * @param <O> the generic output type parameter
+     * @return an optional binding match, if found
+     */
     default <O> Optional<Binding<A, ?, O>> select(A attribute, Map<A, Binding<A, ?, O>> bindings) {
         return Optional.ofNullable(bindings.get(attribute));
     }

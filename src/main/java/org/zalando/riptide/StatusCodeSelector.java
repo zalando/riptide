@@ -25,6 +25,9 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 
+/**
+ * @see {@link RestDispatcher#statusCode()}
+ */
 final class StatusCodeSelector implements Selector<HttpStatus> {
 
     @Override

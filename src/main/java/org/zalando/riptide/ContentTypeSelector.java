@@ -26,6 +26,9 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * @see {@link RestDispatcher#contentType()}
+ */
 final class ContentTypeSelector implements Selector<MediaType> {
 
     @Override

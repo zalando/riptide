@@ -20,7 +20,10 @@ package org.zalando.riptide;
  * #L%
  */
 
+import org.springframework.core.ParameterizedTypeReference;
+
 import java.lang.reflect.Type;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class Binding<A, I, O> implements Function<I, O> {
@@ -46,6 +49,29 @@ public final class Binding<A, I, O> implements Function<I, O> {
     @Override
     public O apply(I i) {
         return mapper.apply(i);
+    }
+
+    private static <I> Function<I, Void> asFunction(Consumer<I> consumer) {
+        return input -> {
+            consumer.accept(input);
+            return null;
+        };
+    }
+
+    public static <A, I> Binding<A, I, Void> consume(A attribute, ParameterizedTypeReference<I> type, Consumer<I> consumer) {
+        return consume(attribute, type.getType(), consumer);
+    }
+
+    public static <A, I> Binding<A, I, Void> consume(A attribute, Type type, Consumer<I> consumer) {
+        return map(attribute, type, asFunction(consumer));
+    }
+
+    public static <A, I, O> Binding<A, I, O> map(A attribute, ParameterizedTypeReference<I> type, Function<I, O> mapper) {
+        return map(attribute, type.getType(), mapper);
+    }
+
+    public static <A, I, O> Binding<A, I, O> map(A attribute, Type type, Function<I, O> mapper) {
+        return new Binding<>(attribute, type, mapper);
     }
     
 }
