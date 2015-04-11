@@ -1,5 +1,23 @@
 # Riptide
 
+[![Tidal wave](docs/wave.jpg)](http://pixabay.com/en/wave-water-sea-tsunami-giant-wave-11061/)
+
+[![Build Status](https://travis-ci.org/whiskeysierra/riptide.svg)](https://travis-ci.org/whiskeysierra/riptide)
+[![Coverage Status](https://coveralls.io/repos/whiskeysierra/riptide/badge.png)](https://coveralls.io/r/whiskeysierra/riptide)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
+
+A response dispatcher for Spring's RestTemplate. Riptide adds a customizable dispatcher to
+Spring's RestTemplate that allows you to handle different status codes, content types, etc.
+differently with an easy to use syntax.
+
+## Dependency
+
+    <dependency>
+        <groupId>org.zalando</groupId>
+        <artifactId>riptide</artifactId>
+        <version>${riptide.versions}</version>
+    </dependency>
+
 ## License
 
 Copyright [2015] Zalando SE
