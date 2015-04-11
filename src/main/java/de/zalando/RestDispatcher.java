@@ -1,8 +1,10 @@
 package de.zalando;
 
+import com.google.common.collect.Lists;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
@@ -20,7 +22,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
@@ -37,11 +38,12 @@ public final class RestDispatcher<A> {
         this.selector = selector;
     }
 
-    // TODO require at least one binding? via signature or validation
     @SafeVarargs
-    public final <O> ResponseExtractor<O> dispatch(Binding<A, ? extends Object, O>... elements) {
-        final List<Binding<A, ?, O>> bindings = asList(elements);
-        
+    public final <O> ResponseExtractor<ResponseEntity<O>> dispatch(Binding<A, ?, O> first,
+                                                                   Binding<A, ?, O> second,
+                                                                   Binding<A, ?, O>... rest) {
+        final List<Binding<A, ?, O>> bindings = Lists.asList(first, second, rest);
+
         ensureUniqueAttributeValues(bindings);
 
         return response -> {
@@ -55,11 +57,11 @@ public final class RestDispatcher<A> {
 
                 final Object input = getOutput(response, binding);
 
-                // TODO support new ResponseEntity<T>(body, response.getHeaders(), response.getStatusCode())
-                return binding.apply(input);
+                final O body = binding.apply(input);
+                return new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
             } else {
-                // TODO improve message
-                throw new RestClientException("Can't dispatch response");
+                throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
+                        bindings.stream().map(Binding::getAttribute).collect(toList())));
             }
         };
     }

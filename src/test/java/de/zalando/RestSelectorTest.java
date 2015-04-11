@@ -2,6 +2,7 @@ package de.zalando;
 
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,12 +62,12 @@ public class RestSelectorTest {
         server.expect(requestTo(textUrl))
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
-        final String response = template.execute(textUrl, GET, null, on(template, contentType()).dispatch(
+        final ResponseEntity<String> response = template.execute(textUrl, GET, null, on(template, contentType()).dispatch(
                 map(TEXT_PLAIN, String.class, Object::toString),
                 map(APPLICATION_JSON, Map.class, Object::toString)
         ));
 
-        assertThat(response, is("It works!"));
+        assertThat(response.getBody(), is("It works!"));
     }
 
     @Test
@@ -74,12 +75,12 @@ public class RestSelectorTest {
         server.expect(requestTo(jsonUrl))
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-        final String response = template.execute(jsonUrl, GET, null, on(template, contentType()).dispatch(
+        final ResponseEntity<String> response = template.execute(jsonUrl, GET, null, on(template, contentType()).dispatch(
                 map(TEXT_PLAIN, String.class, Object::toString),
                 map(APPLICATION_JSON, Map.class, Object::toString)
         ));
 
-        assertThat(response, is("{}"));
+        assertThat(response.getBody(), is("{}"));
     }
 
     @Test
@@ -95,7 +96,7 @@ public class RestSelectorTest {
     }
 
     @Test
-    public void shouldConsumerNotFound() {
+    public void shouldConsumeNotFound() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.NOT_FOUND).body("Not found"));
 
         template.setErrorHandler(new PassThroughResponseErrorHandler());
