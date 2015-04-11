@@ -1,0 +1,13 @@
+language: java
+
+sudo: false
+
+jdk:
+  - oraclejdk8
+
+after_success:
+  - mvn clean test jacoco:report coveralls:report
+
+notifications:
+  email:
+    on_failure: change
