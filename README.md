@@ -1,4 +1,4 @@
-# REST Dispatcher
+# Riptide
 
 ## License
 

@@ -1,4 +1,4 @@
-package org.zalando;
+package org.zalando.riptide;
 
 /*
  * #%L
@@ -20,21 +20,32 @@ package org.zalando;
  * #L%
  */
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
+import java.lang.reflect.Type;
+import java.util.function.Function;
 
-import java.io.IOException;
+public final class Binding<A, I, O> implements Function<I, O> {
 
-final class StatusCodeSelector implements Selector<HttpStatus> {
+    private final A attribute;
+    private final Type type;
+    private final Function<I, O> mapper;
 
-    @Override
-    public HttpStatus attributeOf(ClientHttpResponse response) {
-        try {
-            return response.getStatusCode();
-        } catch (IOException e) {
-            // TODO is this the correct exception type?
-            throw new IllegalStateException(e);
-        }
+    Binding(A attribute, Type type, Function<I, O> mapper) {
+        this.attribute = attribute;
+        this.type = type;
+        this.mapper = mapper;
     }
 
+    public A getAttribute() {
+        return attribute;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    @Override
+    public O apply(I i) {
+        return mapper.apply(i);
+    }
+    
 }

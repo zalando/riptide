@@ -1,4 +1,4 @@
-package org.zalando;
+package org.zalando.riptide;
 
 /*
  * #%L
@@ -20,21 +20,21 @@ package org.zalando;
  * #L%
  */
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
 
 import java.io.IOException;
 
-final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
-    
-    @Override
-    public boolean hasError(ClientHttpResponse response) throws IOException {
-        return false;
-    }
+final class StatusCodeSelector implements Selector<HttpStatus> {
 
     @Override
-    public void handleError(ClientHttpResponse response) throws IOException {
-
+    public HttpStatus attributeOf(ClientHttpResponse response) {
+        try {
+            return response.getStatusCode();
+        } catch (IOException e) {
+            // TODO is this the correct exception type?
+            throw new IllegalStateException(e);
+        }
     }
-    
+
 }

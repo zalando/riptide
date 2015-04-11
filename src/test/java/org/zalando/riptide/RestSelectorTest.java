@@ -1,4 +1,4 @@
-package org.zalando;
+package org.zalando.riptide;
 
 /*
  * #%L
@@ -29,8 +29,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-import static org.zalando.RestDispatcher.handle;
-import static org.zalando.RestDispatcher.map;
+import static org.zalando.riptide.RestDispatcher.handle;
+import static org.zalando.riptide.RestDispatcher.map;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;

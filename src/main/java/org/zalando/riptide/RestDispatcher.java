@@ -1,4 +1,4 @@
-package org.zalando;
+package org.zalando.riptide;
 
 /*
  * #%L

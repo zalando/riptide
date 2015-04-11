@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.zalando</groupId>
-    <artifactId>rest-dispatcher</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>riptide</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
 
     <organization>
         <name>Zalando SE</name>

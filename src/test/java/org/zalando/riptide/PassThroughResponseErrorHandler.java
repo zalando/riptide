@@ -1,4 +1,4 @@
-package org.zalando;
+package org.zalando.riptide;
 
 /*
  * #%L
@@ -20,32 +20,21 @@ package org.zalando;
  * #L%
  */
 
-import java.lang.reflect.Type;
-import java.util.function.Function;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
 
-public final class Binding<A, I, O> implements Function<I, O> {
+import java.io.IOException;
 
-    private final A attribute;
-    private final Type type;
-    private final Function<I, O> mapper;
-
-    Binding(A attribute, Type type, Function<I, O> mapper) {
-        this.attribute = attribute;
-        this.type = type;
-        this.mapper = mapper;
-    }
-
-    public A getAttribute() {
-        return attribute;
-    }
-
-    public Type getType() {
-        return type;
+final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
+    
+    @Override
+    public boolean hasError(ClientHttpResponse response) throws IOException {
+        return false;
     }
 
     @Override
-    public O apply(I i) {
-        return mapper.apply(i);
+    public void handleError(ClientHttpResponse response) throws IOException {
+
     }
     
 }
