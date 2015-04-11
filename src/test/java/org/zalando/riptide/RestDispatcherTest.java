@@ -21,6 +21,7 @@ package org.zalando.riptide;
  */
 
 import org.junit.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -28,9 +29,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.zalando.riptide.Binding.consume;
-import static org.zalando.riptide.Binding.map;
+import static java.util.function.Function.identity;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
@@ -40,11 +42,17 @@ import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Binding.consume;
+import static org.zalando.riptide.Binding.map;
 import static org.zalando.riptide.RestDispatcher.contentType;
 import static org.zalando.riptide.RestDispatcher.from;
 import static org.zalando.riptide.RestDispatcher.statusCode;
 
 public class RestDispatcherTest {
+
+    private static final ParameterizedTypeReference<Map<String, Number>> MAP_TYPE =
+            new ParameterizedTypeReference<Map<String, Number>>() {
+            };
 
     private final String url = "http://localhost/path";
     private final String textUrl = "http://localhost/path.txt";
@@ -60,7 +68,7 @@ public class RestDispatcherTest {
                 consume(APPLICATION_JSON, Map.class, Object::toString)
         );
     }
-    
+
     @Test
     public void shouldConsumeTextPlain() {
         server.expect(requestTo(textUrl))
@@ -138,7 +146,7 @@ public class RestDispatcherTest {
                 )
         ));
     }
-    
+
     @Test(expected = RestClientException.class)
     public void shouldFailIfNoMatch() {
         server.expect(requestTo(jsonUrl))
@@ -148,6 +156,35 @@ public class RestDispatcherTest {
                 consume(TEXT_PLAIN, String.class, Object::toString),
                 consume(APPLICATION_XML, String.class, Object::toString)
         ));
+    }
+
+    @Test
+    public void shouldConsumeParameterizedType() {
+        server.expect(requestTo(jsonUrl))
+                .andRespond(withSuccess("{\"value\":123}", APPLICATION_JSON));
+
+        final AtomicReference<Map<String, Number>> ref = new AtomicReference<>();
+
+        template.execute(jsonUrl, GET, null, from(template).on(contentType()).dispatchTo(
+                consume(TEXT_PLAIN, String.class, Object::toString),
+                consume(APPLICATION_JSON, MAP_TYPE, ref::set)
+        ));
+
+        assertThat(ref.get(), hasEntry("value", 123));
+    }
+
+    @Test
+    public void shouldMapParameterizedType() {
+        server.expect(requestTo(jsonUrl))
+                .andRespond(withSuccess("{\"value\":123}", APPLICATION_JSON));
+
+        final ResponseEntity<Number> entity = template.execute(jsonUrl, GET, null,
+                from(template).on(contentType()).dispatchTo(
+                        map(TEXT_PLAIN, String.class, s -> 0),
+                        map(APPLICATION_JSON, MAP_TYPE, m -> m.get("value"))
+                ));
+        
+        assertThat(entity.getBody(), is(123));
     }
 
 }
