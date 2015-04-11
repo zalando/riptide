@@ -40,6 +40,9 @@ import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.RestDispatcher.contentType;
+import static org.zalando.riptide.RestDispatcher.from;
+import static org.zalando.riptide.RestDispatcher.statusCode;
 
 public class RestDispatcherTest {
 
@@ -52,7 +55,7 @@ public class RestDispatcherTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectDuplicateAttributeValues() {
-        RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        from(template).on(contentType()).dispatchTo(
                 consume(APPLICATION_JSON, Map.class, Object::toString),
                 consume(APPLICATION_JSON, Map.class, Object::toString)
         );
@@ -63,7 +66,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(textUrl))
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
-        template.execute(textUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        template.execute(textUrl, GET, null, from(template).on(contentType()).dispatchTo(
                 consume(TEXT_PLAIN, String.class, Object::toString),
                 consume(APPLICATION_JSON, Map.class, m -> {
                     throw new AssertionError("Didn't expect json");
@@ -76,7 +79,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(jsonUrl))
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-        template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        template.execute(jsonUrl, GET, null, from(template).on(contentType()).dispatchTo(
                 consume(TEXT_PLAIN, String.class, s -> {
                     throw new AssertionError("Didn't expect text");
                 }),
@@ -89,7 +92,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(textUrl))
                 .andRespond(withSuccess("It works!", TEXT_PLAIN));
 
-        final ResponseEntity<String> response = template.execute(textUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        final ResponseEntity<String> response = template.execute(textUrl, GET, null, from(template).on(contentType()).dispatchTo(
                 map(TEXT_PLAIN, String.class, Object::toString),
                 map(APPLICATION_JSON, Map.class, Object::toString)
         ));
@@ -102,7 +105,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(jsonUrl))
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-        final ResponseEntity<String> response = template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        final ResponseEntity<String> response = template.execute(jsonUrl, GET, null, from(template).on(contentType()).dispatchTo(
                 map(TEXT_PLAIN, String.class, Object::toString),
                 map(APPLICATION_JSON, Map.class, Object::toString)
         ));
@@ -114,7 +117,7 @@ public class RestDispatcherTest {
     public void shouldConsumerOk() {
         server.expect(requestTo(url)).andRespond(withSuccess().body("It works!"));
 
-        template.execute(url, GET, null, RestDispatcher.on(template, RestDispatcher.statusCode()).dispatch(
+        template.execute(url, GET, null, from(template).on(statusCode()).dispatchTo(
                 consume(HttpStatus.OK, String.class, Object::toString),
                 consume(HttpStatus.NOT_FOUND, String.class, s -> {
                     throw new AssertionError("Didn't expect 404");
@@ -127,7 +130,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.NOT_FOUND).body("Not found"));
 
         template.setErrorHandler(new PassThroughResponseErrorHandler());
-        template.execute(url, GET, null, RestDispatcher.on(template, RestDispatcher.statusCode()).dispatch(
+        template.execute(url, GET, null, from(template).on(statusCode()).dispatchTo(
                 consume(HttpStatus.OK, String.class, s -> {
                     throw new AssertionError("Didn't expect 200");
                 }),
@@ -141,7 +144,7 @@ public class RestDispatcherTest {
         server.expect(requestTo(jsonUrl))
                 .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-        template.execute(jsonUrl, GET, null, RestDispatcher.on(template, RestDispatcher.contentType()).dispatch(
+        template.execute(jsonUrl, GET, null, from(template).on(contentType()).dispatchTo(
                 consume(TEXT_PLAIN, String.class, Object::toString),
                 consume(APPLICATION_XML, String.class, Object::toString)
         ));

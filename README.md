@@ -18,6 +18,19 @@ differently with an easy to use syntax.
         <version>${riptide.versions}</version>
     </dependency>
 
+## Usage
+
+    template.execute("http://example.com", GET, null, from(template).on(statusCode()).dispatchTo(
+            consume(HttpStatus.OK, Happy.class, this::onSuccess),
+            consume(HttpStatus.NOT_FOUND, String.class, message -> {
+                throw new NotFoundException(message);
+            })
+    ));
+    
+    private void onSuccess(Happy happy) {
+        // do something with happy here...
+    }
+
 ## License
 
 Copyright [2015] Zalando SE

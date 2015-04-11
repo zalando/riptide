@@ -48,13 +48,40 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-// TODO code example here
+/**
+ * A {@link RestDispatcher} creates a {@link ResponseExtractor} that dispatches to one of several
+ * functions based on the response's attribute(s).
+ * 
+ * <p>
+ * The attribute which determined how to dispatch is choosen by a {@link Selector} an can be supplied to the 
+ * {@link org.zalando.riptide.RestDispatcher.RestDispatcherBuilder#on(Selector)} method. The most useful
+ * one are {@link #contentType()} and {@link #statusCode()}.
+ * </p>
+ * 
+ * <p>
+ * The functions are supplied via {@link Binding}s which can be constructed using the
+ * {@link Binding#consume(Object, Type, Consumer)} and
+ * {@link Binding#map(Object, Type, Function)} methods.
+ * </p>
+ * 
+ * A typical example will look like this: 
+ * <pre>
+ *    template.execute("http://...", GET, null, from(template).on(statusCode()).dispatchTo(
+ *            consume(HttpStatus.OK, Happy.class, this::onSuccess),
+ *            consume(HttpStatus.NOT_FOUND, Bad.class, bad -> {
+ *                throw new NotFoundException(bad);
+ *            })
+ *    )); 
+ * </pre>
+ * 
+ * @param <A> generic attribute type parameter
+ */
 public final class RestDispatcher<A> {
 
     private final Supplier<List<HttpMessageConverter<?>>> converters;
     private final Selector<A> selector;
 
-    private RestDispatcher(Supplier<List<HttpMessageConverter<?>>> converters, Selector<A> selector) {
+    RestDispatcher(Supplier<List<HttpMessageConverter<?>>> converters, Selector<A> selector) {
         this.converters = converters;
         this.selector = selector;
     }
@@ -72,9 +99,9 @@ public final class RestDispatcher<A> {
      * @throws IllegalArgumentException if any attribute value of the given bindings occured more than once
      */
     @SafeVarargs
-    public final <O> ResponseExtractor<ResponseEntity<O>> dispatch(Binding<A, ?, O> first,
-                                                                   Binding<A, ?, O> second,
-                                                                   Binding<A, ?, O>... rest) {
+    public final <O> ResponseExtractor<ResponseEntity<O>> dispatchTo(Binding<A, ?, O> first,
+                                                                     Binding<A, ?, O> second,
+                                                                     Binding<A, ?, O>... rest) {
         final List<Binding<A, ?, O>> bindings = Lists.asList(first, second, rest);
 
         ensureUniqueAttributeValues(bindings);
@@ -127,9 +154,12 @@ public final class RestDispatcher<A> {
         return (Binding<A, Object, O>) b;
     }
 
-    // TODO design better API here
-    public static <A> RestDispatcher<A> on(RestTemplate template, Selector<A> selector) {
-        return new RestDispatcher<>(template::getMessageConverters, selector);
+    public static RestDispatcherBuilder from(RestTemplate template) {
+        return from(template::getMessageConverters);
+    }
+    
+    public static RestDispatcherBuilder from(Supplier<List<HttpMessageConverter<?>>> converters) {
+        return new RestDispatcherBuilder(converters);
     }
 
     /**
@@ -150,4 +180,18 @@ public final class RestDispatcher<A> {
         return new StatusCodeSelector();
     }
 
+    public static final class RestDispatcherBuilder {
+    
+        private final Supplier<List<HttpMessageConverter<?>>> converters;
+    
+        RestDispatcherBuilder(Supplier<List<HttpMessageConverter<?>>> converters) {
+            this.converters = converters;
+        }
+        
+        public <A> RestDispatcher<A> on(Selector<A> selector) {
+            return new RestDispatcher<>(converters, selector);
+        }
+        
+    }
+    
 }

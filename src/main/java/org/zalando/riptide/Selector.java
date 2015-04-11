@@ -22,6 +22,7 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,7 +41,7 @@ public interface Selector<A> {
      * @param response the incoming response
      * @return an attribute based on the response which is then used to select the correct binding
      */
-    A attributeOf(ClientHttpResponse response);
+    A attributeOf(ClientHttpResponse response) throws IOException;
 
     /**
      * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.

@@ -23,6 +23,7 @@ package org.zalando.riptide;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ import java.util.Optional;
 final class ContentTypeSelector implements Selector<MediaType> {
 
     @Override
-    public MediaType attributeOf(ClientHttpResponse response) {
+    public MediaType attributeOf(ClientHttpResponse response) throws IOException {
         return response.getHeaders().getContentType();
     }
 
