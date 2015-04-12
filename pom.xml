@@ -24,7 +24,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <license.licenseName>apache_v2</license.licenseName>
     </properties>
 
     <dependencies>
@@ -77,13 +76,18 @@
                 <version>1.8</version>
                 <executions>
                     <execution>
-                        <id>first</id>
                         <goals>
                             <goal>update-file-header</goal>
                         </goals>
                         <phase>process-sources</phase>
                     </execution>
                 </executions>
+                <configuration>
+                    <licenseName>apache_v2</licenseName>
+                    <processStartTag>&#8291;&#8203;</processStartTag>
+                    <processEndTag>&#8203;&#8291;</processEndTag>
+                    <sectionDelimiter>&#8291;&#8291;</sectionDelimiter>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
