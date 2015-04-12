@@ -20,7 +20,7 @@ differently with an easy to use syntax.
 
 ## Usage
 
-    template.execute("http://example.com", GET, null, from(template).on(statusCode()).dispatchTo(
+    template.execute("http://example.com", GET, null, from(template).dispatch(statusCode(),
             consume(HttpStatus.OK, Happy.class, this::onSuccess),
             consume(HttpStatus.NOT_FOUND, String.class, message -> {
                 throw new NotFoundException(message);

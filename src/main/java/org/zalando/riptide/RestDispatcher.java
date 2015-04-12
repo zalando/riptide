@@ -65,7 +65,7 @@ import static java.util.stream.Collectors.toMap;
  * <p/>
  * A typical example will look like this:
  * <pre>
- *    template.execute("http://...", GET, null, from(template).on(statusCode()).dispatchTo(
+ *    template.execute("http://...", GET, null, from(template).dispatch(statusCode(),
  *            consume(HttpStatus.OK, Happy.class, this::onSuccess),
  *            consume(HttpStatus.NOT_FOUND, Bad.class, bad -> {
  *                throw new NotFoundException(bad);
