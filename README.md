@@ -2,9 +2,10 @@
 
 [![Tidal wave](docs/wave.jpg)](http://pixabay.com/en/wave-water-sea-tsunami-giant-wave-11061/)
 
-[![Build Status](https://travis-ci.org/whiskeysierra/riptide.svg)](https://travis-ci.org/whiskeysierra/riptide)
-[![Coverage Status](https://coveralls.io/repos/whiskeysierra/riptide/badge.png)](https://coveralls.io/r/whiskeysierra/riptide)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
+[![Build Status](https://img.shields.io/travis/whiskeysierra/riptide.svg)](https://travis-ci.org/whiskeysierra/riptide)
+[![Coverage Status](https://img.shields.io/coveralls/whiskeysierra/riptide.svg)](https://coveralls.io/r/whiskeysierra/riptide)
+[![Release](https://img.shields.io/github/release/whiskeysierra/riptide.svg)](https://github.com/whiskeysierra/riptide/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
 
 A response dispatcher for Spring's RestTemplate. Riptide adds a customizable dispatcher to
 Spring's RestTemplate that allows you to handle different status codes, content types, etc.
