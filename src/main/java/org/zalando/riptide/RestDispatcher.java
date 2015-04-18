@@ -77,7 +77,7 @@ public final class RestDispatcher {
 
     private final Supplier<List<HttpMessageConverter<?>>> converters;
 
-    RestDispatcher(Supplier<List<HttpMessageConverter<?>>> converters) {
+    private RestDispatcher(Supplier<List<HttpMessageConverter<?>>> converters) {
         this.converters = converters;
     }
 
@@ -110,10 +110,9 @@ public final class RestDispatcher {
 
             if (match.isPresent()) {
                 final Binding<A, Object, O> binding = match.get();
+                final ResponseEntity<Object> output = getOutput(response, binding);
 
-                final Object input = getOutput(response, binding);
-
-                final O body = binding.apply(input);
+                final O body = binding.apply(output);
                 return new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
             } else {
                 throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
@@ -139,10 +138,11 @@ public final class RestDispatcher {
                 format("Binding attributes have to be unique, got duplicates: %s", duplicates));
     }
 
-    private <A, I, O> I getOutput(ClientHttpResponse response, Binding<A, I, O> binding) throws java.io.IOException {
+    private <A, I, O> ResponseEntity<I> getOutput(ClientHttpResponse response, Binding<A, I, O> binding) throws java.io.IOException {
         final Type type = binding.getType();
         final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type, converters.get());
-        return extractor.extractData(response);
+        final I body = extractor.extractData(response);
+        return new ResponseEntity<I>(body, response.getHeaders(), response.getStatusCode());
     }
 
     @SuppressWarnings("unchecked")

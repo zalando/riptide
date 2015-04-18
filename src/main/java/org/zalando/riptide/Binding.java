@@ -20,19 +20,21 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeToken;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class Binding<A, I, O> implements Function<I, O> {
+public final class Binding<A, I, O> implements Function<ResponseEntity<I>, O> {
 
     private final A attribute;
     private final Type type;
-    private final Function<I, O> mapper;
+    private final Function<ResponseEntity<I>, O> mapper;
 
-    Binding(A attribute, Type type, Function<I, O> mapper) {
+    Binding(A attribute, Type type, Function<ResponseEntity<I>, O> mapper) {
         this.attribute = attribute;
         this.type = type;
         this.mapper = mapper;
@@ -47,7 +49,7 @@ public final class Binding<A, I, O> implements Function<I, O> {
     }
 
     @Override
-    public O apply(I i) {
+    public O apply(ResponseEntity<I> i) {
         return mapper.apply(i);
     }
 
@@ -58,19 +60,27 @@ public final class Binding<A, I, O> implements Function<I, O> {
         };
     }
 
-    public static <A, I> Binding<A, I, Void> consume(A attribute, ParameterizedTypeReference<I> type, Consumer<I> consumer) {
+    public static <A, I> Binding<A, I, Void> consume(A attribute, TypeToken<I> type, Consumer<ResponseEntity<I>> consumer) {
         return consume(attribute, type.getType(), consumer);
     }
 
-    public static <A, I> Binding<A, I, Void> consume(A attribute, Type type, Consumer<I> consumer) {
+    public static <A, I> Binding<A, I, Void> consume(A attribute, Class<I> type, Consumer<ResponseEntity<I>> consumer) {
         return map(attribute, type, asFunction(consumer));
     }
 
-    public static <A, I, O> Binding<A, I, O> map(A attribute, ParameterizedTypeReference<I> type, Function<I, O> mapper) {
+    public static <A, I> Binding<A, I, Void> consume(A attribute, Type type, Consumer<ResponseEntity<I>> consumer) {
+        return map(attribute, type, asFunction(consumer));
+    }
+
+    public static <A, I, O> Binding<A, I, O> map(A attribute, TypeToken<I> type, Function<ResponseEntity<I>, O> mapper) {
         return map(attribute, type.getType(), mapper);
     }
 
-    public static <A, I, O> Binding<A, I, O> map(A attribute, Type type, Function<I, O> mapper) {
+    public static <A, I, O> Binding<A, I, O> map(A attribute, Class<I> type, Function<ResponseEntity<I>, O> mapper) {
+        return new Binding<>(attribute, type, mapper);
+    }
+
+    public static <A, I, O> Binding<A, I, O> map(A attribute, Type type, Function<ResponseEntity<I>, O> mapper) {
         return new Binding<>(attribute, type, mapper);
     }
     
