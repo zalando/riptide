@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.UnknownHttpStatusCodeException;
 
 import java.io.IOException;
 

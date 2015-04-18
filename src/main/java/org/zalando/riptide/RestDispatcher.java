@@ -31,6 +31,7 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
@@ -93,7 +94,6 @@ public final class RestDispatcher {
      * @throws RestClientException      if dispatching failed, due to a missing binding
      * @throws IllegalArgumentException if any attribute value of the given bindings occured more than once
      */
-    @SafeVarargs
     public final <A, O> ResponseExtractor<ResponseEntity<O>> dispatch(Selector<A> selector,
                                                                       Binding<A, ?, O> first,
                                                                       Binding<A, ?, O> second,
@@ -138,11 +138,11 @@ public final class RestDispatcher {
                 format("Binding attributes have to be unique, got duplicates: %s", duplicates));
     }
 
-    private <A, I, O> ResponseEntity<I> getOutput(ClientHttpResponse response, Binding<A, I, O> binding) throws java.io.IOException {
+    private <A, I, O> ResponseEntity<I> getOutput(ClientHttpResponse response, Binding<A, I, O> binding) throws IOException {
         final Type type = binding.getType();
         final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type, converters.get());
         final I body = extractor.extractData(response);
-        return new ResponseEntity<I>(body, response.getHeaders(), response.getStatusCode());
+        return new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
     }
 
     @SuppressWarnings("unchecked")
