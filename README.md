@@ -26,23 +26,21 @@ differently with an easy to use syntax.
 ```java
 final Rest rest = Rest.create(new RestTemplate());
 
-rest.execute(GET, URI.create("https://api.example.com")).dispatch(series(),
-        on(SUCCESSFUL)
-                .dispatch(statusCode(),
-                        on(CREATED, Success.class).call(this::onSuccess),
-                        on(ACCEPTED, Success.class).call(this::onSuccess),
-                        anyStatusCode().call(this::warn)),
-        on(CLIENT_ERROR)
-                .dispatch(contentType(),
-                        on(PROBLEM, Problem.class).call(this::onProblem),
-                        on(APPLICATION_JSON, Problem.class).call(this::onProblem),
-                        anyContentType().call(this::fail)),
-        on(SERVER_ERROR).call(this::fail),
-        anySeries().call(this::warn));
-
-private void onSuccess(ResponseEntity<Success> entity) {
-    // TODO return something?
-}
+return rest.execute(GET, URI.create("https://api.example.com"))
+        .dispatch(series(),
+                on(SUCCESSFUL)
+                        .dispatch(statusCode(),
+                                on(CREATED, Success.class).capture(),
+                                on(ACCEPTED, Success.class).capture(),
+                                anyStatusCode().call(this::warn)),
+                on(CLIENT_ERROR)
+                        .dispatch(contentType(),
+                                on(PROBLEM, Problem.class).call(this::onProblem),
+                                on(APPLICATION_JSON, Problem.class).call(this::onProblem),
+                                anyContentType().call(this::fail)),
+                on(SERVER_ERROR).call(this::fail),
+                anySeries().call(this::warn))
+        .unpack(Success.class).orElse(null);
 
 private void onProblem(Problem problem) {
     throw new ProblemException(problem);
