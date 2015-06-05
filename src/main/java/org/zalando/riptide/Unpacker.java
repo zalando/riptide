@@ -20,30 +20,14 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.ResponseEntity;
+import java.util.Optional;
 
-import java.util.function.Consumer;
-
-public final class CallableCondition<A, I> {
-
-    public interface EntityConsumer<T> extends Consumer<T> {
-        
-    }
-
-    public interface ResponseConsumer<T> extends Consumer<ResponseEntity<T>> {
-        
-    }
+public final class Unpacker {
     
-    public Binding<A> call(EntityConsumer<I> consumer) {
+    // TODO unpackNow with return type T?
+
+    public <T> Optional<T> unpack(Class<T> type) {
         throw new UnsupportedOperationException();
     }
 
-    public Binding<A> call(ResponseConsumer<I> consumer) {
-        throw new UnsupportedOperationException();
-    }
-    
-    public Binding<A> capture() {
-        throw new UnsupportedOperationException();
-    }
-    
 }

@@ -23,8 +23,8 @@ package org.zalando.riptide;
 public final class Dispatcher {
 
     @SafeVarargs
-    public final <A> void dispatch(Selector<A> selector, Binding<A>... binding) {
-
+    public final <A> Unpacker dispatch(Selector<A> selector, Binding<A>... binding) {
+        throw new UnsupportedOperationException();
     }
 
 }

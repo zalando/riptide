@@ -20,10 +20,10 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.logging.Logger;
 
@@ -44,31 +44,28 @@ import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.statusCode;
 
 public final class Usage {
-    
+
     private static final Logger LOG = Logger.getLogger(Usage.class.getName());
 
     private final Rest rest = Rest.create(new RestTemplate());
 
-    public void usage() {
-        rest.execute(GET, URI.create("https://api.example.com")).dispatch(series(),
-                on(SUCCESSFUL)
-                        .dispatch(statusCode(),
-                                on(CREATED, Success.class).call(this::onSuccess),
-                                on(ACCEPTED, Success.class).call(this::onSuccess),
-                                anyStatusCode().call(this::warn)),
-                on(CLIENT_ERROR)
-                        .dispatch(contentType(),
-                                on(PROBLEM, Problem.class).call(this::onProblem),
-                                on(APPLICATION_JSON, Problem.class).call(this::onProblem),
-                                anyContentType().call(this::fail)),
-                on(SERVER_ERROR).call(this::fail),
-                anySeries().call(this::warn));
-        
-        // TODO what if I need the success element here now to return it?
-    }
-
-    private void onSuccess(ResponseEntity<Success> entity) {
-        // TODO return something?
+    @Nullable
+    public Success usage() throws ProblemException {
+        return rest.execute(GET, URI.create("https://api.example.com"))
+                .dispatch(series(),
+                        on(SUCCESSFUL)
+                                .dispatch(statusCode(),
+                                        on(CREATED, Success.class).capture(),
+                                        on(ACCEPTED, Success.class).capture(),
+                                        anyStatusCode().call(this::warn)),
+                        on(CLIENT_ERROR)
+                                .dispatch(contentType(),
+                                        on(PROBLEM, Problem.class).call(this::onProblem),
+                                        on(APPLICATION_JSON, Problem.class).call(this::onProblem),
+                                        anyContentType().call(this::fail)),
+                        on(SERVER_ERROR).call(this::fail),
+                        anySeries().call(this::warn))
+                .unpack(Success.class).orElse(null);
     }
 
     private void onProblem(Problem problem) {
