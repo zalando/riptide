@@ -28,27 +28,27 @@ import java.util.function.Consumer;
 
 public class Binding<A> {
 
-    public static <A> DispatchingBinding<A> on(A attribute) {
+    public static <A> DispatchableCondition<A> on(A attribute) {
         throw new UnsupportedOperationException();
     }
 
-    public static <A, I> PerformingBinding<A, I> on(A attribute, Class<I> type) {
+    public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
         throw new UnsupportedOperationException();
     }
 
-    public static <A> AnyBinding<A> any(Class<A> type) {
+    public static <A> AnyCondition<A> any(Class<A> type) {
         throw new UnsupportedOperationException();
     }
     
-    public static AnyBinding<HttpStatus> anyStatusCode() {
+    public static AnyCondition<HttpStatus> anyStatusCode() {
         return any(HttpStatus.class);
     }
     
-    public static AnyBinding<HttpStatus.Series> anySeries() {
+    public static AnyCondition<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
     }
     
-    public static AnyBinding<MediaType> anyContentType() {
+    public static AnyCondition<MediaType> anyContentType() {
         return any(MediaType.class);
     }
 

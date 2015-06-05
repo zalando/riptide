@@ -24,7 +24,7 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.function.Consumer;
 
-public class AnyBinding<A> extends Binding<A> {
+public final class AnyCondition<A> {
 
     public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
         throw new UnsupportedOperationException();

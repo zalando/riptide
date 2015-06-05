@@ -20,23 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.function.Consumer;
 
-public class PerformingBinding<A, I> extends Binding<A> {
+public final class DispatchableCondition<A> {
 
-    public interface EntityConsumer<T> extends Consumer<T> {
-    }
-
-    public interface ResponseConsumer<T> extends Consumer<ResponseEntity<T>> {
-    }
-
-    public Binding<A> call(EntityConsumer<I> consumer) {
+    public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
         throw new UnsupportedOperationException();
     }
 
-    public Binding<A> call(ResponseConsumer<I> consumer) {
+    @SafeVarargs
+    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... binding) {
         throw new UnsupportedOperationException();
     }
+
 }
