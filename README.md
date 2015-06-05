@@ -14,47 +14,47 @@ differently with an easy to use syntax.
 ## Dependency
 
 ```xml
-    <dependency>
-        <groupId>org.zalando</groupId>
-        <artifactId>riptide</artifactId>
-        <version>${riptide.version}</version>
-    </dependency>
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
 ```
 
 ## Usage
 
 ```java
-    final Rest rest = Rest.create(new RestTemplate());
+final Rest rest = Rest.create(new RestTemplate());
 
-    rest.execute(GET, URI.create("https://api.example.com")).dispatch(series(),
-            on(SUCCESSFUL)
-                    .dispatch(statusCode(),
-                            on(CREATED, Success.class).call(this::onSuccess),
-                            on(ACCEPTED, Success.class).call(this::onSuccess),
-                            anyStatusCode().call(this::warn)),
-            on(CLIENT_ERROR)
-                    .dispatch(contentType(),
-                            on(PROBLEM, Problem.class).call(this::onProblem),
-                            on(APPLICATION_JSON, Problem.class).call(this::onProblem),
-                            anyContentType().call(this::fail)),
-            on(SERVER_ERROR).call(this::fail),
-            anySeries().call(this::warn));
+rest.execute(GET, URI.create("https://api.example.com")).dispatch(series(),
+        on(SUCCESSFUL)
+                .dispatch(statusCode(),
+                        on(CREATED, Success.class).call(this::onSuccess),
+                        on(ACCEPTED, Success.class).call(this::onSuccess),
+                        anyStatusCode().call(this::warn)),
+        on(CLIENT_ERROR)
+                .dispatch(contentType(),
+                        on(PROBLEM, Problem.class).call(this::onProblem),
+                        on(APPLICATION_JSON, Problem.class).call(this::onProblem),
+                        anyContentType().call(this::fail)),
+        on(SERVER_ERROR).call(this::fail),
+        anySeries().call(this::warn));
 
-    private void onSuccess(ResponseEntity<Success> entity) {
-        // TODO return something?
-    }
+private void onSuccess(ResponseEntity<Success> entity) {
+    // TODO return something?
+}
 
-    private void onProblem(Problem problem) {
-        throw new ProblemException(problem);
-    }
+private void onProblem(Problem problem) {
+    throw new ProblemException(problem);
+}
 
-    private void warn(ClientHttpResponse response) {
-        LOG.warning("Unexpected response: " + response);
-    }
+private void warn(ClientHttpResponse response) {
+    LOG.warning("Unexpected response: " + response);
+}
 
-    private void fail(ClientHttpResponse response) {
-        throw new AssertionError("Unexpected response: " + response);
-    }
+private void fail(ClientHttpResponse response) {
+    throw new AssertionError("Unexpected response: " + response);
+}
 ```
 
 ## License
