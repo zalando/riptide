@@ -34,10 +34,10 @@ import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.zalando.riptide.Binding.anyContentType;
-import static org.zalando.riptide.Binding.anySeries;
-import static org.zalando.riptide.Binding.anyStatusCode;
-import static org.zalando.riptide.Binding.on;
+import static org.zalando.riptide.Conditions.anyContentType;
+import static org.zalando.riptide.Conditions.anySeries;
+import static org.zalando.riptide.Conditions.anyStatusCode;
+import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.MediaTypes.PROBLEM;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
@@ -63,6 +63,8 @@ public final class Usage {
                                 anyContentType().call(this::fail)),
                 on(SERVER_ERROR).call(this::fail),
                 anySeries().call(this::warn));
+        
+        // TODO what if I need the success element here now to return it?
     }
 
     private void onSuccess(ResponseEntity<Success> entity) {

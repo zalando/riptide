@@ -20,36 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
+public final class Binding<A> {
 
-import java.util.function.Consumer;
-
-public class Binding<A> {
-
-    public static <A> DispatchableCondition<A> on(A attribute) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A> AnyCondition<A> any(Class<A> type) {
-        throw new UnsupportedOperationException();
-    }
+    private final A attribute = null;
     
-    public static AnyCondition<HttpStatus> anyStatusCode() {
-        return any(HttpStatus.class);
-    }
-    
-    public static AnyCondition<HttpStatus.Series> anySeries() {
-        return any(HttpStatus.Series.class);
-    }
-    
-    public static AnyCondition<MediaType> anyContentType() {
-        return any(MediaType.class);
-    }
-
 }
