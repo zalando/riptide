@@ -21,19 +21,22 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
 
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 public class PerformingBinding<A, I> extends Binding<A> {
+
+    public interface EntityConsumer<T> extends Consumer<T> {
+    }
+
+    public interface ResponseConsumer<T> extends Consumer<ResponseEntity<T>> {
+    }
 
     public Binding<A> call(EntityConsumer<I> consumer) {
         throw new UnsupportedOperationException();
     }
 
-    public Binding<A> call(ResponseConsumer consumer) {
+    public Binding<A> call(ResponseConsumer<I> consumer) {
         throw new UnsupportedOperationException();
     }
-
 }

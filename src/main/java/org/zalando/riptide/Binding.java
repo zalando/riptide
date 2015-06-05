@@ -20,6 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.function.Consumer;
@@ -34,8 +36,20 @@ public class Binding<A> {
         throw new UnsupportedOperationException();
     }
 
-    public static <A> AnyBinding<A> any() {
+    public static <A> AnyBinding<A> any(Class<A> type) {
         throw new UnsupportedOperationException();
+    }
+    
+    public static AnyBinding<HttpStatus> anyStatusCode() {
+        return any(HttpStatus.class);
+    }
+    
+    public static AnyBinding<HttpStatus.Series> anySeries() {
+        return any(HttpStatus.Series.class);
+    }
+    
+    public static AnyBinding<MediaType> anyContentType() {
+        return any(MediaType.class);
     }
 
 }

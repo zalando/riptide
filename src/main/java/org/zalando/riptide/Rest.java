@@ -38,15 +38,15 @@ public class Rest {
         return null;
     }
 
+    Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
+        return null;
+    }
+
     Dispatcher execute(HttpMethod method, URI url, Object entity) {
         return null;
     }
 
-    Dispatcher execute(HttpMethod method, URI url, Object entity, HttpHeaders headers) {
-        return null;
-    }
-
-    Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
+    Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
         return null;
     }
 
