@@ -20,22 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.ResponseEntity;
 
 import java.util.function.Consumer;
 
-public class Binding<A> {
-
-    public static <A> DispatchingBinding<A> on(A attribute) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A, I> PerformingBinding<A, I> on(A attribute, Class<I> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A> AnyBinding<A> any() {
-        throw new UnsupportedOperationException();
-    }
-
+public interface ResponseConsumer<T> extends Consumer<ResponseEntity<T>> {
 }

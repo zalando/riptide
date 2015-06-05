@@ -51,7 +51,7 @@ public interface Selector<A> {
      * @param <O> the generic output type parameter
      * @return an optional binding match, if found
      */
-    default <O> Optional<Binding<A, ?, O>> select(A attribute, Map<A, Binding<A, ?, O>> bindings) {
+    default <O> Optional<Binding<A>> select(A attribute, Map<A, Binding<A>> bindings) {
         return Optional.ofNullable(bindings.get(attribute));
     }
 

@@ -24,17 +24,9 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.function.Consumer;
 
-public class Binding<A> {
+public class AnyBinding<A> extends Binding<A> {
 
-    public static <A> DispatchingBinding<A> on(A attribute) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A, I> PerformingBinding<A, I> on(A attribute, Class<I> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A> AnyBinding<A> any() {
+    public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
         throw new UnsupportedOperationException();
     }
 

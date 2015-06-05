@@ -24,17 +24,14 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.function.Consumer;
 
-public class Binding<A> {
+public class DispatchingBinding<A> extends Binding<A> {
 
-    public static <A> DispatchingBinding<A> on(A attribute) {
+    public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
         throw new UnsupportedOperationException();
     }
 
-    public static <A, I> PerformingBinding<A, I> on(A attribute, Class<I> type) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static <A> AnyBinding<A> any() {
+    @SafeVarargs
+    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... binding) {
         throw new UnsupportedOperationException();
     }
 

@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * @see {@link RestDispatcher#contentType()}
+ * @see {@link Selectors#contentType()}
  */
 final class ContentTypeSelector implements Selector<MediaType> {
 
@@ -38,7 +38,7 @@ final class ContentTypeSelector implements Selector<MediaType> {
     }
 
     @Override
-    public <O> Optional<Binding<MediaType, ?, O>> select(MediaType contentType, Map<MediaType, Binding<MediaType, ?, O>> bindings) {
+    public <O> Optional<Binding<MediaType>> select(MediaType contentType, Map<MediaType, Binding<MediaType>> bindings) {
         // TODO find best match, not first
         return bindings.entrySet().stream()
                 .filter(e -> e.getKey().includes(contentType))
