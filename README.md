@@ -13,14 +13,17 @@ differently with an easy to use syntax.
 
 ## Dependency
 
+```xml
     <dependency>
         <groupId>org.zalando</groupId>
         <artifactId>riptide</artifactId>
         <version>${riptide.version}</version>
     </dependency>
+```
 
 ## Usage
 
+```java
     final Rest rest = Rest.create(new RestTemplate());
 
     rest.execute(GET, URI.create("https://api.example.com")).dispatch(series(),
@@ -52,6 +55,7 @@ differently with an easy to use syntax.
     private void fail(ClientHttpResponse response) {
         throw new AssertionError("Unexpected response: " + response);
     }
+```
 
 ## License
 
