@@ -57,15 +57,17 @@ public final class SeriesDispatchTest {
     
     private final URI url = URI.create("https://api.example.com");
 
-    private final RestTemplate template = new RestTemplate();
-    private final Rest unit = Rest.create(template);
-    
-    private final MockRestServiceServer server = MockRestServiceServer.createServer(template);
+    private final Rest unit;
+    private final MockRestServiceServer server;
 
     private final HttpStatus status;
 
     public SeriesDispatchTest(HttpStatus status) {
         this.status = status;
+        final RestTemplate template = new RestTemplate();
+        template.setErrorHandler(new PassThroughResponseErrorHandler());
+        this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.create(template);
     }
 
     @Parameterized.Parameters(name = "{0}")

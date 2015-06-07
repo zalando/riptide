@@ -20,5 +20,36 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.net.URI;
+
 final class Problem {
+
+    private final URI type;
+    private final String title;
+    private final int status;
+    private final String detail;
+
+    private Problem(URI type, String title, int status, String detail) {
+        this.type = type;
+        this.title = title;
+        this.status = status;
+        this.detail = detail;
+    }
+
+    public URI getType() {
+        return type;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
 }

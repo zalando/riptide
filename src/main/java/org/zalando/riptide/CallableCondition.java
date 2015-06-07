@@ -26,6 +26,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class CallableCondition<A, I> implements Capturer<A> {
+    
+    public interface EntityConsumer<T> extends Consumer<T> {
+        
+    }
+    
+    public interface EntityFunction<F, T> extends Function<F, T> {
+        
+    }
 
     public interface ResponseEntityConsumer<T> extends Consumer<ResponseEntity<T>> {
 
@@ -35,7 +43,7 @@ public final class CallableCondition<A, I> implements Capturer<A> {
 
     }
 
-    public Binding<A> call(Consumer<I> consumer) {
+    public Binding<A> call(EntityConsumer<I> consumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -43,11 +51,11 @@ public final class CallableCondition<A, I> implements Capturer<A> {
         throw new UnsupportedOperationException();
     }
 
-    public <O> CapturableBinding<O> call(Function<I, O> function) {
+    public Capturer<A> map(EntityFunction<I, ?> function) {
         throw new UnsupportedOperationException();
     }
 
-    public <O> CapturableBinding<A> call(ResponseEntityFunction<I, O> function) {
+    public Capturer<A> map(ResponseEntityFunction<I, ?> function) {
         throw new UnsupportedOperationException();
     }
 

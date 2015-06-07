@@ -20,11 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-public final class CapturableBinding<A> implements Binding<A>, Capturer<A> {
+final class ErrorException extends RuntimeException {
 
-    @Override
-    public Binding<A> capture() {
-        throw new UnsupportedOperationException();
+    private final Error error;
+
+    public ErrorException(Error error) {
+        this.error = error;
     }
-    
+
+    public Error getError() {
+        return error;
+    }
+
 }

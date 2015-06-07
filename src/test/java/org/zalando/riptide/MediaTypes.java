@@ -24,6 +24,8 @@ import org.springframework.http.MediaType;
 
 final class MediaTypes {
 
+    static final MediaType SUCCESS = MediaType.parseMediaType("application/success+json");
+    static final MediaType ERROR = MediaType.parseMediaType("application/vnd.error+json");
     static final MediaType PROBLEM = MediaType.parseMediaType("application/problem+json");
 
 }

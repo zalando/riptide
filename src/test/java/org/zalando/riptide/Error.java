@@ -20,5 +20,24 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-final class Account {
+import java.net.URI;
+
+final class Error {
+    
+    private final String message;
+    private final URI path;
+
+    private Error(String message, URI path) {
+        this.message = message;
+        this.path = path;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public URI getPath() {
+        return path;
+    }
+
 }

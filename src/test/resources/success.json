@@ -1,5 +1,3 @@
-package org.zalando.riptide;
-
 /*
  * ⁣​
  * riptide
@@ -19,17 +17,6 @@ package org.zalando.riptide;
  * limitations under the License.
  * ​⁣
  */
-
-final class Success {
-    
-    private final boolean happy;
-
-    Success(boolean happy) {
-        this.happy = happy;
-    }
-
-    public boolean isHappy() {
-        return happy;
-    }
-
+{
+  "happy": true
 }
