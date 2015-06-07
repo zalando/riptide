@@ -85,6 +85,7 @@ public final class StatusDispatchTest {
         
         @SuppressWarnings("unchecked")
         final Binding<HttpStatus>[] bindings = Stream.of(HttpStatus.values())
+                .filter(s -> s != MOVED_TEMPORARILY) // duplicate with FOUND
                 .map(status -> on(status).call(verifier))
                 .toArray(Binding[]::new);
 

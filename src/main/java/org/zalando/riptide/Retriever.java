@@ -22,16 +22,29 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class Retriever {
+    
+    private final Object value;
+
+    public Retriever(@Nullable Object value) {
+        this.value = value;
+    }
 
     public <T> Optional<T> retrieve(Class<T> type) {
         return retrieve(TypeToken.of(type));
     }
 
     public <T> Optional<T> retrieve(TypeToken<T> type) {
-        throw new UnsupportedOperationException();
+        return Optional.ofNullable(value)
+                .filter(v -> type.isAssignableFrom(v.getClass()))
+                .map(v -> {
+                    @SuppressWarnings("unchecked") 
+                    final T t = (T) v;
+                    return t;
+                });
     }
 
 }

@@ -26,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
-public class Rest {
+public final class Rest {
 
     private final RestTemplate template;
 
@@ -35,19 +35,21 @@ public class Rest {
     }
 
     Dispatcher execute(HttpMethod method, URI url) {
-        return null;
+        return new Dispatcher(template, method, url, request -> {});
     }
 
     Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
-        return null;
+        return new Dispatcher(template, method, url, request -> request.getHeaders().putAll(headers));
     }
 
     Dispatcher execute(HttpMethod method, URI url, Object entity) {
-        return null;
+        // TODO get access to RestTemplate.HttpEntityRequestCallback
+        return new Dispatcher(template, method, url, request -> {});
     }
 
     Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
-        return null;
+        // TODO get access to RestTemplate.HttpEntityRequestCallback
+        return new Dispatcher(template, method, url, request -> {});
     }
 
     public static Rest create(RestTemplate template) {

@@ -24,18 +24,20 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.Optional;
+
 public final class Conditions {
 
     public static <A> DispatchableCondition<A> on(A attribute) {
-        throw new UnsupportedOperationException();
+        return new DispatchableCondition<>(Optional.of(attribute));
     }
 
     public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
-        return on(attribute, TypeToken.of(type));
+        return new CallableCondition<>();
     }
 
     public static <A, I> CallableCondition<A, I> on(A attribute, TypeToken<I> type) {
-        throw new UnsupportedOperationException();
+        return new CallableCondition<>();
     }
 
     // TODO add javadoc: this is only meant to be used to write your own any* methods
@@ -45,7 +47,7 @@ public final class Conditions {
 
     // TODO add javadoc: this is only meant to be used to write your own any* methods
     public static <A> DispatchableCondition<A> any(TypeToken<A> type) {
-        throw new UnsupportedOperationException();
+        return new DispatchableCondition<>(Optional.<A>empty());
     }
 
     public static DispatchableCondition<HttpStatus.Series> anySeries() {

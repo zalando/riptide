@@ -64,6 +64,7 @@ public final class StatusCodeDispatchTest {
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
         return Stream.of(HttpStatus.values())
+                .filter(s -> s != HttpStatus.MOVED_TEMPORARILY)
                 .map(HttpStatus::value)
                 .map(s -> new Object[]{s})
                 .collect(toList());
@@ -84,6 +85,7 @@ public final class StatusCodeDispatchTest {
 
         @SuppressWarnings("unchecked")
         final Binding<Integer>[] bindings = Stream.of(HttpStatus.values())
+                .filter(s -> s != HttpStatus.MOVED_TEMPORARILY)
                 .map(HttpStatus::value)
                 .map(status -> on(status).call(verifier))
                 .toArray(Binding[]::new);

@@ -20,6 +20,14 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
+
 public interface Binding<A> {
 
+    // TODO Optional<A>?
+    A getAttribute();
+    
+    Object execute(ClientHttpResponse response, Iterable<HttpMessageConverter<?>> converters);
+    
 }

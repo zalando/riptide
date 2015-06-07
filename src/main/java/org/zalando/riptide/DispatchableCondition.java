@@ -21,13 +21,32 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class DispatchableCondition<A> {
+    
+    private final Optional<A> attribute;
+
+    public DispatchableCondition(Optional<A> attribute) {
+        this.attribute = attribute;
+    }
 
     public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
-        throw new UnsupportedOperationException();
+        return new Binding<A>() {
+            @Override
+            public A getAttribute() {
+                return attribute.orElse(null);
+            }
+
+            @Override
+            public Object execute(ClientHttpResponse response, Iterable<HttpMessageConverter<?>> converters) {
+                consumer.accept(response);
+                return null;
+            }
+        };
     }
 
     @SafeVarargs
