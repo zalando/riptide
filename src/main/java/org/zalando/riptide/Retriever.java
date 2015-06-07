@@ -48,7 +48,12 @@ public final class Retriever {
                 });
     }
     
-    // TODO document
+    /**
+     * Convenience method for {@code retrieve(ClientHttpResponse.class)}.
+     * 
+     * @return optional response, present only if successfully captured
+     * @see #retrieve(Class) 
+     */
     public Optional<ClientHttpResponse> retrieveResponse() {
         return retrieve(ClientHttpResponse.class);
     }
