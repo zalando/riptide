@@ -66,7 +66,23 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     }
 
     public Capturer<A> map(EntityFunction<I, ?> function) {
-        throw new UnsupportedOperationException();
+        return new Capturer<A>() {
+            @Override
+            public Binding<A> capture() {
+                return new Binding<A>() {
+                    @Override
+                    public A getAttribute() {
+                        return attribute;
+                    }
+
+                    @Override
+                    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                        final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+                        return function.apply(body);                        
+                    }
+                };
+            }
+        };
     }
 
     public Capturer<A> map(ResponseEntityFunction<I, ?> function) {

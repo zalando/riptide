@@ -45,14 +45,14 @@ import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
-public final class CaptureTest {
+public final class MapTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public CaptureTest() {
+    public MapTest() {
         final RestTemplate template = new RestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
@@ -63,24 +63,25 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCapture() {
+    public void shouldMapEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final AccountRrepresentation account = unit.execute(GET, url)
+        final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRrepresentation.class).capture(),
+                        on(OK, AccountRrepresentation.class).map(this::build).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(AccountRrepresentation.class).get();
-
+                .retrieve(Account.class).get();
+        
         assertThat(account.getId(), is("1234567890"));
+        assertThat(account.getRevision(), is("fake"));
         assertThat(account.getName(), is("Acme Corporation"));
     }
-
+    
     @Test
-    public void shouldCaptureCall() {
+    public void shouldMapResponseEntity() {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();
@@ -101,6 +102,10 @@ public final class CaptureTest {
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is(revision));
         assertThat(account.getName(), is("Acme Corporation"));
+    }
+    
+    private Account build(AccountRrepresentation account) {
+        return new Account(account.getId(), "fake", account.getName());
     }
 
     private Account extract(ResponseEntity<AccountRrepresentation> entity) {
