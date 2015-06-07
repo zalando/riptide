@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 final class Propagator {
-    
+
     // TODO make sure this list stays up to date
     private final List<HttpMessageConverter<?>> converters;
 
@@ -46,22 +46,23 @@ final class Propagator {
 
     @SafeVarargs
     final <A> Object propagate(ClientHttpResponse response, Selector<A> selector, Binding<A>... bindings) throws IOException {
-        final A attribute = selector.attributeOf(response);
+        final Optional<A> attribute = selector.attributeOf(response);
 
-        final Map<A, Binding<A>> index = Stream.of(bindings)
+        final Map<Optional<A>, Binding<A>> index = Stream.of(bindings)
                 // TODO improve exception message for duplicate key
                 .collect(toMap(Binding::getAttribute, identity()));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
-        
+        final Optional<A> none = Optional.empty();
+
         if (match.isPresent()) {
             final Binding<A> binding = match.get();
             return binding.execute(response, converters);
-        } else if (index.containsKey(null)) { // TODO find better special key? e.g. Optional.empty()?
-            return index.get(null).execute(response, converters);
+        } else if (index.containsKey(none)) {
+            return index.get(none).execute(response, converters);
         } else {
             throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
-                                    Stream.of(bindings).map(Binding::getAttribute).collect(toList())));
+                    Stream.of(bindings).map(Binding::getAttribute).collect(toList())));
         }
     }
 

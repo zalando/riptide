@@ -28,6 +28,7 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public final class CallableCondition<A, I> implements Capturer<A> {
 
@@ -42,8 +43,8 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     public Binding<A> call(EntityConsumer<I> consumer) {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute;
+            public Optional<A> getAttribute() {
+                return Optional.of(attribute);
             }
 
             @Override
@@ -58,8 +59,8 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     public Binding<A> call(ResponseEntityConsumer<I> consumer) {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute;
+            public Optional<A> getAttribute() {
+                return Optional.of(attribute);
             }
 
             @Override
@@ -77,8 +78,8 @@ public final class CallableCondition<A, I> implements Capturer<A> {
             public Binding<A> capture() {
                 return new Binding<A>() {
                     @Override
-                    public A getAttribute() {
-                        return attribute;
+                    public Optional<A> getAttribute() {
+                        return Optional.of(attribute);
                     }
 
                     @Override
@@ -97,8 +98,8 @@ public final class CallableCondition<A, I> implements Capturer<A> {
             public Binding<A> capture() {
                 return new Binding<A>() {
                     @Override
-                    public A getAttribute() {
-                        return attribute;
+                    public Optional<A> getAttribute() {
+                        return Optional.of(attribute);
                     }
 
                     @Override
@@ -115,8 +116,8 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     public Binding<A> capture() {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute;
+            public Optional<A> getAttribute() {
+                return Optional.of(attribute);
             }
 
             @Override

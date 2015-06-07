@@ -40,8 +40,8 @@ public final class DispatchableCondition<A> {
     public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute.orElse(null);
+            public Optional<A> getAttribute() {
+                return attribute;
             }
 
             @Override
@@ -58,8 +58,8 @@ public final class DispatchableCondition<A> {
             public Binding<A> capture() {
                 return new Binding<A>() {
                     @Override
-                    public A getAttribute() {
-                        return attribute.orElse(null);
+                    public Optional<A> getAttribute() {
+                        return attribute;
                     }
 
                     @Override
@@ -74,8 +74,8 @@ public final class DispatchableCondition<A> {
     public Binding<A> capture() {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute.orElse(null);
+            public Optional<A> getAttribute() {
+                return attribute;
             }
 
             @Override
@@ -89,8 +89,8 @@ public final class DispatchableCondition<A> {
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
         return new Binding<A>() {
             @Override
-            public A getAttribute() {
-                return attribute.orElse(null);
+            public Optional<A> getAttribute() {
+                return attribute;
             }
 
             @Override

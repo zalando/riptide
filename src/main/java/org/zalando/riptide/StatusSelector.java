@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * @see Selectors#status()
@@ -31,8 +32,8 @@ import java.io.IOException;
 final class StatusSelector implements Selector<HttpStatus> {
 
     @Override
-    public HttpStatus attributeOf(ClientHttpResponse response) throws IOException {
-        return response.getStatusCode();
+    public Optional<HttpStatus> attributeOf(ClientHttpResponse response) throws IOException {
+        return Optional.of(response.getStatusCode());
     }
 
 }

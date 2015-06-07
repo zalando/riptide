@@ -25,11 +25,11 @@ import org.springframework.http.converter.HttpMessageConverter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface Binding<A> {
 
-    // TODO Optional<A>?
-    A getAttribute();
+    Optional<A> getAttribute();
     
     Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
     
