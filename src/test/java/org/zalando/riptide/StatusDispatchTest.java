@@ -75,22 +75,20 @@ public final class StatusDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        @SuppressWarnings("unchecked")
-        final Binding<HttpStatus>[] bindings = Stream.of(HttpStatus.values())
-                .map(status -> on(status).call(verify(status)))
-                .toArray(Binding[]::new);
-
-        unit.execute(GET, url).dispatch(status(), bindings);
-    }
-    
-    private Consumer<ClientHttpResponse> verify(HttpStatus status) {
-        return response -> {
+        final Consumer<ClientHttpResponse> verifier = response -> {
             try {
                 assertThat(response.getStatusCode(), is(status));
             } catch (IOException e) {
                 throw new AssertionError(e);
             }
         };
+        
+        @SuppressWarnings("unchecked")
+        final Binding<HttpStatus>[] bindings = Stream.of(HttpStatus.values())
+                .map(status -> on(status).call(verifier))
+                .toArray(Binding[]::new);
+
+        unit.execute(GET, url).dispatch(status(), bindings);
     }
 
 }

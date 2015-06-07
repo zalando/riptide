@@ -74,23 +74,21 @@ public final class StatusCodeDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
 
-        @SuppressWarnings("unchecked")
-        final Binding<Integer>[] bindings = Stream.of(HttpStatus.values())
-                .map(HttpStatus::value)
-                .map(status -> on(status).call(verify(status)))
-                .toArray(Binding[]::new);
-
-        unit.execute(GET, url).dispatch(statusCode(), bindings);
-    }
-    
-    private Consumer<ClientHttpResponse> verify(int status) {
-        return response -> {
+        final Consumer<ClientHttpResponse> verifier = response -> {
             try {
                 assertThat(response.getRawStatusCode(), is(status));
             } catch (IOException e) {
                 throw new AssertionError(e);
             }
         };
+
+        @SuppressWarnings("unchecked")
+        final Binding<Integer>[] bindings = Stream.of(HttpStatus.values())
+                .map(HttpStatus::value)
+                .map(status -> on(status).call(verifier))
+                .toArray(Binding[]::new);
+
+        unit.execute(GET, url).dispatch(statusCode(), bindings);
     }
 
 }
