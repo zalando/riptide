@@ -88,6 +88,9 @@ public final class DispatchableCondition<A> {
     @SafeVarargs
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
         return new Binding<A>() {
+
+            private final Propagator propagator = new Propagator();
+
             @Override
             public Optional<A> getAttribute() {
                 return attribute;
@@ -95,8 +98,9 @@ public final class DispatchableCondition<A> {
 
             @Override
             public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                return new Propagator(converters).propagate(response, selector, bindings);
+                return propagator.propagate(response, converters, selector, bindings);
             }
+            
         };
     }
 

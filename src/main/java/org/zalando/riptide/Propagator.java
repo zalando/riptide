@@ -37,15 +37,10 @@ import static java.util.stream.Collectors.toMap;
 
 final class Propagator {
 
-    // TODO make sure this list stays up to date
-    private final List<HttpMessageConverter<?>> converters;
-
-    Propagator(List<HttpMessageConverter<?>> converters) {
-        this.converters = converters;
-    }
-
     @SafeVarargs
-    final <A> Object propagate(ClientHttpResponse response, Selector<A> selector, Binding<A>... bindings) throws IOException {
+    final <A> Object propagate(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
+                               Selector<A> selector, Binding<A>... bindings) throws IOException {
+        
         final Optional<A> attribute = selector.attributeOf(response);
 
         final Map<Optional<A>, Binding<A>> index = Stream.of(bindings)

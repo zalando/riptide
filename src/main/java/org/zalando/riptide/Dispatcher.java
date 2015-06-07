@@ -32,6 +32,7 @@ public final class Dispatcher {
     private final HttpMethod method;
     private final URI url;
     private final RequestCallback request;
+    private final Propagator propagator = new Propagator();
 
     public Dispatcher(RestTemplate template, HttpMethod method, URI url, RequestCallback request) {
         this.template = template;
@@ -43,7 +44,7 @@ public final class Dispatcher {
     @SafeVarargs
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
         final Object value = template.execute(url, method, request, response -> {
-            return new Propagator(template.getMessageConverters()).propagate(response, selector, bindings);
+            return propagator.propagate(response, template.getMessageConverters(), selector, bindings);
         });
 
         return new Retriever(value);
