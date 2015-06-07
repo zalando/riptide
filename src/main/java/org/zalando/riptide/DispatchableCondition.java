@@ -70,10 +70,34 @@ public final class DispatchableCondition<A> {
             }
         };
     }
+    
+    public Binding<A> capture() {
+        return new Binding<A>() {
+            @Override
+            public A getAttribute() {
+                return attribute.orElse(null);
+            }
+
+            @Override
+            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                return response;
+            }
+        };
+    }
 
     @SafeVarargs
-    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... binding) {
-        throw new UnsupportedOperationException();
+    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
+        return new Binding<A>() {
+            @Override
+            public A getAttribute() {
+                return attribute.orElse(null);
+            }
+
+            @Override
+            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                return new Propagator(converters).propagate(response, selector, bindings);
+            }
+        };
     }
 
 }

@@ -21,6 +21,7 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +37,7 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -63,7 +65,24 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCapture() {
+    public void shouldCaptureResponse() throws IOException {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+        
+        final ClientHttpResponse response = unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK).capture(),
+                        anyStatus().call(this::fail))
+                .retrieveResponse().get();
+        
+        assertThat(response.getStatusCode(), is(OK));
+        assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
+    }
+    
+    @Test
+    public void shouldCaptureEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -80,7 +99,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCaptureCall() {
+    public void shouldCaptureMappedEntity() {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();

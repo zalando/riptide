@@ -20,20 +20,83 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.URI;
+
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Conditions.anyStatus;
+import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Selectors.status;
 
 public final class AnyDispatchTest {
 
-    @Test
-    public void shouldRejectMultipleAnys() {
-        fail("Not yet implemented");
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+
+    private final URI url = URI.create("http://localhost");
+
+    private final Rest unit;
+    private final MockRestServiceServer server;
+
+    public AnyDispatchTest() {
+        final RestTemplate template = new RestTemplate();
+        template.setErrorHandler(new PassThroughResponseErrorHandler());
+        this.unit = Rest.create(template);
+        this.server = MockRestServiceServer.createServer(template);
     }
     
     @Test
-    public void shouldDispatchAny() {
-        fail("Not yet implemented");
+    public void shouldRejectMultipleAnys() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+        
+        exception.expect(IllegalStateException.class);
+        exception.expectMessage(containsString("Duplicate key")); // TODO improve message
+        
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK, AccountRepresentation.class).capture(),
+                        anyStatus().capture(),
+                        anyStatus().capture());
+    }
+    
+    @Test
+    public void shouldDispatchAny() throws IOException {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+        
+        final ClientHttpResponse response = unit.execute(GET, url)
+                .dispatch(status(),
+                        on(CREATED, AccountRepresentation.class).capture(),
+                        anyStatus().capture())
+                .retrieveResponse().orElse(null);
+        
+        assertThat(response.getStatusCode(), is(OK));
+        assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
 
 }

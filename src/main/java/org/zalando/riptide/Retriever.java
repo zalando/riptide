@@ -21,6 +21,7 @@ package org.zalando.riptide;
  */
 
 import com.google.common.reflect.TypeToken;
+import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -45,6 +46,11 @@ public final class Retriever {
                     final T t = (T) v;
                     return t;
                 });
+    }
+    
+    // TODO document
+    public Optional<ClientHttpResponse> retrieveResponse() {
+        return retrieve(ClientHttpResponse.class);
     }
 
 }

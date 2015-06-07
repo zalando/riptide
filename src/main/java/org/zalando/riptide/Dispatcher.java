@@ -22,20 +22,9 @@ package org.zalando.riptide;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 public final class Dispatcher {
 
@@ -54,21 +43,7 @@ public final class Dispatcher {
     @SafeVarargs
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
         final Object value = template.execute(url, method, request, response -> {
-            final A attribute = selector.attributeOf(response);
-
-            final Map<A, Binding<A>> index = Stream.of(bindings)
-                    // TODO improve exception message for duplicate key
-                    .collect(toMap(Binding::getAttribute, identity()));
-
-            final Optional<Binding<A>> match = selector.select(attribute, index);
-            
-            if (match.isPresent()) {
-                final Binding<A> binding = match.get();
-                return binding.execute(response, template.getMessageConverters());
-            } else {
-                throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
-                                        Stream.of(bindings).map(Binding::getAttribute).collect(toList())));
-            }
+            return new Propagator(template.getMessageConverters()).propagate(response, selector, bindings);
         });
 
         return new Retriever(value);
