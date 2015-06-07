@@ -26,7 +26,7 @@ final class Success {
     
     private final boolean happy;
 
-    // TODO @JsonProperty shouldn't be necessary
+    // TODO @JsonProperty shouldn't be necessary here...
     private Success(@JsonProperty("happy") boolean happy) {
         this.happy = happy;
     }
