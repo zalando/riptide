@@ -33,11 +33,11 @@ public final class Conditions {
     }
 
     public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
-        return new CallableCondition<>();
+        return on(attribute, TypeToken.of(type));
     }
 
     public static <A, I> CallableCondition<A, I> on(A attribute, TypeToken<I> type) {
-        return new CallableCondition<>();
+        return new CallableCondition<>(attribute, type);
     }
 
     // TODO add javadoc: this is only meant to be used to write your own any* methods

@@ -20,11 +20,14 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 final class Success {
     
     private final boolean happy;
 
-    Success(boolean happy) {
+    // TODO @JsonProperty shouldn't be necessary
+    private Success(@JsonProperty("happy") boolean happy) {
         this.happy = happy;
     }
 

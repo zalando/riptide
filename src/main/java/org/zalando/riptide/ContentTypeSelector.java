@@ -37,13 +37,13 @@ final class ContentTypeSelector implements Selector<MediaType> {
         return response.getHeaders().getContentType();
     }
 
-    @Override
-    public <O> Optional<Binding<MediaType>> select(MediaType contentType, Map<MediaType, Binding<MediaType>> bindings) {
-        // TODO find best match, not first
-        return bindings.entrySet().stream()
-                .filter(e -> e.getKey().includes(contentType))
-                .findFirst()
-                .map(Map.Entry::getValue);
-    }
+//    @Override
+//    public <O> Optional<Binding<MediaType>> select(MediaType contentType, Map<MediaType, Binding<MediaType>> bindings) {
+//        // TODO find best match, not first
+//        return bindings.entrySet().stream()
+//                .filter(e -> e.getKey().includes(contentType))
+//                .findFirst()
+//                .map(Map.Entry::getValue);
+//    }
 
 }

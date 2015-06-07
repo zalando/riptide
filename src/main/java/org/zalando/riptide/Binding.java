@@ -23,11 +23,14 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import java.io.IOException;
+import java.util.List;
+
 public interface Binding<A> {
 
     // TODO Optional<A>?
     A getAttribute();
     
-    Object execute(ClientHttpResponse response, Iterable<HttpMessageConverter<?>> converters);
+    Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
     
 }

@@ -57,6 +57,7 @@ public final class Dispatcher {
             final A attribute = selector.attributeOf(response);
 
             final Map<A, Binding<A>> index = Stream.of(bindings)
+                    // TODO improve exception message for duplicate key
                     .collect(toMap(Binding::getAttribute, identity()));
 
             final Optional<Binding<A>> match = selector.select(attribute, index);

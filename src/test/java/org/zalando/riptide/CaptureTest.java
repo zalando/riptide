@@ -20,21 +20,25 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyStatus;
@@ -45,16 +49,26 @@ public final class CaptureTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
-    private final RestTemplate template = new RestTemplate();
-    private final Rest unit = Rest.create(template);
+    private final Rest unit;
+    private final MockRestServiceServer server;
 
-    private final MockRestServiceServer server = MockRestServiceServer.createServer(template);
+    public CaptureTest() {
+        final RestTemplate template = new RestTemplate();
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
+        template.setMessageConverters(singletonList(converter));
+        template.setErrorHandler(new PassThroughResponseErrorHandler());
+        this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.create(template);
+    }
 
     @Test
     public void shouldCapture() {
         server.expect(requestTo(url)).andRespond(
-                withSuccess().body(new ClassPathResource("account.json")));
-        
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
         final AccountRrepresentation account = unit.execute(GET, url)
                 .dispatch(status(),
                         on(OK, AccountRrepresentation.class).capture(),
@@ -67,14 +81,15 @@ public final class CaptureTest {
 
     @Test
     public void shouldCaptureCall() {
-        final String revision = "1aa9520a-0cdd-11e5-aa27-8361dd72e660";
+        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();
-        headers.setETag('"' + revision + '"');
+        headers.setETag(revision);
 
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON)
                         .headers(headers));
 
         final Account account = unit.execute(GET, url)
@@ -103,6 +118,7 @@ public final class CaptureTest {
     }
 
     private static final class AccountRrepresentation {
+        
         private final String id;
         private final String name;
 
@@ -110,6 +126,7 @@ public final class CaptureTest {
             this.id = id;
             this.name = name;
         }
+        
     }
 
     private static final class Account {

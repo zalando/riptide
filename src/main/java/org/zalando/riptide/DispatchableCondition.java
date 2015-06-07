@@ -23,6 +23,7 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -42,7 +43,7 @@ public final class DispatchableCondition<A> {
             }
 
             @Override
-            public Object execute(ClientHttpResponse response, Iterable<HttpMessageConverter<?>> converters) {
+            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) {
                 consumer.accept(response);
                 return null;
             }
