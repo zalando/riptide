@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+// TODO consider making this an abstract class, to hide methods (with package visibility)
 public interface Binding<A> {
 
     Optional<A> getAttribute();

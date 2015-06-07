@@ -40,13 +40,37 @@ public final class Conditions {
         return new CallableCondition<>(attribute, type);
     }
 
-    // TODO add javadoc: this is only meant to be used to write your own any* methods
+    /**
+     * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
+     * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
+     * 
+     * @param type attribute type
+     * @param <A> generic attribute type
+     * @return an any condition on the given attribute type
+     * @see #any(TypeToken) 
+     * @see #anySeries() 
+     * @see #anyStatus() 
+     * @see #anyStatusCode() 
+     * @see #anyContentType() 
+     */
     public static <A> DispatchableCondition<A> any(Class<A> type) {
         return any(TypeToken.of(type));
     }
 
-    // TODO add javadoc: this is only meant to be used to write your own any* methods
-    public static <A> DispatchableCondition<A> any(TypeToken<A> type) {
+    /**
+     * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
+     * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
+     * 
+     * @param type attribute type
+     * @param <A> generic attribute type
+     * @return an any condition on the given attribute type
+     * @see #any(Class) 
+     * @see #anySeries() 
+     * @see #anyStatus() 
+     * @see #anyStatusCode() 
+     * @see #anyContentType() 
+     */
+    public static <A> DispatchableCondition<A> any(@SuppressWarnings("UnusedParameters") TypeToken<A> type) {
         return new DispatchableCondition<>(Optional.<A>empty());
     }
 
