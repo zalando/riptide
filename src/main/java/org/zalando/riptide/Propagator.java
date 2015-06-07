@@ -44,8 +44,13 @@ final class Propagator {
         final Optional<A> attribute = selector.attributeOf(response);
 
         final Map<Optional<A>, Binding<A>> index = Stream.of(bindings)
-                // TODO improve exception message for duplicate key
-                .collect(toMap(Binding::getAttribute, identity()));
+                .collect(toMap(Binding::getAttribute, identity(), (l, r) -> {
+                    l.getAttribute().ifPresent(a -> {
+                        throw new IllegalStateException("Duplicate condition attribute: " + a);
+                    });
+                    
+                   throw new IllegalStateException("Duplicate any conditions"); 
+                }));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
         final Optional<A> none = Optional.empty();

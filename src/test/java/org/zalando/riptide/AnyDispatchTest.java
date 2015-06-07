@@ -20,24 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -63,23 +58,6 @@ public final class AnyDispatchTest {
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.unit = Rest.create(template);
         this.server = MockRestServiceServer.createServer(template);
-    }
-    
-    @Test
-    public void shouldRejectMultipleAnys() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-        
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage(containsString("Duplicate key")); // TODO improve message
-        
-        unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountRepresentation.class).capture(),
-                        anyStatus().capture(),
-                        anyStatus().capture());
     }
     
     @Test
