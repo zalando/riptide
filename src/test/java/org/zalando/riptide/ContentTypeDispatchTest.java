@@ -42,7 +42,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.Feature.feature;
 import static org.zalando.riptide.MediaTypes.ERROR;
 import static org.zalando.riptide.MediaTypes.PROBLEM;
 import static org.zalando.riptide.MediaTypes.SUCCESS;
@@ -65,14 +64,14 @@ public final class ContentTypeDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private Success perform() {
+    private <T> T perform(Class<T> type) {
         return unit.execute(GET, url)
                 .dispatch(contentType(),
                         on(SUCCESS, Success.class).capture(),
-                        on(PROBLEM, Problem.class).call(this::onProblem),
-                        on(ERROR, Error.class).call(this::onError),
+                        on(PROBLEM, Problem.class).capture(),
+                        on(ERROR, Error.class).capture(),
                         anyContentType().call(this::fail))
-                .retrieve(Success.class).get();
+                .retrieve(type).get();
     }
 
     @Test
@@ -82,9 +81,9 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(SUCCESS));
 
-        final Success success = perform();
+        final Success success = perform(Success.class);
 
-        assertThat(success, is(happy()));
+        assertThat(success.isHappy(), is(true));
     }
 
     @Test
@@ -94,14 +93,12 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("problem.json"))
                         .contentType(PROBLEM));
 
-        exception.expect(ProblemException.class);
-        exception.expect(feature(ProblemException::getProblem,
-                feature(Problem::getType, is(URI.create("http://httpstatus.es/422"))),
-                feature(Problem::getTitle, is("Unprocessable Entity")),
-                feature(Problem::getStatus, is(422)),
-                feature(Problem::getDetail, is("A problem occcured."))));
-
-        perform();
+        final Problem problem = perform(Problem.class);
+        
+        assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
+        assertThat(problem.getTitle(), is("Unprocessable Entity"));
+        assertThat(problem.getStatus(), is(422));
+        assertThat(problem.getDetail(), is("A problem occurred."));
     }
 
     @Test
@@ -111,24 +108,10 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("error.json"))
                         .contentType(ERROR));
 
-        exception.expect(ErrorException.class);
-        exception.expect(feature(ErrorException::getError,
-                feature(Error::getMessage, is("A problem occured.")),
-                feature(Error::getPath, is(url))));
-
-        perform();
-    }
-
-    private Matcher<Success> happy() {
-        return feature(Success::isHappy, equalTo(true));
-    }
-
-    private void onProblem(Problem problem) {
-        throw new ProblemException(problem);
-    }
-
-    private void onError(Error error) {
-        throw new ErrorException(error);
+        final Error error = perform(Error.class);
+        
+        assertThat(error.getMessage(), is("A problem occurred."));
+        assertThat(error.getPath(), is(url));
     }
 
     private void fail(ClientHttpResponse response) {
