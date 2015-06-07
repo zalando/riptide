@@ -28,8 +28,6 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public final class CallableCondition<A, I> implements Capturer<A> {
 
@@ -41,28 +39,36 @@ public final class CallableCondition<A, I> implements Capturer<A> {
         this.type = type;
     }
 
-    public interface EntityConsumer<T> extends Consumer<T> {
-        
-    }
-    
-    public interface EntityFunction<F, T> extends Function<F, T> {
-        
-    }
-
-    public interface ResponseEntityConsumer<T> extends Consumer<ResponseEntity<T>> {
-
-    }
-
-    public interface ResponseEntityFunction<F, T> extends Function<ResponseEntity<F>, T> {
-
-    }
-
     public Binding<A> call(EntityConsumer<I> consumer) {
-        throw new UnsupportedOperationException();
+        return new Binding<A>() {
+            @Override
+            public A getAttribute() {
+                return attribute;
+            }
+
+            @Override
+            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+                consumer.accept(body);
+                return null;
+            }
+        };
     }
 
     public Binding<A> call(ResponseEntityConsumer<I> consumer) {
-        throw new UnsupportedOperationException();
+        return new Binding<A>() {
+            @Override
+            public A getAttribute() {
+                return attribute;
+            }
+
+            @Override
+            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+                consumer.accept(new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode()));
+                return null;
+            }
+        };
     }
 
     public Capturer<A> map(EntityFunction<I, ?> function) {
@@ -98,7 +104,7 @@ public final class CallableCondition<A, I> implements Capturer<A> {
                     @Override
                     public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
                         final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-                        return function.apply(new ResponseEntity<I>(body, response.getHeaders(), response.getStatusCode()));
+                        return function.apply(new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode()));
                     }
                 };
             }

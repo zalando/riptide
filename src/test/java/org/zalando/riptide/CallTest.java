@@ -23,7 +23,6 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -34,8 +33,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -45,14 +45,14 @@ import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
-public final class CaptureTest {
+public final class CallTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public CaptureTest() {
+    public CallTest() {
         final RestTemplate template = new RestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
@@ -63,52 +63,44 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCapture() {
+    public void shouldMapEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final AccountRepresentation account = unit.execute(GET, url)
+        @SuppressWarnings("unchecked")
+        final ResponseEntityConsumer<AccountRepresentation> verifier = 
+                mock(ResponseEntityConsumer.class);
+        
+        unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(AccountRepresentation.class).get();
+                        on(OK, AccountRepresentation.class).call(verifier),
+                        anyStatus().call(this::fail));
 
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getName(), is("Acme Corporation"));
+        //noinspection unchecked
+        verify(verifier).accept(any(ResponseEntity.class));
     }
-
+    
     @Test
-    public void shouldCaptureCall() {
-        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setETag(revision);
-
+    public void shouldMapResponseEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON)
-                        .headers(headers));
+                        .contentType(APPLICATION_JSON));
 
-        final Account account = unit.execute(GET, url)
+        @SuppressWarnings("unchecked")
+        final EntityConsumer<AccountRepresentation> verifier = 
+                mock(EntityConsumer.class);
+
+        unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::extract).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
+                        on(OK, AccountRepresentation.class).call(verifier),
+                        anyStatus().call(this::fail));
 
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is(revision));
-        assertThat(account.getName(), is("Acme Corporation"));
+        verify(verifier).accept(any(AccountRepresentation.class));
     }
-
-    private Account extract(ResponseEntity<AccountRepresentation> entity) {
-        final AccountRepresentation account = entity.getBody();
-        final String revision = entity.getHeaders().getETag();
-        return new Account(account.getId(), revision, account.getName());
-    }
-
+    
     private void fail(ClientHttpResponse response) {
         try {
             throw new AssertionError(response.getRawStatusCode());

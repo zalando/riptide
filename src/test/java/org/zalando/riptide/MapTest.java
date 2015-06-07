@@ -71,7 +71,7 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRrepresentation.class).map(this::build).capture(),
+                        on(OK, AccountRepresentation.class).map(this::build).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
         
@@ -95,7 +95,7 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRrepresentation.class).map(this::extract).capture(),
+                        on(OK, AccountRepresentation.class).map(this::extract).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
 
@@ -104,12 +104,12 @@ public final class MapTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
     
-    private Account build(AccountRrepresentation account) {
+    private Account build(AccountRepresentation account) {
         return new Account(account.getId(), "fake", account.getName());
     }
 
-    private Account extract(ResponseEntity<AccountRrepresentation> entity) {
-        final AccountRrepresentation account = entity.getBody();
+    private Account extract(ResponseEntity<AccountRepresentation> entity) {
+        final AccountRepresentation account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
     }
