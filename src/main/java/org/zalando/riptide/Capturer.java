@@ -20,14 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+public interface Capturer<A> {
 
-import java.util.function.Consumer;
-
-public final class AnyCondition<A> {
-
-    public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
-        throw new UnsupportedOperationException();
-    }
+    Binding<A> capture();
 
 }

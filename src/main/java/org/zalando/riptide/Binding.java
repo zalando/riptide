@@ -20,8 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-public final class Binding<A> {
+public interface Binding<A> {
 
-    private final A attribute = null;
-    
 }

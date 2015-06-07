@@ -20,19 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-
-import java.io.IOException;
-
-/**
- * @see Selectors#series() 
- */
-final class SeriesSelector implements Selector<HttpStatus.Series> {
+public final class CapturableBinding<A> implements Binding<A>, Capturer<A> {
 
     @Override
-    public HttpStatus.Series attributeOf(ClientHttpResponse response) throws IOException {
-        return response.getStatusCode().series();
+    public Binding<A> capture() {
+        throw new UnsupportedOperationException();
     }
-
+    
 }

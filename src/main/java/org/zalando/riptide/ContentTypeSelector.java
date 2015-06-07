@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * @see {@link Selectors#contentType()}
+ * @see Selectors#contentType()
  */
 final class ContentTypeSelector implements Selector<MediaType> {
 

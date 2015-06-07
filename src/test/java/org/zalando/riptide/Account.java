@@ -20,14 +20,5 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.util.Optional;
-
-public final class Unpacker {
-    
-    // TODO unpackNow with return type T?
-
-    public <T> Optional<T> unpack(Class<T> type) {
-        throw new UnsupportedOperationException();
-    }
-
+final class Account {
 }

@@ -41,18 +41,6 @@ return rest.execute(GET, URI.create("https://api.example.com"))
                 on(SERVER_ERROR).call(this::fail),
                 anySeries().call(this::warn))
         .unpack(Success.class).orElse(null);
-
-private void onProblem(Problem problem) {
-    throw new ProblemException(problem);
-}
-
-private void warn(ClientHttpResponse response) {
-    LOG.warning("Unexpected response: " + response);
-}
-
-private void fail(ClientHttpResponse response) {
-    throw new AssertionError("Unexpected response: " + response);
-}
 ```
 
 ## License

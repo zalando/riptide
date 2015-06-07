@@ -20,19 +20,18 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.common.reflect.TypeToken;
 
-import java.io.IOException;
+import java.util.Optional;
 
-/**
- * @see Selectors#series() 
- */
-final class SeriesSelector implements Selector<HttpStatus.Series> {
+public final class Retriever {
 
-    @Override
-    public HttpStatus.Series attributeOf(ClientHttpResponse response) throws IOException {
-        return response.getStatusCode().series();
+    public <T> Optional<T> retrieve(Class<T> type) {
+        return retrieve(TypeToken.of(type));
+    }
+
+    public <T> Optional<T> retrieve(TypeToken<T> type) {
+        throw new UnsupportedOperationException();
     }
 
 }

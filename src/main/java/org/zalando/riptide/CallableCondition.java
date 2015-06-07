@@ -23,25 +23,35 @@ package org.zalando.riptide;
 import org.springframework.http.ResponseEntity;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-public final class CallableCondition<A, I> {
+public final class CallableCondition<A, I> implements Capturer<A> {
 
-    public interface EntityConsumer<T> extends Consumer<T> {
-        
+    public interface ResponseEntityConsumer<T> extends Consumer<ResponseEntity<T>> {
+
     }
 
-    public interface ResponseConsumer<T> extends Consumer<ResponseEntity<T>> {
-        
+    public interface ResponseEntityFunction<F, T> extends Function<ResponseEntity<F>, T> {
+
     }
-    
-    public Binding<A> call(EntityConsumer<I> consumer) {
+
+    public Binding<A> call(Consumer<I> consumer) {
         throw new UnsupportedOperationException();
     }
 
-    public Binding<A> call(ResponseConsumer<I> consumer) {
+    public Binding<A> call(ResponseEntityConsumer<I> consumer) {
         throw new UnsupportedOperationException();
     }
-    
+
+    public <O> CapturableBinding<O> call(Function<I, O> function) {
+        throw new UnsupportedOperationException();
+    }
+
+    public <O> CapturableBinding<A> call(ResponseEntityFunction<I, O> function) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Binding<A> capture() {
         throw new UnsupportedOperationException();
     }

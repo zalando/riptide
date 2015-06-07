@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -30,22 +31,32 @@ public final class Conditions {
     }
 
     public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
+        return on(attribute, TypeToken.of(type));
+    }
+
+    public static <A, I> CallableCondition<A, I> on(A attribute, TypeToken<I> type) {
         throw new UnsupportedOperationException();
     }
 
-    public static <A> AnyCondition<A> any(Class<A> type) {
+    // TODO add javadoc: this is only meant to be used to write your own any* methods
+    public static <A> DispatchableCondition<A> any(Class<A> type) {
+        return any(TypeToken.of(type));
+    }
+
+    // TODO add javadoc: this is only meant to be used to write your own any* methods
+    public static <A> DispatchableCondition<A> any(TypeToken<A> type) {
         throw new UnsupportedOperationException();
     }
 
-    public static AnyCondition<HttpStatus> anyStatusCode() {
+    public static DispatchableCondition<HttpStatus> anyStatusCode() {
         return any(HttpStatus.class);
     }
 
-    public static AnyCondition<HttpStatus.Series> anySeries() {
+    public static DispatchableCondition<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
     }
 
-    public static AnyCondition<MediaType> anyContentType() {
+    public static DispatchableCondition<MediaType> anyContentType() {
         return any(MediaType.class);
     }
 }

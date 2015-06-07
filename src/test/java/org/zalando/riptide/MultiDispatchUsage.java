@@ -30,9 +30,13 @@ import java.util.logging.Logger;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
+import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
+import static org.springframework.http.HttpStatus.Series.REDIRECTION;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.anySeries;
@@ -43,9 +47,9 @@ import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.statusCode;
 
-public final class Usage {
+public final class MultiDispatchUsage {
 
-    private static final Logger LOG = Logger.getLogger(Usage.class.getName());
+    private static final Logger LOG = Logger.getLogger(MultiDispatchUsage.class.getName());
 
     private final Rest rest = Rest.create(new RestTemplate());
 
@@ -58,18 +62,38 @@ public final class Usage {
                                         on(CREATED, Success.class).capture(),
                                         on(ACCEPTED, Success.class).capture(),
                                         anyStatusCode().call(this::warn)),
+                        on(REDIRECTION).call(this::follow),
                         on(CLIENT_ERROR)
-                                .dispatch(contentType(),
-                                        on(PROBLEM, Problem.class).call(this::onProblem),
-                                        on(APPLICATION_JSON, Problem.class).call(this::onProblem),
-                                        anyContentType().call(this::fail)),
-                        on(SERVER_ERROR).call(this::fail),
+                                .dispatch(statusCode(),
+                                        on(UNAUTHORIZED).call(this::authorize),
+                                        on(PRECONDITION_FAILED).call(this::retry),
+                                        anyStatusCode()
+                                                .dispatch(contentType(),
+                                                        on(PROBLEM, Problem.class).call(this::onProblem),
+                                                        on(APPLICATION_JSON, Problem.class).call(this::onProblem),
+                                                        anyContentType().call(this::fail))),
+                        on(SERVER_ERROR)
+                                .dispatch(statusCode(),
+                                        on(NOT_IMPLEMENTED).call(r -> {throw new UnsupportedOperationException();}),
+                                        anyStatusCode().call(this::fail)),
                         anySeries().call(this::warn))
-                .unpack(Success.class).orElse(null);
+                .retrieve(Success.class).orElse(null);
     }
 
     private void onProblem(Problem problem) {
         throw new ProblemException(problem);
+    }
+    
+    private void follow(ClientHttpResponse response) {
+        
+    }
+    
+    private void authorize(ClientHttpResponse response) {
+        
+    }
+    
+    private void retry(ClientHttpResponse response) {
+        
     }
 
     private void warn(ClientHttpResponse response) {
