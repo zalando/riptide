@@ -48,12 +48,16 @@ public final class Conditions {
         throw new UnsupportedOperationException();
     }
 
-    public static DispatchableCondition<HttpStatus> anyStatusCode() {
-        return any(HttpStatus.class);
-    }
-
     public static DispatchableCondition<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
+    }
+
+    public static DispatchableCondition<HttpStatus> anyStatus() {
+        return any(HttpStatus.class);
+    }
+    
+    public static DispatchableCondition<Integer> anyStatusCode() {
+        return any(Integer.class);
     }
 
     public static DispatchableCondition<MediaType> anyContentType() {

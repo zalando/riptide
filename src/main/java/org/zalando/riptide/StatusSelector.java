@@ -28,11 +28,11 @@ import java.io.IOException;
 /**
  * @see Selectors#status()
  */
-final class StatusCodeSelector implements Selector<Integer> {
+final class StatusSelector implements Selector<HttpStatus> {
 
     @Override
-    public Integer attributeOf(ClientHttpResponse response) throws IOException {
-        return response.getRawStatusCode();
+    public HttpStatus attributeOf(ClientHttpResponse response) throws IOException {
+        return response.getStatusCode();
     }
 
 }

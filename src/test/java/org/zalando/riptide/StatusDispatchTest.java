@@ -37,23 +37,24 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Selectors.status;
 
 
 @RunWith(Parameterized.class)
-public final class StatusCodeDispatchTest {
+public final class StatusDispatchTest {
 
     private final URI url = URI.create("https://api.example.com");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    private final int status;
+    private final HttpStatus status;
 
-    public StatusCodeDispatchTest(int status) {
+    public StatusDispatchTest(HttpStatus status) {
         this.status = status;
         final RestTemplate template = new RestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
@@ -64,7 +65,7 @@ public final class StatusCodeDispatchTest {
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
         return Stream.of(HttpStatus.values())
-                .map(HttpStatus::value)
+                .filter(s -> s != MOVED_TEMPORARILY) // duplicate with FOUND
                 .map(s -> new Object[]{s})
                 .collect(toList());
     }
@@ -72,21 +73,20 @@ public final class StatusCodeDispatchTest {
     @Test
     @SuppressWarnings("deprecation")
     public void shouldDispatch() {
-        server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
+        server.expect(requestTo(url)).andRespond(withStatus(status));
 
         @SuppressWarnings("unchecked")
-        final Binding<Integer>[] bindings = Stream.of(HttpStatus.values())
-                .map(HttpStatus::value)
+        final Binding<HttpStatus>[] bindings = Stream.of(HttpStatus.values())
                 .map(status -> on(status).call(verify(status)))
                 .toArray(Binding[]::new);
 
-        unit.execute(GET, url).dispatch(statusCode(), bindings);
+        unit.execute(GET, url).dispatch(status(), bindings);
     }
     
-    private Consumer<ClientHttpResponse> verify(int status) {
+    private Consumer<ClientHttpResponse> verify(HttpStatus status) {
         return response -> {
             try {
-                assertThat(response.getRawStatusCode(), is(status));
+                assertThat(response.getStatusCode(), is(status));
             } catch (IOException e) {
                 throw new AssertionError(e);
             }

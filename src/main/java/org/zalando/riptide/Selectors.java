@@ -40,12 +40,25 @@ public final class Selectors {
     }
 
     /**
-     * A {@link Selector} that selects a binding based on the response's status code.
+     * A {@link Selector} that selects a binding based on the response's status.
      *
+     * @return an HTTP status selector
+     * @see HttpStatus
+     * @see #statusCode() 
+     */
+    public static Selector<HttpStatus> status() {
+        return new StatusSelector();
+    }
+
+    /**
+     * A {@link Selector} that selects a binding based on the response's status code.
+     * 
+     * 
      * @return an HTTP status code selector
      * @see HttpStatus
+     * @see #status() 
      */
-    public static Selector<HttpStatus> statusCode() {
+    public static Selector<Integer> statusCode() {
         return new StatusCodeSelector();
     }
 

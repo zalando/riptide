@@ -40,12 +40,12 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.anySeries;
-import static org.zalando.riptide.Conditions.anyStatusCode;
+import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.MediaTypes.PROBLEM;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Selectors.status;
 
 public final class MultiDispatchUsage {
 
@@ -58,24 +58,24 @@ public final class MultiDispatchUsage {
         return rest.execute(GET, URI.create("https://api.example.com"))
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(statusCode(),
+                                .dispatch(status(),
                                         on(CREATED, Success.class).capture(),
                                         on(ACCEPTED, Success.class).capture(),
-                                        anyStatusCode().call(this::warn)),
+                                        anyStatus().call(this::warn)),
                         on(REDIRECTION).call(this::follow),
                         on(CLIENT_ERROR)
-                                .dispatch(statusCode(),
+                                .dispatch(status(),
                                         on(UNAUTHORIZED).call(this::authorize),
                                         on(PRECONDITION_FAILED).call(this::retry),
-                                        anyStatusCode()
+                                        anyStatus()
                                                 .dispatch(contentType(),
                                                         on(PROBLEM, Problem.class).call(this::onProblem),
                                                         on(APPLICATION_JSON, Problem.class).call(this::onProblem),
                                                         anyContentType().call(this::fail))),
                         on(SERVER_ERROR)
-                                .dispatch(statusCode(),
+                                .dispatch(status(),
                                         on(NOT_IMPLEMENTED).call(r -> {throw new UnsupportedOperationException();}),
-                                        anyStatusCode().call(this::fail)),
+                                        anyStatus().call(this::fail)),
                         anySeries().call(this::warn))
                 .retrieve(Success.class).orElse(null);
     }

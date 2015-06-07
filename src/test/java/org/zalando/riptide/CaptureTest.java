@@ -37,9 +37,9 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyStatusCode;
+import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Selectors.status;
 
 public final class CaptureTest {
 
@@ -56,9 +56,9 @@ public final class CaptureTest {
                 withSuccess().body(new ClassPathResource("account.json")));
         
         final AccountRrepresentation account = unit.execute(GET, url)
-                .dispatch(statusCode(),
+                .dispatch(status(),
                         on(OK, AccountRrepresentation.class).capture(),
-                        anyStatusCode().call(this::fail))
+                        anyStatus().call(this::fail))
                 .retrieve(AccountRrepresentation.class).get();
 
         assertThat(account.id, is("1234567890"));
@@ -78,9 +78,9 @@ public final class CaptureTest {
                         .headers(headers));
 
         final Account account = unit.execute(GET, url)
-                .dispatch(statusCode(),
+                .dispatch(status(),
                         on(OK, AccountRrepresentation.class).map(this::extract).capture(),
-                        anyStatusCode().call(this::fail))
+                        anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
 
         assertThat(account.id, is("1234567890"));
