@@ -84,7 +84,7 @@ public final class MapTest {
 
     private Account fromResponse(ClientHttpResponse response) {
         try {
-            final AccountRepresentation account = new HttpMessageConverterExtractor<>(AccountRepresentation.class, 
+            final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class, 
                     template.getMessageConverters()).extractData(response);
             return new Account(account.getId(), "fake", account.getName());
         } catch (IOException e) {
@@ -101,7 +101,7 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::fromEntity).capture(),
+                        on(OK, AccountBody.class).map(this::fromEntity).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
         
@@ -110,7 +110,7 @@ public final class MapTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private Account fromEntity(AccountRepresentation account) {
+    private Account fromEntity(AccountBody account) {
         return new Account(account.getId(), "fake", account.getName());
     }
     
@@ -129,7 +129,7 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::fromResponseEntity).capture(),
+                        on(OK, AccountBody.class).map(this::fromResponseEntity).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
 
@@ -138,8 +138,8 @@ public final class MapTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private Account fromResponseEntity(ResponseEntity<AccountRepresentation> entity) {
-        final AccountRepresentation account = entity.getBody();
+    private Account fromResponseEntity(ResponseEntity<AccountBody> entity) {
+        final AccountBody account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
     }

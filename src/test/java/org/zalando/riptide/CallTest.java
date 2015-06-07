@@ -70,15 +70,15 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ResponseEntityConsumer<AccountRepresentation> verifier = 
+        final ResponseEntityConsumer<AccountBody> verifier = 
                 mock(ResponseEntityConsumer.class);
         
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).call(verifier),
+                        on(OK, AccountBody.class).call(verifier),
                         anyStatus().call(this::fail));
 
-        verify(verifier).accept(anyResponseEntityOf(AccountRepresentation.class));
+        verify(verifier).accept(anyResponseEntityOf(AccountBody.class));
     }
     
     @SuppressWarnings("unchecked")
@@ -94,15 +94,15 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final EntityConsumer<AccountRepresentation> verifier = 
+        final EntityConsumer<AccountBody> verifier = 
                 mock(EntityConsumer.class);
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).call(verifier),
+                        on(OK, AccountBody.class).call(verifier),
                         anyStatus().call(this::fail));
 
-        verify(verifier).accept(any(AccountRepresentation.class));
+        verify(verifier).accept(any(AccountBody.class));
     }
     
     private void fail(ClientHttpResponse response) {

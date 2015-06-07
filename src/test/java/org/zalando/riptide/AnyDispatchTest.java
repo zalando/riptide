@@ -69,7 +69,7 @@ public final class AnyDispatchTest {
         
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(CREATED, AccountRepresentation.class).capture(),
+                        on(CREATED, AccountBody.class).capture(),
                         anyStatus().capture())
                 .retrieveResponse().orElse(null);
         

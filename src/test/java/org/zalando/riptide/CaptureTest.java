@@ -21,7 +21,6 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -88,11 +87,11 @@ public final class CaptureTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final AccountRepresentation account = unit.execute(GET, url)
+        final AccountBody account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).capture(),
+                        on(OK, AccountBody.class).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(AccountRepresentation.class).get();
+                .retrieve(AccountBody.class).get();
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getName(), is("Acme Corporation"));
@@ -113,7 +112,7 @@ public final class CaptureTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::extract).capture(),
+                        on(OK, AccountBody.class).map(this::extract).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
 
@@ -122,8 +121,8 @@ public final class CaptureTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private Account extract(ResponseEntity<AccountRepresentation> entity) {
-        final AccountRepresentation account = entity.getBody();
+    private Account extract(ResponseEntity<AccountBody> entity) {
+        final AccountBody account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
     }

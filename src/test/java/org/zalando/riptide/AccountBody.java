@@ -20,13 +20,12 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-// TODO find better name
-final class AccountRepresentation {
+final class AccountBody {
     
     private final String id;
     private final String name;
 
-    private AccountRepresentation(String id, String name) {
+    private AccountBody(String id, String name) {
         this.id = id;
         this.name = name;
     }
