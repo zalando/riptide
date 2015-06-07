@@ -23,9 +23,11 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class DispatchableCondition<A> {
     
@@ -46,6 +48,25 @@ public final class DispatchableCondition<A> {
             public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) {
                 consumer.accept(response);
                 return null;
+            }
+        };
+    }
+    
+    public Capturer<A> map(Function<ClientHttpResponse, ?> function) {
+        return new Capturer<A>() {
+            @Override
+            public Binding<A> capture() {
+                return new Binding<A>() {
+                    @Override
+                    public A getAttribute() {
+                        return attribute.orElse(null);
+                    }
+
+                    @Override
+                    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+                        return function.apply(response);
+                    }
+                };
             }
         };
     }

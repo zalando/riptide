@@ -20,8 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.util.function.Function;
+import org.junit.Test;
 
-public interface EntityFunction<F, T> extends Function<F, T> {
+import static org.junit.Assert.fail;
+
+public final class AnyDispatchTest {
+
+    @Test
+    public void shouldRejectMultipleAnys() {
+        fail("Not yet implemented");
+    }
     
+    @Test
+    public void shouldDispatchAny() {
+        fail("Not yet implemented");
+    }
+
 }

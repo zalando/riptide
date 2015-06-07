@@ -28,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -49,17 +50,46 @@ public final class MapTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
+    private final RestTemplate template;
     private final Rest unit;
     private final MockRestServiceServer server;
 
     public MapTest() {
-        final RestTemplate template = new RestTemplate();
+        template = new RestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
+    }
+    
+    @Test
+    public void shouldMapResponse() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        final Account account = unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK).map(this::fromResponse).capture(),
+                        anyStatus().call(this::fail))
+                .retrieve(Account.class).get();
+        
+        assertThat(account.getId(), is("1234567890"));
+        assertThat(account.getRevision(), is("fake"));
+        assertThat(account.getName(), is("Acme Corporation"));
+    }
+
+    private Account fromResponse(ClientHttpResponse response) {
+        try {
+            final AccountRepresentation account = new HttpMessageConverterExtractor<>(AccountRepresentation.class, 
+                    template.getMessageConverters()).extractData(response);
+            return new Account(account.getId(), "fake", account.getName());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test
@@ -71,13 +101,17 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::build).capture(),
+                        on(OK, AccountRepresentation.class).map(this::fromEntity).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
         
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is("fake"));
         assertThat(account.getName(), is("Acme Corporation"));
+    }
+
+    private Account fromEntity(AccountRepresentation account) {
+        return new Account(account.getId(), "fake", account.getName());
     }
     
     @Test
@@ -95,7 +129,7 @@ public final class MapTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountRepresentation.class).map(this::extract).capture(),
+                        on(OK, AccountRepresentation.class).map(this::fromResponseEntity).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
 
@@ -103,12 +137,8 @@ public final class MapTest {
         assertThat(account.getRevision(), is(revision));
         assertThat(account.getName(), is("Acme Corporation"));
     }
-    
-    private Account build(AccountRepresentation account) {
-        return new Account(account.getId(), "fake", account.getName());
-    }
 
-    private Account extract(ResponseEntity<AccountRepresentation> entity) {
+    private Account fromResponseEntity(ResponseEntity<AccountRepresentation> entity) {
         final AccountRepresentation account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());

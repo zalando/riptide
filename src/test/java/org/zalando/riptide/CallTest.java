@@ -78,8 +78,12 @@ public final class CallTest {
                         on(OK, AccountRepresentation.class).call(verifier),
                         anyStatus().call(this::fail));
 
-        //noinspection unchecked
-        verify(verifier).accept(any(ResponseEntity.class));
+        verify(verifier).accept(anyResponseEntityOf(AccountRepresentation.class));
+    }
+    
+    @SuppressWarnings("unchecked")
+    private <T> ResponseEntity<T> anyResponseEntityOf(Class<T> type) {
+        return any(ResponseEntity.class);
     }
     
     @Test
