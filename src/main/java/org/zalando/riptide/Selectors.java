@@ -25,10 +25,6 @@ import org.springframework.http.MediaType;
 
 public final class Selectors {
 
-    private Selectors() {
-
-    }
-
     /**
      * A {@link Selector} that selects a binding based on the response's status code series
      *

@@ -50,18 +50,22 @@ public final class Rest {
         });
     }
 
+    // TODO test
     Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
         return new Dispatcher(template, method, url, request -> request.getHeaders().putAll(headers));
     }
 
+    // TODO test
     Dispatcher execute(HttpMethod method, URI url, Object entity) {
         return new Dispatcher(template, method, url, new Callback<>(new HttpEntity<>(entity)));
     }
 
+    // TODO test
     Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
         return new Dispatcher(template, method, url, new Callback<>(new HttpEntity<>(entity, headers)));
     }
 
+    // TODO test
     private final class Callback<T> implements RequestCallback {
 
         private final HttpEntity<T> entity;
@@ -85,7 +89,7 @@ public final class Rest {
             if (match.isPresent()) {
                 final HttpMessageConverter<T> converter = match.get();
                 request.getHeaders().putAll(headers);
-                
+
                 try {
                     converter.write(body, contentType, request);
                 } catch (IOException e) {

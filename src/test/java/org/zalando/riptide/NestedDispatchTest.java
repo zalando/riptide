@@ -42,6 +42,7 @@ import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
+import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
@@ -51,12 +52,14 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.anySeries;
 import static org.zalando.riptide.Conditions.anyStatus;
+import static org.zalando.riptide.Conditions.anyStatusCode;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.MediaTypes.ERROR;
 import static org.zalando.riptide.MediaTypes.PROBLEM;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Selectors.statusCode;
 
 public final class NestedDispatchTest {
 
@@ -92,6 +95,11 @@ public final class NestedDispatchTest {
                                                     on(ERROR, Problem.class).capture(),
                                                     anyContentType().call(this::fail)),
                                     anyStatus().call(this::fail)),
+                        on(SERVER_ERROR)
+                            .dispatch(statusCode(),
+                                    on(500).capture(),
+                                    on(503).capture(),
+                                    anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
                 .retrieve(type).orElse(null);
     }
