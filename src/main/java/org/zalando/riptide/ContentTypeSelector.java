@@ -24,25 +24,48 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
+
+import static java.util.Comparator.comparing;
+import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
 
 /**
  * @see Selectors#contentType()
  */
 final class ContentTypeSelector implements Selector<MediaType> {
 
+    private static final Comparator<Binding<MediaType>> BY_SPECIFICITY =
+            comparing(b -> b.getAttribute().get(), SPECIFICITY_COMPARATOR);
+
     @Override
     public Optional<MediaType> attributeOf(ClientHttpResponse response) throws IOException {
         return Optional.ofNullable(response.getHeaders().getContentType());
     }
 
-//    @Override
-//    public <O> Optional<Binding<MediaType>> select(MediaType contentType, Map<MediaType, Binding<MediaType>> bindings) {
-//        // TODO find best match, not first
-//        return bindings.entrySet().stream()
-//                .filter(e -> e.getKey().includes(contentType))
-//                .findFirst()
-//                .map(Map.Entry::getValue);
-//    }
+    @Override
+    public Optional<Binding<MediaType>> select(Optional<MediaType> attribute,
+            Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+
+        return exactMatch(attribute, bindings)
+                // needed because orElseGet unpacks the Optional, but we need one to return
+                .map(Optional::of)
+                .orElseGet(bestMatch(attribute, bindings));
+    }
+
+    private Optional<Binding<MediaType>> exactMatch(Optional<MediaType> attribute,
+            Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+        return Selector.super.select(attribute, bindings);
+    }
+
+    private Supplier<Optional<Binding<MediaType>>> bestMatch(Optional<MediaType> attribute, Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+        return () -> attribute.flatMap(a -> bindings.values().stream()
+                .filter(b -> b.getAttribute().isPresent())
+                .sorted(BY_SPECIFICITY)
+                .filter(b -> b.getAttribute().get().includes(a))
+                .findFirst());
+    }
 
 }

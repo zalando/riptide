@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -38,6 +39,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -98,7 +101,7 @@ public final class ContentTypeDispatchTest {
                         .contentType(PROBLEM));
 
         final Problem problem = perform(Problem.class);
-        
+
         assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
         assertThat(problem.getTitle(), is("Unprocessable Entity"));
         assertThat(problem.getStatus(), is(422));
@@ -113,9 +116,56 @@ public final class ContentTypeDispatchTest {
                         .contentType(ERROR));
 
         final Error error = perform(Error.class);
-        
+
         assertThat(error.getMessage(), is("A problem occurred."));
         assertThat(error.getPath(), is(url));
+    }
+
+    @Test
+    public void shouldDispatchToMostSpecificContentType() {
+        server.expect(requestTo(url))
+                .andRespond(withSuccess()
+                        .body(new ClassPathResource("success.json"))
+                        .contentType(SUCCESS));
+
+        final Success success = unit.execute(GET, url)
+                .dispatch(contentType(),
+                        on(parseMediaType("application/*+json")).call(this::fail),
+                        on(SUCCESS, Success.class).capture(),
+                        anyContentType().call(this::fail))
+                .retrieve(Success.class).get();
+        
+        assertThat(success.isHappy(), is(true));
+    }
+
+    @Test
+    public void shouldNotFailIfNoContentTypeSpecified() {
+        server.expect(requestTo(url))
+                .andRespond(withSuccess()
+                        .body(new ClassPathResource("success.json"))
+                        .contentType(null));
+
+        unit.execute(GET, url)
+                .dispatch(contentType(),
+                        on(SUCCESS, Success.class).capture(),
+                        anyContentType().capture());
+    }
+    
+    @Test
+    public void shouldDispatchToFullMatch() {
+        server.expect(requestTo(url))
+                .andRespond(withSuccess()
+                        .body(new ClassPathResource("success.json"))
+                        .contentType(parseMediaType("application/success+json;version=2")));
+
+        final Success success = unit.execute(GET, url)
+                .dispatch(contentType(),
+                        on(parseMediaType("application/success+json;version=1")).call(this::fail),
+                        on(parseMediaType("application/success+json;version=2"), Success.class).capture(),
+                        anyContentType().call(this::fail))
+                .retrieve(Success.class).get();
+        
+        assertThat(success.isHappy(), is(true));
     }
 
     private void fail(ClientHttpResponse response) {
