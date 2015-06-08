@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
-import static java.util.function.Function.identity;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;

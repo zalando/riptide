@@ -20,11 +20,15 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 
-import java.util.function.Consumer;
+import java.io.IOException;
+import java.util.List;
 
 @FunctionalInterface
-public interface ResponseEntityConsumer<T> extends Consumer<ResponseEntity<T>> {
+interface Executor {
+
+    Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
 
 }

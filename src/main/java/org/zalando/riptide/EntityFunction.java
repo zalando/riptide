@@ -22,6 +22,7 @@ package org.zalando.riptide;
 
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface EntityFunction<F, T> extends Function<F, T> {
     
 }

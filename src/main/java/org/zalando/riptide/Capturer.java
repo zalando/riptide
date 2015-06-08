@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+@FunctionalInterface
 public interface Capturer<A> {
 
     Binding<A> capture();

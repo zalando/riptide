@@ -21,16 +21,13 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class DispatchableCondition<A> {
-    
+
     private final Optional<A> attribute;
 
     public DispatchableCondition(Optional<A> attribute) {
@@ -38,70 +35,25 @@ public final class DispatchableCondition<A> {
     }
 
     public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
-        return new Binding<A>() {
-            @Override
-            public Optional<A> getAttribute() {
-                return attribute;
-            }
-
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) {
-                consumer.accept(response);
-                return null;
-            }
-        };
+        return Binding.create(attribute, (response, converters) -> {
+            consumer.accept(response);
+            return null;
+        });
     }
-    
+
     public Capturer<A> map(Function<ClientHttpResponse, ?> function) {
-        return new Capturer<A>() {
-            @Override
-            public Binding<A> capture() {
-                return new Binding<A>() {
-                    @Override
-                    public Optional<A> getAttribute() {
-                        return attribute;
-                    }
-
-                    @Override
-                    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                        return function.apply(response);
-                    }
-                };
-            }
-        };
+        return () -> Binding.create(attribute, (response, converters) -> function.apply(response));
     }
-    
-    public Binding<A> capture() {
-        return new Binding<A>() {
-            @Override
-            public Optional<A> getAttribute() {
-                return attribute;
-            }
 
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                return response;
-            }
-        };
+    public Binding<A> capture() {
+        return Binding.create(attribute, (response, converters) -> response);
     }
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
-        return new Binding<A>() {
-
-            private final Propagator propagator = new Propagator();
-
-            @Override
-            public Optional<A> getAttribute() {
-                return attribute;
-            }
-
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                return propagator.propagate(response, converters, selector, bindings);
-            }
-            
-        };
+        final Propagator propagator = new Propagator();
+        return Binding.create(attribute, (response, converters) ->
+                propagator.propagate(response, converters, selector, bindings));
     }
 
 }

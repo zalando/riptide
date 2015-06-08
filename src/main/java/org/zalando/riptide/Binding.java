@@ -27,11 +27,31 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-// TODO consider making this an abstract class, to hide methods (with package visibility)
-public interface Binding<A> {
+public final class Binding<A> implements Executor {
 
-    Optional<A> getAttribute();
+    private final Optional<A> attribute;
+    private final Executor executor;
+
+    private Binding(Optional<A> attribute, Executor executor) {
+        this.attribute = attribute;
+        this.executor = executor;
+    }
+
+    Optional<A> getAttribute() {
+        return attribute;
+    }
+
+    @Override
+    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+        return executor.execute(response, converters);
+    }
     
-    Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
+    static <A> Binding<A> create(A attribute, Executor executor) {
+        return create(Optional.of(attribute), executor);
+    }
     
+    static <A> Binding<A> create(Optional<A> attribute, Executor executor) {
+        return new Binding<>(attribute, executor);
+    }
+
 }

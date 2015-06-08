@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.function.Function;
 
+@FunctionalInterface
 public interface ResponseEntityFunction<F, T> extends Function<ResponseEntity<F>, T> {
 
 }

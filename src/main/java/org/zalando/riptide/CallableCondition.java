@@ -22,13 +22,7 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 public final class CallableCondition<A, I> implements Capturer<A> {
 
@@ -41,90 +35,42 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     }
 
     public Binding<A> call(EntityConsumer<I> consumer) {
-        return new Binding<A>() {
-            @Override
-            public Optional<A> getAttribute() {
-                return Optional.of(attribute);
-            }
-
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-                consumer.accept(body);
-                return null;
-            }
-        };
+        return Binding.create(attribute, (response, converters) -> {
+            // TODO wrap this in a nice and concise API
+            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+            consumer.accept(body);
+            return null;
+        });
     }
 
     public Binding<A> call(ResponseEntityConsumer<I> consumer) {
-        return new Binding<A>() {
-            @Override
-            public Optional<A> getAttribute() {
-                return Optional.of(attribute);
-            }
-
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-                consumer.accept(new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode()));
-                return null;
-            }
-        };
+        return Binding.create(attribute, (response, converters) -> {
+            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+            final ResponseEntity<I> entity = new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
+            consumer.accept(entity);
+            return null;
+        });
     }
 
     public Capturer<A> map(EntityFunction<I, ?> function) {
-        return new Capturer<A>() {
-            @Override
-            public Binding<A> capture() {
-                return new Binding<A>() {
-                    @Override
-                    public Optional<A> getAttribute() {
-                        return Optional.of(attribute);
-                    }
-
-                    @Override
-                    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                        final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-                        return function.apply(body);                        
-                    }
-                };
-            }
-        };
+        return () -> Binding.create(attribute, (response, converters) -> {
+            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+            return function.apply(body);
+        });
     }
 
     public Capturer<A> map(ResponseEntityFunction<I, ?> function) {
-        return new Capturer<A>() {
-            @Override
-            public Binding<A> capture() {
-                return new Binding<A>() {
-                    @Override
-                    public Optional<A> getAttribute() {
-                        return Optional.of(attribute);
-                    }
-
-                    @Override
-                    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                        final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-                        return function.apply(new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode()));
-                    }
-                };
-            }
-        };
+        return () -> Binding.create(attribute, (response, converters) -> {
+            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+            final ResponseEntity<I> entity = new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
+            return function.apply(entity);
+        }); 
     }
 
     @Override
     public Binding<A> capture() {
-        return new Binding<A>() {
-            @Override
-            public Optional<A> getAttribute() {
-                return Optional.of(attribute);
-            }
-
-            @Override
-            public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-                return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-            }
-        };
+        return Binding.create(attribute, (response, converters) -> 
+                new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response));
     }
-    
+
 }

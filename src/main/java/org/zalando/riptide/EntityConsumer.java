@@ -22,6 +22,7 @@ package org.zalando.riptide;
 
 import java.util.function.Consumer;
 
+@FunctionalInterface
 public interface EntityConsumer<T> extends Consumer<T> {
     
 }
