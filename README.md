@@ -23,24 +23,140 @@ differently with an easy to use syntax.
 
 ## Usage
 
-```java
-final Rest rest = Rest.create(new RestTemplate());
+Create an instance based on an existing `RestTemplate`:
 
-return rest.execute(GET, URI.create("https://api.example.com"))
+    final Rest rest = Rest.create(new RestTemplate());
+    
+Make a request and route the response to your specific handler methods/callbacks:
+
+```java
+unit.execute(GET, URI.create("https://api.example.com"))
+        .dispatch(status(),
+                on(CREATED, Success.class).call(this::onSuccess),
+                on(ACCEPTED, Success.class).call(this::onSuccess),
+                anyStatus().call(this::fail));
+```
+
+You `onSuccess` method is allowed to have one of the following signatures:
+
+```java
+void onSuccess(Success success);
+void onSuccess(ResponseEntity<Success> success);
+```
+
+The later one is useful if you e.g. need access to one or more header values.
+
+## Selectors
+
+Routing of responses is controlled by a `Selector`, e.g. `status()` in the former example.
+A selector selects the attribute of a response you want to use to route it.
+
+Riptide comes with the following selectors:
+
+| Selector                                                                                                                                   | Attribute                                                                                                                  |
+|--------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [Selectors.series()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/SeriesSelector.java)           | [HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html) |
+| [Selectors.status()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusSelector.java)           | [HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)               |
+| [Selectors.statusCode()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | Integer                                                                                                                    |
+| [Selectors.contentType()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
+
+```java
+unit.execute(GET, URI.create("https://api.example.com"))
+        .dispatch(contentType(),
+                on(APPLICATION_JSON, Success.class).call(this::onSuccess),
+                on(APPLICATION_XML, Success.class).call(this::onSuccess),
+                on(ISSUE, Issue.class).call(this::onIssue),
+                anyStatus().call(this::fail));
+```
+
+You are free to write your own, which means you just need to implement the following method: 
+
+```java
+Optional<A> attributeOf(ClientHttpResponse response)
+```
+
+## Conditions
+
+[Conditions](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/Conditions.java)
+describe which concrete attribute values you want to bind to which actions:
+
+```java
+unit.execute(GET, URI.create("https://api.example.com"))
+        .dispatch(series(),
+                on(SUCCESS).call(this::onSuccess),
+                on(CLIENT_ERROR, Error.class).call(this::onError),
+                anySeries().call(this::fail));
+```
+
+Conditions can either be untyped, e.g. `on(SUCCESS)`, typed, e.g. `on(CLIENT_ERROR, Error.class)` or wildcard, e.g.
+`anySeries()`. Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
+[`ClientHttpResponse`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
+while typed conditions support typed actions, i.e. actions that operate on custom types or typed 
+[`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
+directly.
+
+Wildcard conditions are comparable to a `default` case in a switch. They take effect if and only if none of the other
+conditions matched.
+
+## Actions
+
+After the selector determined the attribute, the condition matched on a concrete attribute value the
+response will be routed to an action. An action can be one of the following:
+
+- `Consumer<ClientHttpResponse>`
+- `Consumer<ResponseEntity<T>>`
+- `Consumer<T>`
+- `Function<ClientHttpResponse, ?>`
+- `Function<ResponseEntity<T>, ?>`
+- `Function<T, ?>`
+- capture of `ClientHttpResponse`
+- capture of `ResponseEntity<T>`
+- capture of `T`
+- nested dispatch
+
+Consumers can be used to trigger some dedicated function and they work well if no return value is required.
+Functions are used to apply a transformation and their result must be captured. Captured values can later be retrieved,
+e.g. to produce a return value:
+
+```java
+final Optional<Success> success = unit.execute(GET, URI.create("https://api.example.com"))
+        .dispatch(status(),
+                on(CREATED, Success.class).capture(),
+                on(ACCEPTED, Success.class).capture(),
+                anyStatus().call(this::fail))
+        .retrieve(Success.class);
+        
+return success.orElse(..);
+```
+
+### Nested
+
+A special action is the *nested dispatch* which allows to have a very fine-grained control over how to route your
+responses:
+
+```java
+final Success success = unit.execute(GET, URI.create("https://api.example.com"))
         .dispatch(series(),
                 on(SUCCESSFUL)
-                        .dispatch(statusCode(),
+                        .dispatch(status(),
                                 on(CREATED, Success.class).capture(),
                                 on(ACCEPTED, Success.class).capture(),
-                                anyStatusCode().call(this::warn)),
+                                anyStatus().call(this::fail)),
                 on(CLIENT_ERROR)
-                        .dispatch(contentType(),
-                                on(PROBLEM, Problem.class).call(this::onProblem),
-                                on(APPLICATION_JSON, Problem.class).call(this::onProblem),
-                                anyContentType().call(this::fail)),
-                on(SERVER_ERROR).call(this::fail),
-                anySeries().call(this::warn))
-        .unpack(Success.class).orElse(null);
+                    .dispatch(status(),
+                            on(UNAUTHORIZED).call(this::login),
+                            on(UNPROCESSABLE_ENTITY)
+                                    .dispatch(contentType(),
+                                            on(PROBLEM, Problem.class).capture(),
+                                            on(ERROR, Problem.class).capture(),
+                                            anyContentType().call(this::fail)),
+                            anyStatus().call(this::fail)),
+                on(SERVER_ERROR)
+                    .dispatch(statusCode(),
+                            on(503).call(this::retryLater),
+                            anyStatusCode().call(this::fail)),
+                anySeries().call(this::fail))
+        .retrieve(Success.class).orElse(null);
 ```
 
 ## License
