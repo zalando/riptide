@@ -46,12 +46,11 @@ public interface Selector<A> {
     /**
      * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
      * 
-     * @param <O> the generic output type parameter
      * @param attribute the previously selected attribute
      * @param bindings all bindings
      * @return an optional binding match, if found
      */
-    default <O> Optional<Binding<A>> select(Optional<A> attribute, Map<Optional<A>, Binding<A>> bindings) {
+    default Optional<Binding<A>> select(Optional<A> attribute, Map<Optional<A>, Binding<A>> bindings) {
         return Optional.ofNullable(bindings.get(attribute));
     }
 

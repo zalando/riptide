@@ -31,15 +31,11 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
-import static org.springframework.http.HttpStatus.REQUEST_ENTITY_TOO_LARGE;
-import static org.springframework.http.HttpStatus.REQUEST_URI_TOO_LONG;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Conditions.on;

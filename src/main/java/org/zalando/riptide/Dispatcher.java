@@ -20,12 +20,12 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
+import java.io.IOException;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -33,20 +33,15 @@ import static java.util.Arrays.asList;
 public final class Dispatcher {
 
     private final RestTemplate template;
-    private final HttpMethod method;
-    private final URI url;
-    private final RequestCallback callback;
-    private final Propagator propagator = new Propagator();
+    private final ClientHttpResponse response;
+    private final Router router = new Router();
 
-    Dispatcher(RestTemplate template, HttpMethod method, URI url, RequestCallback callback) {
+    Dispatcher(RestTemplate template, ClientHttpResponse response) {
         this.template = template;
-        this.method = method;
-        this.url = url;
-        this.callback = callback;
+        this.response = response;
     }
 
     /**
-     * 
      * @param selector
      * @param bindings
      * @param <A>
@@ -55,12 +50,17 @@ public final class Dispatcher {
      */
     @SafeVarargs
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
-        final Object value = template.execute(url, method, callback, response -> {
-            final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-            return propagator.propagate(response, converters, selector, asList(bindings));
-        });
-
+        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
+        final Object value = route(selector, converters, bindings);
         return new Retriever(value);
+    }
+
+    private <A> Object route(Selector<A> selector, List<HttpMessageConverter<?>> converters, Binding<A>[] bindings) {
+        try {
+            return router.route(response, converters, selector, asList(bindings));
+        } catch (IOException e) {
+            throw new RestClientException(null, e);
+        }
     }
 
 }

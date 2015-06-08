@@ -30,7 +30,7 @@ import static java.util.Arrays.asList;
 
 public final class DispatcherCondition<A> {
     
-    private final Propagator propagator = new Propagator();
+    private final Router router = new Router();
 
     private final Optional<A> attribute;
 
@@ -64,7 +64,7 @@ public final class DispatcherCondition<A> {
     @SafeVarargs
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
         return Binding.create(attribute, (response, converters) ->
-                propagator.propagate(response, converters, selector, asList(bindings)));
+                router.route(response, converters, selector, asList(bindings)));
     }
 
 }

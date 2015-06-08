@@ -77,7 +77,7 @@ public final class NestedDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(Class<T> type) {
+    private <T> T perform(Class<T> type) throws IOException {
         return unit.execute(GET, url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
@@ -120,7 +120,7 @@ public final class NestedDispatchTest {
     }
     
     @Test
-    public void shouldDispatchLevelOne() {
+    public void shouldDispatchLevelOne() throws IOException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
         try {
@@ -132,7 +132,7 @@ public final class NestedDispatchTest {
     }
     
     @Test
-    public void shouldDispatchLevelTwo() {
+    public void shouldDispatchLevelTwo() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
@@ -144,7 +144,7 @@ public final class NestedDispatchTest {
     }
     
     @Test
-    public void shouldDispatchLevelThree() {
+    public void shouldDispatchLevelThree() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))

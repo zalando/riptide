@@ -34,19 +34,19 @@ import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
-public class PropagatorTest {
+public class RouterTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final Propagator unit = new Propagator();
+    private final Router unit = new Router();
 
     @Test
     public void shouldRejectDuplicateAttributes() throws IOException {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate any conditions");
 
-        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
+        unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 anyStatus().capture(),
                 anyStatus().call(response -> {
                     throw new IllegalStateException();
@@ -58,7 +58,7 @@ public class PropagatorTest {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate condition attribute: 200");
 
-        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
+        unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 on(OK).capture(),
                 on(OK).call(response -> {
                     throw new IllegalStateException();

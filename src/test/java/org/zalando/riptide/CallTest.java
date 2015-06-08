@@ -82,7 +82,7 @@ public final class CallTest {
     }
     
     @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> anyResponseEntityOf(Class<T> type) {
+    private <T> ResponseEntity<T> anyResponseEntityOf(@SuppressWarnings("UnusedParameters") Class<T> type) {
         return any(ResponseEntity.class);
     }
     

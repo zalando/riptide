@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -35,13 +34,12 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-final class Propagator {
+final class Router {
 
-    final <A> Object propagate(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-                               Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
-        
+    final <A> Object route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
+                           Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
+
         final Optional<A> attribute = selector.attributeOf(response);
-
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
                 .collect(toMap(Binding::getAttribute, identity(), (l, r) -> {
                     l.getAttribute().ifPresent(a -> {
