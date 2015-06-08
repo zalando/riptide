@@ -28,7 +28,7 @@ Create an instance based on an existing `RestTemplate`:
 ```java
 final Rest rest = Rest.create(new RestTemplate());
 ```
-    
+
 Make a request and route the response to your specific handler methods/callbacks:
 
 ```java
@@ -69,7 +69,7 @@ rest.execute(..).dispatch(statusCode(), ..);
 rest.execute(..).dispatch(contentType(), ..);
 ```
 
-You are free to write your own, which means you just need to implement the following method: 
+You are free to write your own, which means you just need to implement the following method:
 
 ```java
 Optional<A> attributeOf(ClientHttpResponse response)
@@ -89,7 +89,7 @@ anySeries().call(..)
 Conditions can either be untyped, e.g. `on(SUCCESS)`, typed, e.g. `on(CLIENT_ERROR, Error.class)` or wildcard, e.g.
 `anySeries()`. Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
 [`ClientHttpResponse`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
-while typed conditions support typed actions, i.e. actions that operate on custom types or typed 
+while typed conditions support typed actions, i.e. actions that operate on custom types or typed
 [`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
 directly.
 
@@ -101,7 +101,7 @@ conditions matched.
 After the selector determined the attribute, the condition matched on a concrete attribute value the
 response will be routed to an action. An action can be one of the following:
 
-| Action                                      | Syntax                         |                                                                                                                                                                                                                                                             |
+| Action                                      | Syntax                         |
 |---------------------------------------------|--------------------------------|
 | `Consumer<ClientHttpResponse>`              | `on(..).call(..)`              |
 | `Consumer<ResponseEntity<T>>`               | `on(.., ..).call(..)`          |
@@ -119,7 +119,7 @@ e.g. to produce a return value:
 final Optional<Success> success = rest.execute(..)
         .dispatch(..)
         .retrieve(Success.class);
-        
+
 return success.orElse(..);
 ```
 
