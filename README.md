@@ -25,7 +25,9 @@ differently with an easy to use syntax.
 
 Create an instance based on an existing `RestTemplate`:
 
-    final Rest rest = Rest.create(new RestTemplate());
+```java
+final Rest rest = Rest.create(new RestTemplate());
+```
     
 Make a request and route the response to your specific handler methods/callbacks:
 
