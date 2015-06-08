@@ -32,11 +32,11 @@ final Rest rest = Rest.create(new RestTemplate());
 Make a request and route the response to your specific handler methods/callbacks:
 
 ```java
-unit.execute(GET, URI.create("https://api.example.com"))
-        .dispatch(status(),
-                on(CREATED, Success.class).call(this::onSuccess),
-                on(ACCEPTED, Success.class).call(this::onSuccess),
-                anyStatus().call(this::fail));
+rest.execute(GET, url).dispatch(status(),
+        on(CREATED, Success.class).call(this::onSuccess),
+        on(ACCEPTED, Success.class).call(this::onSuccess),
+        on(BAD_REQUEST).call(this::onError),
+        anyStatus().call(this::fail));
 ```
 
 You `onSuccess` method is allowed to have one of the following signatures:
@@ -63,12 +63,10 @@ Riptide comes with the following selectors:
 | [Selectors.contentType()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
 
 ```java
-unit.execute(GET, URI.create("https://api.example.com"))
-        .dispatch(contentType(),
-                on(APPLICATION_JSON, Success.class).call(this::onSuccess),
-                on(APPLICATION_XML, Success.class).call(this::onSuccess),
-                on(ISSUE, Issue.class).call(this::onIssue),
-                anyStatus().call(this::fail));
+rest.execute(..).dispatch(series(), ..);
+rest.execute(..).dispatch(status(), ..);
+rest.execute(..).dispatch(statusCode(), ..);
+rest.execute(..).dispatch(contentType(), ..);
 ```
 
 You are free to write your own, which means you just need to implement the following method: 
@@ -80,14 +78,12 @@ Optional<A> attributeOf(ClientHttpResponse response)
 ## Conditions
 
 [Conditions](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/Conditions.java)
-describe which concrete attribute values you want to bind to which actions:
+describe which concrete attribute values you want to bind to which actions.
 
 ```java
-unit.execute(GET, URI.create("https://api.example.com"))
-        .dispatch(series(),
-                on(SUCCESS).call(this::onSuccess),
-                on(CLIENT_ERROR, Error.class).call(this::onError),
-                anySeries().call(this::fail));
+on(SUCCESS).call(..)
+on(CLIENT_ERROR, Error.class).call(..)
+anySeries().call(..)
 ```
 
 Conditions can either be untyped, e.g. `on(SUCCESS)`, typed, e.g. `on(CLIENT_ERROR, Error.class)` or wildcard, e.g.
@@ -121,11 +117,8 @@ Functions are used to apply a transformation and their result must be captured. 
 e.g. to produce a return value:
 
 ```java
-final Optional<Success> success = unit.execute(GET, URI.create("https://api.example.com"))
-        .dispatch(status(),
-                on(CREATED, Success.class).capture(),
-                on(ACCEPTED, Success.class).capture(),
-                anyStatus().call(this::fail))
+final Optional<Success> success = rest.execute(..)
+        .dispatch(..)
         .retrieve(Success.class);
         
 return success.orElse(..);
@@ -137,7 +130,7 @@ A special action is the *nested dispatch* which allows to have a very fine-grain
 responses:
 
 ```java
-final Success success = unit.execute(GET, URI.create("https://api.example.com"))
+final Success success = rest.execute(GET, url)
         .dispatch(series(),
                 on(SUCCESSFUL)
                         .dispatch(status(),
