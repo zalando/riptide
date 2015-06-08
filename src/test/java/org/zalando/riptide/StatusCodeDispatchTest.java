@@ -31,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
@@ -63,15 +62,13 @@ public final class StatusCodeDispatchTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
-        return Stream.of(HttpStatus.values())
-                .filter(s -> s != HttpStatus.MOVED_TEMPORARILY)
+        return HttpStatuses.supported()
                 .map(HttpStatus::value)
                 .map(s -> new Object[]{s})
                 .collect(toList());
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
 
@@ -84,8 +81,7 @@ public final class StatusCodeDispatchTest {
         };
 
         @SuppressWarnings("unchecked")
-        final Binding<Integer>[] bindings = Stream.of(HttpStatus.values())
-                .filter(s -> s != HttpStatus.MOVED_TEMPORARILY)
+        final Binding<Integer>[] bindings = HttpStatuses.supported()
                 .map(HttpStatus::value)
                 .map(status -> on(status).call(verifier))
                 .toArray(Binding[]::new);

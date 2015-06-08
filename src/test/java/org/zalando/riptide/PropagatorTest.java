@@ -29,7 +29,6 @@ import java.io.IOException;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
@@ -45,7 +44,7 @@ public class PropagatorTest {
     @Test
     public void shouldRejectDuplicateAttributes() throws IOException {
         exception.expect(IllegalStateException.class);
-        exception.expectMessage(containsString("Duplicate any conditions"));
+        exception.expectMessage("Duplicate any conditions");
 
         unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 anyStatus().capture(),
@@ -57,7 +56,7 @@ public class PropagatorTest {
     @Test
     public void shouldRejectDuplicateAnys() throws IOException {
         exception.expect(IllegalStateException.class);
-        exception.expectMessage(containsString("Duplicate condition attribute: 200"));
+        exception.expectMessage("Duplicate condition attribute: 200");
 
         unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 on(OK).capture(),

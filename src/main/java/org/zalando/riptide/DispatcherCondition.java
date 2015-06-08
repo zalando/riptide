@@ -28,13 +28,13 @@ import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 
-public final class DispatchableCondition<A> {
+public final class DispatcherCondition<A> {
     
     private final Propagator propagator = new Propagator();
 
     private final Optional<A> attribute;
 
-    public DispatchableCondition(Optional<A> attribute) {
+    public DispatcherCondition(Optional<A> attribute) {
         this.attribute = attribute;
     }
 
@@ -53,6 +53,14 @@ public final class DispatchableCondition<A> {
         return Binding.create(attribute, (response, converters) -> response);
     }
 
+    /**
+     * 
+     * @param selector
+     * @param bindings
+     * @param <B>
+     * @return
+     * @throws UnsupportedResponseException
+     */
     @SafeVarargs
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
         return Binding.create(attribute, (response, converters) ->

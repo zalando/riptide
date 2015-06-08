@@ -38,6 +38,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
+import static org.springframework.http.HttpStatus.REQUEST_ENTITY_TOO_LARGE;
+import static org.springframework.http.HttpStatus.REQUEST_URI_TOO_LONG;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Conditions.on;
@@ -64,14 +66,12 @@ public final class StatusDispatchTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
-        return Stream.of(HttpStatus.values())
-                .filter(s -> s != MOVED_TEMPORARILY) // duplicate with FOUND
+        return HttpStatuses.supported()
                 .map(s -> new Object[]{s})
                 .collect(toList());
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
@@ -84,8 +84,7 @@ public final class StatusDispatchTest {
         };
         
         @SuppressWarnings("unchecked")
-        final Binding<HttpStatus>[] bindings = Stream.of(HttpStatus.values())
-                .filter(s -> s != MOVED_TEMPORARILY) // duplicate with FOUND
+        final Binding<HttpStatus>[] bindings = HttpStatuses.supported()
                 .map(status -> on(status).call(verifier))
                 .toArray(Binding[]::new);
 

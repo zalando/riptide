@@ -45,6 +45,14 @@ public final class Dispatcher {
         this.callback = callback;
     }
 
+    /**
+     * 
+     * @param selector
+     * @param bindings
+     * @param <A>
+     * @return
+     * @throws UnsupportedResponseException
+     */
     @SafeVarargs
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
         final Object value = template.execute(url, method, callback, response -> {

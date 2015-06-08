@@ -60,9 +60,13 @@ final class Propagator {
         } else if (index.containsKey(none)) {
             return index.get(none).execute(response, converters);
         } else {
-            // TODO test
-            throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
-                    bindings.stream().map(Binding::getAttribute).collect(toList())));
+            final List<A> attributes = bindings.stream()
+                    .map(Binding::getAttribute)
+                    .map(a -> a.orElse(null))
+                    .collect(toList());
+            final String message = format("Unable to dispatch %s onto %s", attribute.orElse(null), attributes);
+            
+            throw new UnsupportedResponseException(message, response);
         }
     }
 
