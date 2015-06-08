@@ -101,15 +101,15 @@ conditions matched.
 After the selector determined the attribute, the condition matched on a concrete attribute value the
 response will be routed to an action. An action can be one of the following:
 
-| Action                                      | Example                                                                                                                                                                                                                                                             |
-|---------------------------------------------|------------------------------------------------------|
-| `Consumer<ClientHttpResponse>`              | `on(OK).call(this::onSuccess)`                       |
-| `Consumer<ResponseEntity<T>>`               | `on(OK, Success.class).call(this::onSuccess)`        |
-| `Consumer<T>`                               | `on(OK, Success.class).call(this::onSuccess)`        |
-| `Function<ClientHttpResponse, ?>` + capture | `on(OK).map(this::mapSuccess).capture()`             |
-| `Function<ResponseEntity<T>, ?>` + capture  | `on(OK, Success.class).map(this::toHappy).capture()` |
-| `Function<T, ?>` + capture                  | `on(OK, Success.class).map(this::toHappy).capture()` |
-| nested routing                              | see next section                                     |
+| Action                                      | Syntax                         |                                                                                                                                                                                                                                                             |
+|---------------------------------------------|--------------------------------|
+| `Consumer<ClientHttpResponse>`              | `on(..).call(..)`              |
+| `Consumer<ResponseEntity<T>>`               | `on(.., ..).call(..)`          |
+| `Consumer<T>`                               | `on(.., ..).call(..)`          |
+| `Function<ClientHttpResponse, ?>` + capture | `on(..).map(..).capture()`     |
+| `Function<ResponseEntity<T>, ?>` + capture  | `on(.., ..).map(..).capture()` |
+| `Function<T, ?>` + capture                  | `on(.., ..).map(..).capture()` |
+| Nested Routing                              | see next section               |
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
 Functions are used to apply a transformation and their result must be captured. Captured values can later be retrieved,
@@ -123,7 +123,7 @@ final Optional<Success> success = rest.execute(..)
 return success.orElse(..);
 ```
 
-### Nested routing
+### Nested Routing
 
 A special action is the *nested routing* which allows to have a very fine-grained control over how to route your
 responses:
