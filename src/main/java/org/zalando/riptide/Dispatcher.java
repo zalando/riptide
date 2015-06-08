@@ -21,30 +21,35 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public final class Dispatcher {
 
     private final RestTemplate template;
     private final HttpMethod method;
     private final URI url;
-    private final RequestCallback request;
+    private final RequestCallback callback;
     private final Propagator propagator = new Propagator();
 
-    public Dispatcher(RestTemplate template, HttpMethod method, URI url, RequestCallback request) {
+    Dispatcher(RestTemplate template, HttpMethod method, URI url, RequestCallback callback) {
         this.template = template;
         this.method = method;
         this.url = url;
-        this.request = request;
+        this.callback = callback;
     }
 
     @SafeVarargs
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
-        final Object value = template.execute(url, method, request, response -> {
-            return propagator.propagate(response, template.getMessageConverters(), selector, bindings);
+        final Object value = template.execute(url, method, callback, response -> {
+            final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
+            return propagator.propagate(response, converters, selector, asList(bindings));
         });
 
         return new Retriever(value);

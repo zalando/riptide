@@ -27,6 +27,7 @@ import org.springframework.mock.http.client.MockClientHttpResponse;
 
 import java.io.IOException;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.http.HttpStatus.OK;
@@ -46,11 +47,11 @@ public class PropagatorTest {
         exception.expect(IllegalStateException.class);
         exception.expectMessage(containsString("Duplicate any conditions"));
 
-        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(),
+        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 anyStatus().capture(),
                 anyStatus().call(response -> {
                     throw new IllegalStateException();
-                }));
+                })));
     }
 
     @Test
@@ -58,11 +59,11 @@ public class PropagatorTest {
         exception.expect(IllegalStateException.class);
         exception.expectMessage(containsString("Duplicate condition attribute: 200"));
 
-        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(),
+        unit.propagate(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 on(OK).capture(),
                 on(OK).call(response -> {
                     throw new IllegalStateException();
-                }));
+                })));
     }
 
 }

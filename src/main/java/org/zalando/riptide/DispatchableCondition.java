@@ -26,7 +26,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static java.util.Arrays.asList;
+
 public final class DispatchableCondition<A> {
+    
+    private final Propagator propagator = new Propagator();
 
     private final Optional<A> attribute;
 
@@ -51,9 +55,8 @@ public final class DispatchableCondition<A> {
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
-        final Propagator propagator = new Propagator();
         return Binding.create(attribute, (response, converters) ->
-                propagator.propagate(response, converters, selector, bindings));
+                propagator.propagate(response, converters, selector, asList(bindings)));
     }
 
 }

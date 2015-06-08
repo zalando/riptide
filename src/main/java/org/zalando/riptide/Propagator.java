@@ -25,10 +25,10 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -37,19 +37,18 @@ import static java.util.stream.Collectors.toMap;
 
 final class Propagator {
 
-    @SafeVarargs
     final <A> Object propagate(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-                               Selector<A> selector, Binding<A>... bindings) throws IOException {
+                               Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
         
         final Optional<A> attribute = selector.attributeOf(response);
 
-        final Map<Optional<A>, Binding<A>> index = Stream.of(bindings)
+        final Map<Optional<A>, Binding<A>> index = bindings.stream()
                 .collect(toMap(Binding::getAttribute, identity(), (l, r) -> {
                     l.getAttribute().ifPresent(a -> {
                         throw new IllegalStateException("Duplicate condition attribute: " + a);
                     });
-                    
-                   throw new IllegalStateException("Duplicate any conditions"); 
+
+                    throw new IllegalStateException("Duplicate any conditions");
                 }));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
@@ -63,7 +62,7 @@ final class Propagator {
         } else {
             // TODO test
             throw new RestClientException(format("Unable to dispatch %s onto %s", attribute,
-                    Stream.of(bindings).map(Binding::getAttribute).collect(toList())));
+                    bindings.stream().map(Binding::getAttribute).collect(toList())));
         }
     }
 

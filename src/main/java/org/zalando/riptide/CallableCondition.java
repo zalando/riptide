@@ -22,7 +22,12 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
+
+import java.io.IOException;
+import java.util.List;
 
 public final class CallableCondition<A, I> implements Capturer<A> {
 
@@ -34,43 +39,47 @@ public final class CallableCondition<A, I> implements Capturer<A> {
         this.type = type;
     }
 
+    private I convert(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+        return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+    }
+
+    private ResponseEntity<I> toResponseEntity(I entity, ClientHttpResponse response) throws IOException {
+        return new ResponseEntity<>(entity, response.getHeaders(), response.getStatusCode());
+    }
+
     public Binding<A> call(EntityConsumer<I> consumer) {
         return Binding.create(attribute, (response, converters) -> {
-            // TODO wrap this in a nice and concise API
-            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-            consumer.accept(body);
+            final I entity = convert(response, converters);
+            consumer.accept(entity);
             return null;
         });
     }
 
     public Binding<A> call(ResponseEntityConsumer<I> consumer) {
         return Binding.create(attribute, (response, converters) -> {
-            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-            final ResponseEntity<I> entity = new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
-            consumer.accept(entity);
+            final I entity = convert(response, converters);
+            consumer.accept(toResponseEntity(entity, response));
             return null;
         });
     }
 
     public Capturer<A> map(EntityFunction<I, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
-            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-            return function.apply(body);
+            final I entity = convert(response, converters);
+            return function.apply(entity);
         });
     }
 
     public Capturer<A> map(ResponseEntityFunction<I, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
-            final I body = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-            final ResponseEntity<I> entity = new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
-            return function.apply(entity);
+            final I entity = convert(response, converters);
+            return function.apply(toResponseEntity(entity, response));
         }); 
     }
 
     @Override
     public Binding<A> capture() {
-        return Binding.create(attribute, (response, converters) -> 
-                new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response));
+        return Binding.create(attribute, this::convert);
     }
 
 }
