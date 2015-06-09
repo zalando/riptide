@@ -21,8 +21,9 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -34,7 +35,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.ACCEPTED;
@@ -61,6 +64,9 @@ import static org.zalando.riptide.Selectors.status;
 import static org.zalando.riptide.Selectors.statusCode;
 
 public final class NestedDispatchTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private final URI url = URI.create("http://localhost");
 
@@ -103,17 +109,21 @@ public final class NestedDispatchTest {
                 .retrieve(type).orElse(null);
     }
     
-    private static final class Foo extends RuntimeException {
+    private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 
-        private Foo(HttpStatus status) {
+        private Failure(HttpStatus status) {
             this.status = status;
+        }
+
+        public HttpStatus getStatus() {
+            return status;
         }
     }
     
     private void fail(ClientHttpResponse response) {
         try {
-            throw new Foo(response.getStatusCode());
+            throw new Failure(response.getStatusCode());
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
@@ -123,12 +133,10 @@ public final class NestedDispatchTest {
     public void shouldDispatchLevelOne() throws IOException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
-        try {
-            perform(Void.class);
-            Assert.fail("Expected exception");
-        } catch (Foo e) {
-            assertThat(e.status, is(MOVED_PERMANENTLY));
-        }
+        exception.expect(Failure.class);
+        exception.expect(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
+
+        perform(Void.class);
     }
     
     @Test

@@ -20,9 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -44,9 +42,6 @@ import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
 public final class AnyDispatchTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     private final URI url = URI.create("http://localhost");
 

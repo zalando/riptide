@@ -21,13 +21,10 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.FeatureMatcher;
-import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -37,6 +34,7 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -46,8 +44,6 @@ import static org.zalando.riptide.MediaTypes.ERROR;
 import static org.zalando.riptide.MediaTypes.PROBLEM;
 import static org.zalando.riptide.MediaTypes.SUCCESS;
 import static org.zalando.riptide.Selectors.contentType;
-
-;
 
 public final class FailedDispatchTest {
 
@@ -81,7 +77,7 @@ public final class FailedDispatchTest {
         exception.expectMessage("application/success+json");
         exception.expectMessage("application/problem+json");
         exception.expectMessage("application/vnd.error+json");
-        exception.expect(response(is(notNullValue())));
+        exception.expect(hasFeature("response", UnsupportedResponseException::getResponse, is(notNullValue())));
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
@@ -89,17 +85,6 @@ public final class FailedDispatchTest {
                         on(SUCCESS, Success.class).capture(),
                         on(PROBLEM, Problem.class).capture(),
                         on(ERROR, Error.class).capture());
-    }
-
-    private FeatureMatcher<UnsupportedResponseException, ClientHttpResponse> response(
-            Matcher<Object> subMatcher) {
-        return new FeatureMatcher<UnsupportedResponseException, ClientHttpResponse>(
-                subMatcher, "response", "getResponse()") {
-            @Override
-            protected ClientHttpResponse featureValueOf(UnsupportedResponseException actual) {
-                return actual.getResponse();
-            }
-        };
     }
 
 }
