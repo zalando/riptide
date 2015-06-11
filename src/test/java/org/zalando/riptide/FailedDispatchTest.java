@@ -28,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.model.*;
 
 import java.net.URI;
 
@@ -40,9 +41,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.MediaTypes.ERROR;
-import static org.zalando.riptide.MediaTypes.PROBLEM;
-import static org.zalando.riptide.MediaTypes.SUCCESS;
+import static org.zalando.riptide.model.MediaTypes.ERROR;
+import static org.zalando.riptide.model.MediaTypes.PROBLEM;
+import static org.zalando.riptide.model.MediaTypes.SUCCESS;
 import static org.zalando.riptide.Selectors.contentType;
 
 public final class FailedDispatchTest {
@@ -84,7 +85,7 @@ public final class FailedDispatchTest {
                         // note that we don't match on application/json explicitly
                         on(SUCCESS, Success.class).capture(),
                         on(PROBLEM, Problem.class).capture(),
-                        on(ERROR, Error.class).capture());
+                        on(ERROR, org.zalando.riptide.model.Error.class).capture());
     }
 
 }

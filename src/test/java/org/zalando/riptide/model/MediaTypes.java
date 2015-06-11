@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,24 +20,12 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.net.URI;
+import org.springframework.http.MediaType;
 
-final class Error {
-    
-    private final String message;
-    private final URI path;
+public final class MediaTypes {
 
-    private Error(String message, URI path) {
-        this.message = message;
-        this.path = path;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public URI getPath() {
-        return path;
-    }
+    public static final MediaType SUCCESS = MediaType.parseMediaType("application/success+json");
+    public static final MediaType ERROR = MediaType.parseMediaType("application/vnd.error+json");
+    public static final MediaType PROBLEM = MediaType.parseMediaType("application/problem+json");
 
 }

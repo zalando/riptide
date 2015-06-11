@@ -4,6 +4,67 @@ package org.zalando.riptide;
  * ⁣​
  * riptide
  * ⁣⁣
+
+    @Test
+    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfUnknownContentType() {
+        server.expect(requestTo(url))
+              .andRespond(withSuccess()
+                      .body("{}")
+                      .contentType(MediaType.APPLICATION_ATOM_XML));
+
+        @SuppressWarnings("unchecked") Consumer<ClientHttpResponse> expectedVerifier = mock(Consumer.class);
+
+        final Retriever retriever = unit.execute(GET, url)
+                                        .dispatch(status(),
+                                                on(HttpStatus.OK)
+                                                        .dispatch(series(),
+                                                                on(SUCCESSFUL, Success.class).capture(),
+                                                                anySeries().call(expectedVerifier)),
+                                                on(HttpStatus.CREATED, Success.class).capture(),
+                                                anyStatus().call(this::fail));
+
+        verify(expectedVerifier).accept(any());
+    }
+
+    @Test
+    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfFaultyBody() {
+        server.expect(requestTo(url))
+              .andRespond(withSuccess()
+                      .body("{")
+                      .contentType(MediaTypes.SUCCESS));
+
+        @SuppressWarnings("unchecked") Consumer<ClientHttpResponse> expectedVerifier = mock(Consumer.class);
+
+        final Retriever retriever = unit.execute(GET, url)
+                                        .dispatch(status(),
+                                                on(HttpStatus.OK)
+                                                        .dispatch(series(),
+                                                                on(SUCCESSFUL, Success.class).capture(),
+                                                                anySeries().call(expectedVerifier)),
+                                                on(HttpStatus.CREATED, Success.class).capture(),
+                                                anyStatus().call(this::fail));
+
+        verify(expectedVerifier).accept(any());
+    }
+
+    @Test
+    public void shouldHandleNoBodyAtAll() {
+        server.expect(requestTo(url))
+              .andRespond(withStatus(HttpStatus.OK)
+                      .body("")
+                      .contentType(MediaTypes.SUCCESS));
+
+        final Retriever retriever = unit.execute(GET, url)
+                                        .dispatch(status(),
+                                                on(HttpStatus.OK)
+                                                        .dispatch(contentType(),
+                                                                on(MediaTypes.SUCCESS, Success.class).capture(),
+                                                                anyContentType().call(this::fail)),
+                                                on(HttpStatus.CREATED, Success.class).capture(),
+                                                anyStatus().call(this::fail));
+
+        assertThat(retriever.retrieve(Success.class).isPresent(), is(false));
+    }
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");

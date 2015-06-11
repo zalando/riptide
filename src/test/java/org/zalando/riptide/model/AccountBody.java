@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,24 +20,18 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-final class Account {
-    
+public final class AccountBody {
+
     private final String id;
-    private final String revision;
     private final String name;
 
-    Account(String id, String revision, String name) {
+    public AccountBody(String id, String name) {
         this.id = id;
-        this.revision = revision;
         this.name = name;
     }
 
     public String getId() {
         return id;
-    }
-
-    public String getRevision() {
-        return revision;
     }
 
     public String getName() {

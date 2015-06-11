@@ -27,6 +27,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.model.*;
+import org.zalando.riptide.model.Error;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,9 +44,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.MediaTypes.ERROR;
-import static org.zalando.riptide.MediaTypes.PROBLEM;
-import static org.zalando.riptide.MediaTypes.SUCCESS;
+import static org.zalando.riptide.model.MediaTypes.ERROR;
+import static org.zalando.riptide.model.MediaTypes.PROBLEM;
+import static org.zalando.riptide.model.MediaTypes.SUCCESS;
 import static org.zalando.riptide.Selectors.contentType;
 
 public final class ContentTypeDispatchTest {
@@ -108,7 +110,7 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("error.json"))
                         .contentType(ERROR));
 
-        final Error error = perform(Error.class);
+        final Error error = perform(org.zalando.riptide.model.Error.class);
 
         assertThat(error.getMessage(), is("A problem occurred."));
         assertThat(error.getPath(), is(url));
@@ -127,7 +129,7 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESS, Success.class).capture(),
                         anyContentType().call(this::fail))
                 .retrieve(Success.class).get();
-        
+
         assertThat(success.isHappy(), is(true));
     }
 
@@ -143,7 +145,7 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESS, Success.class).capture(),
                         anyContentType().capture());
     }
-    
+
     @Test
     public void shouldDispatchToFullMatch() {
         server.expect(requestTo(url))
@@ -157,7 +159,7 @@ public final class ContentTypeDispatchTest {
                         on(parseMediaType("application/success+json;version=2"), Success.class).capture(),
                         anyContentType().call(this::fail))
                 .retrieve(Success.class).get();
-        
+
         assertThat(success.isHappy(), is(true));
     }
 

@@ -24,7 +24,9 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.client.HttpMessageConverterExtractor;
+import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +43,11 @@ public final class CallableCondition<A, I> implements Capturer<A> {
     }
 
     private I convert(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
-        return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+        try {
+            return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+        } catch (final RestClientException | HttpMessageNotReadableException e) {
+            throw new BodyConversionException(e);
+        }
     }
 
     private ResponseEntity<I> toResponseEntity(I entity, ClientHttpResponse response) throws IOException {
@@ -75,7 +81,7 @@ public final class CallableCondition<A, I> implements Capturer<A> {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             return function.apply(toResponseEntity(entity, response));
-        }); 
+        });
     }
 
     @Override

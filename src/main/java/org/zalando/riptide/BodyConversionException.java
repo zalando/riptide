@@ -20,12 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClientException;
 
-final class MediaTypes {
+final class BodyConversionException extends RuntimeException {
 
-    static final MediaType SUCCESS = MediaType.parseMediaType("application/success+json");
-    static final MediaType ERROR = MediaType.parseMediaType("application/vnd.error+json");
-    static final MediaType PROBLEM = MediaType.parseMediaType("application/problem+json");
-
+    BodyConversionException(final Throwable innerException) {
+        super(innerException);
+    }
 }

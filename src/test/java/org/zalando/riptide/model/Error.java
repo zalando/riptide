@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,19 +20,24 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 
-final class Success {
+public final class Error {
     
-    private final boolean happy;
+    private final String message;
+    private final URI path;
 
-    // TODO @JsonProperty shouldn't be necessary here...
-    Success(@JsonProperty("happy") boolean happy) {
-        this.happy = happy;
+    public Error(String message, URI path) {
+        this.message = message;
+        this.path = path;
     }
 
-    public boolean isHappy() {
-        return happy;
+    public String getMessage() {
+        return message;
+    }
+
+    public URI getPath() {
+        return path;
     }
 
 }

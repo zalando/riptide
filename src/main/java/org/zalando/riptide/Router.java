@@ -38,7 +38,7 @@ import static java.util.stream.Collectors.toMap;
 final class Router {
 
     final <A> Object route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-                           Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
+            Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
 
         final Optional<A> attribute = selector.attributeOf(response);
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
@@ -51,20 +51,33 @@ final class Router {
                 }, LinkedHashMap::new));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
-        final Optional<A> none = Optional.empty();
 
         if (match.isPresent()) {
             final Binding<A> binding = match.get();
-            return binding.execute(response, converters);
-        } else if (index.containsKey(none)) {
+            try {
+                return binding.execute(response, converters);
+            } catch (BodyConversionException e) {
+                return routeNone(response, converters, attribute, index, bindings);
+            }
+        }
+        return routeNone(response, converters, attribute, index, bindings);
+    }
+
+    private <A> Object routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> index, Collection<Binding<A>> bindings)
+            throws IOException {
+
+        final Optional<A> none = Optional.empty();
+
+        if (index.containsKey(none)) {
             return index.get(none).execute(response, converters);
         } else {
             final List<A> attributes = bindings.stream()
-                    .map(Binding::getAttribute)
-                    .map(a -> a.orElse(null))
-                    .collect(toList());
+                                               .map(Binding::getAttribute)
+                                               .map(a -> a.orElse(null))
+                                               .collect(toList());
             final String message = format("Unable to dispatch %s onto %s", attribute.orElse(null), attributes);
-            
+
             throw new UnsupportedResponseException(message, response);
         }
     }

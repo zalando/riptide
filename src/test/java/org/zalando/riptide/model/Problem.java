@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -22,14 +22,14 @@ package org.zalando.riptide;
 
 import java.net.URI;
 
-final class Problem {
+public final class Problem {
 
     private final URI type;
     private final String title;
     private final int status;
     private final String detail;
 
-    private Problem(URI type, String title, int status, String detail) {
+    public Problem(URI type, String title, int status, String detail) {
         this.type = type;
         this.title = title;
         this.status = status;

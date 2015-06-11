@@ -33,6 +33,7 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.model.Success;
 
 import java.net.URI;
 import java.util.List;
@@ -120,7 +121,7 @@ public final class ExecuteTest {
         
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
-        exception.expectMessage("org.zalando.riptide.Success");
+        exception.expectMessage("org.zalando.riptide.model.Success");
         exception.expectMessage("application/xml");
         
         unit.execute(GET, url, headers, new Success(true));
@@ -138,7 +139,7 @@ public final class ExecuteTest {
         
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
-        exception.expectMessage("org.zalando.riptide.Success");
+        exception.expectMessage("org.zalando.riptide.model.Success");
         
         unit.execute(GET, url, new Success(true));
     }
