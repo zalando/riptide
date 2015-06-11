@@ -28,8 +28,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
-import static java.lang.String.format;
-
 public final class Rest {
 
     private final RestTemplate template;
@@ -38,22 +36,22 @@ public final class Rest {
         this.template = template;
     }
 
-    Dispatcher execute(HttpMethod method, URI url) {
+    public Dispatcher execute(HttpMethod method, URI url) {
         return execute(method, url, HttpEntity.EMPTY);
     }
 
-    Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
+    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
         return execute(method, url, new HttpEntity<>(headers));
     }
 
-    Dispatcher execute(HttpMethod method, URI url, Object entity) {
+    public Dispatcher execute(HttpMethod method, URI url, Object entity) {
         return execute(method, url, new HttpEntity<>(entity));
     }
 
-    Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
+    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
         return execute(method, url, new HttpEntity<>(entity, headers));
     }
-    
+
     private <T> Dispatcher execute(HttpMethod method, URI url, HttpEntity<T> entity) {
         final Callback<T> callback = new Callback<>(template.getMessageConverters(), entity);
         final ClientHttpResponse response = template.execute(url, method, callback, r -> r);

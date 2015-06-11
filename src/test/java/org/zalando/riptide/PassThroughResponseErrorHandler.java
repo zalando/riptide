@@ -25,8 +25,8 @@ import org.springframework.web.client.ResponseErrorHandler;
 
 import java.io.IOException;
 
-final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
-    
+public final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
+
     @Override
     public boolean hasError(ClientHttpResponse response) throws IOException {
         return false;
@@ -36,5 +36,5 @@ final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
     public void handleError(ClientHttpResponse response) throws IOException {
 
     }
-    
+
 }
