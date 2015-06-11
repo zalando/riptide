@@ -44,12 +44,12 @@ public final class Rest {
         return execute(method, url, new HttpEntity<>(headers));
     }
 
-    public Dispatcher execute(HttpMethod method, URI url, Object entity) {
-        return execute(method, url, new HttpEntity<>(entity));
+    public Dispatcher execute(HttpMethod method, URI url, Object body) {
+        return execute(method, url, new HttpEntity<>(body));
     }
 
-    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object entity) {
-        return execute(method, url, new HttpEntity<>(entity, headers));
+    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object body) {
+        return execute(method, url, new HttpEntity<>(body, headers));
     }
 
     private <T> Dispatcher execute(HttpMethod method, URI url, HttpEntity<T> entity) {
