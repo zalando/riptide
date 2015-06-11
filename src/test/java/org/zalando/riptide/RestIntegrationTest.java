@@ -32,8 +32,8 @@ import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Success;
 
+import java.io.IOException;
 import java.net.URI;
-import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -73,13 +73,13 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfUnknownContentType() {
+    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfUnknownContentType() throws IOException {
         server.expect(requestTo(url))
               .andRespond(withSuccess()
                       .body("{}")
                       .contentType(MediaType.APPLICATION_ATOM_XML));
 
-        @SuppressWarnings("unchecked") Consumer<ClientHttpResponse> expectedVerifier = mock(Consumer.class);
+        ClientHttpResponseConsumer expectedVerifier = mock(ClientHttpResponseConsumer.class);
 
         unit.execute(GET, url)
             .dispatch(status(),
@@ -94,13 +94,13 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfFaultyBody() {
+    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfFaultyBody() throws IOException {
         server.expect(requestTo(url))
               .andRespond(withSuccess()
                       .body("{")
                       .contentType(MediaTypes.SUCCESS));
 
-        @SuppressWarnings("unchecked") Consumer<ClientHttpResponse> expectedVerifier = mock(Consumer.class);
+        ClientHttpResponseConsumer expectedVerifier = mock(ClientHttpResponseConsumer.class);
 
         unit.execute(GET, url)
             .dispatch(status(),

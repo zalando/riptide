@@ -71,14 +71,14 @@ public final class StatusDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        final Consumer<ClientHttpResponse> verifier = response -> {
+        final ClientHttpResponseConsumer verifier = response -> {
             try {
                 assertThat(response.getStatusCode(), is(status));
             } catch (IOException e) {
                 throw new AssertionError(e);
             }
         };
-        
+
         @SuppressWarnings("unchecked")
         final Binding<HttpStatus>[] bindings = HttpStatuses.supported()
                 .map(status -> on(status).call(verifier))

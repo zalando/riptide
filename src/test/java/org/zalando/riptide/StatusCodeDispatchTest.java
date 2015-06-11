@@ -72,7 +72,7 @@ public final class StatusCodeDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
 
-        final Consumer<ClientHttpResponse> verifier = response -> {
+        final ClientHttpResponseConsumer verifier = response -> {
             try {
                 assertThat(response.getRawStatusCode(), is(status));
             } catch (IOException e) {

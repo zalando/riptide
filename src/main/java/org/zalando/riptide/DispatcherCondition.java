@@ -99,7 +99,7 @@ public final class DispatcherCondition<A> {
         this.attribute = attribute;
     }
 
-    public Binding<A> call(Consumer<ClientHttpResponse> consumer) {
+    public Binding<A> call(ClientHttpResponseConsumer consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
             return null;

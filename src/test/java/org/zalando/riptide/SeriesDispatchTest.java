@@ -80,7 +80,7 @@ public final class SeriesDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        final Consumer<ClientHttpResponse> verifier = response -> {
+        final ClientHttpResponseConsumer verifier = response -> {
             try {
                 assertThat(response.getStatusCode().series(), is(status.series()));
             } catch (IOException e) {
