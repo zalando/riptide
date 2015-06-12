@@ -106,12 +106,8 @@ public final class CallTest {
         verify(verifier).accept(any(AccountBody.class));
     }
     
-    private void fail(ClientHttpResponse response) {
-        try {
-            throw new AssertionError(response.getRawStatusCode());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+    private void fail(ClientHttpResponse response) throws IOException {
+        throw new AssertionError(response.getRawStatusCode());
     }
 
 }

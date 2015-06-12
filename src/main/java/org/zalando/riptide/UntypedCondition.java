@@ -83,30 +83,28 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 
-public final class DispatcherCondition<A> {
+public final class UntypedCondition<A> {
     
     private final Router router = new Router();
-
     private final Optional<A> attribute;
 
-    public DispatcherCondition(Optional<A> attribute) {
+    public UntypedCondition(Optional<A> attribute) {
         this.attribute = attribute;
     }
 
-    public Binding<A> call(ClientHttpResponseConsumer consumer) {
+    public Binding<A> call(ThrowingConsumer<ClientHttpResponse, IOException> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
             return null;
         });
     }
 
-    public Capturer<A> map(Function<ClientHttpResponse, ?> function) {
+    public Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function) {
         return () -> Binding.create(attribute, (response, converters) -> function.apply(response));
     }
 

@@ -24,13 +24,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
@@ -72,13 +69,8 @@ public final class StatusCodeDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
 
-        final ClientHttpResponseConsumer verifier = response -> {
-            try {
+        final ClientHttpResponseConsumer verifier = response -> 
                 assertThat(response.getRawStatusCode(), is(status));
-            } catch (IOException e) {
-                throw new AssertionError(e);
-            }
-        };
 
         @SuppressWarnings("unchecked")
         final Binding<Integer>[] bindings = HttpStatuses.supported()

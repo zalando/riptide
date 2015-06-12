@@ -23,27 +23,9 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface ClientHttpResponseConsumer {
+public interface ClientHttpResponseConsumer
+        extends ThrowingConsumer<ClientHttpResponse, IOException> {
 
-    void accept(ClientHttpResponse clientHttpResponse) throws IOException;
-
-    default ClientHttpResponseConsumer andThen(Consumer<? super ClientHttpResponse> after) {
-        Objects.requireNonNull(after);
-        return (ClientHttpResponse t) -> {
-            accept(t);
-            after.accept(t);
-        };
-    }
-
-    default ClientHttpResponseConsumer andThen(ClientHttpResponseConsumer after) {
-        Objects.requireNonNull(after);
-        return (ClientHttpResponse t) -> {
-            accept(t);
-            after.accept(t);
-        };
-    }
 }

@@ -27,8 +27,9 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.model.*;
 import org.zalando.riptide.model.Error;
+import org.zalando.riptide.model.Problem;
+import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
@@ -44,10 +45,12 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyContentType;
 import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
-import static org.zalando.riptide.Selectors.contentType;
+import static org.zalando.riptide.model.MediaTypes.SUCCESS_V1;
+import static org.zalando.riptide.model.MediaTypes.SUCCESS_V2;
 
 public final class ContentTypeDispatchTest {
 
@@ -151,24 +154,20 @@ public final class ContentTypeDispatchTest {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
-                        .contentType(parseMediaType("application/success+json;version=2")));
+                        .contentType(SUCCESS_V2));
 
         final Success success = unit.execute(GET, url)
                 .dispatch(contentType(),
-                        on(parseMediaType("application/success+json;version=1")).call(this::fail),
-                        on(parseMediaType("application/success+json;version=2"), Success.class).capture(),
+                        on(SUCCESS_V1).call(this::fail),
+                        on(SUCCESS_V2, Success.class).capture(),
                         anyContentType().call(this::fail))
                 .retrieve(Success.class).get();
 
         assertThat(success.isHappy(), is(true));
     }
 
-    private void fail(ClientHttpResponse response) {
-        try {
-            throw new AssertionError(response.getStatusText());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+    private void fail(ClientHttpResponse response) throws IOException {
+        throw new AssertionError(response.getStatusText());
     }
 
 }

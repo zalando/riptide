@@ -31,13 +31,12 @@ import org.springframework.web.client.RestClientException;
 import java.io.IOException;
 import java.util.List;
 
-// TODO better name
-public final class CallableCondition<A, I> implements Capturer<A> {
+public final class TypedCondition<A, I> implements Capturer<A> {
 
     private final A attribute;
     private final TypeToken<I> type;
 
-    public CallableCondition(A attribute, TypeToken<I> type) {
+    public TypedCondition(A attribute, TypeToken<I> type) {
         this.attribute = attribute;
         this.type = type;
     }

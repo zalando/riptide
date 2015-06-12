@@ -69,7 +69,16 @@ final class Callback<T> implements RequestCallback {
 
             converter.write(body, contentType, request);
         } else {
-            fail(type, contentType);
+            RestClientException result;
+            final String message = format(
+                    "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
+                    type.getName());
+
+            if (contentType == null) {
+                throw new RestClientException(message);
+            } else {
+                throw new RestClientException(format("%s and content type [%s]", message, contentType));
+            }
         }
     }
 
@@ -78,15 +87,4 @@ final class Callback<T> implements RequestCallback {
         return (HttpMessageConverter<T>) converter;
     }
 
-    private RestClientException fail(Class<?> type, @Nullable MediaType contentType) {
-        final String message = format(
-                "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
-                type.getName());
-
-        if (contentType == null) {
-            throw new RestClientException(message);
-        } else {
-            throw new RestClientException(format("%s and content type [%s]", message, contentType));
-        }
-    }
 }

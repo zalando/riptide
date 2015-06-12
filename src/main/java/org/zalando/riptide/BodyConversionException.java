@@ -20,11 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.web.client.RestClientException;
-
 final class BodyConversionException extends RuntimeException {
 
-    BodyConversionException(final Throwable innerException) {
-        super(innerException);
+    BodyConversionException(final Throwable cause) {
+        super(cause);
     }
 }

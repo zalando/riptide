@@ -58,12 +58,12 @@ import static org.zalando.riptide.Conditions.anySeries;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.anyStatusCode;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.model.MediaTypes.ERROR;
-import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.model.MediaTypes.ERROR;
+import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
 public final class NestedDispatchTest {
 
@@ -123,12 +123,8 @@ public final class NestedDispatchTest {
         }
     }
     
-    private void fail(ClientHttpResponse response) {
-        try {
-            throw new Failure(response.getStatusCode());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+    private void fail(ClientHttpResponse response) throws IOException {
+        throw new Failure(response.getStatusCode());
     }
     
     @Test

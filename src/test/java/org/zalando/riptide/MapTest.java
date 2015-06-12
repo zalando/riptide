@@ -84,14 +84,10 @@ public final class MapTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private Account fromResponse(ClientHttpResponse response) {
-        try {
-            final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class, 
-                    template.getMessageConverters()).extractData(response);
-            return new Account(account.getId(), "fake", account.getName());
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+    private Account fromResponse(ClientHttpResponse response) throws IOException {
+        final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class, 
+                template.getMessageConverters()).extractData(response);
+        return new Account(account.getId(), "fake", account.getName());
     }
 
     @Test
@@ -146,12 +142,8 @@ public final class MapTest {
         return new Account(account.getId(), revision, account.getName());
     }
 
-    private void fail(ClientHttpResponse response) {
-        try {
-            throw new AssertionError(response.getRawStatusCode());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+    private void fail(ClientHttpResponse response) throws IOException {
+        throw new AssertionError(response.getRawStatusCode());
     }
 
 }

@@ -32,16 +32,16 @@ public final class Conditions {
         // package private so we can trick code coverage
     }
 
-    public static <A> DispatcherCondition<A> on(A attribute) {
-        return new DispatcherCondition<>(Optional.of(attribute));
+    public static <A> UntypedCondition<A> on(A attribute) {
+        return new UntypedCondition<>(Optional.of(attribute));
     }
 
-    public static <A, I> CallableCondition<A, I> on(A attribute, Class<I> type) {
+    public static <A, I> TypedCondition<A, I> on(A attribute, Class<I> type) {
         return on(attribute, TypeToken.of(type));
     }
 
-    public static <A, I> CallableCondition<A, I> on(A attribute, TypeToken<I> type) {
-        return new CallableCondition<>(attribute, type);
+    public static <A, I> TypedCondition<A, I> on(A attribute, TypeToken<I> type) {
+        return new TypedCondition<>(attribute, type);
     }
 
     /**
@@ -57,7 +57,7 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> DispatcherCondition<A> any(Class<A> type) {
+    public static <A> UntypedCondition<A> any(Class<A> type) {
         return any(TypeToken.of(type));
     }
 
@@ -74,23 +74,24 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> DispatcherCondition<A> any(@SuppressWarnings("UnusedParameters") TypeToken<A> type) {
-        return new DispatcherCondition<>(Optional.<A>empty());
+    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") TypeToken<A> type) {
+        return new UntypedCondition<>(Optional.<A>empty());
     }
 
-    public static DispatcherCondition<HttpStatus.Series> anySeries() {
+    public static UntypedCondition<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
     }
 
-    public static DispatcherCondition<HttpStatus> anyStatus() {
+    public static UntypedCondition<HttpStatus> anyStatus() {
         return any(HttpStatus.class);
     }
     
-    public static DispatcherCondition<Integer> anyStatusCode() {
+    public static UntypedCondition<Integer> anyStatusCode() {
         return any(Integer.class);
     }
 
-    public static DispatcherCondition<MediaType> anyContentType() {
+    public static UntypedCondition<MediaType> anyContentType() {
         return any(MediaType.class);
     }
+
 }
