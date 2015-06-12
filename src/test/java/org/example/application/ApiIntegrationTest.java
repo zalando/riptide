@@ -21,7 +21,6 @@ package org.example.application;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -64,18 +63,17 @@ public class ApiIntegrationTest {
 
     private final URI url = URI.create("http://localhost");
 
-    private MockRestServiceServer server;
-    private Rest unit;
+    private final MockRestServiceServer server;
+    private final Rest unit;
 
-    @Before
-    public void setUp() {
+    public ApiIntegrationTest() {
         final RestTemplate template = new RestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
-        server = MockRestServiceServer.createServer(template);
-        unit = Rest.create(template);
+        template.setErrorHandler(new PassThroughResponseErrorHandler());
+        this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.create(template);
     }
 
     @Test

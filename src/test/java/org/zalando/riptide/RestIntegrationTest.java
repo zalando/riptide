@@ -58,18 +58,17 @@ public class RestIntegrationTest {
 
     private final URI url = URI.create("http://localhost");
 
-    private MockRestServiceServer server;
-    private Rest unit;
+    private final MockRestServiceServer server;
+    private final Rest unit;
 
-    @Before
-    public void setUp() {
+    public RestIntegrationTest() {
         final RestTemplate template = new RestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
-        server = MockRestServiceServer.createServer(template);
-        unit = Rest.create(template);
+        template.setErrorHandler(new PassThroughResponseErrorHandler());
+        this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.create(template);
     }
 
     @Test
@@ -79,18 +78,18 @@ public class RestIntegrationTest {
                       .body("{}")
                       .contentType(MediaType.APPLICATION_ATOM_XML));
 
-        ClientHttpResponseConsumer expectedVerifier = mock(ClientHttpResponseConsumer.class);
+        final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
 
         unit.execute(GET, url)
             .dispatch(status(),
                     on(HttpStatus.OK)
                             .dispatch(series(),
                                     on(SUCCESSFUL, Success.class).capture(),
-                                    anySeries().call(expectedVerifier)),
+                                    anySeries().call(consumer)),
                     on(HttpStatus.CREATED, Success.class).capture(),
                     anyStatus().call(this::fail));
 
-        verify(expectedVerifier).accept(any());
+        verify(consumer).accept(any());
     }
 
     @Test
@@ -100,18 +99,18 @@ public class RestIntegrationTest {
                       .body("{")
                       .contentType(MediaTypes.SUCCESS));
 
-        ClientHttpResponseConsumer expectedVerifier = mock(ClientHttpResponseConsumer.class);
+        final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
 
         unit.execute(GET, url)
             .dispatch(status(),
                     on(HttpStatus.OK)
                             .dispatch(series(),
                                     on(SUCCESSFUL, Success.class).capture(),
-                                    anySeries().call(expectedVerifier)),
+                                    anySeries().call(consumer)),
                     on(HttpStatus.CREATED, Success.class).capture(),
                     anyStatus().call(this::fail));
 
-        verify(expectedVerifier).accept(any());
+        verify(consumer).accept(any());
     }
 
     @Test
