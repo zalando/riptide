@@ -20,19 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.util.function.Function;
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
-
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
-    }
+@FunctionalInterface
+public interface ResponseEntityFunction<F, T> extends Function<ResponseEntity<F>, T> {
 
 }

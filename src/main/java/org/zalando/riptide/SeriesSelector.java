@@ -20,19 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.util.Optional;
 
 /**
- * @see Selectors#status()
+ * @see Selectors#series() 
  */
-final class StatusCodeSelector implements Selector<Integer> {
+final class SeriesSelector implements Selector<HttpStatus.Series> {
 
     @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    public Optional<HttpStatus.Series> attributeOf(ClientHttpResponse response) throws IOException {
+        return Optional.of(response.getStatusCode().series());
     }
 
 }

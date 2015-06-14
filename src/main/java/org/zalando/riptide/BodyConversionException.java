@@ -20,19 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+final class BodyConversionException extends RuntimeException {
 
-import java.io.IOException;
-import java.util.Optional;
-
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
-
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    BodyConversionException(final Throwable cause) {
+        super(cause);
     }
-
 }

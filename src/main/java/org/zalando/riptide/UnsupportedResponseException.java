@@ -21,18 +21,22 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.client.ClientHttpResponse;
-
-import java.io.IOException;
-import java.util.Optional;
+import org.springframework.web.client.RestClientException;
 
 /**
- * @see Selectors#status()
+ * TODO javadocs
  */
-final class StatusCodeSelector implements Selector<Integer> {
+public final class UnsupportedResponseException extends RestClientException {
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    private final ClientHttpResponse response;
+
+    public UnsupportedResponseException(String message, ClientHttpResponse response) {
+        super(message);
+        this.response = response;
+    }
+
+    public ClientHttpResponse getResponse() {
+        return response;
     }
 
 }

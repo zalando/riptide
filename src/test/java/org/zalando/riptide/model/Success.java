@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,19 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
-import java.util.Optional;
+public final class Success {
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+    private final boolean happy;
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    // TODO @JsonProperty shouldn't be necessary here...
+    public Success(@JsonProperty("happy") boolean happy) {
+        this.happy = happy;
+    }
+
+    public boolean isHappy() {
+        return happy;
     }
 
 }

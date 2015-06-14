@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,19 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.MediaType;
 
-import java.io.IOException;
-import java.util.Optional;
+import static org.springframework.http.MediaType.parseMediaType;
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+public final class MediaTypes {
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
-    }
+    public static final MediaType SUCCESS = parseMediaType("application/success+json");
+    public static final MediaType SUCCESS_V1 = parseMediaType("application/success+json;version=1");
+    public static final MediaType SUCCESS_V2 = parseMediaType("application/success+json;version=2");
+    public static final MediaType ERROR = parseMediaType("application/vnd.error+json");
+    public static final MediaType PROBLEM = parseMediaType("application/problem+json");
 
 }

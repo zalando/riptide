@@ -20,68 +20,38 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.reflect.TypeToken;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 
-import java.lang.reflect.Type;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
-public final class Binding<A, I, O> implements Function<ResponseEntity<I>, O> {
+public final class Binding<A> implements Executor {
 
-    private final A attribute;
-    private final Type type;
-    private final Function<ResponseEntity<I>, O> mapper;
+    private final Optional<A> attribute;
+    private final Executor executor;
 
-    Binding(A attribute, Type type, Function<ResponseEntity<I>, O> mapper) {
+    private Binding(Optional<A> attribute, Executor executor) {
         this.attribute = attribute;
-        this.type = type;
-        this.mapper = mapper;
+        this.executor = executor;
     }
 
-    public A getAttribute() {
+    Optional<A> getAttribute() {
         return attribute;
     }
 
-    public Type getType() {
-        return type;
-    }
-
     @Override
-    public O apply(ResponseEntity<I> i) {
-        return mapper.apply(i);
-    }
-
-    private static <I> Function<I, Void> asFunction(Consumer<I> consumer) {
-        return input -> {
-            consumer.accept(input);
-            return null;
-        };
-    }
-
-    public static <A, I> Binding<A, I, Void> consume(A attribute, TypeToken<I> type, Consumer<ResponseEntity<I>> consumer) {
-        return consume(attribute, type.getType(), consumer);
-    }
-
-    public static <A, I> Binding<A, I, Void> consume(A attribute, Class<I> type, Consumer<ResponseEntity<I>> consumer) {
-        return map(attribute, type, asFunction(consumer));
-    }
-
-    public static <A, I> Binding<A, I, Void> consume(A attribute, Type type, Consumer<ResponseEntity<I>> consumer) {
-        return map(attribute, type, asFunction(consumer));
-    }
-
-    public static <A, I, O> Binding<A, I, O> map(A attribute, TypeToken<I> type, Function<ResponseEntity<I>, O> mapper) {
-        return map(attribute, type.getType(), mapper);
-    }
-
-    public static <A, I, O> Binding<A, I, O> map(A attribute, Class<I> type, Function<ResponseEntity<I>, O> mapper) {
-        return new Binding<>(attribute, type, mapper);
-    }
-
-    public static <A, I, O> Binding<A, I, O> map(A attribute, Type type, Function<ResponseEntity<I>, O> mapper) {
-        return new Binding<>(attribute, type, mapper);
+    public Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+        return executor.execute(response, converters);
     }
     
+    static <A> Binding<A> create(A attribute, Executor executor) {
+        return create(Optional.of(attribute), executor);
+    }
+    
+    static <A> Binding<A> create(Optional<A> attribute, Executor executor) {
+        return new Binding<>(attribute, executor);
+    }
+
 }

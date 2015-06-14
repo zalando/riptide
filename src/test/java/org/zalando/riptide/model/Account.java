@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,19 +20,28 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+public final class Account {
 
-import java.io.IOException;
-import java.util.Optional;
+    private final String id;
+    private final String revision;
+    private final String name;
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+    public Account(String id, String revision, String name) {
+        this.id = id;
+        this.revision = revision;
+        this.name = name;
+    }
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    public String getId() {
+        return id;
+    }
+
+    public String getRevision() {
+        return revision;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

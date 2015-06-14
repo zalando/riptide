@@ -41,17 +41,16 @@ public interface Selector<A> {
      * @param response the incoming response
      * @return an attribute based on the response which is then used to select the correct binding
      */
-    A attributeOf(ClientHttpResponse response) throws IOException;
+    Optional<A> attributeOf(ClientHttpResponse response) throws IOException;
 
     /**
      * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
      * 
      * @param attribute the previously selected attribute
      * @param bindings all bindings
-     * @param <O> the generic output type parameter
      * @return an optional binding match, if found
      */
-    default <O> Optional<Binding<A, ?, O>> select(A attribute, Map<A, Binding<A, ?, O>> bindings) {
+    default Optional<Binding<A>> select(Optional<A> attribute, Map<Optional<A>, Binding<A>> bindings) {
         return Optional.ofNullable(bindings.get(attribute));
     }
 

@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
@@ -20,19 +20,24 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import java.net.URI;
 
-import java.io.IOException;
-import java.util.Optional;
+public final class Error {
+    
+    private final String message;
+    private final URI path;
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+    public Error(String message, URI path) {
+        this.message = message;
+        this.path = path;
+    }
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    public String getMessage() {
+        return message;
+    }
+
+    public URI getPath() {
+        return path;
     }
 
 }

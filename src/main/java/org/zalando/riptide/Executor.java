@@ -21,18 +21,14 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.List;
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+@FunctionalInterface
+interface Executor {
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
-    }
+    Object execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
 
 }

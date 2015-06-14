@@ -20,19 +20,22 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.gag.annotation.remark.Hack;
+import com.google.gag.annotation.remark.OhNoYouDidnt;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.util.Optional;
+@Hack
+@OhNoYouDidnt
+public final class EnforceCoverageTest {
 
-/**
- * @see Selectors#status()
- */
-final class StatusCodeSelector implements Selector<Integer> {
+    @Test
+    public void shouldUseConditionsConstructor() {
+        new Conditions();
+    }
 
-    @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    @Test
+    public void shouldUseSelectorsConstructor() {
+        new Selectors();
     }
 
 }
