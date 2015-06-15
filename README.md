@@ -93,8 +93,10 @@ while typed conditions support typed actions, i.e. actions that operate on custo
 [`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
 directly.
 
-Wildcard conditions are comparable to a `default` case in a switch. They take effect if and only if none of the other
-conditions matched.
+Wildcard conditions are comparable to a `default` case in a switch. They take effect if:
+- no match was found
+- a match was found, but the `RestTemplate` was unable to find a suitable `HttpMessageConverter`
+- a match was found, but the `HttpMessageConverter` was unable to read the body
 
 ## Actions
 

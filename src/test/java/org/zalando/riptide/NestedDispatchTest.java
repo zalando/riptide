@@ -85,7 +85,7 @@ public final class NestedDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(Class<T> type) throws IOException {
+    private <T> T perform(Class<T> type) {
         return unit.execute(GET, url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
@@ -94,23 +94,23 @@ public final class NestedDispatchTest {
                                         on(ACCEPTED, Success.class).capture(),
                                         anyStatus().call(this::fail)),
                         on(CLIENT_ERROR)
-                            .dispatch(status(),
-                                    on(UNAUTHORIZED).capture(),
-                                    on(UNPROCESSABLE_ENTITY)
-                                            .dispatch(contentType(),
-                                                    on(PROBLEM, Problem.class).capture(),
-                                                    on(ERROR, Problem.class).capture(),
-                                                    anyContentType().call(this::fail)),
-                                    anyStatus().call(this::fail)),
+                                .dispatch(status(),
+                                        on(UNAUTHORIZED).capture(),
+                                        on(UNPROCESSABLE_ENTITY)
+                                                .dispatch(contentType(),
+                                                        on(PROBLEM, Problem.class).capture(),
+                                                        on(ERROR, Problem.class).capture(),
+                                                        anyContentType().call(this::fail)),
+                                        anyStatus().call(this::fail)),
                         on(SERVER_ERROR)
-                            .dispatch(statusCode(),
-                                    on(500).capture(),
-                                    on(503).capture(),
-                                    anyStatusCode().call(this::fail)),
+                                .dispatch(statusCode(),
+                                        on(500).capture(),
+                                        on(503).capture(),
+                                        anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
                 .retrieve(type).orElse(null);
     }
-    
+
     private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 
@@ -122,11 +122,11 @@ public final class NestedDispatchTest {
             return status;
         }
     }
-    
+
     private void fail(ClientHttpResponse response) throws IOException {
         throw new Failure(response.getStatusCode());
     }
-    
+
     @Test
     public void shouldDispatchLevelOne() throws IOException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
@@ -136,28 +136,28 @@ public final class NestedDispatchTest {
 
         perform(Void.class);
     }
-    
+
     @Test
     public void shouldDispatchLevelTwo() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
-        
+
         final Success success = perform(Success.class);
 
         assertThat(success.isHappy(), is(true));
     }
-    
+
     @Test
     public void shouldDispatchLevelThree() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
                         .contentType(PROBLEM));
-        
+
         final Problem problem = perform(Problem.class);
-        
+
         assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
         assertThat(problem.getTitle(), is("Unprocessable Entity"));
         assertThat(problem.getStatus(), is(422));

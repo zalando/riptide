@@ -69,7 +69,6 @@ final class Callback<T> implements RequestCallback {
 
             converter.write(body, contentType, request);
         } else {
-            RestClientException result;
             final String message = format(
                     "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
                     type.getName());

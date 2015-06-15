@@ -38,6 +38,7 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
@@ -55,6 +56,8 @@ import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.model.MediaTypes.ERROR;
+import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
 /**
  * Simple sanity check to see if the API of riptide is actually public and accessible.
@@ -83,7 +86,7 @@ public class ApiIntegrationTest {
         unit.execute(GET, url).dispatch(status(),
                 on(CREATED).call(this::callback),
                 on(ACCEPTED).call(this::callback),
-                on(HttpStatus.BAD_REQUEST).call(this::callback),
+                on(BAD_REQUEST).call(this::callback),
                 anyStatus().call(this::callback));
     }
 
@@ -103,10 +106,8 @@ public class ApiIntegrationTest {
                                     on(UNAUTHORIZED).call(this::callback),
                                     on(UNPROCESSABLE_ENTITY)
                                             .dispatch(contentType(),
-                                                    on(MediaTypes.PROBLEM, Problem.class)
-                                                            .capture(),
-                                                    on(MediaTypes.ERROR, Problem.class)
-                                                            .capture(),
+                                                    on(PROBLEM, Problem.class).capture(),
+                                                    on(ERROR, Problem.class).capture(),
                                                     anyContentType().call(this::callback)),
                                     anyStatus().call(this::callback)),
                     on(SERVER_ERROR)
