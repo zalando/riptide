@@ -22,7 +22,7 @@ package org.zalando.riptide;
 
 final class BodyConversionException extends RuntimeException {
 
-    BodyConversionException(final Throwable cause) {
+    BodyConversionException(Throwable cause) {
         super(cause);
     }
 }

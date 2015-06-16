@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -37,46 +38,62 @@ import static java.util.stream.Collectors.toMap;
 
 final class Router {
 
+    private static final Optional ANY = Optional.empty();
+
     final <A> Object route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
             Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
 
         final Optional<A> attribute = selector.attributeOf(response);
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
-                .collect(toMap(Binding::getAttribute, identity(), (l, r) -> {
-                    l.getAttribute().ifPresent(a -> {
-                        throw new IllegalStateException("Duplicate condition attribute: " + a);
-                    });
-
-                    throw new IllegalStateException("Duplicate any conditions");
-                }, LinkedHashMap::new));
+                .collect(toMap(Binding::getAttribute, identity(), this::denyDuplicates, LinkedHashMap::new));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
 
         if (match.isPresent()) {
-            final Binding<A> binding = match.get();
             try {
+                final Binding<A> binding = match.get();
                 return binding.execute(response, converters);
+            } catch (UnsupportedResponseException e) {
+                return propagateNoMatch(response, converters, attribute, index, e);
             } catch (BodyConversionException e) {
-                return routeNone(response, converters, attribute, index, bindings);
+                return routeNone(response, converters, attribute, index);
             }
+        } else {
+            return routeNone(response, converters, attribute, index);
         }
-        return routeNone(response, converters, attribute, index, bindings);
+    }
+    
+    private <A> Binding<A> denyDuplicates(Binding<A> left, Binding<A> right) {
+        left.getAttribute().ifPresent(a -> {
+            throw new IllegalStateException("Duplicate condition attribute: " + a);
+        });
+
+        throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Object routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> index, Collection<Binding<A>> bindings)
+    private <A> Object propagateNoMatch(ClientHttpResponse response, List<HttpMessageConverter<?>> converters, 
+            Optional<A> attribute, Map<Optional<A>, Binding<A>> index, UnsupportedResponseException e) throws IOException {
+        try {
+            return routeNone(response, converters, attribute, index);
+        } catch (UnsupportedResponseException ignored) {
+            // propagating didn't work, preserve original exception
+            throw e;
+        }
+    }
+
+    private <A> Object routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
+            Optional<A> attribute, Map<Optional<A>, Binding<A>> index)
             throws IOException {
 
-        final Optional<A> none = Optional.empty();
-
-        if (index.containsKey(none)) {
-            return index.get(none).execute(response, converters);
+        if (index.containsKey(ANY)) {
+            // TODO test exception handling
+            return index.get(ANY).execute(response, converters);
         } else {
-            final List<A> attributes = bindings.stream()
-                                               .map(Binding::getAttribute)
-                                               .map(a -> a.orElse(null))
-                                               .collect(toList());
-            final String message = format("Unable to dispatch %s onto %s", attribute.orElse(null), attributes);
+            final Function<Optional<A>, String> toName = a -> a.map(Object::toString).orElse("any");
+            final List<String> attributes = index.keySet().stream().map(toName).collect(toList());
+            final String message = format("Unable to dispatch %s onto %s", 
+                    // TODO there should be a better name than "none"
+                    attribute.map(Object::toString).orElse("none"), attributes);
 
             throw new UnsupportedResponseException(message, response);
         }
