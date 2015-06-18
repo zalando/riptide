@@ -1,4 +1,4 @@
-package org.zalando.riptide.handler;
+package org.zalando.riptide;
 
 /*
  * ⁣​
@@ -22,10 +22,11 @@ package org.zalando.riptide.handler;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.zalando.riptide.AlreadyConsumedResponseException;
 
 import java.io.IOException;
 
-public final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
+public final class OAuth2CompatibilityResponseErrorHandler implements ResponseErrorHandler {
 
     @Override
     public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -34,7 +35,7 @@ public final class PassThroughResponseErrorHandler implements ResponseErrorHandl
 
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
-
+        throw new AlreadyConsumedResponseException(response);
     }
 
 }

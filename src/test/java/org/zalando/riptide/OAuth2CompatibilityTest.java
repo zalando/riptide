@@ -30,7 +30,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.handler.OAuth2CompatibilityResponseErrorHandler;
+import org.zalando.riptide.OAuth2CompatibilityResponseErrorHandler;
 
 import java.io.IOException;
 import java.net.URI;
@@ -62,7 +62,7 @@ public class OAuth2CompatibilityTest {
     }
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void dispatchesConsumedResponseAgain() throws IOException {

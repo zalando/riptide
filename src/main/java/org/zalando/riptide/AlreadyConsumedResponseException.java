@@ -22,15 +22,15 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
-public class AlreadyConsumedResponseException extends RuntimeException {
+final class AlreadyConsumedResponseException extends RuntimeException {
 
     private final ClientHttpResponse response;
 
-    public AlreadyConsumedResponseException(final ClientHttpResponse response) {
+    AlreadyConsumedResponseException(final ClientHttpResponse response) {
         this.response = response;
     }
 
-    public ClientHttpResponse getResponse() {
+    ClientHttpResponse getResponse() {
         return response;
     }
 }

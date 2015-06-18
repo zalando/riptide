@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
-import org.zalando.riptide.handler.PassThroughResponseErrorHandler;
+import org.zalando.riptide.PassThroughResponseErrorHandler;
 
 import java.io.IOException;
 
@@ -31,7 +31,7 @@ public class PassThroughResponseErrorHandlerTest {
     }
 
     @Test
-    public void throwsResponseWrappedInException() throws IOException {
+    public void doesNothingWithResponseOnHandleError() throws IOException {
         ClientHttpResponse response = mock(ClientHttpResponse.class);
 
         unit.handleError(response);
