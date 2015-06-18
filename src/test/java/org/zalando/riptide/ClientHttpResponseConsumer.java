@@ -25,7 +25,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.IOException;
 
 @FunctionalInterface
-public interface ClientHttpResponseConsumer
+interface ClientHttpResponseConsumer
         extends ThrowingConsumer<ClientHttpResponse, IOException> {
 
 }

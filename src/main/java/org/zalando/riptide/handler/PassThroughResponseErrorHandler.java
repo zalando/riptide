@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.handler;
 
 /*
  * ⁣​

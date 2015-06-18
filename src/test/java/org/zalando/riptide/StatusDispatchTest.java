@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.handler.PassThroughResponseErrorHandler;
 
 import java.net.URI;
 
@@ -68,7 +69,7 @@ public final class StatusDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        final ClientHttpResponseConsumer verifier = response -> 
+        final ClientHttpResponseConsumer verifier = response ->
                 assertThat(response.getStatusCode(), is(status));
 
         @SuppressWarnings("unchecked")

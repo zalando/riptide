@@ -33,6 +33,7 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.handler.PassThroughResponseErrorHandler;
 import org.zalando.riptide.model.Success;
 
 import java.net.URI;

@@ -26,6 +26,7 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.handler.PassThroughResponseErrorHandler;
 
 import java.net.URI;
 import java.util.stream.Stream;
@@ -77,7 +78,7 @@ public final class SeriesDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        final ClientHttpResponseConsumer verifier = response -> 
+        final ClientHttpResponseConsumer verifier = response ->
                 assertThat(response.getStatusCode().series(), is(status.series()));
 
         unit.execute(GET, url)
