@@ -54,8 +54,16 @@ public final class Rest {
 
     private <T> Dispatcher execute(HttpMethod method, URI url, HttpEntity<T> entity) {
         final Callback<T> callback = new Callback<>(template.getMessageConverters(), entity);
-        final ClientHttpResponse response = template.execute(url, method, callback, r -> r);
+        final ClientHttpResponse response = execute(method, url, callback);
         return new Dispatcher(template, response);
+    }
+
+    private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
+        try {
+            return template.execute(url, method, callback, r -> r);
+        } catch (AlreadyConsumedResponseException e) {
+            return e.getResponse();
+        }
     }
 
     public static Rest create(RestTemplate template) {
