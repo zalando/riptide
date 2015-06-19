@@ -22,14 +22,12 @@ package org.example.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.PassThroughResponseErrorHandler;
 import org.zalando.riptide.Rest;
-import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 

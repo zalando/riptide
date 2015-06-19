@@ -68,7 +68,7 @@ public final class StatusDispatchTest {
     public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(status));
 
-        final ClientHttpResponseConsumer verifier = response -> 
+        final ClientHttpResponseConsumer verifier = response ->
                 assertThat(response.getStatusCode(), is(status));
 
         @SuppressWarnings("unchecked")
