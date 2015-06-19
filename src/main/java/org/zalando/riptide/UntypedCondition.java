@@ -28,7 +28,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 
 public final class UntypedCondition<A> {
-    
+
     private final Router router = new Router();
     private final Optional<A> attribute;
 
@@ -51,16 +51,9 @@ public final class UntypedCondition<A> {
         return Binding.create(attribute, (response, converters) -> response);
     }
 
-    /**
-     * 
-     * @param selector
-     * @param bindings
-     * @param <B>
-     * @return
-     * @throws UnsupportedResponseException
-     */
     @SafeVarargs
-    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
+    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings)
+            throws UnsupportedResponseException {
         return Binding.create(attribute, (response, converters) ->
                 router.route(response, converters, selector, asList(bindings)));
     }

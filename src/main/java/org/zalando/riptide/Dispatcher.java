@@ -41,15 +41,9 @@ public final class Dispatcher {
         this.response = response;
     }
 
-    /**
-     * @param selector
-     * @param bindings
-     * @param <A>
-     * @return
-     * @throws UnsupportedResponseException
-     */
     @SafeVarargs
-    public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings) {
+    public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings)
+            throws UnsupportedResponseException {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Object value = route(selector, converters, bindings);
         return new Retriever(value);

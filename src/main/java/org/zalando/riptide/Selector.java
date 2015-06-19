@@ -40,6 +40,7 @@ public interface Selector<A> {
      * 
      * @param response the incoming response
      * @return an attribute based on the response which is then used to select the correct binding
+     * @throws IOException if accessing the response failed
      */
     Optional<A> attributeOf(ClientHttpResponse response) throws IOException;
 
