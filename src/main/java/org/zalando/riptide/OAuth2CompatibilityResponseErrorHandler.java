@@ -22,9 +22,33 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
+/**
+ * Special {@link ResponseErrorHandler} to be used with the <i>OAuth2RestTemplate</i>
+ * <p>
+ * Note: When using Springs OAuth2 RestTemplate an <i>OAuth2ErrorHandler</i> will be registered on the
+ * {@link RestTemplate}, which wraps the actual one. This error handler may call the actual error handler
+ * although it does not deem the response as an error. Snippet below shows that <i>OAuth2ErrorHandler</i>
+ * deems all 4xx response codes as an error and will call the actual handler regardless of its behavior.
+ * <pre><code>
+ *     public boolean hasError(ClientHttpResponse response) throws IOException {
+ *           return HttpStatus.Series.CLIENT_ERROR.equals(response.getStatusCode().series())
+ *             || this.errorHandler.hasError(response);
+ *           }
+ * </code></pre>
+ * As the <i>OAuth2ErrorHandler</i> will have the response already consumed at this point, it passes a
+ * buffered response to the actual error handler. Therefore the only chance to process the response is to
+ * process the buffered response of the actual error handler.
+ * </p>
+ * <p>
+ * To do so this error handler propagates the buffered response back to the {@link Dispatcher} for dispatching
+ * by throwing an exception containing the response. {@link Rest} catches this exception and continues with
+ * the normal execution path.
+ * </p>
+ */
 public final class OAuth2CompatibilityResponseErrorHandler implements ResponseErrorHandler {
 
     @Override

@@ -23,11 +23,21 @@ differently with an easy to use yet very powerful syntax.
 
 ## Usage
 
-Create an instance based on an existing `RestTemplate` (also see section *RestTemplate Configuration*):
+Create an instance based on an existing `RestTemplate`:
 
 ```java
-final Rest rest = Rest.create(new RestTemplate());
+final RestTemplate template = new RestTemplate();
+template.setResponseErrorHandler(new PassThroughResponseErrorHandler());
+final Rest rest = Rest.create(template);
 ```
+
+If you use Riptide to its full extent you probably don't want to have any [`ResponseErrorHandler`]
+(http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/ResponseErrorHandler.html)
+interfere with your dispatching. Therefore Riptide provides you with a *null* `ResponseErrorHandler`, which ensures
+that Riptide handles all success and error cases.
+
+**When using OAuth2RestTemplate** you have to use the `OAuth2CompatibilityResponseErrorHandler`, which ensures that
+dispatching works even if OAuth errors occur.
 
 Make a request and route the response to your specific handler methods/callbacks:
 
@@ -154,21 +164,6 @@ final Success success = rest.execute(GET, url)
                 anySeries().call(this::fail))
         .retrieve(Success.class).orElse(null);
 ```
-
-### RestTemplate Configuration
-
-If you use Riptide to its full extent you probably don't want to have any [`ResponseErrorHandler`]
-(http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/ResponseErrorHandler.html)
-interfere with your dispatching. Therefore Riptide provides you with a *null* `ResponseErrorHandler`.
-
-```java
-final RestTemplate template = new RestTemplate();
-template.setResponseErrorHandler(new PassThroughResponseErrorHandler());
-final Rest rest = Rest.create(template);
-```
-
-**When using OAuth2RestTemplate** you have to use the `OAuth2CompatibilityResponseErrorHandler`, which ensures that
-dispatching works even if OAuth errors occur.
 
 ## License
 
