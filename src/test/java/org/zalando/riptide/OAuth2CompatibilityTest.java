@@ -27,24 +27,21 @@ import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.OAuth2CompatibilityResponseErrorHandler;
-import org.zalando.riptide.PassThroughResponseErrorHandler;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 public class OAuth2CompatibilityTest {
 

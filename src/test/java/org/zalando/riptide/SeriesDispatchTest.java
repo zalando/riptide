@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.PassThroughResponseErrorHandler;
 
 import java.net.URI;
 import java.util.stream.Stream;

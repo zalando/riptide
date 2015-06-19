@@ -32,7 +32,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.PassThroughResponseErrorHandler;
 import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Problem;

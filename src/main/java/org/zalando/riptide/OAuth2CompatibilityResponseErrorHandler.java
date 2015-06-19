@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
-import org.zalando.riptide.AlreadyConsumedResponseException;
 
 import java.io.IOException;
 

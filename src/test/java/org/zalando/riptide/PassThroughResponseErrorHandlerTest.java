@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
-import org.zalando.riptide.PassThroughResponseErrorHandler;
 
 import java.io.IOException;
 
