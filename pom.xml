@@ -232,16 +232,19 @@
                 <version>3.1.0</version>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.2</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.2</version>
                 <configuration>
-                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.9.4</version>
+                <configuration>
                     <pushChanges>false</pushChanges>
-                    <!-- for release:prepare -->
-                    <arguments>-P release</arguments>
-                    <!-- for release:perform -->
-                    <releaseProfiles>release</releaseProfiles>
+                    <tag>${project.version}</tag>
                 </configuration>
             </plugin>
         </plugins>
