@@ -237,6 +237,7 @@
                 <version>2.5.2</version>
                 <configuration>
                     <tagNameFormat>@{project.version}</tagNameFormat>
+                    <pushChanges>false</pushChanges>
                     <!-- for release:prepare -->
                     <arguments>-P release</arguments>
                     <!-- for release:perform -->
