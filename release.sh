@@ -12,6 +12,6 @@ mvn clean deploy -P release
 mvn scm:tag
 
 # next development version
-mvn version:set
+mvn versions:set
 git add pom.xml
 git commit
