@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -28,6 +29,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -57,9 +59,22 @@ public class OAuth2CompatibilityResponseErrorHandlerTest {
                 new MockClientHttpResponse(new byte[]{0x13, 0x37}, HttpStatus.INTERNAL_SERVER_ERROR);
 
         exception.expect(AlreadyConsumedResponseException.class);
-        exception.expect(hasFeature("response", AlreadyConsumedResponseException::getResponse, is(expectedResponse)));
+        exception.expect(hasFeature("response", AlreadyConsumedResponseException::getResponse, statusCodeMatcher()));
 
         unit.handleError(expectedResponse);
+    }
+
+    private Matcher<ClientHttpResponse> statusCodeMatcher() {
+        return hasFeature("statusCode", new Function<ClientHttpResponse, HttpStatus>() {
+            @Override
+            public HttpStatus apply(ClientHttpResponse response) {
+                try {
+                    return response.getStatusCode();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, is(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
 }

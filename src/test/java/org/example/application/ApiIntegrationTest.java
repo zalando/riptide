@@ -93,27 +93,27 @@ public class ApiIntegrationTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         unit.execute(GET, url)
-            .dispatch(series(),
-                    on(SUCCESSFUL)
-                            .dispatch(status(),
-                                    on(CREATED, Success.class).capture(),
-                                    on(ACCEPTED, Success.class).capture(),
-                                    anyStatus().call(this::callback)),
-                    on(CLIENT_ERROR)
-                            .dispatch(status(),
-                                    on(UNAUTHORIZED).call(this::callback),
-                                    on(UNPROCESSABLE_ENTITY)
-                                            .dispatch(contentType(),
-                                                    on(PROBLEM, Problem.class).capture(),
-                                                    on(ERROR, Problem.class).capture(),
-                                                    anyContentType().call(this::callback)),
-                                    anyStatus().call(this::callback)),
-                    on(SERVER_ERROR)
-                            .dispatch(statusCode(),
-                                    on(503).call(this::callback),
-                                    anyStatusCode().call(this::callback)),
-                    anySeries().call(this::callback))
-            .retrieve(Success.class).orElse(null);
+                .dispatch(series(),
+                        on(SUCCESSFUL)
+                                .dispatch(status(),
+                                        on(CREATED, Success.class).capture(),
+                                        on(ACCEPTED, Success.class).capture(),
+                                        anyStatus().call(this::callback)),
+                        on(CLIENT_ERROR)
+                                .dispatch(status(),
+                                        on(UNAUTHORIZED).call(this::callback),
+                                        on(UNPROCESSABLE_ENTITY)
+                                                .dispatch(contentType(),
+                                                        on(PROBLEM, Problem.class).capture(),
+                                                        on(ERROR, Problem.class).capture(),
+                                                        anyContentType().call(this::callback)),
+                                        anyStatus().call(this::callback)),
+                        on(SERVER_ERROR)
+                                .dispatch(statusCode(),
+                                        on(503).call(this::callback),
+                                        anyStatusCode().call(this::callback)),
+                        anySeries().call(this::callback))
+                .retrieve(Success.class).orElse(null);
     }
 
     private void callback(final ClientHttpResponse response) {
