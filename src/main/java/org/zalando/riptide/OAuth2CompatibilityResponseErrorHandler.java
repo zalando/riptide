@@ -56,7 +56,7 @@ public final class OAuth2CompatibilityResponseErrorHandler implements ResponseEr
 
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
-        throw new AlreadyConsumedResponseException(response);
+        throw new AlreadyConsumedResponseException(BufferingClientHttpResponseWrapper.buffer(response));
     }
 
 }
