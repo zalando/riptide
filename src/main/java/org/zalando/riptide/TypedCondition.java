@@ -30,6 +30,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public final class TypedCondition<A, I> implements Capturer<A> {
 
@@ -53,10 +54,10 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         return new ResponseEntity<>(entity, response.getHeaders(), response.getStatusCode());
     }
 
-    public Binding<A> call(EntityConsumer<I> consumer) {
+    public Binding<A> call(EntityConsumer<Optional<I>> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            consumer.accept(entity);
+            consumer.accept(Optional.of(entity));
             return null;
         });
     }
@@ -69,10 +70,10 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         });
     }
 
-    public Capturer<A> map(EntityFunction<I, ?> function) {
+    public Capturer<A> map(EntityFunction<Optional<I>, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return function.apply(entity);
+            return function.apply(Optional.ofNullable(entity));
         });
     }
 
