@@ -22,16 +22,19 @@ package org.zalando.riptide;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
@@ -95,7 +98,7 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final EntityConsumer<AccountBody> verifier = 
+        final EntityConsumer<Optional<AccountBody>> verifier =
                 mock(EntityConsumer.class);
 
         unit.execute(GET, url)
@@ -103,7 +106,7 @@ public final class CallTest {
                         on(OK, AccountBody.class).call(verifier),
                         anyStatus().call(this::fail));
 
-        verify(verifier).accept(any(AccountBody.class));
+        verify(verifier).accept(Matchers.<Optional<AccountBody>>any());
     }
     
     private void fail(ClientHttpResponse response) throws IOException {
