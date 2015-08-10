@@ -57,7 +57,7 @@ public final class TypedCondition<A, I> implements Capturer<A> {
     public Binding<A> call(EntityConsumer<Optional<I>> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            consumer.accept(Optional.of(entity));
+            consumer.accept(Optional.ofNullable(entity));
             return null;
         });
     }
