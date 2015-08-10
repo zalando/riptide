@@ -45,11 +45,11 @@ public final class Dispatcher {
     public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings)
             throws UnsupportedResponseException {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final Object value = route(selector, converters, bindings);
+        final Captured value = route(selector, converters, bindings);
         return new Retriever(value);
     }
 
-    private <A> Object route(Selector<A> selector, List<HttpMessageConverter<?>> converters, Binding<A>[] bindings) {
+    private <A> Captured route(Selector<A> selector, List<HttpMessageConverter<?>> converters, Binding<A>[] bindings) {
         try {
             return router.route(response, converters, selector, asList(bindings));
         } catch (IOException e) {

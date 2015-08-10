@@ -65,7 +65,7 @@ public final class MapTest {
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
-    
+
     @Test
     public void shouldMapResponse() {
         server.expect(requestTo(url)).andRespond(
@@ -78,14 +78,14 @@ public final class MapTest {
                         on(OK).map(this::fromResponse).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
-        
+
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is("fake"));
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
     private Account fromResponse(ClientHttpResponse response) throws IOException {
-        final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class, 
+        final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class,
                 template.getMessageConverters()).extractData(response);
         return new Account(account.getId(), "fake", account.getName());
     }
@@ -102,7 +102,7 @@ public final class MapTest {
                         on(OK, AccountBody.class).map(this::fromEntity).capture(),
                         anyStatus().call(this::fail))
                 .retrieve(Account.class).get();
-        
+
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is("fake"));
         assertThat(account.getName(), is("Acme Corporation"));
@@ -111,7 +111,7 @@ public final class MapTest {
     private Account fromEntity(AccountBody account) {
         return new Account(account.getId(), "fake", account.getName());
     }
-    
+
     @Test
     public void shouldMapResponseEntity() {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
