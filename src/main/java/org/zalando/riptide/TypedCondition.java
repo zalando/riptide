@@ -79,6 +79,10 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         });
     }
 
+    public <T> Capturer<A> map(EntityFunction<I, T> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
+    }
+
     public <T> Capturer<A> map(EntityFunction<I, T> function, TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
@@ -91,6 +95,10 @@ public final class TypedCondition<A, I> implements Capturer<A> {
             final I entity = convert(response, converters);
             return wrap(function.apply(toResponseEntity(entity, response)));
         });
+    }
+
+    public <T> Capturer<A> map(ResponseEntityFunction<I, T> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
     }
 
     public <T> Capturer<A> map(ResponseEntityFunction<I, T> function, TypeToken<T> mappedType) {

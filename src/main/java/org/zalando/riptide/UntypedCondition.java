@@ -50,6 +50,10 @@ public final class UntypedCondition<A> {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response)));
     }
 
+    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
+    }
+
     public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response), mappedType));
     }
