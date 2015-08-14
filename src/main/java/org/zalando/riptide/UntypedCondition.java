@@ -20,12 +20,15 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static org.zalando.riptide.Captured.wrap;
+import static org.zalando.riptide.Captured.wrapNothing;
 
 public final class UntypedCondition<A> {
 
@@ -39,16 +42,24 @@ public final class UntypedCondition<A> {
     public Binding<A> call(ThrowingConsumer<ClientHttpResponse, IOException> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
-            return null;
+            return wrapNothing();
         });
     }
 
     public Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function) {
-        return () -> Binding.create(attribute, (response, converters) -> function.apply(response));
+        return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response)));
+    }
+
+    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, TypeToken<T> mappedType) {
+        return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response), mappedType));
     }
 
     public Binding<A> capture() {
-        return Binding.create(attribute, (response, converters) -> response);
+        return Binding.create(attribute, (response, converters) -> wrap(response, ClientHttpResponse.class));
     }
 
     @SafeVarargs

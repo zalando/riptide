@@ -40,7 +40,7 @@ final class Router {
 
     private static final Optional ANY = Optional.empty();
 
-    final <A> Object route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
+    final <A> Captured route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
             Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
 
         final Optional<A> attribute = selector.attributeOf(response);
@@ -71,7 +71,7 @@ final class Router {
         throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Object propagateNoMatch(ClientHttpResponse response, List<HttpMessageConverter<?>> converters, 
+    private <A> Captured propagateNoMatch(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
             Optional<A> attribute, Map<Optional<A>, Binding<A>> index, UnsupportedResponseException e) throws IOException {
         try {
             return routeNone(response, converters, attribute, index);
@@ -81,7 +81,7 @@ final class Router {
         }
     }
 
-    private <A> Object routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
+    private <A> Captured routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
             Optional<A> attribute, Map<Optional<A>, Binding<A>> index)
             throws IOException {
 

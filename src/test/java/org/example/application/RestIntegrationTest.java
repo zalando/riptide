@@ -21,43 +21,43 @@ package org.example.application;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.EntityFunction;
 import org.zalando.riptide.OAuth2CompatibilityResponseErrorHandler;
 import org.zalando.riptide.PassThroughResponseErrorHandler;
 import org.zalando.riptide.Rest;
+import org.zalando.riptide.Retriever;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
-/**
- * Simple sanity check to see if the API of riptide is actually public and accessible.
- */
+
 public class RestIntegrationTest {
 
     private final URI url = URI.create("http://localhost");
@@ -80,7 +80,7 @@ public class RestIntegrationTest {
     public void shouldNotConsumeMyResponse() throws IOException {
         setUp(new PassThroughResponseErrorHandler());
 
-        server.expect(requestTo(url)).andRespond(this::onetimeConsumableResponse);
+        server.expect(requestTo(url)).andRespond(r -> new OneTimeConsumableResponse("{}"));
 
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
@@ -104,7 +104,7 @@ public class RestIntegrationTest {
             }
         });
 
-        server.expect(requestTo(url)).andRespond(this::onetimeConsumableResponse);
+        server.expect(requestTo(url)).andRespond(r -> new OneTimeConsumableResponse("{}"));
 
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
@@ -114,44 +114,48 @@ public class RestIntegrationTest {
         assertThat(map, is(emptyMap()));
     }
 
+    @Test
+    public void shouldRetrieveParameterizedType() throws IOException {
+        setUp(new PassThroughResponseErrorHandler());
+
+        server.expect(requestTo(url)).andRespond(withSuccess()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("[\"a\",\"b\"]"));
+
+        final TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {
+        };
+        final Optional<List<String>> resultOptional = unit.execute(GET, url).dispatch(status(),
+                on(OK, typeToken).capture(),
+                anyStatus().call(this::error))
+                .retrieve(typeToken);
+
+        assertThat(resultOptional, is(not(Optional.empty())));
+
+        final List<String> result = resultOptional.get();
+        assertThat(result, is(not(nullValue())));
+        assertThat(result, hasSize(2));
+        assertThat(result.get(0), isA(String.class));
+    }
+
+    @Test
+    public void shouldNotRetrieveMappedParameterizedType() throws IOException {
+        setUp(new PassThroughResponseErrorHandler());
+
+        server.expect(requestTo(url)).andRespond(withSuccess()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("[\"a\",\"b\"]"));
+
+        final TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {
+        };
+        final Retriever retriever = unit.execute(GET, url).dispatch(status(),
+                on(OK, typeToken).map((EntityFunction<List<String>, Object>) strings -> strings).capture(),
+                anyStatus().call(this::error));
+
+        assertThat(retriever.retrieve(typeToken), is(Optional.empty()));
+        assertThat(retriever.retrieve(List.class), is(not(Optional.empty())));
+    }
+
     private void error(final ClientHttpResponse response) {
         throw new AssertionError("Should not have been called");
     }
-
-    private ClientHttpResponse onetimeConsumableResponse(final ClientHttpRequest request) throws IOException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-
-        ClientHttpResponse response = mock(ClientHttpResponse.class);
-        when(response.getStatusCode()).thenReturn(HttpStatus.OK);
-        when(response.getStatusText()).thenReturn(HttpStatus.OK.getReasonPhrase());
-        when(response.getHeaders()).thenReturn(headers);
-        when(response.getBody()).thenReturn(new InputStream() {
-            private boolean closed = false;
-
-            private ByteArrayInputStream bytes = new ByteArrayInputStream("{}".getBytes());
-
-            @Override
-            public int read() throws IOException {
-                if (closed) {
-                    throw new IOException("Already closed");
-                }
-                return bytes.read();
-            }
-
-            @Override
-            public void close() throws IOException {
-                if (closed) {
-                    throw new IOException("Already closed");
-                }
-                closed = true;
-            }
-        });
-        doAnswer(invocationOnMock -> {
-            ((ClientHttpResponse) invocationOnMock.getMock()).getBody().close();
-            return null;
-        }).when(response).close();
-        return response;
-    }
-
 }

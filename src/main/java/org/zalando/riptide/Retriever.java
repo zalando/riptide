@@ -23,39 +23,46 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class Retriever {
-    
-    private final Object value;
 
-    public Retriever(@Nullable Object value) {
-        this.value = value;
+    private final Captured captured;
+
+    public Retriever(final Captured captured) {
+        this.captured = captured;
     }
 
-    public <T> Optional<T> retrieve(Class<T> type) {
+    public <T> Optional<T> retrieve(final Class<T> type) {
         return retrieve(TypeToken.of(type));
     }
 
-    public <T> Optional<T> retrieve(TypeToken<T> type) {
-        return Optional.ofNullable(value)
-                .filter(v -> type.isAssignableFrom(v.getClass()))
+    public <T> Optional<T> retrieve(final TypeToken<?> type) {
+        return Optional.ofNullable(captured.getValue())
+                .filter(v -> this.hasRetrieved(type))
                 .map(v -> {
-                    @SuppressWarnings("unchecked") 
+                    @SuppressWarnings("unchecked")
                     final T t = (T) v;
                     return t;
                 });
     }
-    
+
     /**
      * Convenience method for {@code retrieve(ClientHttpResponse.class)}.
-     * 
+     *
      * @return optional response, present only if successfully captured
-     * @see #retrieve(Class) 
+     * @see #retrieve(Class)
      */
     public Optional<ClientHttpResponse> retrieveResponse() {
         return retrieve(ClientHttpResponse.class);
+    }
+
+    public boolean hasRetrieved(final Class<?> type) {
+        return hasRetrieved(TypeToken.of(type));
+    }
+
+    public boolean hasRetrieved(final TypeToken<?> type) {
+        return captured.isAssignableTo(type);
     }
 
 }

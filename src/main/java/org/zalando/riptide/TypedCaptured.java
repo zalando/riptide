@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -20,15 +20,25 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
+import com.google.common.reflect.TypeToken;
 
-import java.io.IOException;
-import java.util.List;
+import javax.annotation.Nullable;
 
-@FunctionalInterface
-interface Executor {
+class TypedCaptured extends Captured {
 
-    Captured execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException;
+    private final TypeToken<?> type;
 
+    TypedCaptured(@Nullable final Object value, final TypeToken<?> type) {
+        super(value);
+        this.type = type;
+    }
+
+    public TypeToken<?> getType() {
+        return type;
+    }
+
+    @Override
+    public boolean isAssignableTo(final TypeToken<?> otherType) {
+        return otherType.isAssignableFrom(getType());
+    }
 }

@@ -31,6 +31,9 @@ import org.springframework.web.client.RestClientException;
 import java.io.IOException;
 import java.util.List;
 
+import static org.zalando.riptide.Captured.wrap;
+import static org.zalando.riptide.Captured.wrapNothing;
+
 public final class TypedCondition<A, I> implements Capturer<A> {
 
     private final A attribute;
@@ -57,7 +60,7 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(entity);
-            return null;
+            return wrapNothing();
         });
     }
 
@@ -65,27 +68,49 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(toResponseEntity(entity, response));
-            return null;
+            return wrapNothing();
         });
     }
 
     public Capturer<A> map(EntityFunction<I, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return function.apply(entity);
+            return wrap(function.apply(entity));
+        });
+    }
+
+    public <T> Capturer<A> map(EntityFunction<I, T> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Capturer<A> map(EntityFunction<I, T> function, TypeToken<T> mappedType) {
+        return () -> Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(response, converters);
+            return wrap(function.apply(entity), mappedType);
         });
     }
 
     public Capturer<A> map(ResponseEntityFunction<I, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return function.apply(toResponseEntity(entity, response));
+            return wrap(function.apply(toResponseEntity(entity, response)));
+        });
+    }
+
+    public <T> Capturer<A> map(ResponseEntityFunction<I, T> function, Class<T> mappedType) {
+        return map(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Capturer<A> map(ResponseEntityFunction<I, T> function, TypeToken<T> mappedType) {
+        return () -> Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(response, converters);
+            return wrap(function.apply(toResponseEntity(entity, response)), mappedType);
         });
     }
 
     @Override
     public Binding<A> capture() {
-        return Binding.create(attribute, this::convert);
+        return Binding.create(attribute, ((response, converters) -> wrap(convert(response, converters), type)));
     }
 
 }
