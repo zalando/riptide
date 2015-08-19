@@ -168,7 +168,7 @@ public class RestIntegrationTest {
         final TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {
         };
         final Retriever retriever = unit.execute(GET, url).dispatch(status(),
-                on(OK, typeToken).map((EntityFunction<List<String>, Object>) strings -> strings).capture(),
+                on(OK, typeToken).map((EntityFunction<List<String>, Object, Exception>) strings -> strings).capture(),
                 anyStatus().call(this::error));
 
         assertThat(retriever.retrieve(typeToken), is(Optional.empty()));

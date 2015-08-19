@@ -42,7 +42,7 @@ public final class Binding<A> implements Executor {
     }
 
     @Override
-    public Captured execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+    public Captured execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws Exception {
         return executor.execute(response, converters);
     }
     

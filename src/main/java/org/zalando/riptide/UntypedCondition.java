@@ -39,22 +39,22 @@ public final class UntypedCondition<A> {
         this.attribute = attribute;
     }
 
-    public Binding<A> call(ThrowingConsumer<ClientHttpResponse, IOException> consumer) {
+    public Binding<A> call(ThrowingConsumer<ClientHttpResponse, ?> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
             return wrapNothing();
         });
     }
 
-    public Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function) {
+    public Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response)));
     }
 
-    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, Class<T> mappedType) {
+    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function, Class<T> mappedType) {
         return map(function, TypeToken.of(mappedType));
     }
 
-    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, IOException> function, TypeToken<T> mappedType) {
+    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function, TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response), mappedType));
     }
 

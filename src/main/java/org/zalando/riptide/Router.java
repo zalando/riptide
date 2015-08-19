@@ -57,12 +57,14 @@ final class Router {
                 return propagateNoMatch(response, converters, attribute, index, e);
             } catch (BodyConversionException e) {
                 return routeNone(response, converters, attribute, index);
+            } catch (Exception e) {
+                throw MoreThrowables.sneakyThrow(e);
             }
         } else {
             return routeNone(response, converters, attribute, index);
         }
     }
-    
+
     private <A> Binding<A> denyDuplicates(Binding<A> left, Binding<A> right) {
         left.getAttribute().ifPresent(a -> {
             throw new IllegalStateException("Duplicate condition attribute: " + a);
@@ -82,16 +84,19 @@ final class Router {
     }
 
     private <A> Captured routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Optional<A> attribute, Map<Optional<A>, Binding<A>> index)
-            throws IOException {
+            Optional<A> attribute, Map<Optional<A>, Binding<A>> index) throws IOException {
 
         if (index.containsKey(ANY)) {
-            // TODO test exception handling
-            return index.get(ANY).execute(response, converters);
+            try {
+                // TODO test exception handling
+                return index.get(ANY).execute(response, converters);
+            } catch (Exception e) {
+                throw MoreThrowables.sneakyThrow(e);
+            }
         } else {
             final Function<Optional<A>, String> toName = a -> a.map(Object::toString).orElse("any");
             final List<String> attributes = index.keySet().stream().map(toName).collect(toList());
-            final String message = format("Unable to dispatch %s onto %s", 
+            final String message = format("Unable to dispatch %s onto %s",
                     // TODO there should be a better name than "none"
                     attribute.map(Object::toString).orElse("none"), attributes);
 

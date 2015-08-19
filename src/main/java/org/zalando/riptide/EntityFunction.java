@@ -20,9 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.util.function.Function;
-
 @FunctionalInterface
-public interface EntityFunction<F, T> extends Function<F, T> {
+public interface EntityFunction<F, T, X extends Exception> extends ThrowingFunction<F, T, X> {
     
 }

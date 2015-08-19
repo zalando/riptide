@@ -21,7 +21,7 @@ package org.zalando.riptide;
  */
 
 @FunctionalInterface
-public interface ThrowingConsumer<T, X extends Throwable> {
+public interface ThrowingConsumer<T, X extends Exception> {
 
     void accept(T input) throws X;
 
