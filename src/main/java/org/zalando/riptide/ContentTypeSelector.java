@@ -23,7 +23,6 @@ package org.zalando.riptide;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -41,13 +40,13 @@ final class ContentTypeSelector implements Selector<MediaType> {
             comparing(b -> b.getAttribute().get(), SPECIFICITY_COMPARATOR);
 
     @Override
-    public Optional<MediaType> attributeOf(ClientHttpResponse response) throws IOException {
+    public Optional<MediaType> attributeOf(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType());
     }
 
     @Override
-    public Optional<Binding<MediaType>> select(Optional<MediaType> attribute,
-            Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+    public Optional<Binding<MediaType>> select(final Optional<MediaType> attribute,
+            final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
 
         return exactMatch(attribute, bindings)
                 // needed because orElseGet unpacks the Optional, but we need one to return
@@ -55,12 +54,12 @@ final class ContentTypeSelector implements Selector<MediaType> {
                 .orElseGet(bestMatch(attribute, bindings));
     }
 
-    private Optional<Binding<MediaType>> exactMatch(Optional<MediaType> attribute,
-            Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+    private Optional<Binding<MediaType>> exactMatch(final Optional<MediaType> attribute,
+            final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
         return Selector.super.select(attribute, bindings);
     }
 
-    private Supplier<Optional<Binding<MediaType>>> bestMatch(Optional<MediaType> attribute, Map<Optional<MediaType>, Binding<MediaType>> bindings) {
+    private Supplier<Optional<Binding<MediaType>>> bestMatch(final Optional<MediaType> attribute, final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
         return () -> attribute.flatMap(a -> bindings.values().stream()
                 .filter(b -> b.getAttribute().isPresent())
                 .sorted(BY_SPECIFICITY)

@@ -65,7 +65,7 @@ public class RetrieverTest {
 
     @Test
     public void shouldNotRetrieveCapturedOnParameterizedType() {
-        TypeToken<List<String>> type = new TypeToken<List<String>>() {};
+        final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
         final Captured value = new Captured(newArrayList());
 
         final Retriever unit = new Retriever(value);
@@ -76,7 +76,7 @@ public class RetrieverTest {
 
     @Test
     public void shouldRetrieveTypedCaptured() {
-        TypeToken<List<String>> type = new TypeToken<List<String>>() {};
+        final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
         final Captured value = new TypedCaptured(newArrayList(), type);
 
         final Retriever unit = new Retriever(value);

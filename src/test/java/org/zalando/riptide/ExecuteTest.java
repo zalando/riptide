@@ -112,7 +112,7 @@ public final class ExecuteTest {
     
     @Test
     public void shouldFailIfNoConverterFoundForBody() {
-        // we never actually make the request, but the mock server is doing some magic preactively
+        // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
         
@@ -133,7 +133,7 @@ public final class ExecuteTest {
         final List<HttpMessageConverter<?>> converters = singletonList(new Jaxb2RootElementHttpMessageConverter());
         template.setMessageConverters(converters);
         
-        // we never actually make the request, but the mock server is doing some magic preactively
+        // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
         

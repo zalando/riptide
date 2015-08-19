@@ -40,13 +40,13 @@ final class Callback<T> implements RequestCallback {
     private final List<HttpMessageConverter<?>> converters;
     private final HttpEntity<T> entity;
 
-    Callback(List<HttpMessageConverter<?>> converters, HttpEntity<T> entity) {
+    Callback(final List<HttpMessageConverter<?>> converters, final HttpEntity<T> entity) {
         this.converters = converters;
         this.entity = entity;
     }
 
     @Override
-    public void doWithRequest(ClientHttpRequest request) throws IOException {
+    public void doWithRequest(final ClientHttpRequest request) throws IOException {
         final HttpHeaders headers = entity.getHeaders();
         request.getHeaders().putAll(headers);
         
@@ -82,7 +82,7 @@ final class Callback<T> implements RequestCallback {
     }
 
     @SuppressWarnings("unchecked")
-    private HttpMessageConverter<T> cast(HttpMessageConverter<?> converter) {
+    private HttpMessageConverter<T> cast(final HttpMessageConverter<?> converter) {
         return (HttpMessageConverter<T>) converter;
     }
 

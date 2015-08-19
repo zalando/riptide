@@ -40,8 +40,8 @@ final class Router {
 
     private static final Optional ANY = Optional.empty();
 
-    final <A> Captured route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
+    final <A> Captured route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Selector<A> selector, final Collection<Binding<A>> bindings) throws IOException {
 
         final Optional<A> attribute = selector.attributeOf(response);
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
@@ -53,9 +53,9 @@ final class Router {
             try {
                 final Binding<A> binding = match.get();
                 return binding.execute(response, converters);
-            } catch (UnsupportedResponseException e) {
+            } catch (final UnsupportedResponseException e) {
                 return propagateNoMatch(response, converters, attribute, index, e);
-            } catch (BodyConversionException e) {
+            } catch (final BodyConversionException e) {
                 return routeNone(response, converters, attribute, index);
             }
         } else {
@@ -63,7 +63,7 @@ final class Router {
         }
     }
 
-    private <A> Binding<A> denyDuplicates(Binding<A> left, Binding<A> right) {
+    private <A> Binding<A> denyDuplicates(final Binding<A> left, final Binding<A> right) {
         left.getAttribute().ifPresent(a -> {
             throw new IllegalStateException("Duplicate condition attribute: " + a);
         });
@@ -71,18 +71,19 @@ final class Router {
         throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Captured propagateNoMatch(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Optional<A> attribute, Map<Optional<A>, Binding<A>> index, UnsupportedResponseException e) throws IOException {
+    private <A> Captured propagateNoMatch(final ClientHttpResponse response,
+            final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
+            final Map<Optional<A>, Binding<A>> index, final UnsupportedResponseException e) {
         try {
             return routeNone(response, converters, attribute, index);
-        } catch (UnsupportedResponseException ignored) {
+        } catch (final UnsupportedResponseException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
-    private <A> Captured routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Optional<A> attribute, Map<Optional<A>, Binding<A>> index) throws IOException {
+    private <A> Captured routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> index) {
 
         if (index.containsKey(ANY)) {
             // TODO test exception handling

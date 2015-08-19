@@ -39,12 +39,12 @@ public final class TypedCondition<A, I> implements Capturer<A> {
     private final A attribute;
     private final TypeToken<I> type;
 
-    public TypedCondition(A attribute, TypeToken<I> type) {
+    public TypedCondition(final A attribute, final TypeToken<I> type) {
         this.attribute = attribute;
         this.type = type;
     }
 
-    private I convert(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws IOException {
+    private I convert(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
         try {
             return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
         } catch (final RestClientException | HttpMessageNotReadableException e) {
@@ -52,11 +52,11 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         }
     }
 
-    private ResponseEntity<I> toResponseEntity(I entity, ClientHttpResponse response) throws IOException {
+    private ResponseEntity<I> toResponseEntity(final I entity, final ClientHttpResponse response) throws IOException {
         return new ResponseEntity<>(entity, response.getHeaders(), response.getStatusCode());
     }
 
-    public Binding<A> call(EntityConsumer<I, ?> consumer) {
+    public Binding<A> call(final EntityConsumer<I, ?> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(entity);
@@ -64,7 +64,7 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         });
     }
 
-    public Binding<A> call(ResponseEntityConsumer<I, ?> consumer) {
+    public Binding<A> call(final ResponseEntityConsumer<I, ?> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(toResponseEntity(entity, response));
@@ -72,36 +72,36 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         });
     }
 
-    public Capturer<A> map(EntityFunction<I, ?, ?> function) {
+    public Capturer<A> map(final EntityFunction<I, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             return wrap(function.apply(entity));
         });
     }
 
-    public <T> Capturer<A> map(EntityFunction<I, T, ?> function, Class<T> mappedType) {
+    public <T> Capturer<A> map(final EntityFunction<I, T, ?> function, final Class<T> mappedType) {
         return map(function, TypeToken.of(mappedType));
     }
 
-    public <T> Capturer<A> map(EntityFunction<I, T, ?> function, TypeToken<T> mappedType) {
+    public <T> Capturer<A> map(final EntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             return wrap(function.apply(entity), mappedType);
         });
     }
 
-    public Capturer<A> map(ResponseEntityFunction<I, ?, ?> function) {
+    public Capturer<A> map(final ResponseEntityFunction<I, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             return wrap(function.apply(toResponseEntity(entity, response)));
         });
     }
 
-    public <T> Capturer<A> map(ResponseEntityFunction<I, T, ?> function, Class<T> mappedType) {
+    public <T> Capturer<A> map(final ResponseEntityFunction<I, T, ?> function, final Class<T> mappedType) {
         return map(function, TypeToken.of(mappedType));
     }
 
-    public <T> Capturer<A> map(ResponseEntityFunction<I, T, ?> function, TypeToken<T> mappedType) {
+    public <T> Capturer<A> map(final ResponseEntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             return wrap(function.apply(toResponseEntity(entity, response)), mappedType);

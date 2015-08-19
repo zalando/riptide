@@ -51,7 +51,7 @@ public interface Selector<A> {
      * @param bindings all bindings
      * @return an optional binding match, if found
      */
-    default Optional<Binding<A>> select(Optional<A> attribute, Map<Optional<A>, Binding<A>> bindings) {
+    default Optional<Binding<A>> select(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
         return Optional.ofNullable(bindings.get(attribute));
     }
 

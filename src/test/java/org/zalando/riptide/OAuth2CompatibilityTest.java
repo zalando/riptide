@@ -55,7 +55,7 @@ public class OAuth2CompatibilityTest {
         template = new RestTemplate();
         template.setMessageConverters(singletonList(converter));
 
-        MockRestServiceServer server = MockRestServiceServer.createServer(template);
+        final MockRestServiceServer server = MockRestServiceServer.createServer(template);
         server.expect(requestTo(url)).andRespond(withUnauthorizedRequest().body(new byte[] {0x13, 0x37}));
     }
 
@@ -65,9 +65,9 @@ public class OAuth2CompatibilityTest {
     @Test
     public void dispatchesConsumedResponseAgain() throws IOException {
         template.setErrorHandler(new OAuth2ErrorHandler(new OAuth2CompatibilityResponseErrorHandler(), null));
-        Rest rest = Rest.create(template);
+        final Rest rest = Rest.create(template);
         
-        ClientHttpResponse response = rest.execute(GET, url)
+        final ClientHttpResponse response = rest.execute(GET, url)
             .dispatch(status(), on(HttpStatus.UNAUTHORIZED).capture())
             .retrieveResponse()
             .orElseThrow(() -> new AssertionError("response expected"));
@@ -78,9 +78,9 @@ public class OAuth2CompatibilityTest {
     @Test
     public void responseIsConsumedIfOtherHandlerIsUsed() throws IOException {
         template.setErrorHandler(new OAuth2ErrorHandler(new PassThroughResponseErrorHandler(), null));
-        Rest rest = Rest.create(template);
+        final Rest rest = Rest.create(template);
         
-        ClientHttpResponse response = rest.execute(GET, url)
+        final ClientHttpResponse response = rest.execute(GET, url)
             .dispatch(status(), on(HttpStatus.UNAUTHORIZED).capture())
             .retrieveResponse()
             .orElseThrow(() -> new AssertionError("response expected"));

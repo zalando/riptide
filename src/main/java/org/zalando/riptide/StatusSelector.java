@@ -32,7 +32,7 @@ import java.util.Optional;
 final class StatusSelector implements Selector<HttpStatus> {
 
     @Override
-    public Optional<HttpStatus> attributeOf(ClientHttpResponse response) throws IOException {
+    public Optional<HttpStatus> attributeOf(final ClientHttpResponse response) throws IOException {
         return Optional.of(response.getStatusCode());
     }
 

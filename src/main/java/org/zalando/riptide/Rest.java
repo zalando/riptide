@@ -32,27 +32,27 @@ public final class Rest {
 
     private final RestTemplate template;
 
-    private Rest(RestTemplate template) {
+    private Rest(final RestTemplate template) {
         this.template = template;
     }
 
-    public Dispatcher execute(HttpMethod method, URI url) {
+    public Dispatcher execute(final HttpMethod method, final URI url) {
         return execute(method, url, HttpEntity.EMPTY);
     }
 
-    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers) {
+    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
         return execute(method, url, new HttpEntity<>(headers));
     }
 
-    public Dispatcher execute(HttpMethod method, URI url, Object body) {
+    public Dispatcher execute(final HttpMethod method, final URI url, final Object body) {
         return execute(method, url, new HttpEntity<>(body));
     }
 
-    public Dispatcher execute(HttpMethod method, URI url, HttpHeaders headers, Object body) {
+    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
         return execute(method, url, new HttpEntity<>(body, headers));
     }
 
-    private <T> Dispatcher execute(HttpMethod method, URI url, HttpEntity<T> entity) {
+    private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         final Callback<T> callback = new Callback<>(template.getMessageConverters(), entity);
         final ClientHttpResponse response = execute(method, url, callback);
         return new Dispatcher(template, response);
@@ -68,12 +68,12 @@ public final class Rest {
     private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
         try {
             return template.execute(url, method, callback, BufferingClientHttpResponse::buffer);
-        } catch (AlreadyConsumedResponseException e) {
+        } catch (final AlreadyConsumedResponseException e) {
             return e.getResponse();
         }
     }
 
-    public static Rest create(RestTemplate template) {
+    public static Rest create(final RestTemplate template) {
         return new Rest(template);
     }
 

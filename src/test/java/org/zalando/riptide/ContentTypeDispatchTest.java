@@ -69,7 +69,7 @@ public final class ContentTypeDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(Class<T> type) {
+    private <T> T perform(final Class<T> type) {
         return unit.execute(GET, url)
                 .dispatch(contentType(),
                         on(SUCCESS, Success.class).capture(),
@@ -166,7 +166,7 @@ public final class ContentTypeDispatchTest {
         assertThat(success.isHappy(), is(true));
     }
 
-    private void fail(ClientHttpResponse response) throws IOException {
+    private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getStatusText());
     }
 

@@ -29,7 +29,7 @@ public final class Problem {
     private final int status;
     private final String detail;
 
-    public Problem(URI type, String title, int status, String detail) {
+    public Problem(final URI type, final String title, final int status, final String detail) {
         this.type = type;
         this.title = title;
         this.status = status;

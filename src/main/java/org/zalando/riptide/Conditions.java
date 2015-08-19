@@ -32,15 +32,15 @@ public final class Conditions {
         // package private so we can trick code coverage
     }
 
-    public static <A> UntypedCondition<A> on(A attribute) {
+    public static <A> UntypedCondition<A> on(final A attribute) {
         return new UntypedCondition<>(Optional.of(attribute));
     }
 
-    public static <A, I> TypedCondition<A, I> on(A attribute, Class<I> type) {
+    public static <A, I> TypedCondition<A, I> on(final A attribute, final Class<I> type) {
         return on(attribute, TypeToken.of(type));
     }
 
-    public static <A, I> TypedCondition<A, I> on(A attribute, TypeToken<I> type) {
+    public static <A, I> TypedCondition<A, I> on(final A attribute, final TypeToken<I> type) {
         return new TypedCondition<>(attribute, type);
     }
 
@@ -57,7 +57,7 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> UntypedCondition<A> any(Class<A> type) {
+    public static <A> UntypedCondition<A> any(final Class<A> type) {
         return any(TypeToken.of(type));
     }
 
@@ -74,7 +74,7 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") TypeToken<A> type) {
+    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
         return new UntypedCondition<>(Optional.<A>empty());
     }
 

@@ -51,7 +51,7 @@ public class PassThroughResponseErrorHandlerTest {
 
     @Test
     public void doesNothingWithResponseOnHandleError() throws IOException {
-        ClientHttpResponse response = mock(ClientHttpResponse.class);
+        final ClientHttpResponse response = mock(ClientHttpResponse.class);
 
         unit.handleError(response);
 

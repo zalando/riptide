@@ -47,10 +47,10 @@ public final class StatusCodeDispatchTest {
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    private final int status;
+    private final int expected;
 
-    public StatusCodeDispatchTest(int status) {
-        this.status = status;
+    public StatusCodeDispatchTest(final int expected) {
+        this.expected = expected;
         final RestTemplate template = new RestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
@@ -67,10 +67,10 @@ public final class StatusCodeDispatchTest {
 
     @Test
     public void shouldDispatch() {
-        server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(status)));
+        server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(expected)));
 
         final ClientHttpResponseConsumer verifier = response ->
-                assertThat(response.getRawStatusCode(), is(status));
+                assertThat(response.getRawStatusCode(), is(expected));
 
         @SuppressWarnings("unchecked")
         final Binding<Integer>[] bindings = HttpStatuses.supported()

@@ -52,7 +52,8 @@ import static org.zalando.riptide.Selectors.status;
 
 public final class MapTest {
 
-    public static final String REVISION = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
+    private static final String REVISION = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
+
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final RestTemplate template;
@@ -82,7 +83,7 @@ public final class MapTest {
         verify(account);
     }
 
-    private Account fromResponse(ClientHttpResponse response) throws IOException {
+    private Account fromResponse(final ClientHttpResponse response) throws IOException {
         final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class,
                 template.getMessageConverters()).extractData(response);
         return new Account(account.getId(), "fake", account.getName());
@@ -102,7 +103,7 @@ public final class MapTest {
         verify(account);
     }
 
-    private Account fromEntity(AccountBody account) {
+    private Account fromEntity(final AccountBody account) {
         return new Account(account.getId(), "fake", account.getName());
     }
 
@@ -120,7 +121,7 @@ public final class MapTest {
         verify(account, REVISION);
     }
 
-    private Account fromResponseEntity(ResponseEntity<AccountBody> entity) {
+    private Account fromResponseEntity(final ResponseEntity<AccountBody> entity) {
         final AccountBody account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
@@ -185,7 +186,7 @@ public final class MapTest {
                         .headers(headers));
     }
 
-    private Account dispatch(Capturer<HttpStatus> capturer) {
+    private Account dispatch(final Capturer<HttpStatus> capturer) {
         return unit.execute(GET, url)
                 .dispatch(status(),
                         capturer.capture(),
@@ -193,17 +194,17 @@ public final class MapTest {
                 .retrieve(Account.class).get();
     }
 
-    private void verify(Account account) {
+    private void verify(final Account account) {
         verify(account, "fake");
     }
 
-    private void verify(Account account, String revision) {
+    private void verify(final Account account, final String revision) {
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is(revision));
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private void fail(ClientHttpResponse response) throws IOException {
+    private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getRawStatusCode());
     }
 

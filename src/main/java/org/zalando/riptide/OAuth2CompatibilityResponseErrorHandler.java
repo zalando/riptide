@@ -52,12 +52,12 @@ import static org.zalando.riptide.BufferingClientHttpResponse.buffer;
 public final class OAuth2CompatibilityResponseErrorHandler implements ResponseErrorHandler {
 
     @Override
-    public boolean hasError(ClientHttpResponse response) throws IOException {
+    public boolean hasError(final ClientHttpResponse response) {
         return false;
     }
 
     @Override
-    public void handleError(ClientHttpResponse response) throws IOException {
+    public void handleError(final ClientHttpResponse response) throws IOException {
         throw new AlreadyConsumedResponseException(buffer(response));
     }
 

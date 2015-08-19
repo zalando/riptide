@@ -30,7 +30,7 @@ public final class UnsupportedResponseException extends RestClientException {
 
     private final ClientHttpResponse response;
 
-    public UnsupportedResponseException(String message, ClientHttpResponse response) {
+    public UnsupportedResponseException(final String message, final ClientHttpResponse response) {
         super(message);
         this.response = response;
     }

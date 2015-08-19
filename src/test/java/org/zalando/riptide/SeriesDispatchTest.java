@@ -52,10 +52,10 @@ public final class SeriesDispatchTest {
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    private final HttpStatus status;
+    private final HttpStatus expected;
 
-    public SeriesDispatchTest(HttpStatus status) {
-        this.status = status;
+    public SeriesDispatchTest(final HttpStatus expected) {
+        this.expected = expected;
         final RestTemplate template = new RestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
@@ -75,10 +75,10 @@ public final class SeriesDispatchTest {
 
     @Test
     public void shouldDispatch() {
-        server.expect(requestTo(url)).andRespond(withStatus(status));
+        server.expect(requestTo(url)).andRespond(withStatus(expected));
 
         final ClientHttpResponseConsumer verifier = response ->
-                assertThat(response.getStatusCode().series(), is(status.series()));
+                assertThat(response.getStatusCode().series(), is(expected.series()));
 
         unit.execute(GET, url)
                 .dispatch(series(),

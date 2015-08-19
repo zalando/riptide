@@ -77,7 +77,7 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldNotConsumeMyResponse() throws IOException {
+    public void shouldNotConsumeMyResponse() {
         setUp(new PassThroughResponseErrorHandler());
 
         server.expect(requestTo(url)).andRespond(r -> new OneTimeConsumableResponse("{}"));
@@ -91,15 +91,15 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldNotConsumeMyResponseWithOAuth2CompatibilityHandler() throws IOException {
+    public void shouldNotConsumeMyResponseWithOAuth2CompatibilityHandler() {
         setUp(new ResponseErrorHandler() {
             @Override
-            public boolean hasError(ClientHttpResponse response) throws IOException {
+            public boolean hasError(final ClientHttpResponse response) {
                 return true;
             }
 
             @Override
-            public void handleError(ClientHttpResponse response) throws IOException {
+            public void handleError(final ClientHttpResponse response) throws IOException {
                 new OAuth2CompatibilityResponseErrorHandler().handleError(response);
             }
         });
@@ -115,7 +115,7 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldRetrieveParameterizedType() throws IOException {
+    public void shouldRetrieveParameterizedType() {
         setUp(new PassThroughResponseErrorHandler());
 
         server.expect(requestTo(url)).andRespond(withSuccess()
@@ -138,7 +138,7 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldRetrieveParameterizedTypeWithTypeInference() throws IOException {
+    public void shouldRetrieveParameterizedTypeWithTypeInference() {
         setUp(new PassThroughResponseErrorHandler());
 
         server.expect(requestTo(url)).andRespond(withSuccess()
@@ -158,7 +158,7 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldNotRetrieveMappedParameterizedType() throws IOException {
+    public void shouldNotRetrieveMappedParameterizedType() {
         setUp(new PassThroughResponseErrorHandler());
 
         server.expect(requestTo(url)).andRespond(withSuccess()

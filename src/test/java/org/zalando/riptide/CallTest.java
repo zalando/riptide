@@ -84,7 +84,7 @@ public final class CallTest {
     }
     
     @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> anyResponseEntityOf(@SuppressWarnings("UnusedParameters") Class<T> type) {
+    private <T> ResponseEntity<T> anyResponseEntityOf(@SuppressWarnings("UnusedParameters") final Class<T> type) {
         return any(ResponseEntity.class);
     }
     
@@ -141,7 +141,7 @@ public final class CallTest {
         throw new CheckedException();
     }
     
-    private void fail(ClientHttpResponse response) throws IOException {
+    private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getRawStatusCode());
     }
 
