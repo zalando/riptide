@@ -37,7 +37,7 @@ public final class Retriever {
         return retrieve(TypeToken.of(type));
     }
 
-    public <T> Optional<T> retrieve(final TypeToken<?> type) {
+    public <T> Optional<T> retrieve(final TypeToken<T> type) {
         return Optional.ofNullable(captured.getValue())
                 .filter(v -> this.hasRetrieved(type))
                 .map(v -> {

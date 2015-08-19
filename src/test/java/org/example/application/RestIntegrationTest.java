@@ -138,6 +138,26 @@ public class RestIntegrationTest {
     }
 
     @Test
+    public void shouldRetrieveParameterizedTypeWithTypeInference() throws IOException {
+        setUp(new PassThroughResponseErrorHandler());
+
+        server.expect(requestTo(url)).andRespond(withSuccess()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("[\"a\",\"b\"]"));
+
+        final TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {
+        };
+        final List<String> result = unit.execute(GET, url).dispatch(status(),
+                on(OK, typeToken).capture(),
+                anyStatus().call(this::error))
+                .retrieve(typeToken).orElseThrow(() -> new RuntimeException("Unable to retrieve List<String>"));
+
+        assertThat(result, is(not(nullValue())));
+        assertThat(result, hasSize(2));
+        assertThat(result.get(0), isA(String.class));
+    }
+
+    @Test
     public void shouldNotRetrieveMappedParameterizedType() throws IOException {
         setUp(new PassThroughResponseErrorHandler());
 
