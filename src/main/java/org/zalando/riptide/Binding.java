@@ -46,11 +46,11 @@ public final class Binding<A> implements Executor {
     public Captured execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
         return executor.execute(response, converters);
     }
-    
+
     static <A> Binding<A> create(final A attribute, final Executor executor) {
         return create(Optional.of(attribute), executor);
     }
-    
+
     static <A> Binding<A> create(final Optional<A> attribute, final Executor executor) {
         return new Binding<>(attribute, executor);
     }

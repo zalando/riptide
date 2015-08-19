@@ -49,13 +49,13 @@ final class Callback<T> implements RequestCallback {
     public void doWithRequest(final ClientHttpRequest request) throws IOException {
         final HttpHeaders headers = entity.getHeaders();
         request.getHeaders().putAll(headers);
-        
+
         @Nullable final T body = entity.getBody();
-        
+
         if (body == null) {
             return;
         }
-        
+
         final Class<?> type = body.getClass();
         @Nullable final MediaType contentType = headers.getContentType();
 

@@ -23,7 +23,7 @@ package org.zalando.riptide.model;
 import java.net.URI;
 
 public final class Error {
-    
+
     private final String message;
     private final URI path;
 

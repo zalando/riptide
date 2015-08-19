@@ -27,7 +27,7 @@ import org.springframework.http.MediaType;
 import java.util.Optional;
 
 public final class Conditions {
-    
+
     Conditions() {
         // package private so we can trick code coverage
     }
@@ -47,15 +47,15 @@ public final class Conditions {
     /**
      * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
      * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
-     * 
+     *
      * @param type attribute type
-     * @param <A> generic attribute type
+     * @param <A>  generic attribute type
      * @return an any condition on the given attribute type
-     * @see #any(TypeToken) 
-     * @see #anySeries() 
-     * @see #anyStatus() 
-     * @see #anyStatusCode() 
-     * @see #anyContentType() 
+     * @see #any(TypeToken)
+     * @see #anySeries()
+     * @see #anyStatus()
+     * @see #anyStatusCode()
+     * @see #anyContentType()
      */
     public static <A> UntypedCondition<A> any(final Class<A> type) {
         return any(TypeToken.of(type));

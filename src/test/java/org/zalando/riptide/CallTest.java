@@ -74,7 +74,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final ResponseEntityConsumer<AccountBody, Exception> verifier =
                 mock(ResponseEntityConsumer.class);
-        
+
         unit.execute(GET, url)
                 .dispatch(status(),
                         on(OK, AccountBody.class).call(verifier),
@@ -82,12 +82,12 @@ public final class CallTest {
 
         verify(verifier).accept(anyResponseEntityOf(AccountBody.class));
     }
-    
+
     @SuppressWarnings("unchecked")
     private <T> ResponseEntity<T> anyResponseEntityOf(@SuppressWarnings("UnusedParameters") final Class<T> type) {
         return any(ResponseEntity.class);
     }
-    
+
     @Test
     public void shouldCallResponseEntity() throws Exception {
         server.expect(requestTo(url)).andRespond(
@@ -140,7 +140,7 @@ public final class CallTest {
     private void validateResponse(final ResponseEntity<AccountBody> account) throws CheckedException {
         throw new CheckedException();
     }
-    
+
     private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getRawStatusCode());
     }

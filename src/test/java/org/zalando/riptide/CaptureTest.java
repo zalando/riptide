@@ -70,17 +70,17 @@ public final class CaptureTest {
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
-        
+
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
                 .retrieveResponse().get();
-        
+
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
-    
+
     @Test
     public void shouldCaptureEntity() {
         server.expect(requestTo(url)).andRespond(

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * @see Selectors#series() 
+ * @see Selectors#series()
  */
 final class SeriesSelector implements Selector<HttpStatus.Series> {
 

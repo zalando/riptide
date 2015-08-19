@@ -26,22 +26,6 @@ import javax.annotation.Nullable;
 
 class Captured {
 
-    public static Captured wrap(@Nullable final Object value, final TypeToken<?> type) {
-        return new TypedCaptured(value, type);
-    }
-
-    public static Captured wrap(@Nullable final Object value, final Class<?> type) {
-        return wrap(value, TypeToken.of(type));
-    }
-
-    public static Captured wrap(@Nullable final Object value) {
-        return new Captured(value);
-    }
-
-    public static Captured wrapNothing() {
-        return wrap(null);
-    }
-
     private final Object value;
 
     Captured(@Nullable final Object value) {
@@ -54,5 +38,21 @@ class Captured {
 
     public boolean isAssignableTo(final TypeToken<?> otherType) {
         return value != null && otherType.isAssignableFrom(value.getClass());
+    }
+
+    public static Captured wrap(@Nullable final Object value, final Class<?> type) {
+        return wrap(value, TypeToken.of(type));
+    }
+
+    public static Captured wrap(@Nullable final Object value, final TypeToken<?> type) {
+        return new TypedCaptured(value, type);
+    }
+
+    public static Captured wrapNothing() {
+        return wrap(null);
+    }
+
+    public static Captured wrap(@Nullable final Object value) {
+        return new Captured(value);
     }
 }

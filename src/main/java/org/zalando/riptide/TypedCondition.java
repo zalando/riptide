@@ -24,9 +24,7 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.client.HttpMessageConverterExtractor;
-import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,13 +42,6 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         this.type = type;
     }
 
-    private I convert(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
-        try {
-            return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-        } catch (final RestClientException | HttpMessageNotReadableException e) {
-            throw new BodyConversionException(e);
-        }
-    }
 
     private ResponseEntity<I> toResponseEntity(final I entity, final ClientHttpResponse response) throws IOException {
         return new ResponseEntity<>(entity, response.getHeaders(), response.getStatusCode());
@@ -62,6 +53,10 @@ public final class TypedCondition<A, I> implements Capturer<A> {
             consumer.accept(entity);
             return wrapNothing();
         });
+    }
+
+    private I convert(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
+        return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
     }
 
     public Binding<A> call(final ResponseEntityConsumer<I, ?> consumer) {

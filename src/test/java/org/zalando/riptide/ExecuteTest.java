@@ -47,7 +47,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 public final class ExecuteTest {
-    
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
@@ -84,7 +84,7 @@ public final class ExecuteTest {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.set("X-Foo", "bar");
-        
+
         unit.execute(GET, url, headers);
     }
 
@@ -106,41 +106,41 @@ public final class ExecuteTest {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.set("X-Foo", "bar");
-        
+
         unit.execute(GET, url, headers, ImmutableMap.of("foo", "bar"));
     }
-    
+
     @Test
     public void shouldFailIfNoConverterFoundForBody() {
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
-        
+
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_XML);
-        
+
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
         exception.expectMessage("application/xml");
-        
+
         unit.execute(GET, url, headers, new Success(true));
     }
-    
+
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
         @Hack("Couldn't find a better way to prevent the Jackson converter from running")
         final List<HttpMessageConverter<?>> converters = singletonList(new Jaxb2RootElementHttpMessageConverter());
         template.setMessageConverters(converters);
-        
+
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
-        
+
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
-        
+
         unit.execute(GET, url, new Success(true));
     }
 

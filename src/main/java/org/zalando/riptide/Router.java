@@ -55,8 +55,6 @@ final class Router {
                 return binding.execute(response, converters);
             } catch (final UnsupportedResponseException e) {
                 return propagateNoMatch(response, converters, attribute, index, e);
-            } catch (final BodyConversionException e) {
-                return routeNone(response, converters, attribute, index);
             }
         } else {
             return routeNone(response, converters, attribute, index);

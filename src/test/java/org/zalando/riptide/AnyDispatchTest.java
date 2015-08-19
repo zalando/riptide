@@ -55,20 +55,20 @@ public final class AnyDispatchTest {
         this.unit = Rest.create(template);
         this.server = MockRestServiceServer.createServer(template);
     }
-    
+
     @Test
     public void shouldDispatchAny() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
-        
+
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(status(),
                         on(CREATED, AccountBody.class).capture(),
                         anyStatus().capture())
                 .retrieveResponse().orElse(null);
-        
+
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
