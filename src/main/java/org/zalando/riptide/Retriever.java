@@ -53,10 +53,13 @@ public final class Retriever {
      * @return optional response, present only if successfully captured
      * @see #retrieve(Class)
      */
+    // TODO does this method justifies its weight?
     public Optional<ClientHttpResponse> retrieveResponse() {
         return retrieve(ClientHttpResponse.class);
     }
 
+    // TODO isRetrieved?
+    // TODO package private + @VisibleForTesting?
     public boolean hasRetrieved(final Class<?> type) {
         return hasRetrieved(TypeToken.of(type));
     }

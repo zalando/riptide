@@ -40,19 +40,19 @@ class Captured {
         return value != null && otherType.isAssignableFrom(value.getClass());
     }
 
-    public static Captured wrap(@Nullable final Object value, final Class<?> type) {
-        return wrap(value, TypeToken.of(type));
+    public static Captured captured(@Nullable final Object value, final Class<?> type) {
+        return captured(value, TypeToken.of(type));
     }
 
-    public static Captured wrap(@Nullable final Object value, final TypeToken<?> type) {
+    public static Captured captured(@Nullable final Object value, final TypeToken<?> type) {
         return new TypedCaptured(value, type);
     }
 
     public static Captured wrapNothing() {
-        return wrap(null);
+        return captured(null);
     }
 
-    public static Captured wrap(@Nullable final Object value) {
+    public static Captured captured(@Nullable final Object value) {
         return new Captured(value);
     }
 }

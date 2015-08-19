@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
@@ -39,8 +40,9 @@ final class Router {
 
     private static final Optional ANY = Optional.empty();
 
+    @SneakyThrows(IOException.class)
     final <A> Captured route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Selector<A> selector, final Collection<Binding<A>> bindings) throws IOException {
+            final Selector<A> selector, final Collection<Binding<A>> bindings) {
 
         final Optional<A> attribute = selector.attributeOf(response);
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
@@ -52,7 +54,7 @@ final class Router {
             try {
                 final Binding<A> binding = match.get();
                 return binding.execute(response, converters);
-            } catch (final RestClientDispatchException e) {
+            } catch (final NoRouteException e) {
                 return propagateNoMatch(response, converters, attribute, index, e);
             }
         } else {
@@ -70,10 +72,10 @@ final class Router {
 
     private <A> Captured propagateNoMatch(final ClientHttpResponse response,
             final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
-            final Map<Optional<A>, Binding<A>> index, final RestClientDispatchException e) {
+            final Map<Optional<A>, Binding<A>> index, final NoRouteException e) {
         try {
             return routeNone(response, converters, attribute, index);
-        } catch (final RestClientDispatchException ignored) {
+        } catch (final NoRouteException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
@@ -86,7 +88,7 @@ final class Router {
             final Binding<A> binding = getWildcard(bindings);
             return binding.execute(response, converters);
         } else {
-            throw new RestClientDispatchException(formatMessage(attribute, bindings), response);
+            throw new NoRouteException(formatMessage(attribute, bindings));
         }
     }
 

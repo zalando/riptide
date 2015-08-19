@@ -20,9 +20,28 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.web.client.RestClientException;
+
 @FunctionalInterface
 public interface Capturer<A> {
 
     Binding<A> capture();
+
+    /**
+     *
+     * @return
+     * @throws IllegalStateException if the captured value is not an {@link Exception}
+     */
+    default Binding<A> propagate() {
+        final Binding<A> binding = capture();
+        return Binding.create(binding.getAttribute(), (response, converters) -> {
+            final Object entity = binding.execute(response, converters).getValue();
+            if (entity instanceof Exception) {
+                throw (Exception) entity;
+            } else {
+                throw new IllegalStateException("unable to propagate non-throwable entity: " + entity);
+            }
+        });
+    };
 
 }
