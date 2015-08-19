@@ -24,13 +24,13 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
 /**
- * TODO javadocs
+ * TODO javadoc
  */
-public final class UnsupportedResponseException extends RestClientException {
+public final class RestClientDispatchException extends RestClientException {
 
     private final ClientHttpResponse response;
 
-    public UnsupportedResponseException(final String message, final ClientHttpResponse response) {
+    public RestClientDispatchException(final String message, final ClientHttpResponse response) {
         super(message);
         this.response = response;
     }

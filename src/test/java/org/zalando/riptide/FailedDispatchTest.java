@@ -50,7 +50,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -58,6 +61,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyContentType;
@@ -98,12 +102,12 @@ public final class FailedDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(UnsupportedResponseException.class);
+        exception.expect(RestClientDispatchException.class);
         exception.expectMessage("Unable to dispatch application/json");
         exception.expectMessage("application/success+json");
         exception.expectMessage("application/problem+json");
         exception.expectMessage("application/vnd.error+json");
-        exception.expect(hasFeature("response", UnsupportedResponseException::getResponse, is(notNullValue())));
+        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
@@ -223,23 +227,26 @@ public final class FailedDispatchTest {
     @Test
     public void shouldPreserveExceptionIfPropagateFailed() {
         server.expect(requestTo(url))
-                .andRespond(withSuccess()
+                .andRespond(withCreatedEntity(URI.create("about:blank"))
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(UnsupportedResponseException.class);
-        exception.expectMessage("Unable to dispatch application/json");
-        exception.expectMessage("application/xml");
-        exception.expectMessage("text/plain");
-        exception.expect(hasFeature("response", UnsupportedResponseException::getResponse, is(notNullValue())));
+        exception.expect(RestClientDispatchException.class);
+        exception.expectMessage("Unable to dispatch 201");
+        exception.expectMessage("200");
+        exception.expectMessage("301");
+        exception.expectMessage("404");
+        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
 
-        unit.execute(GET, url)
+        unit.execute(POST, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).dispatch(status(),
-                                on(OK).dispatch(contentType(),
-                                        on(APPLICATION_XML).capture(),
-                                        on(TEXT_PLAIN).capture()),
-                                on(ACCEPTED).capture()),
+                        on(SUCCESSFUL).dispatch(contentType(),
+                                on(APPLICATION_JSON).dispatch(status(),
+                                        on(OK).capture(),
+                                        on(MOVED_PERMANENTLY).capture(),
+                                        on(NOT_FOUND).capture()),
+                                on(APPLICATION_XML).capture(),
+                                on(TEXT_PLAIN).capture()),
                         on(CLIENT_ERROR).capture());
     }
 

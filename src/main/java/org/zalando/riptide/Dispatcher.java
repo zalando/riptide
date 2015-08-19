@@ -20,9 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -48,12 +48,10 @@ public final class Dispatcher {
         return new Retriever(value);
     }
 
-    private <A> Captured route(final Selector<A> selector, final List<HttpMessageConverter<?>> converters, final Binding<A>[] bindings) {
-        try {
-            return router.route(response, converters, selector, asList(bindings));
-        } catch (final IOException e) {
-            throw new RestClientException(null, e);
-        }
+    @SneakyThrows(IOException.class)
+    private <A> Captured route(final Selector<A> selector, final List<HttpMessageConverter<?>> converters,
+            final Binding<A>[] bindings) {
+        return router.route(response, converters, selector, asList(bindings));
     }
 
 }

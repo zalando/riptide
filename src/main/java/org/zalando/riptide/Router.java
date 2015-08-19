@@ -29,7 +29,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -53,7 +52,7 @@ final class Router {
             try {
                 final Binding<A> binding = match.get();
                 return binding.execute(response, converters);
-            } catch (final UnsupportedResponseException e) {
+            } catch (final RestClientDispatchException e) {
                 return propagateNoMatch(response, converters, attribute, index, e);
             }
         } else {
@@ -71,30 +70,42 @@ final class Router {
 
     private <A> Captured propagateNoMatch(final ClientHttpResponse response,
             final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
-            final Map<Optional<A>, Binding<A>> index, final UnsupportedResponseException e) {
+            final Map<Optional<A>, Binding<A>> index, final RestClientDispatchException e) {
         try {
             return routeNone(response, converters, attribute, index);
-        } catch (final UnsupportedResponseException ignored) {
+        } catch (final RestClientDispatchException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
     private <A> Captured routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> index) {
+            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
 
-        if (index.containsKey(ANY)) {
-            // TODO test exception handling
-            return index.get(ANY).execute(response, converters);
+        if (containsWildcard(bindings)) {
+            final Binding<A> binding = getWildcard(bindings);
+            return binding.execute(response, converters);
         } else {
-            final Function<Optional<A>, String> toName = a -> a.map(Object::toString).orElse("any");
-            final List<String> attributes = index.keySet().stream().map(toName).collect(toList());
-            final String message = format("Unable to dispatch %s onto %s",
-                    // TODO there should be a better name than "none"
-                    attribute.map(Object::toString).orElse("none"), attributes);
-
-            throw new UnsupportedResponseException(message, response);
+            throw new RestClientDispatchException(formatMessage(attribute, bindings), response);
         }
+    }
+
+    private <A> boolean containsWildcard(final Map<Optional<A>, Binding<A>> bindings) {
+        return bindings.containsKey(ANY);
+    }
+
+    private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
+        return bindings.get(ANY);
+    }
+
+    private <A> String formatMessage(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
+        return format("Unable to dispatch %s onto %s",
+                attribute.map(Object::toString).orElse("none"),
+                bindings.keySet().stream().map(this::toName).collect(toList()));
+    }
+
+    private String toName(final Optional<?> attribute) {
+        return attribute.map(Object::toString).orElse("any");
     }
 
 }
