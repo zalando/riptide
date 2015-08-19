@@ -10,7 +10,7 @@
 
     <groupId>org.zalando</groupId>
     <artifactId>riptide</artifactId>
-    <version>0.7.0-SNAPSHOT</version>
+    <version>0.7.0</version>
 
     <name>Riptide</name>
     <description>Client side response routing for Spring's RestTemplate</description>
