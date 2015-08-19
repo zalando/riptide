@@ -34,8 +34,8 @@ import static org.zalando.riptide.Selectors.status;
 
 public final class DispatcherTest {
 
-    @Test(expected = RestClientException.class)
-    public void shouldCatchIOException() throws IOException {
+    @Test(expected = IOException.class)
+    public void shouldThrowIOException() throws IOException {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getStatusCode()).thenThrow(new IOException());
 
