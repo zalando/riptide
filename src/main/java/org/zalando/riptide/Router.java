@@ -57,8 +57,6 @@ final class Router {
                 return propagateNoMatch(response, converters, attribute, index, e);
             } catch (BodyConversionException e) {
                 return routeNone(response, converters, attribute, index);
-            } catch (Exception e) {
-                throw MoreThrowables.sneakyThrow(e);
             }
         } else {
             return routeNone(response, converters, attribute, index);
@@ -87,12 +85,8 @@ final class Router {
             Optional<A> attribute, Map<Optional<A>, Binding<A>> index) throws IOException {
 
         if (index.containsKey(ANY)) {
-            try {
-                // TODO test exception handling
-                return index.get(ANY).execute(response, converters);
-            } catch (Exception e) {
-                throw MoreThrowables.sneakyThrow(e);
-            }
+            // TODO test exception handling
+            return index.get(ANY).execute(response, converters);
         } else {
             final Function<Optional<A>, String> toName = a -> a.map(Object::toString).orElse("any");
             final List<String> attributes = index.keySet().stream().map(toName).collect(toList());

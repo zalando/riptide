@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
@@ -42,7 +43,8 @@ public final class Binding<A> implements Executor {
     }
 
     @Override
-    public Captured execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws Exception {
+    @SneakyThrows(Exception.class)
+    public Captured execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) {
         return executor.execute(response, converters);
     }
     
