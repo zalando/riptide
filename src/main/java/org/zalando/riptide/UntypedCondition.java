@@ -35,7 +35,7 @@ public final class UntypedCondition<A> {
     private final Router router = new Router();
     private final Optional<A> attribute;
 
-    public UntypedCondition(Optional<A> attribute) {
+    UntypedCondition(Optional<A> attribute) {
         this.attribute = attribute;
     }
 
@@ -63,8 +63,7 @@ public final class UntypedCondition<A> {
     }
 
     @SafeVarargs
-    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings)
-            throws UnsupportedResponseException {
+    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
         return Binding.create(attribute, (response, converters) ->
                 router.route(response, converters, selector, asList(bindings)));
     }
