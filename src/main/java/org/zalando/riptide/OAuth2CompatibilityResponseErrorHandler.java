@@ -26,6 +26,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
+import static org.zalando.riptide.BufferingClientHttpResponse.buffer;
+
 /**
  * Special {@link ResponseErrorHandler} to be used with the <i>OAuth2RestTemplate</i>
  * 
@@ -56,7 +58,7 @@ public final class OAuth2CompatibilityResponseErrorHandler implements ResponseEr
 
     @Override
     public void handleError(ClientHttpResponse response) throws IOException {
-        throw new AlreadyConsumedResponseException(BufferingClientHttpResponseWrapper.buffer(response));
+        throw new AlreadyConsumedResponseException(buffer(response));
     }
 
 }

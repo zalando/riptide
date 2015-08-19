@@ -23,14 +23,9 @@ package org.zalando.riptide;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public final class Rest {
@@ -72,7 +67,7 @@ public final class Rest {
      */
     private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
         try {
-            return template.execute(url, method, callback, BufferingClientHttpResponseWrapper::buffer);
+            return template.execute(url, method, callback, BufferingClientHttpResponse::buffer);
         } catch (AlreadyConsumedResponseException e) {
             return e.getResponse();
         }
