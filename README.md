@@ -21,7 +21,7 @@ differently with an easy to use yet very powerful syntax.
 </dependency>
 ```
 
-## Usage
+## Setup
 
 Create an instance based on an existing `RestTemplate`:
 
@@ -43,6 +43,8 @@ may result in the response body being already consumed and/or closed. To workaro
 ```java
 template.setErrorHandler(new OAuth2CompatibilityResponseErrorHandler());
 ```
+
+## Usage
 
 Make a request and route the response to your specific handler methods/callbacks:
 
@@ -181,6 +183,12 @@ wildcard condition. In the example above, if the server responded with a plain `
 router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to dispatch on status code, won't find a
 matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
 statement.
+
+## Exceptions
+
+*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to `call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` in a `try-catch` and directly catch it.
+
+The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and no wildcard condition either.
 
 ## License
 
