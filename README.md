@@ -27,17 +27,22 @@ Create an instance based on an existing `RestTemplate`:
 
 ```java
 final RestTemplate template = new RestTemplate();
-template.setResponseErrorHandler(new PassThroughResponseErrorHandler());
+template.setErrorHandler(new PassThroughResponseErrorHandler());
 final Rest rest = Rest.create(template);
 ```
 
 If you use Riptide to its full extent you probably don't want to have any [`ResponseErrorHandler`]
 (http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/ResponseErrorHandler.html)
-interfere with your dispatching. Therefore Riptide provides you with a *null* `ResponseErrorHandler`, which ensures
+interfere with your dispatching. Therefore Riptide provides you with a *no-op* `ResponseErrorHandler`, which ensures
 that Riptide handles all success and error cases.
 
-**When using OAuth2RestTemplate** you have to use the `OAuth2CompatibilityResponseErrorHandler`, which ensures that
-dispatching works even if OAuth errors occur.
+In case you're using the **OAuth2RestTemplate**: It uses the given `ResponseErrorHandler` in the wrong way, which
+may result in the response body being already consumed and/or closed. To workaround this issue use this special
+`OAuth2CompatibilityResponseErrorHandler`:
+
+```java
+template.setErrorHandler(new OAuth2CompatibilityResponseErrorHandler());
+```
 
 Make a request and route the response to your specific handler methods/callbacks:
 
@@ -52,8 +57,8 @@ rest.execute(GET, url).dispatch(status(),
 You `onSuccess` method is allowed to have one of the following signatures:
 
 ```java
-void onSuccess(Success success);
-void onSuccess(ResponseEntity<Success> success);
+void onSuccess(Success success) throws Exception;
+void onSuccess(ResponseEntity<Success> success) throws Exception;
 ```
 
 The later one is useful if you e.g. need access to one or more header values.
@@ -69,7 +74,7 @@ Riptide comes with the following selectors:
 |--------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | [Selectors.series()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/SeriesSelector.java)           | [HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html) |
 | [Selectors.status()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusSelector.java)           | [HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)               |
-| [Selectors.statusCode()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | Integer                                                                                                                    |
+| [Selectors.statusCode()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | [Integer](http://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html)                                                 |
 | [Selectors.contentType()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
 
 ```java
@@ -79,7 +84,7 @@ rest.execute(..).dispatch(statusCode(), ..);
 rest.execute(..).dispatch(contentType(), ..);
 ```
 
-You are free to write your own, which means you just need to implement the following method:
+You are free to write your own, which requires you to just implement this single method:
 
 ```java
 Optional<A> attributeOf(ClientHttpResponse response)
@@ -96,17 +101,19 @@ on(CLIENT_ERROR, Error.class).call(..)
 anySeries().call(..)
 ```
 
-Conditions can either be untyped, e.g. `on(SUCCESS)`, typed, e.g. `on(CLIENT_ERROR, Error.class)` or wildcard, e.g.
-`anySeries()`. Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
+Conditions can either be:
+
+1. *untyped*, e.g. `on(SUCCESS)`, 
+2. *typed*, e.g. `on(CLIENT_ERROR, Error.class)` or 
+3. *wildcards*, e.g. `anySeries()`. 
+
+Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
 [`ClientHttpResponse`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
 while typed conditions support typed actions, i.e. actions that operate on custom types or typed
 [`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
 directly.
 
-Wildcard conditions are comparable to a `default` case in a switch. They take effect if:
-- no match was found
-- a match was found, but the `RestTemplate` was unable to find a suitable `HttpMessageConverter`
-- a match was found, but the `HttpMessageConverter` was unable to read the body
+Wildcard conditions are comparable to a `default` case in a switch. They take effect if no match was found.
 
 ## Actions
 
@@ -124,8 +131,8 @@ response will be routed to an action. An action can be one of the following:
 | Nested Routing                              | see next section               |
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
-Functions are used to apply a transformation and their result must be captured. Captured values can later be retrieved,
-e.g. to produce a return value:
+Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
+later be retrieved, e.g. to produce a return value:
 
 ```java
 final Optional<Success> success = rest.execute(..)
@@ -134,6 +141,11 @@ final Optional<Success> success = rest.execute(..)
 
 return success.orElse(..);
 ```
+
+Please note: All consumer/function based actions are **not** `java.util.function.Consumer` and 
+`java.util.function.Function` respectively, but custom version that support throwing checked exceptions. This should
+not have any negative impact since most of the time you won't pass in a custom implementation, but rather a lambda or
+a method reference.
 
 ### Nested Routing
 
@@ -160,10 +172,15 @@ final Success success = rest.execute(GET, url)
                 on(SERVER_ERROR)
                     .dispatch(statusCode(),
                             on(503).call(this::retryLater),
-                            anyStatusCode().call(this::fail)),
                 anySeries().call(this::fail))
         .retrieve(Success.class).orElse(null);
 ```
+
+If a *no match* case happens in a nested routing scenario it will bubble up the levels until it finds a matching
+wildcard condition. In the example above, if the server responded with a plain `500 Internal Server Error` the
+router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to dispatch on status code, won't find a
+matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
+statement.
 
 ## License
 
