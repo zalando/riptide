@@ -29,6 +29,11 @@ import org.junit.Test;
 public final class EnforceCoverageTest {
 
     @Test
+    public void shouldUseActionsConstructor() {
+        new Actions();
+    }
+    
+    @Test
     public void shouldUseConditionsConstructor() {
         new Conditions();
     }
