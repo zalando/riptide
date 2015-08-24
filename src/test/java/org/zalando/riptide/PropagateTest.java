@@ -28,11 +28,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.problem.Problem;
 import org.zalando.problem.ThrowableProblem;
-import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
@@ -45,6 +43,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.zalando.riptide.Actions.propagate;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
@@ -80,23 +79,7 @@ public final class PropagateTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).propagate(),
-                        anyStatus().call(this::fail));
-    }
-
-    @Test
-    public void shouldThrowIfNonThrowableEntity() {
-        server.expect(requestTo(url)).andRespond(
-                withStatus(UNPROCESSABLE_ENTITY)
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("unable to propagate non-throwable entity");
-
-        unit.execute(GET, url)
-                .dispatch(status(),
-                        on(UNPROCESSABLE_ENTITY, AccountBody.class).propagate(),
+                        on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).call(propagate()),
                         anyStatus().call(this::fail));
     }
 
