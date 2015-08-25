@@ -62,7 +62,7 @@ public final class Conditions {
     }
 
     /**
-     * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
+     * Creates a wildcard condition for the given type. Note that this method is meant to be
      * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
      * 
      * @param type attribute type

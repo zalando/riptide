@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -32,6 +33,7 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
+import org.zalando.riptide.model.CheckedException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -50,6 +52,7 @@ import static org.zalando.riptide.Selectors.status;
 
 public final class MapTest {
 
+    public static final String REVISION = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final RestTemplate template;
@@ -58,9 +61,8 @@ public final class MapTest {
 
     public MapTest() {
         template = new RestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
+        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
+                new ObjectMapper().findAndRegisterModules())));
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
@@ -68,38 +70,16 @@ public final class MapTest {
 
     @Test
     public void shouldMapResponse() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK).map(this::fromResponse).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is("fake"));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK).map(this::fromResponse));
+        verify(account);
     }
 
     @Test
     public void shouldMapTypedResponse() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK).map(this::fromResponse, Account.class).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is("fake"));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK).map(this::fromResponse, Account.class));
+        verify(account);
     }
 
     private Account fromResponse(ClientHttpResponse response) throws IOException {
@@ -110,38 +90,16 @@ public final class MapTest {
 
     @Test
     public void shouldMapEntity() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).map(this::fromEntity).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is("fake"));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromEntity));
+        verify(account);
     }
 
     @Test
     public void shouldMapTypedEntity() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).map(this::fromEntity, Account.class).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is("fake"));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromEntity, Account.class));
+        verify(account);
     }
 
     private Account fromEntity(AccountBody account) {
@@ -150,56 +108,99 @@ public final class MapTest {
 
     @Test
     public void shouldMapResponseEntity() {
-        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setETag(revision);
-
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON)
-                        .headers(headers));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).map(this::fromResponseEntity).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is(revision));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromResponseEntity));
+        verify(account, REVISION);
     }
 
     @Test
     public void shouldMapTypedResponseEntity() {
-        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setETag(revision);
-
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON)
-                        .headers(headers));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).map(this::fromResponseEntity, Account.class).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is(revision));
-        assertThat(account.getName(), is("Acme Corporation"));
+        answerWithAccount();
+        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromResponseEntity, Account.class));
+        verify(account, REVISION);
     }
 
     private Account fromResponseEntity(ResponseEntity<AccountBody> entity) {
         final AccountBody account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnResponse() {
+        answerWithAccount();
+        dispatch(on(OK).map(this::validateResponse));
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnTypedResponse() {
+        answerWithAccount();
+        dispatch(on(OK).map(this::validateResponse, Account.class));
+    }
+
+    private Account validateResponse(final ClientHttpResponse response) throws CheckedException {
+        throw new CheckedException();
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnEntity() {
+        answerWithAccount();
+        dispatch(on(OK, AccountBody.class).map(this::validateEntity));
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnTypedEntity() {
+        answerWithAccount();
+        dispatch(on(OK, AccountBody.class).map(this::validateEntity, Account.class));
+    }
+
+    private Account validateEntity(final AccountBody account) throws CheckedException {
+        throw new CheckedException();
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnResponseEntity() {
+        answerWithAccount();
+        dispatch(on(OK, AccountBody.class).map(this::validateResponseEntity));
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnTypedResponseEntity() {
+        answerWithAccount();
+        dispatch(on(OK, AccountBody.class).map(this::validateResponseEntity, Account.class));
+    }
+
+    private Account validateResponseEntity(final AccountBody account) throws CheckedException {
+        throw new CheckedException();
+    }
+
+    private void answerWithAccount() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setETag(REVISION);
+
+        server.expect(requestTo(url))
+                .andRespond(withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON)
+                        .headers(headers));
+    }
+
+    private Account dispatch(Capturer<HttpStatus> capturer) {
+        return unit.execute(GET, url)
+                .dispatch(status(),
+                        capturer.capture(),
+                        anyStatus().call(this::fail))
+                .retrieve(Account.class).get();
+    }
+
+    private void verify(Account account) {
+        verify(account, "fake");
+    }
+
+    private void verify(Account account, String revision) {
+        assertThat(account.getId(), is("1234567890"));
+        assertThat(account.getRevision(), is(revision));
+        assertThat(account.getName(), is("Acme Corporation"));
     }
 
     private void fail(ClientHttpResponse response) throws IOException {

@@ -1,8 +1,8 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -20,7 +20,5 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-@FunctionalInterface
-public interface EntityConsumer<T, X extends Exception> extends ThrowingConsumer<T, X> {
-    
+public final class CheckedException extends Exception {
 }

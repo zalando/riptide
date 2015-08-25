@@ -29,6 +29,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.AccountBody;
+import org.zalando.riptide.model.CheckedException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -64,14 +65,14 @@ public final class CallTest {
     }
 
     @Test
-    public void shouldMapEntity() {
+    public void shouldCallEntity() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ResponseEntityConsumer<AccountBody> verifier = 
+        final ResponseEntityConsumer<AccountBody, Exception> verifier =
                 mock(ResponseEntityConsumer.class);
         
         unit.execute(GET, url)
@@ -88,14 +89,14 @@ public final class CallTest {
     }
     
     @Test
-    public void shouldMapResponseEntity() {
+    public void shouldCallResponseEntity() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final EntityConsumer<AccountBody> verifier = 
+        final EntityConsumer<AccountBody, Exception> verifier =
                 mock(EntityConsumer.class);
 
         unit.execute(GET, url)
@@ -104,6 +105,40 @@ public final class CallTest {
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(any(AccountBody.class));
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnEntity() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK, AccountBody.class).call(this::validateEntity),
+                        anyStatus().call(this::fail));
+    }
+
+    private void validateEntity(final AccountBody account) throws CheckedException {
+        throw new CheckedException();
+    }
+
+    @Test(expected = CheckedException.class)
+    public void shouldThrowCheckedExceptionOnResponseEntity() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK, AccountBody.class).call(this::validateResponse),
+                        anyStatus().call(this::fail));
+    }
+
+    private void validateResponse(final ResponseEntity<AccountBody> account) throws CheckedException {
+        throw new CheckedException();
     }
     
     private void fail(ClientHttpResponse response) throws IOException {

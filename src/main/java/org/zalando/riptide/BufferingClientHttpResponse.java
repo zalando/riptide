@@ -20,31 +20,27 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.io.ByteStreams;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
-final class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
+import static java.util.Optional.empty;
 
-    static BufferingClientHttpResponseWrapper buffer(ClientHttpResponse response) throws IOException {
-        final BufferingClientHttpResponseWrapper wrapper = new BufferingClientHttpResponseWrapper(response);
-        wrapper.buffer();
-        return wrapper;
-    }
+final class BufferingClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;
+    private final Optional<byte[]> body;
 
-    private byte[] body;
-
-    private BufferingClientHttpResponseWrapper(ClientHttpResponse response) {
+    private BufferingClientHttpResponse(ClientHttpResponse response, Optional<byte[]> body) {
         this.response = response;
+        this.body = body;
     }
-
 
     @Override
     public HttpStatus getStatusCode() throws IOException {
@@ -68,7 +64,7 @@ final class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 
     @Override
     public InputStream getBody() throws IOException {
-        return body == null ? null : new ByteArrayInputStream(body);
+        return body.map(ByteArrayInputStream::new).orElse(null);
     }
 
     @Override
@@ -76,9 +72,12 @@ final class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
         response.close();
     }
 
-    private void buffer() throws IOException {
-        if (response.getBody() != null) {
-            body = StreamUtils.copyToByteArray(response.getBody());
+    public static BufferingClientHttpResponse buffer(ClientHttpResponse response) throws IOException {
+        if (response.getBody() == null) {
+            return new BufferingClientHttpResponse(response, empty());
+        } else {
+            final byte[] bytes = ByteStreams.toByteArray(response.getBody());
+            return new BufferingClientHttpResponse(response, Optional.of(bytes));
         }
     }
 

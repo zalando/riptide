@@ -35,19 +35,20 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.zalando.riptide.BufferingClientHttpResponse.buffer;
 
-public class BufferingClientHttpResponseWrapperTest {
+public class BufferingClientHttpResponseTest {
 
     private final ClientHttpResponse response = mock(ClientHttpResponse.class);
 
-    private BufferingClientHttpResponseWrapper unit;
+    private BufferingClientHttpResponse unit;
 
     @Test
     public void buffersBody() throws IOException {
         final byte[] data = {0x13, 0x37};
         when(response.getBody()).thenReturn(new ByteArrayInputStream(data));
 
-        unit = BufferingClientHttpResponseWrapper.buffer(response);
+        unit = buffer(response);
 
         assertThat(ByteStreams.toByteArray(unit.getBody()), is(data));
     }
@@ -56,14 +57,14 @@ public class BufferingClientHttpResponseWrapperTest {
     public void skipsBodyIfNull() throws IOException {
         when(response.getBody()).thenReturn(null);
 
-        unit = BufferingClientHttpResponseWrapper.buffer(response);
+        unit = buffer(response);
 
         assertThat(unit.getBody(), is(nullValue()));
     }
 
     @Test
     public void closesResponse() throws IOException {
-        unit = BufferingClientHttpResponseWrapper.buffer(response);
+        unit = buffer(response);
 
         unit.close();
 
@@ -77,7 +78,7 @@ public class BufferingClientHttpResponseWrapperTest {
         when(response.getRawStatusCode()).thenReturn(42);
         when(response.getHeaders()).thenReturn(new HttpHeaders());
 
-        unit = BufferingClientHttpResponseWrapper.buffer(response);
+        unit = buffer(response);
 
         assertThat(unit.getStatusCode(), is(response.getStatusCode()));
         assertThat(unit.getStatusText(), is(response.getStatusText()));
