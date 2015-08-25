@@ -26,7 +26,7 @@ public final class Account {
     private final String revision;
     private final String name;
 
-    public Account(String id, String revision, String name) {
+    public Account(final String id, final String revision, final String name) {
         this.id = id;
         this.revision = revision;
         this.name = name;

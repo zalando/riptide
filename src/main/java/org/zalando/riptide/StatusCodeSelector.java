@@ -31,7 +31,7 @@ import java.util.Optional;
 final class StatusCodeSelector implements Selector<Integer> {
 
     @Override
-    public Optional<Integer> attributeOf(ClientHttpResponse response) throws IOException {
+    public Optional<Integer> attributeOf(final ClientHttpResponse response) throws IOException {
         return Optional.of(response.getRawStatusCode());
     }
 

@@ -23,7 +23,6 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
@@ -35,26 +34,26 @@ public final class UntypedCondition<A> {
     private final Router router = new Router();
     private final Optional<A> attribute;
 
-    UntypedCondition(Optional<A> attribute) {
+    UntypedCondition(final Optional<A> attribute) {
         this.attribute = attribute;
     }
 
-    public Binding<A> call(ThrowingConsumer<ClientHttpResponse, ?> consumer) {
+    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ?> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
             return wrapNothing();
         });
     }
 
-    public Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function) {
+    public Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response)));
     }
 
-    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function, Class<T> mappedType) {
+    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function, final Class<T> mappedType) {
         return map(function, TypeToken.of(mappedType));
     }
 
-    public <T> Capturer<A> map(ThrowingFunction<ClientHttpResponse, ?, ?> function, TypeToken<T> mappedType) {
+    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response), mappedType));
     }
 
@@ -63,7 +62,7 @@ public final class UntypedCondition<A> {
     }
 
     @SafeVarargs
-    public final <B> Binding<A> dispatch(Selector<B> selector, Binding<B>... bindings) {
+    public final <B> Binding<A> dispatch(final Selector<B> selector, final Binding<B>... bindings) {
         return Binding.create(attribute, (response, converters) ->
                 router.route(response, converters, selector, asList(bindings)));
     }

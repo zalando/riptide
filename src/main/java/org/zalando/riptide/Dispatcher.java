@@ -20,9 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -36,24 +36,22 @@ public final class Dispatcher {
     private final ClientHttpResponse response;
     private final Router router = new Router();
 
-    Dispatcher(RestTemplate template, ClientHttpResponse response) {
+    Dispatcher(final RestTemplate template, final ClientHttpResponse response) {
         this.template = template;
         this.response = response;
     }
 
     @SafeVarargs
-    public final <A> Retriever dispatch(Selector<A> selector, Binding<A>... bindings)  {
+    public final <A> Retriever dispatch(final Selector<A> selector, final Binding<A>... bindings) {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Captured value = route(selector, converters, bindings);
         return new Retriever(value);
     }
 
-    private <A> Captured route(Selector<A> selector, List<HttpMessageConverter<?>> converters, Binding<A>[] bindings) {
-        try {
-            return router.route(response, converters, selector, asList(bindings));
-        } catch (IOException e) {
-            throw new RestClientException(null, e);
-        }
+    @SneakyThrows(IOException.class)
+    private <A> Captured route(final Selector<A> selector, final List<HttpMessageConverter<?>> converters,
+            final Binding<A>[] bindings) {
+        return router.route(response, converters, selector, asList(bindings));
     }
 
 }

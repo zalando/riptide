@@ -25,7 +25,7 @@ public final class AccountBody {
     private final String id;
     private final String name;
 
-    public AccountBody(String id, String name) {
+    public AccountBody(final String id, final String name) {
         this.id = id;
         this.name = name;
     }

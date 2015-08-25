@@ -37,7 +37,7 @@ final class BufferingClientHttpResponse implements ClientHttpResponse {
     private final ClientHttpResponse response;
     private final Optional<byte[]> body;
 
-    private BufferingClientHttpResponse(ClientHttpResponse response, Optional<byte[]> body) {
+    private BufferingClientHttpResponse(final ClientHttpResponse response, final Optional<byte[]> body) {
         this.response = response;
         this.body = body;
     }
@@ -63,7 +63,7 @@ final class BufferingClientHttpResponse implements ClientHttpResponse {
     }
 
     @Override
-    public InputStream getBody() throws IOException {
+    public InputStream getBody() {
         return body.map(ByteArrayInputStream::new).orElse(null);
     }
 
@@ -72,7 +72,7 @@ final class BufferingClientHttpResponse implements ClientHttpResponse {
         response.close();
     }
 
-    public static BufferingClientHttpResponse buffer(ClientHttpResponse response) throws IOException {
+    public static BufferingClientHttpResponse buffer(final ClientHttpResponse response) throws IOException {
         if (response.getBody() == null) {
             return new BufferingClientHttpResponse(response, empty());
         } else {

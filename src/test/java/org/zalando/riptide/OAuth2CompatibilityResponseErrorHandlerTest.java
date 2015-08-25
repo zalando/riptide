@@ -67,10 +67,10 @@ public class OAuth2CompatibilityResponseErrorHandlerTest {
     private Matcher<ClientHttpResponse> statusCodeMatcher() {
         return hasFeature("statusCode", new Function<ClientHttpResponse, HttpStatus>() {
             @Override
-            public HttpStatus apply(ClientHttpResponse response) {
+            public HttpStatus apply(final ClientHttpResponse response) {
                 try {
                     return response.getStatusCode();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
             }

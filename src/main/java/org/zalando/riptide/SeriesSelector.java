@@ -27,12 +27,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * @see Selectors#series() 
+ * @see Selectors#series()
  */
 final class SeriesSelector implements Selector<HttpStatus.Series> {
 
     @Override
-    public Optional<HttpStatus.Series> attributeOf(ClientHttpResponse response) throws IOException {
+    public Optional<HttpStatus.Series> attributeOf(final ClientHttpResponse response) throws IOException {
         return Optional.of(response.getStatusCode().series());
     }
 

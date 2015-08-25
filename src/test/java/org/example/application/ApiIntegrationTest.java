@@ -116,6 +116,7 @@ public class ApiIntegrationTest {
                 .retrieve(Success.class).orElse(null);
     }
 
+    @SuppressWarnings("EmptyMethod")
     private void callback(final ClientHttpResponse response) {
         // no operation
     }

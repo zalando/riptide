@@ -27,37 +27,37 @@ import org.springframework.http.MediaType;
 import java.util.Optional;
 
 public final class Conditions {
-    
+
     Conditions() {
         // package private so we can trick code coverage
     }
 
-    public static <A> UntypedCondition<A> on(A attribute) {
+    public static <A> UntypedCondition<A> on(final A attribute) {
         return new UntypedCondition<>(Optional.of(attribute));
     }
 
-    public static <A, I> TypedCondition<A, I> on(A attribute, Class<I> type) {
+    public static <A, I> TypedCondition<A, I> on(final A attribute, final Class<I> type) {
         return on(attribute, TypeToken.of(type));
     }
 
-    public static <A, I> TypedCondition<A, I> on(A attribute, TypeToken<I> type) {
+    public static <A, I> TypedCondition<A, I> on(final A attribute, final TypeToken<I> type) {
         return new TypedCondition<>(attribute, type);
     }
 
     /**
      * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
      * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
-     * 
+     *
      * @param type attribute type
-     * @param <A> generic attribute type
+     * @param <A>  generic attribute type
      * @return an any condition on the given attribute type
-     * @see #any(TypeToken) 
-     * @see #anySeries() 
-     * @see #anyStatus() 
-     * @see #anyStatusCode() 
-     * @see #anyContentType() 
+     * @see #any(TypeToken)
+     * @see #anySeries()
+     * @see #anyStatus()
+     * @see #anyStatusCode()
+     * @see #anyContentType()
      */
-    public static <A> UntypedCondition<A> any(Class<A> type) {
+    public static <A> UntypedCondition<A> any(final Class<A> type) {
         return any(TypeToken.of(type));
     }
 
@@ -74,7 +74,7 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") TypeToken<A> type) {
+    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
         return new UntypedCondition<>(Optional.<A>empty());
     }
 

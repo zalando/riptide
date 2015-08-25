@@ -85,7 +85,7 @@ public final class NestedDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(Class<T> type) {
+    private <T> T perform(final Class<T> type) {
         return unit.execute(GET, url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
@@ -114,7 +114,7 @@ public final class NestedDispatchTest {
     private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 
-        private Failure(HttpStatus status) {
+        private Failure(final HttpStatus status) {
             this.status = status;
         }
 
@@ -123,12 +123,12 @@ public final class NestedDispatchTest {
         }
     }
 
-    private void fail(ClientHttpResponse response) throws IOException {
+    private void fail(final ClientHttpResponse response) throws IOException {
         throw new Failure(response.getStatusCode());
     }
 
     @Test
-    public void shouldDispatchLevelOne() throws IOException {
+    public void shouldDispatchLevelOne() {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
         exception.expect(Failure.class);
@@ -138,7 +138,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelTwo() throws IOException {
+    public void shouldDispatchLevelTwo() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
@@ -150,7 +150,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() throws IOException {
+    public void shouldDispatchLevelThree() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))

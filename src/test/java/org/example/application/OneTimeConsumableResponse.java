@@ -31,17 +31,15 @@ import java.io.InputStream;
 
 class OneTimeConsumableResponse implements ClientHttpResponse {
 
-    private boolean closed = false;
-
     private final String bodyContent;
 
-    OneTimeConsumableResponse(String bodyContent) {
+    OneTimeConsumableResponse(final String bodyContent) {
         this.bodyContent = bodyContent;
     }
 
     @Override
     public HttpHeaders getHeaders() {
-        HttpHeaders headers = new HttpHeaders();
+        final HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         return headers;
     }
@@ -65,7 +63,7 @@ class OneTimeConsumableResponse implements ClientHttpResponse {
     public void close() {
         try {
             getBody().close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
@@ -75,7 +73,7 @@ class OneTimeConsumableResponse implements ClientHttpResponse {
         return new InputStream() {
             private boolean closed = false;
 
-            private ByteArrayInputStream bytes = new ByteArrayInputStream(bodyContent.getBytes());
+            private final ByteArrayInputStream bytes = new ByteArrayInputStream(bodyContent.getBytes());
 
             @Override
             public int read() throws IOException {

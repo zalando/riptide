@@ -2,11 +2,7 @@
 
 ### IntelliJ ###
 *.iml
-*.ipr
-*.iws
 .idea/
 
 ### Maven ###
 target/
-
-.java-version

@@ -32,6 +32,12 @@
 
     <developers>
         <developer>
+            <name>Jörn Horstmann</name>
+            <email>joern.horstmann@zalando.de</email>
+            <organization>Zalando SE</organization>
+            <organizationUrl>https://tech.zalando.com/</organizationUrl>
+        </developer>
+        <developer>
             <name>Lukas Niemeier</name>
             <email>lukas.niemeier@zalando.de</email>
             <organization>Zalando SE</organization>

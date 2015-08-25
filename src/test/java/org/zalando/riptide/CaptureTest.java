@@ -70,17 +70,17 @@ public final class CaptureTest {
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
-        
+
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
                 .retrieveResponse().get();
-        
+
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
-    
+
     @Test
     public void shouldCaptureEntity() {
         server.expect(requestTo(url)).andRespond(
@@ -122,13 +122,13 @@ public final class CaptureTest {
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
-    private Account extract(ResponseEntity<AccountBody> entity) {
+    private Account extract(final ResponseEntity<AccountBody> entity) {
         final AccountBody account = entity.getBody();
         final String revision = entity.getHeaders().getETag();
         return new Account(account.getId(), revision, account.getName());
     }
 
-    private void fail(ClientHttpResponse response) throws IOException {
+    private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getRawStatusCode());
     }
 

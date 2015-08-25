@@ -29,7 +29,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -40,8 +39,8 @@ final class Router {
 
     private static final Optional ANY = Optional.empty();
 
-    final <A> Captured route(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Selector<A> selector, Collection<Binding<A>> bindings) throws IOException {
+    final <A> Captured route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Selector<A> selector, final Collection<Binding<A>> bindings) throws IOException {
 
         final Optional<A> attribute = selector.attributeOf(response);
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
@@ -53,17 +52,15 @@ final class Router {
             try {
                 final Binding<A> binding = match.get();
                 return binding.execute(response, converters);
-            } catch (UnsupportedResponseException e) {
+            } catch (final RestClientDispatchException e) {
                 return propagateNoMatch(response, converters, attribute, index, e);
-            } catch (BodyConversionException e) {
-                return routeNone(response, converters, attribute, index);
             }
         } else {
             return routeNone(response, converters, attribute, index);
         }
     }
 
-    private <A> Binding<A> denyDuplicates(Binding<A> left, Binding<A> right) {
+    private <A> Binding<A> denyDuplicates(final Binding<A> left, final Binding<A> right) {
         left.getAttribute().ifPresent(a -> {
             throw new IllegalStateException("Duplicate condition attribute: " + a);
         });
@@ -71,31 +68,44 @@ final class Router {
         throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Captured propagateNoMatch(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Optional<A> attribute, Map<Optional<A>, Binding<A>> index, UnsupportedResponseException e) throws IOException {
+    private <A> Captured propagateNoMatch(final ClientHttpResponse response,
+            final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
+            final Map<Optional<A>, Binding<A>> index, final RestClientDispatchException e) {
         try {
             return routeNone(response, converters, attribute, index);
-        } catch (UnsupportedResponseException ignored) {
+        } catch (final RestClientDispatchException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
-    private <A> Captured routeNone(ClientHttpResponse response, List<HttpMessageConverter<?>> converters,
-            Optional<A> attribute, Map<Optional<A>, Binding<A>> index) throws IOException {
+    private <A> Captured routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
 
-        if (index.containsKey(ANY)) {
-            // TODO test exception handling
-            return index.get(ANY).execute(response, converters);
+        if (containsWildcard(bindings)) {
+            final Binding<A> binding = getWildcard(bindings);
+            return binding.execute(response, converters);
         } else {
-            final Function<Optional<A>, String> toName = a -> a.map(Object::toString).orElse("any");
-            final List<String> attributes = index.keySet().stream().map(toName).collect(toList());
-            final String message = format("Unable to dispatch %s onto %s",
-                    // TODO there should be a better name than "none"
-                    attribute.map(Object::toString).orElse("none"), attributes);
-
-            throw new UnsupportedResponseException(message, response);
+            throw new RestClientDispatchException(formatMessage(attribute, bindings), response);
         }
+    }
+
+    private <A> boolean containsWildcard(final Map<Optional<A>, Binding<A>> bindings) {
+        return bindings.containsKey(ANY);
+    }
+
+    private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
+        return bindings.get(ANY);
+    }
+
+    private <A> String formatMessage(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
+        return format("Unable to dispatch %s onto %s",
+                attribute.map(Object::toString).orElse("none"),
+                bindings.keySet().stream().map(this::toName).collect(toList()));
+    }
+
+    private String toName(final Optional<?> attribute) {
+        return attribute.map(Object::toString).orElse("any");
     }
 
 }

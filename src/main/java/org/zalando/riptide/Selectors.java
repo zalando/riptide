@@ -24,7 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 public final class Selectors {
-    
+
     Selectors() {
         // package private so we can trick code coverage
     }
@@ -44,7 +44,7 @@ public final class Selectors {
      *
      * @return an HTTP status selector
      * @see HttpStatus
-     * @see #statusCode() 
+     * @see #statusCode()
      */
     public static Selector<HttpStatus> status() {
         return new StatusSelector();
@@ -52,11 +52,10 @@ public final class Selectors {
 
     /**
      * A {@link Selector} that selects a binding based on the response's status code.
-     * 
-     * 
+     *
      * @return an HTTP status code selector
      * @see HttpStatus
-     * @see #status() 
+     * @see #status()
      */
     public static Selector<Integer> statusCode() {
         return new StatusCodeSelector();

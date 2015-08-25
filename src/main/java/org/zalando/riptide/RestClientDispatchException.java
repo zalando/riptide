@@ -20,9 +20,23 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-final class BodyConversionException extends RuntimeException {
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RestClientException;
 
-    BodyConversionException(Throwable cause) {
-        super(cause);
+/**
+ * TODO javadoc
+ */
+public final class RestClientDispatchException extends RestClientException {
+
+    private final ClientHttpResponse response;
+
+    public RestClientDispatchException(final String message, final ClientHttpResponse response) {
+        super(message);
+        this.response = response;
     }
+
+    public ClientHttpResponse getResponse() {
+        return response;
+    }
+
 }

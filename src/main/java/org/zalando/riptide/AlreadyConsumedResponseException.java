@@ -33,4 +33,5 @@ final class AlreadyConsumedResponseException extends RuntimeException {
     ClientHttpResponse getResponse() {
         return response;
     }
+
 }

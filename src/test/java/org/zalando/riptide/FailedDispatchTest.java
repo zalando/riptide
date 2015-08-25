@@ -21,7 +21,6 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.core.Is;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,8 +28,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.MediaTypes;
@@ -49,7 +50,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -57,6 +61,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.anyContentType;
@@ -91,18 +96,18 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldFailIfNoMatch() {
+    public void shouldThrowIfNoMatch() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(UnsupportedResponseException.class);
+        exception.expect(RestClientDispatchException.class);
         exception.expectMessage("Unable to dispatch application/json");
         exception.expectMessage("application/success+json");
         exception.expectMessage("application/problem+json");
         exception.expectMessage("application/vnd.error+json");
-        exception.expect(hasFeature("response", UnsupportedResponseException::getResponse, is(notNullValue())));
+        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
@@ -113,64 +118,62 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfUnknownContentType() throws IOException {
+    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType() {
         server.expect(requestTo(url))
-              .andRespond(withSuccess()
-                      .body("{}")
-                      .contentType(MediaType.APPLICATION_ATOM_XML));
+                .andRespond(withSuccess()
+                        .body("{}")
+                        .contentType(MediaType.APPLICATION_ATOM_XML));
 
-        final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
+        exception.expect(RestClientException.class);
+        exception.expectMessage("no suitable HttpMessageConverter found for response type");
 
         unit.execute(GET, url)
-            .dispatch(status(),
-                    on(HttpStatus.OK)
-                            .dispatch(series(),
-                                    on(SUCCESSFUL, Success.class).capture(),
-                                    anySeries().call(consumer)),
-                    on(HttpStatus.CREATED, Success.class).capture(),
-                    anyStatus().call(this::fail));
-
-        verify(consumer).accept(any());
+                .dispatch(status(),
+                        on(HttpStatus.OK)
+                                .dispatch(series(),
+                                        on(SUCCESSFUL, Success.class).capture(),
+                                        anySeries().capture()),
+                        on(HttpStatus.CREATED, Success.class).capture(),
+                        anyStatus().call(this::fail));
     }
 
     @Test
-    public void shouldFallbackToAnyMatcherOnFailedConversionBecauseOfFaultyBody() throws IOException {
+    public void shouldThrowOnFailedConversionBecauseOfFaultyBody() {
         server.expect(requestTo(url))
-              .andRespond(withSuccess()
-                      .body("{")
-                      .contentType(MediaTypes.SUCCESS));
+                .andRespond(withSuccess()
+                        .body("{")
+                        .contentType(MediaTypes.SUCCESS));
 
-        final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
+        exception.expect(HttpMessageNotReadableException.class);
+        exception.expectMessage("Could not read JSON");
 
         unit.execute(GET, url)
-            .dispatch(status(),
-                    on(HttpStatus.OK)
-                            .dispatch(series(),
-                                    on(SUCCESSFUL, Success.class).capture(),
-                                    anySeries().call(consumer)),
-                    on(HttpStatus.CREATED, Success.class).capture(),
-                    anyStatus().call(this::fail));
-
-        verify(consumer).accept(any());
+                .dispatch(status(),
+                        on(HttpStatus.OK)
+                                .dispatch(series(),
+                                        on(SUCCESSFUL, Success.class).capture(),
+                                        anySeries().capture()),
+                        on(HttpStatus.CREATED, Success.class).capture(),
+                        anyStatus().call(this::fail));
     }
 
     @Test
     public void shouldHandleNoBodyAtAll() {
         server.expect(requestTo(url))
-              .andRespond(withStatus(HttpStatus.OK)
-                      .body("")
-                      .contentType(MediaTypes.SUCCESS));
+                .andRespond(withStatus(HttpStatus.OK)
+                        .body("")
+                        .contentType(MediaTypes.SUCCESS));
 
         final Retriever retriever = unit.execute(GET, url)
-                                        .dispatch(status(),
-                                                on(HttpStatus.OK)
-                                                        .dispatch(contentType(),
-                                                                on(MediaTypes.SUCCESS, Success.class).capture(),
-                                                                anyContentType().call(this::fail)),
-                                                on(HttpStatus.CREATED, Success.class).capture(),
-                                                anyStatus().call(this::fail));
+                .dispatch(status(),
+                        on(HttpStatus.OK)
+                                .dispatch(contentType(),
+                                        on(MediaTypes.SUCCESS, Success.class).capture(),
+                                        anyContentType().call(this::fail)),
+                        on(HttpStatus.CREATED, Success.class).capture(),
+                        anyStatus().call(this::fail));
 
-        assertThat(retriever.retrieve(Success.class).isPresent(), Is.is(false));
+        assertThat(retriever.retrieve(Success.class).isPresent(), is(false));
     }
 
     private void fail(final ClientHttpResponse response) {
@@ -220,28 +223,31 @@ public final class FailedDispatchTest {
 
         verify(consumer).accept(any());
     }
-    
+
     @Test
     public void shouldPreserveExceptionIfPropagateFailed() {
         server.expect(requestTo(url))
-                .andRespond(withSuccess()
+                .andRespond(withCreatedEntity(URI.create("about:blank"))
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(UnsupportedResponseException.class);
-        exception.expectMessage("Unable to dispatch application/json");
-        exception.expectMessage("application/xml");
-        exception.expectMessage("text/plain");
-        exception.expect(hasFeature("response", UnsupportedResponseException::getResponse, is(notNullValue())));
-    
-        unit.execute(GET, url)
+        exception.expect(RestClientDispatchException.class);
+        exception.expectMessage("Unable to dispatch 201");
+        exception.expectMessage("200");
+        exception.expectMessage("301");
+        exception.expectMessage("404");
+        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
+
+        unit.execute(POST, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).dispatch(status(),
-                                on(OK).dispatch(contentType(),
-                                        on(APPLICATION_XML).capture(),
-                                        on(TEXT_PLAIN).capture()),
-                                on(ACCEPTED).capture()),
-                        on(CLIENT_ERROR).capture());    
+                        on(SUCCESSFUL).dispatch(contentType(),
+                                on(APPLICATION_JSON).dispatch(status(),
+                                        on(OK).capture(),
+                                        on(MOVED_PERMANENTLY).capture(),
+                                        on(NOT_FOUND).capture()),
+                                on(APPLICATION_XML).capture(),
+                                on(TEXT_PLAIN).capture()),
+                        on(CLIENT_ERROR).capture());
     }
 
 }

@@ -22,5 +22,5 @@ package org.zalando.riptide;
 
 @FunctionalInterface
 public interface EntityConsumer<T, X extends Exception> extends ThrowingConsumer<T, X> {
-    
+
 }
