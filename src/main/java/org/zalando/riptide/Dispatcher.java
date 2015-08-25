@@ -42,7 +42,7 @@ public final class Dispatcher {
     @SafeVarargs
     public final <A> Retriever dispatch(final Selector<A> selector, final Binding<A>... bindings) {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final Captured value = router.route(response, converters, selector, asList(bindings));
+        final Capture value = router.route(response, converters, selector, asList(bindings));
         return new Retriever(value);
     }
 

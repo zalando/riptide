@@ -20,10 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMessage;
+import org.springframework.http.client.ClientHttpResponse;
+
+import java.io.IOException;
+
 public final class Actions {
 
     Actions() {
         // package private so we can trick code coverage
+    }
+
+    public static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
+        return HttpMessage::getHeaders;
     }
 
     public static <X extends Exception> EntityConsumer<X, X> propagate() {

@@ -44,7 +44,7 @@ public final class Binding<A> implements Executor {
 
     @Override
     @SneakyThrows(Exception.class)
-    public Captured execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
+    public Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
         return executor.execute(response, converters);
     }
 

@@ -22,37 +22,26 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import java.util.Optional;
 
-class Captured {
+@Immutable
+final class RawCapture<T> implements Capture<T> {
 
-    private final Object value;
+    private final Optional<T> value;
 
-    Captured(@Nullable final Object value) {
+    RawCapture(final Optional<T> value) {
         this.value = value;
     }
 
-    public Object getValue() {
+    @Override
+    public Optional<T> getValue() {
         return value;
     }
 
+    @Override
     public boolean isAssignableTo(final TypeToken<?> otherType) {
-        return value != null && otherType.isAssignableFrom(value.getClass());
+        return value.map(v -> otherType.isAssignableFrom(v.getClass())).orElse(false);
     }
 
-    public static Captured captured(@Nullable final Object value, final Class<?> type) {
-        return captured(value, TypeToken.of(type));
-    }
-
-    public static Captured captured(@Nullable final Object value, final TypeToken<?> type) {
-        return new TypedCaptured(value, type);
-    }
-
-    public static Captured wrapNothing() {
-        return captured(null);
-    }
-
-    public static Captured captured(@Nullable final Object value) {
-        return new Captured(value);
-    }
 }

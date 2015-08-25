@@ -21,16 +21,15 @@ package org.zalando.riptide;
  */
 
 import com.google.common.reflect.TypeToken;
-import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.Optional;
 
 public final class Retriever {
 
-    private final Captured captured;
+    private final Capture<?> capture;
 
-    public Retriever(final Captured captured) {
-        this.captured = captured;
+    public Retriever(final Capture<?> capture) {
+        this.capture = capture;
     }
 
     public <T> Optional<T> retrieve(final Class<T> type) {
@@ -38,34 +37,25 @@ public final class Retriever {
     }
 
     public <T> Optional<T> retrieve(final TypeToken<T> type) {
-        return Optional.ofNullable(captured.getValue())
-                .filter(v -> this.hasRetrieved(type))
-                .map(v -> {
-                    @SuppressWarnings("unchecked")
-                    final T t = (T) v;
-                    return t;
-                });
+        if (capture.isAssignableTo(type)) {
+            return capture.getValue().map(this::cast);
+        } else {
+            return Optional.empty();
+        }
     }
 
-    /**
-     * Convenience method for {@code retrieve(ClientHttpResponse.class)}.
-     *
-     * @return optional response, present only if successfully captured
-     * @see #retrieve(Class)
-     */
-    // TODO does this method justifies its weight?
-    public Optional<ClientHttpResponse> retrieveResponse() {
-        return retrieve(ClientHttpResponse.class);
+    @SuppressWarnings("unchecked")
+    private <T> T cast(final Object value) {
+        return (T) value;
     }
 
-    // TODO isRetrieved?
-    // TODO package private + @VisibleForTesting?
+    // TODO feels weird that this may return true for empty captures, but client's can at least differentiate now
     public boolean hasRetrieved(final Class<?> type) {
         return hasRetrieved(TypeToken.of(type));
     }
 
     public boolean hasRetrieved(final TypeToken<?> type) {
-        return captured.isAssignableTo(type);
+        return capture.isAssignableTo(type);
     }
 
 }

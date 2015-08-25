@@ -40,7 +40,7 @@ final class Router {
 
     private static final Optional WILDCARD = Optional.empty();
 
-    final <A> Captured route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+    final <A> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final Selector<A> selector, final Collection<Binding<A>> bindings) {
 
         final Optional<A> attribute;
@@ -81,7 +81,7 @@ final class Router {
         throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Captured propagateNoMatch(final ClientHttpResponse response,
+    private <A> Capture propagateNoMatch(final ClientHttpResponse response,
             final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
             final Map<Optional<A>, Binding<A>> bindings, final NoRouteException e) throws IOException {
         try {
@@ -92,7 +92,7 @@ final class Router {
         }
     }
 
-    private <A> Captured routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+    private <A> Capture routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) throws IOException {
 
         if (containsWildcard(bindings)) {

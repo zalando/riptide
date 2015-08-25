@@ -75,7 +75,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
-                .retrieveResponse().get();
+                .retrieve(ClientHttpResponse.class).get();
 
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));

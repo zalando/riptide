@@ -67,7 +67,7 @@ public final class AnyDispatchTest {
                 .dispatch(status(),
                         on(CREATED, AccountBody.class).capture(),
                         anyStatus().capture())
-                .retrieveResponse().orElse(null);
+                .retrieve(ClientHttpResponse.class).orElse(null);
 
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));

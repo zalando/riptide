@@ -29,8 +29,8 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import java.io.IOException;
 import java.util.List;
 
-import static org.zalando.riptide.Captured.captured;
-import static org.zalando.riptide.Captured.wrapNothing;
+import static org.zalando.riptide.Capture.captured;
+import static org.zalando.riptide.Capture.wrapNothing;
 
 public final class TypedCondition<A, I> implements Capturer<A> {
 

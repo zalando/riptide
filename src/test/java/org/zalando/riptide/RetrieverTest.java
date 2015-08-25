@@ -24,65 +24,67 @@ import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Optional.empty;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.zalando.riptide.Capture.captured;
 
-public class RetrieverTest {
+public final class RetrieverTest {
 
     @Test
     public void shouldNotRetrieveNullOnCaptured() {
-        final Captured value = new Captured(null);
+        final Capture<Void> value = captured(null);
 
         final Retriever unit = new Retriever(value);
 
         assertThat(unit.hasRetrieved(String.class), is(false));
-        assertThat(unit.retrieve(String.class), is(Optional.empty()));
+        assertThat(unit.retrieve(String.class), is(empty()));
     }
 
     @Test
     public void shouldRetrieveNullOnTypedCaptured() {
-        final Captured value = new TypedCaptured(null, TypeToken.of(String.class));
+        final Capture<String> value = captured(null, TypeToken.of(String.class));
 
         final Retriever unit = new Retriever(value);
 
+        // TODO is that expected? hasRetrieved=true, retrieve(..).isPresent()=false
         assertThat(unit.hasRetrieved(String.class), is(true));
-        assertThat(unit.retrieve(String.class), is(Optional.empty()));
+        assertThat(unit.retrieve(String.class), is(empty()));
     }
 
     @Test
     public void shouldRetrieveCaptured() {
-        final Captured value = new Captured("");
+        final Capture<String> value = captured("");
 
         final Retriever unit = new Retriever(value);
 
         assertThat(unit.hasRetrieved(String.class), is(true));
-        assertThat(unit.retrieve(String.class), is(not(Optional.empty())));
+        assertThat(unit.retrieve(String.class), is(not(empty())));
     }
 
     @Test
     public void shouldNotRetrieveCapturedOnParameterizedType() {
         final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
-        final Captured value = new Captured(newArrayList());
+        final Capture<List<String>> value = captured(newArrayList());
 
         final Retriever unit = new Retriever(value);
 
         assertThat(unit.hasRetrieved(type), is(false));
-        assertThat(unit.retrieve(type), is(Optional.empty()));
+        assertThat(unit.retrieve(type), is(empty()));
     }
 
     @Test
     public void shouldRetrieveTypedCaptured() {
         final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
-        final Captured value = new TypedCaptured(newArrayList(), type);
+        final Capture<List<String>> value = captured(newArrayList(), type);
 
         final Retriever unit = new Retriever(value);
 
         assertThat(unit.hasRetrieved(type), is(true));
-        assertThat(unit.retrieve(type), is(not(Optional.empty())));
+        assertThat(unit.retrieve(type), is(not(empty())));
     }
 
 }
