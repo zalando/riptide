@@ -24,6 +24,7 @@ import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +44,7 @@ public final class Binding<A> implements Executor {
 
     @Override
     @SneakyThrows(Exception.class)
-    public Captured execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
+    public Captured execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
         return executor.execute(response, converters);
     }
 
