@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -28,6 +28,11 @@ import org.junit.Test;
 @OhNoYouDidnt
 public final class EnforceCoverageTest {
 
+    @Test
+    public void shouldUseActionsConstructor() {
+        new Actions();
+    }
+    
     @Test
     public void shouldUseConditionsConstructor() {
         new Conditions();

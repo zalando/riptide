@@ -3,7 +3,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣

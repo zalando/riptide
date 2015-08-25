@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -20,23 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
 /**
  * TODO javadoc
  */
-public final class RestClientDispatchException extends RestClientException {
+public final class NoRouteException extends RestClientException {
 
-    private final ClientHttpResponse response;
-
-    public RestClientDispatchException(final String message, final ClientHttpResponse response) {
+    public NoRouteException(final String message) {
         super(message);
-        this.response = response;
     }
 
-    public ClientHttpResponse getResponse() {
-        return response;
-    }
 
 }

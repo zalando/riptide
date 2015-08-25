@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -56,7 +56,7 @@ public class OAuth2CompatibilityTest {
         template.setMessageConverters(singletonList(converter));
 
         final MockRestServiceServer server = MockRestServiceServer.createServer(template);
-        server.expect(requestTo(url)).andRespond(withUnauthorizedRequest().body(new byte[] {0x13, 0x37}));
+        server.expect(requestTo(url)).andRespond(withUnauthorizedRequest().body(new byte[]{0x13, 0x37}));
     }
 
     @Rule
@@ -66,25 +66,27 @@ public class OAuth2CompatibilityTest {
     public void dispatchesConsumedResponseAgain() throws IOException {
         template.setErrorHandler(new OAuth2ErrorHandler(new OAuth2CompatibilityResponseErrorHandler(), null));
         final Rest rest = Rest.create(template);
-        
+
         final ClientHttpResponse response = rest.execute(GET, url)
-            .dispatch(status(), on(HttpStatus.UNAUTHORIZED).capture())
-            .retrieveResponse()
-            .orElseThrow(() -> new AssertionError("response expected"));
-        
+                .dispatch(status(),
+                        on(HttpStatus.UNAUTHORIZED).capture())
+                .retrieve(ClientHttpResponse.class).orElseThrow(() ->
+                        new AssertionError("response expected"));
+
         assertThat(response.getBody().available(), is(2));
     }
-    
+
     @Test
     public void responseIsConsumedIfOtherHandlerIsUsed() throws IOException {
         template.setErrorHandler(new OAuth2ErrorHandler(new PassThroughResponseErrorHandler(), null));
         final Rest rest = Rest.create(template);
-        
+
         final ClientHttpResponse response = rest.execute(GET, url)
-            .dispatch(status(), on(HttpStatus.UNAUTHORIZED).capture())
-            .retrieveResponse()
-            .orElseThrow(() -> new AssertionError("response expected"));
-        
+                .dispatch(status(),
+                        on(HttpStatus.UNAUTHORIZED).capture())
+                .retrieve(ClientHttpResponse.class).orElseThrow(() ->
+                        new AssertionError("response expected"));
+
         // Since our mocked response is using a byte[] stream we check for the remaining bytes instead
         // of expecting an "already closed" IOException.
         assertThat(response.getBody().available(), is(0));

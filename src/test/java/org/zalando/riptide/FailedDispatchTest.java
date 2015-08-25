@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -102,12 +102,11 @@ public final class FailedDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(RestClientDispatchException.class);
+        exception.expect(NoRouteException.class);
         exception.expectMessage("Unable to dispatch application/json");
         exception.expectMessage("application/success+json");
         exception.expectMessage("application/problem+json");
         exception.expectMessage("application/vnd.error+json");
-        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
@@ -231,12 +230,11 @@ public final class FailedDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(RestClientDispatchException.class);
+        exception.expect(NoRouteException.class);
         exception.expectMessage("Unable to dispatch 201");
         exception.expectMessage("200");
         exception.expectMessage("301");
         exception.expectMessage("404");
-        exception.expect(hasFeature("response", RestClientDispatchException::getResponse, is(notNullValue())));
 
         unit.execute(POST, url)
                 .dispatch(series(),

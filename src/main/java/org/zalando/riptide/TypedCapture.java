@@ -22,23 +22,28 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import java.util.Optional;
 
-class TypedCaptured extends Captured {
+@Immutable
+final class TypedCapture<T> implements Capture<T> {
 
-    private final TypeToken<?> type;
+    private final Optional<T> value;
+    private final TypeToken<T> type;
 
-    TypedCaptured(@Nullable final Object value, final TypeToken<?> type) {
-        super(value);
+    TypedCapture(final Optional<T> value, final TypeToken<T> type) {
+        this.value = value;
         this.type = type;
     }
 
-    public TypeToken<?> getType() {
-        return type;
+    @Override
+    public Optional<T> getValue() {
+        return value;
     }
 
     @Override
     public boolean isAssignableTo(final TypeToken<?> otherType) {
-        return otherType.isAssignableFrom(getType());
+        return otherType.isAssignableFrom(type);
     }
+
 }

@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -22,6 +22,7 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -37,26 +38,38 @@ import static java.util.stream.Collectors.toMap;
 
 final class Router {
 
-    private static final Optional ANY = Optional.empty();
+    private static final Optional WILDCARD = Optional.empty();
 
-    final <A> Captured route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Selector<A> selector, final Collection<Binding<A>> bindings) throws IOException {
+    final <A> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Selector<A> selector, final Collection<Binding<A>> bindings) {
 
-        final Optional<A> attribute = selector.attributeOf(response);
+        final Optional<A> attribute;
+
+        try {
+            attribute = selector.attributeOf(response);
+        } catch (final IOException e) {
+            throw new RestClientException("Unable to retrieve attribute of response", e);
+        }
+
         final Map<Optional<A>, Binding<A>> index = bindings.stream()
                 .collect(toMap(Binding::getAttribute, identity(), this::denyDuplicates, LinkedHashMap::new));
 
         final Optional<Binding<A>> match = selector.select(attribute, index);
 
-        if (match.isPresent()) {
-            try {
+        try {
+            if (match.isPresent()) {
                 final Binding<A> binding = match.get();
-                return binding.execute(response, converters);
-            } catch (final RestClientDispatchException e) {
-                return propagateNoMatch(response, converters, attribute, index, e);
+
+                try {
+                    return binding.execute(response, converters);
+                } catch (final NoRouteException e) {
+                    return propagateNoMatch(response, converters, attribute, index, e);
+                }
+            } else {
+                return routeNone(response, converters, attribute, index);
             }
-        } else {
-            return routeNone(response, converters, attribute, index);
+        } catch (final IOException e) {
+            throw new RestClientException("Unable to execute binding", e);
         }
     }
 
@@ -68,34 +81,34 @@ final class Router {
         throw new IllegalStateException("Duplicate any conditions");
     }
 
-    private <A> Captured propagateNoMatch(final ClientHttpResponse response,
+    private <A> Capture propagateNoMatch(final ClientHttpResponse response,
             final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
-            final Map<Optional<A>, Binding<A>> index, final RestClientDispatchException e) {
+            final Map<Optional<A>, Binding<A>> bindings, final NoRouteException e) throws IOException {
         try {
-            return routeNone(response, converters, attribute, index);
-        } catch (final RestClientDispatchException ignored) {
+            return routeNone(response, converters, attribute, bindings);
+        } catch (final NoRouteException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
-    private <A> Captured routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
+    private <A> Capture routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) throws IOException {
 
         if (containsWildcard(bindings)) {
             final Binding<A> binding = getWildcard(bindings);
             return binding.execute(response, converters);
         } else {
-            throw new RestClientDispatchException(formatMessage(attribute, bindings), response);
+            throw new NoRouteException(formatMessage(attribute, bindings));
         }
     }
 
     private <A> boolean containsWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.containsKey(ANY);
+        return bindings.containsKey(WILDCARD);
     }
 
     private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.get(ANY);
+        return bindings.get(WILDCARD);
     }
 
     private <A> String formatMessage(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {

@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -23,13 +23,24 @@ package org.zalando.riptide;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.http.client.MockClientHttpResponse;
+import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
+import static org.zalando.riptide.Binding.create;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
@@ -42,7 +53,7 @@ public class RouterTest {
     private final Router unit = new Router();
 
     @Test
-    public void shouldRejectDuplicateAttributes() throws IOException {
+    public void shouldRejectDuplicateAttributes() {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate any conditions");
 
@@ -54,7 +65,7 @@ public class RouterTest {
     }
 
     @Test
-    public void shouldRejectDuplicateAnys() throws IOException {
+    public void shouldRejectDuplicateWildcards() {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate condition attribute: 200");
 
@@ -63,6 +74,33 @@ public class RouterTest {
                 on(OK).call(response -> {
                     throw new IllegalStateException();
                 })));
+    }
+
+    @Test
+    public void shouldCatchIOExceptionFromResponse() throws IOException {
+        exception.expect(RestClientException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
+        final ClientHttpResponse response = mock(ClientHttpResponse.class);
+        when(response.getStatusCode()).thenThrow(new IOException());
+
+        unit.route(response, emptyList(), status(), singletonList(anyStatus().capture()));
+    }
+
+    @Test
+    public void shouldCatchIOExceptionFromBinding() throws IOException {
+        exception.expect(RestClientException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
+        final Optional<HttpStatus> anyStatus = Optional.empty();
+        final Binding<HttpStatus> binding = create(anyStatus, (response, converters) -> {
+            throw new IOException();
+        });
+
+        final ClientHttpResponse response = mock(ClientHttpResponse.class);
+        when(response.getStatusCode()).thenReturn(OK);
+
+        unit.route(response, emptyList(), status(), singletonList(binding));
     }
 
 }

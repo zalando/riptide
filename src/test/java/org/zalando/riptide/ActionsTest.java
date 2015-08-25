@@ -21,111 +21,90 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.model.Account;
-import org.zalando.riptide.model.AccountBody;
+import org.zalando.problem.Problem;
+import org.zalando.problem.ThrowableProblem;
 
 import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.HEAD;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Actions.headers;
+import static org.zalando.riptide.Actions.propagate;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
 
-public final class CaptureTest {
+public final class ActionsTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public CaptureTest() {
+    public ActionsTest() {
         final RestTemplate template = new RestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
+        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
+                new ObjectMapper().findAndRegisterModules())));
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
     @Test
-    public void shouldCaptureResponse() throws IOException {
+    public void shouldPropagateException() {
+        server.expect(requestTo(url)).andRespond(
+                withStatus(UNPROCESSABLE_ENTITY)
+                        .body(new ClassPathResource("problem.json"))
+                        .contentType(APPLICATION_JSON));
+
+        exception.expect(ThrowableProblem.class);
+        exception.expect(hasFeature("title", Problem::getTitle, is("Unprocessable Entity")));
+
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).call(propagate()),
+                        anyStatus().call(this::fail));
+    }
+
+    @Test
+    public void shouldMapHeaders() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ClientHttpResponse response = unit.execute(GET, url)
+        final HttpHeaders headers = unit.execute(HEAD, url)
                 .dispatch(status(),
-                        on(OK).capture(),
+                        on(OK).map(headers()).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(ClientHttpResponse.class).get();
+                .retrieve(HttpHeaders.class).get();
 
-        assertThat(response.getStatusCode(), is(OK));
-        assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
-    }
-
-    @Test
-    public void shouldCaptureEntity() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final AccountBody account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(AccountBody.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getName(), is("Acme Corporation"));
-    }
-
-    @Test
-    public void shouldCaptureMappedEntity() {
-        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setETag(revision);
-
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON)
-                        .headers(headers));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).map(this::extract).capture(),
-                        anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is(revision));
-        assertThat(account.getName(), is("Acme Corporation"));
-    }
-
-    private Account extract(final ResponseEntity<AccountBody> entity) {
-        final AccountBody account = entity.getBody();
-        final String revision = entity.getHeaders().getETag();
-        return new Account(account.getId(), revision, account.getName());
+        assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

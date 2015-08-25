@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * riptide
+ * Riptide
  * ⁣⁣
  * Copyright (C) 2015 Zalando SE
  * ⁣⁣
@@ -26,8 +26,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static org.zalando.riptide.Captured.wrap;
-import static org.zalando.riptide.Captured.wrapNothing;
+import static org.zalando.riptide.Capture.captured;
+import static org.zalando.riptide.Capture.wrapNothing;
 
 public final class UntypedCondition<A> {
 
@@ -46,19 +46,22 @@ public final class UntypedCondition<A> {
     }
 
     public Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
-        return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response)));
+        return () -> Binding.create(attribute, (response, converters) ->
+                captured(function.apply(response)));
     }
 
-    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function, final Class<T> mappedType) {
+    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, T, ?> function, final Class<T> mappedType) {
         return map(function, TypeToken.of(mappedType));
     }
 
-    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function, final TypeToken<T> mappedType) {
-        return () -> Binding.create(attribute, (response, converters) -> wrap(function.apply(response), mappedType));
+    public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, T, ?> function, final TypeToken<T> mappedType) {
+        return () -> Binding.create(attribute, (response, converters) ->
+                captured(function.apply(response), mappedType));
     }
 
     public Binding<A> capture() {
-        return Binding.create(attribute, (response, converters) -> wrap(response, ClientHttpResponse.class));
+        return Binding.create(attribute, (response, converters) ->
+                captured(response, ClientHttpResponse.class));
     }
 
     @SafeVarargs
