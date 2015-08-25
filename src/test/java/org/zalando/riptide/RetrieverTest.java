@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.zalando.riptide.Capture.captured;
+import static org.zalando.riptide.Retriever.listOf;
 
 public final class RetrieverTest {
 
@@ -67,24 +68,22 @@ public final class RetrieverTest {
 
     @Test
     public void shouldNotRetrieveCapturedOnParameterizedType() {
-        final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
         final Capture<List<String>> value = captured(newArrayList());
 
         final Retriever unit = new Retriever(value);
 
-        assertThat(unit.hasRetrieved(type), is(false));
-        assertThat(unit.retrieve(type), is(empty()));
+        assertThat(unit.hasRetrieved(listOf(String.class)), is(false));
+        assertThat(unit.retrieve(listOf(String.class)), is(empty()));
     }
 
     @Test
     public void shouldRetrieveTypedCaptured() {
-        final TypeToken<List<String>> type = new TypeToken<List<String>>() {};
-        final Capture<List<String>> value = captured(newArrayList(), type);
+        final Capture<List<String>> value = captured(newArrayList(), listOf(String.class));
 
         final Retriever unit = new Retriever(value);
 
-        assertThat(unit.hasRetrieved(type), is(true));
-        assertThat(unit.retrieve(type), is(not(empty())));
+        assertThat(unit.hasRetrieved(listOf(String.class)), is(true));
+        assertThat(unit.retrieve(listOf(String.class)), is(not(empty())));
     }
 
 }
