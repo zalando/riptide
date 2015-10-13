@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 final class Router {
@@ -63,10 +62,10 @@ final class Router {
                 try {
                     return binding.execute(response, converters);
                 } catch (final NoRouteException e) {
-                    return propagateNoMatch(response, converters, attribute, index, e);
+                    return propagateNoMatch(response, converters, index, e);
                 }
             } else {
-                return routeNone(response, converters, attribute, index);
+                return routeNone(response, converters, index);
             }
         } catch (final IOException e) {
             throw new RestClientException("Unable to execute binding", e);
@@ -82,10 +81,10 @@ final class Router {
     }
 
     private <A> Capture propagateNoMatch(final ClientHttpResponse response,
-            final List<HttpMessageConverter<?>> converters, final Optional<A> attribute,
-            final Map<Optional<A>, Binding<A>> bindings, final NoRouteException e) throws IOException {
+            final List<HttpMessageConverter<?>> converters, final Map<Optional<A>, Binding<A>> bindings,
+            final NoRouteException e) throws IOException {
         try {
-            return routeNone(response, converters, attribute, bindings);
+            return routeNone(response, converters, bindings);
         } catch (final NoRouteException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
@@ -93,13 +92,13 @@ final class Router {
     }
 
     private <A> Capture routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) throws IOException {
+            final Map<Optional<A>, Binding<A>> bindings) throws IOException {
 
         if (containsWildcard(bindings)) {
             final Binding<A> binding = getWildcard(bindings);
             return binding.execute(response, converters);
         } else {
-            throw new NoRouteException(formatMessage(attribute, bindings), response);
+            throw new NoRouteException(response);
         }
     }
 
@@ -109,16 +108,6 @@ final class Router {
 
     private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
         return bindings.get(WILDCARD);
-    }
-
-    private <A> String formatMessage(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
-        return format("Unable to dispatch %s onto %s",
-                attribute.map(Object::toString).orElse("none"),
-                bindings.keySet().stream().map(this::toName).collect(toList()));
-    }
-
-    private String toName(final Optional<?> attribute) {
-        return attribute.map(Object::toString).orElse("any");
     }
 
 }
