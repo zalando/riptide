@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
 /**
@@ -27,9 +28,15 @@ import org.springframework.web.client.RestClientException;
  */
 public final class NoRouteException extends RestClientException {
 
-    public NoRouteException(final String message) {
+    private final ClientHttpResponse response;
+
+    NoRouteException(final String message, final ClientHttpResponse response) {
         super(message);
+        this.response = response;
     }
 
+    public ClientHttpResponse getResponse() {
+        return response;
+    }
 
 }

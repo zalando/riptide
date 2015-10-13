@@ -99,7 +99,7 @@ final class Router {
             final Binding<A> binding = getWildcard(bindings);
             return binding.execute(response, converters);
         } else {
-            throw new NoRouteException(formatMessage(attribute, bindings));
+            throw new NoRouteException(formatMessage(attribute, bindings), response);
         }
     }
 
