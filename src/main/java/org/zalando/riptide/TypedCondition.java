@@ -29,8 +29,7 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import java.io.IOException;
 import java.util.List;
 
-import static org.zalando.riptide.Capture.captured;
-import static org.zalando.riptide.Capture.wrapNothing;
+import static org.zalando.riptide.Capture.none;
 
 public final class TypedCondition<A, I> implements Capturer<A> {
 
@@ -50,7 +49,7 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(entity);
-            return wrapNothing();
+            return none();
         });
     }
 
@@ -62,14 +61,14 @@ public final class TypedCondition<A, I> implements Capturer<A> {
         return Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
             consumer.accept(toResponseEntity(entity, response));
-            return wrapNothing();
+            return none();
         });
     }
 
     public Capturer<A> map(final EntityFunction<I, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return captured(function.apply(entity));
+            return Capture.valueOf(function.apply(entity));
         });
     }
 
@@ -80,14 +79,14 @@ public final class TypedCondition<A, I> implements Capturer<A> {
     public <T> Capturer<A> map(final EntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return captured(function.apply(entity), mappedType);
+            return Capture.valueOf(function.apply(entity), mappedType);
         });
     }
 
     public Capturer<A> map(final ResponseEntityFunction<I, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return captured(function.apply(toResponseEntity(entity, response)));
+            return Capture.valueOf(function.apply(toResponseEntity(entity, response)));
         });
     }
 
@@ -98,14 +97,14 @@ public final class TypedCondition<A, I> implements Capturer<A> {
     public <T> Capturer<A> map(final ResponseEntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) -> {
             final I entity = convert(response, converters);
-            return captured(function.apply(toResponseEntity(entity, response)), mappedType);
+            return Capture.valueOf(function.apply(toResponseEntity(entity, response)), mappedType);
         });
     }
 
     @Override
     public Binding<A> capture() {
         return Binding.create(attribute, (response, converters) ->
-                captured(convert(response, converters), type));
+                Capture.valueOf(convert(response, converters), type));
     }
 
 }

@@ -25,23 +25,28 @@ import com.google.common.reflect.TypeToken;
 import javax.annotation.concurrent.Immutable;
 import java.util.Optional;
 
+import static java.util.Optional.empty;
+
 @Immutable
-final class RawCapture<T> implements Capture<T> {
+final class RawCapture implements Capture {
 
-    private final Optional<T> value;
+    private final Optional<Object> value;
 
-    RawCapture(final Optional<T> value) {
+    RawCapture(final Optional<Object> value) {
         this.value = value;
     }
 
     @Override
-    public Optional<T> getValue() {
-        return value;
+    public boolean has(TypeToken<?> other) {
+        return value.map(Object::getClass)
+                .filter(other::isAssignableFrom)
+                .isPresent();
     }
 
     @Override
-    public boolean isAssignableTo(final TypeToken<?> otherType) {
-        return value.map(v -> otherType.isAssignableFrom(v.getClass())).orElse(false);
+    @SuppressWarnings("unchecked")
+    public <O> Optional<O> opt(TypeToken<O> type) {
+        return has(type) ? value.map(v -> (O) v) : empty();
     }
 
 }

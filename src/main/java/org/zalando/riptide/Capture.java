@@ -20,33 +20,65 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import java.util.List;
 import java.util.Optional;
 
 @Immutable
-interface Capture<T> {
+public interface Capture {
 
-    Optional<T> getValue();
-
-    boolean isAssignableTo(final TypeToken<?> otherType);
-
-    static <T> Capture<T> captured(@Nullable final T value, final Class<T> type) {
-        return captured(value, TypeToken.of(type));
+    default boolean has(final Class<?> type) {
+        return has(TypeToken.of(type));
     }
 
-    static <T> Capture<T> captured(@Nullable final T value, final TypeToken<T> type) {
+    boolean has(final TypeToken<?> type);
+
+    default <T> Optional<T> opt(final Class<T> type) {
+        return opt(TypeToken.of(type));
+    }
+
+    <T> Optional<T> opt(final TypeToken<T> type);
+
+    default <T> T as(final Class<T> type) {
+        return as(TypeToken.of(type));
+    }
+
+    default <T> T as(final TypeToken<T> type) {
+        return opt(type).orElseThrow(AssertionError::new);
+    }
+
+    static Capture none() {
+        return valueOf(null);
+    }
+
+    static <T> Capture valueOf(@Nullable final T value) {
+        return new RawCapture(Optional.ofNullable(value));
+    }
+
+    static <T> Capture valueOf(@Nullable final T value, final Class<T> type) {
+        return valueOf(value, TypeToken.of(type));
+    }
+
+    static <T> Capture valueOf(@Nullable final T value, final TypeToken<T> type) {
         return new TypedCapture<>(Optional.ofNullable(value), type);
     }
 
-    static <T> Capture<T> wrapNothing() {
-        return captured(null);
+    static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
+        return listOf(TypeToken.of(entityType));
     }
 
-    static <T> Capture<T> captured(@Nullable final T value) {
-        return new RawCapture<>(Optional.ofNullable(value));
+    static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
+        final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
+        };
+
+        final TypeParameter<T> elementType = new TypeParameter<T>() {
+        };
+
+        return listType.where(elementType, entityType);
     }
 
 }

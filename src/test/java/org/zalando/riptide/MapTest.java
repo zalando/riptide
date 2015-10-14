@@ -191,7 +191,7 @@ public final class MapTest {
                 .dispatch(status(),
                         capturer.capture(),
                         anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
+                .as(Account.class);
     }
 
     private void verify(final Account account) {

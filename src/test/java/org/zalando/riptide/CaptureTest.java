@@ -21,6 +21,8 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
+import org.hamcrest.core.Is;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -34,8 +36,12 @@ import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
@@ -75,7 +81,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(ClientHttpResponse.class).get();
+                .as(ClientHttpResponse.class);
 
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
@@ -92,7 +98,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK, AccountBody.class).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(AccountBody.class).get();
+                .as(AccountBody.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getName(), is("Acme Corporation"));
@@ -115,7 +121,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK, AccountBody.class).map(this::extract).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(Account.class).get();
+                .as(Account.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is(revision));

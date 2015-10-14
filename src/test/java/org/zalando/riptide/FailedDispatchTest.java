@@ -161,7 +161,7 @@ public final class FailedDispatchTest {
                         .body("")
                         .contentType(MediaTypes.SUCCESS));
 
-        final Retriever retriever = unit.execute(GET, url)
+        final Capture capture = unit.execute(GET, url)
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(contentType(),
@@ -170,7 +170,7 @@ public final class FailedDispatchTest {
                         on(HttpStatus.CREATED, Success.class).capture(),
                         anyStatus().call(this::fail));
 
-        assertThat(retriever.retrieve(Success.class).isPresent(), is(false));
+        assertThat(capture.opt(Success.class).isPresent(), is(false));
     }
 
     private void fail(final ClientHttpResponse response) {

@@ -76,7 +76,7 @@ public final class ContentTypeDispatchTest {
                         on(PROBLEM, Problem.class).capture(),
                         on(ERROR, Error.class).capture(),
                         anyContentType().call(this::fail))
-                .retrieve(type).get();
+                .as(type);
     }
 
     @Test
@@ -131,7 +131,7 @@ public final class ContentTypeDispatchTest {
                         on(parseMediaType("application/*+json")).call(this::fail),
                         on(SUCCESS, Success.class).capture(),
                         anyContentType().call(this::fail))
-                .retrieve(Success.class).get();
+                .as(Success.class);
 
         assertThat(success.isHappy(), is(true));
     }
@@ -161,7 +161,7 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESS_V1).call(this::fail),
                         on(SUCCESS_V2, Success.class).capture(),
                         anyContentType().call(this::fail))
-                .retrieve(Success.class).get();
+                .as(Success.class);
 
         assertThat(success.isHappy(), is(true));
     }
