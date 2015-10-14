@@ -103,10 +103,8 @@ public final class FailedDispatchTest {
                         .contentType(APPLICATION_JSON));
 
         exception.expect(NoRouteException.class);
-        exception.expectMessage("Unable to dispatch application/json");
-        exception.expectMessage("application/success+json");
-        exception.expectMessage("application/problem+json");
-        exception.expectMessage("application/vnd.error+json");
+        exception.expectMessage("Unable to dispatch response (200 OK, Content-Type: application/json)");
+        exception.expect(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
@@ -231,10 +229,8 @@ public final class FailedDispatchTest {
                         .contentType(APPLICATION_JSON));
 
         exception.expect(NoRouteException.class);
-        exception.expectMessage("Unable to dispatch 201");
-        exception.expectMessage("200");
-        exception.expectMessage("301");
-        exception.expectMessage("404");
+        exception.expectMessage("Unable to dispatch response (201 Created, Content-Type: application/json)");
+        exception.expect(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
         unit.execute(POST, url)
                 .dispatch(series(),

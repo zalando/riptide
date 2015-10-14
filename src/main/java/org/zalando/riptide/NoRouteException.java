@@ -20,16 +20,30 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
+
+import java.io.IOException;
 
 /**
  * TODO javadoc
  */
 public final class NoRouteException extends RestClientException {
 
-    public NoRouteException(final String message) {
-        super(message);
+    private final ClientHttpResponse response;
+
+    NoRouteException(final ClientHttpResponse response) throws IOException {
+        super(formatMessage(response));
+        this.response = response;
     }
 
+    private static String formatMessage(final ClientHttpResponse response) throws IOException {
+        return String.format("Unable to dispatch response (%d %s, Content-Type: %s)",
+                response.getRawStatusCode(), response.getStatusText(), response.getHeaders().getContentType());
+    }
+
+    public ClientHttpResponse getResponse() {
+        return response;
+    }
 
 }
