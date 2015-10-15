@@ -70,7 +70,7 @@ public class OAuth2CompatibilityTest {
         final ClientHttpResponse response = rest.execute(GET, url)
                 .dispatch(status(),
                         on(HttpStatus.UNAUTHORIZED).capture())
-                .as(ClientHttpResponse.class);
+                .to(ClientHttpResponse.class);
 
         assertThat(response.getBody().available(), is(2));
     }
@@ -83,7 +83,7 @@ public class OAuth2CompatibilityTest {
         final ClientHttpResponse response = rest.execute(GET, url)
                 .dispatch(status(),
                         on(HttpStatus.UNAUTHORIZED).capture())
-                .as(ClientHttpResponse.class);
+                .to(ClientHttpResponse.class);
 
         // Since our mocked response is using a byte[] stream we check for the remaining bytes instead
         // of expecting an "already closed" IOException.

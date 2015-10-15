@@ -37,7 +37,7 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(null);
 
         assertThat(unit.has(String.class), is(false));
-        assertThat(unit.opt(String.class), is(empty()));
+        assertThat(unit.as(String.class), is(empty()));
     }
 
     @Test
@@ -45,7 +45,7 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(null, TypeToken.of(String.class));
 
         assertThat(unit.has(String.class), is(true));
-        assertThat(unit.opt(String.class), is(empty()));
+        assertThat(unit.as(String.class), is(empty()));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf("");
 
         assertThat(unit.has(String.class), is(true));
-        assertThat(unit.opt(String.class), is(not(empty())));
+        assertThat(unit.as(String.class), is(not(empty())));
     }
 
     @Test
@@ -61,7 +61,7 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(newArrayList());
 
         assertThat(unit.has(listOf(String.class)), is(false));
-        assertThat(unit.opt(listOf(String.class)), is(empty()));
+        assertThat(unit.as(listOf(String.class)), is(empty()));
     }
 
     @Test
@@ -69,14 +69,14 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(newArrayList(), listOf(String.class));
 
         assertThat(unit.has(listOf(String.class)), is(true));
-        assertThat(unit.opt(listOf(String.class)), is(not(empty())));
+        assertThat(unit.as(listOf(String.class)), is(not(empty())));
     }
 
     @Test
     public void shouldNotRetrieveTypedCapture() {
         final Capture unit = Capture.valueOf(newArrayList(), listOf(String.class));
 
-        assertThat(unit.opt(listOf(Integer.class)), is(empty()));
+        assertThat(unit.as(listOf(Integer.class)), is(empty()));
     }
 
 }

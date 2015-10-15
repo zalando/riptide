@@ -170,7 +170,7 @@ public final class FailedDispatchTest {
                         on(HttpStatus.CREATED, Success.class).capture(),
                         anyStatus().call(this::fail));
 
-        assertThat(capture.opt(Success.class).isPresent(), is(false));
+        assertThat(capture.as(Success.class).isPresent(), is(false));
     }
 
     private void fail(final ClientHttpResponse response) {

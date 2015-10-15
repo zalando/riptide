@@ -37,18 +37,18 @@ public interface Capture {
 
     boolean has(final TypeToken<?> type);
 
-    default <T> Optional<T> opt(final Class<T> type) {
-        return opt(TypeToken.of(type));
-    }
-
-    <T> Optional<T> opt(final TypeToken<T> type);
-
-    default <T> T as(final Class<T> type) {
+    default <T> Optional<T> as(final Class<T> type) {
         return as(TypeToken.of(type));
     }
 
-    default <T> T as(final TypeToken<T> type) {
-        return opt(type).orElseThrow(AssertionError::new);
+    <T> Optional<T> as(final TypeToken<T> type);
+
+    default <T> T to(final Class<T> type) {
+        return to(TypeToken.of(type));
+    }
+
+    default <T> T to(final TypeToken<T> type) {
+        return as(type).orElseThrow(AssertionError::new);
     }
 
     static Capture none() {

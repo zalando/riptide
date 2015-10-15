@@ -45,7 +45,7 @@ final class TypedCapture<T> implements Capture {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <O> Optional<O> opt(TypeToken<O> type) {
+    public <O> Optional<O> as(TypeToken<O> type) {
         return has(type) ? value.map(v -> (O) v) : empty();
     }
 

@@ -108,7 +108,7 @@ public final class NestedDispatchTest {
                                         on(503).capture(),
                                         anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
-                .opt(type).orElse(null);
+                .as(type).orElse(null);
     }
 
     private static final class Failure extends RuntimeException {

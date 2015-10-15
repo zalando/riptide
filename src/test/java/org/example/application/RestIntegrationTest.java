@@ -87,7 +87,7 @@ public class RestIntegrationTest {
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
                 anyStatus().call(this::error))
-                .as(Map.class);
+                .to(Map.class);
 
         assertThat(map, is(emptyMap()));
     }
@@ -111,7 +111,7 @@ public class RestIntegrationTest {
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
                 anyStatus().call(this::error))
-                .as(Map.class);
+                .to(Map.class);
 
         assertThat(map, is(emptyMap()));
     }
@@ -129,7 +129,7 @@ public class RestIntegrationTest {
         final Optional<List<String>> resultOptional = unit.execute(GET, url).dispatch(status(),
                 on(OK, typeToken).capture(),
                 anyStatus().call(this::error))
-                .opt(typeToken);
+                .as(typeToken);
 
         assertThat(resultOptional, is(not(empty())));
 
@@ -152,7 +152,7 @@ public class RestIntegrationTest {
         final List<String> result = unit.execute(GET, url).dispatch(status(),
                 on(OK, typeToken).capture(),
                 anyStatus().call(this::error))
-                .as(listOf(String.class));
+                .to(listOf(String.class));
 
         assertThat(result, is(not(nullValue())));
         assertThat(result, hasSize(2));
@@ -174,8 +174,8 @@ public class RestIntegrationTest {
                         on(OK, typeToken).map((EntityFunction<List<String>, Object, Exception>) strings -> strings).capture(),
                         anyStatus().call(this::error));
 
-        assertThat(capture.opt(typeToken), is(empty()));
-        assertThat(capture.opt(List.class), is(not(empty())));
+        assertThat(capture.as(typeToken), is(empty()));
+        assertThat(capture.as(List.class), is(not(empty())));
     }
 
     private void error(final ClientHttpResponse response) {
