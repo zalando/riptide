@@ -26,8 +26,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static org.zalando.riptide.Capture.captured;
-import static org.zalando.riptide.Capture.wrapNothing;
+import static org.zalando.riptide.Capture.none;
 
 public final class UntypedCondition<A> {
 
@@ -41,13 +40,13 @@ public final class UntypedCondition<A> {
     public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ?> consumer) {
         return Binding.create(attribute, (response, converters) -> {
             consumer.accept(response);
-            return wrapNothing();
+            return none();
         });
     }
 
     public Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) ->
-                captured(function.apply(response)));
+                Capture.valueOf(function.apply(response)));
     }
 
     public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, T, ?> function, final Class<T> mappedType) {
@@ -56,12 +55,12 @@ public final class UntypedCondition<A> {
 
     public <T> Capturer<A> map(final ThrowingFunction<ClientHttpResponse, T, ?> function, final TypeToken<T> mappedType) {
         return () -> Binding.create(attribute, (response, converters) ->
-                captured(function.apply(response), mappedType));
+                Capture.valueOf(function.apply(response), mappedType));
     }
 
     public Binding<A> capture() {
         return Binding.create(attribute, (response, converters) ->
-                captured(response, ClientHttpResponse.class));
+                Capture.valueOf(response, ClientHttpResponse.class));
     }
 
     @SafeVarargs

@@ -113,7 +113,7 @@ public class ApiIntegrationTest {
                                         on(503).call(this::callback),
                                         anyStatusCode().call(this::callback)),
                         anySeries().call(this::callback))
-                .retrieve(Success.class).orElse(null);
+                .as(Success.class).orElse(null);
     }
 
     @SuppressWarnings("EmptyMethod")

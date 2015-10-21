@@ -25,8 +25,10 @@ import com.google.common.reflect.TypeToken;
 import javax.annotation.concurrent.Immutable;
 import java.util.Optional;
 
+import static java.util.Optional.empty;
+
 @Immutable
-final class TypedCapture<T> implements Capture<T> {
+final class TypedCapture<T> implements Capture {
 
     private final Optional<T> value;
     private final TypeToken<T> type;
@@ -37,13 +39,14 @@ final class TypedCapture<T> implements Capture<T> {
     }
 
     @Override
-    public Optional<T> getValue() {
-        return value;
+    public boolean has(TypeToken<?> other) {
+        return other.isAssignableFrom(type);
     }
 
     @Override
-    public boolean isAssignableTo(final TypeToken<?> otherType) {
-        return otherType.isAssignableFrom(type);
+    @SuppressWarnings("unchecked")
+    public <O> Optional<O> as(TypeToken<O> type) {
+        return has(type) ? value.map(v -> (O) v) : empty();
     }
 
 }

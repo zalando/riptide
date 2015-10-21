@@ -139,9 +139,18 @@ later be retrieved, e.g. to produce a return value:
 ```java
 final Optional<Success> success = rest.execute(..)
         .dispatch(..)
-        .retrieve(Success.class);
+        .as(Success.class);
 
 return success.orElse(..);
+```
+
+Alternatively, if your dispatching doesn't allow multiple happy cases, you can retrieve a value directly, without
+dealing with an `Optional`:
+
+```java
+return rest.execute(..)
+        .dispatch(..)
+        .to(Success.class);
 ```
 
 Please note: All consumer/function based actions are **not** `java.util.function.Consumer` and 
@@ -175,7 +184,7 @@ final Success success = rest.execute(GET, url)
                     .dispatch(statusCode(),
                             on(503).call(this::retryLater),
                 anySeries().call(this::fail))
-        .retrieve(Success.class).orElse(null);
+        .as(Success.class).orElse(null);
 ```
 
 If a *no match* case happens in a nested routing scenario it will bubble up the levels until it finds a matching

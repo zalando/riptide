@@ -102,7 +102,7 @@ public final class ActionsTest {
                 .dispatch(status(),
                         on(OK).map(headers()).capture(),
                         anyStatus().call(this::fail))
-                .retrieve(HttpHeaders.class).get();
+                .to(HttpHeaders.class);
 
         assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }

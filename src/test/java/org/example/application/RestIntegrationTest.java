@@ -29,11 +29,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.riptide.Capture;
 import org.zalando.riptide.EntityFunction;
 import org.zalando.riptide.OAuth2CompatibilityResponseErrorHandler;
 import org.zalando.riptide.PassThroughResponseErrorHandler;
 import org.zalando.riptide.Rest;
-import org.zalando.riptide.Retriever;
 
 import java.io.IOException;
 import java.net.URI;
@@ -43,6 +43,7 @@ import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,6 +54,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Capture.listOf;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
@@ -85,7 +87,7 @@ public class RestIntegrationTest {
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
                 anyStatus().call(this::error))
-                .retrieve(Map.class).get();
+                .to(Map.class);
 
         assertThat(map, is(emptyMap()));
     }
@@ -109,7 +111,7 @@ public class RestIntegrationTest {
         final Map map = unit.execute(GET, url).dispatch(status(),
                 on(OK, Map.class).capture(),
                 anyStatus().call(this::error))
-                .retrieve(Map.class).get();
+                .to(Map.class);
 
         assertThat(map, is(emptyMap()));
     }
@@ -127,9 +129,9 @@ public class RestIntegrationTest {
         final Optional<List<String>> resultOptional = unit.execute(GET, url).dispatch(status(),
                 on(OK, typeToken).capture(),
                 anyStatus().call(this::error))
-                .retrieve(typeToken);
+                .as(typeToken);
 
-        assertThat(resultOptional, is(not(Optional.empty())));
+        assertThat(resultOptional, is(not(empty())));
 
         final List<String> result = resultOptional.get();
         assertThat(result, is(not(nullValue())));
@@ -150,7 +152,7 @@ public class RestIntegrationTest {
         final List<String> result = unit.execute(GET, url).dispatch(status(),
                 on(OK, typeToken).capture(),
                 anyStatus().call(this::error))
-                .retrieve(typeToken).orElseThrow(() -> new RuntimeException("Unable to retrieve List<String>"));
+                .to(listOf(String.class));
 
         assertThat(result, is(not(nullValue())));
         assertThat(result, hasSize(2));
@@ -167,12 +169,13 @@ public class RestIntegrationTest {
 
         final TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {
         };
-        final Retriever retriever = unit.execute(GET, url).dispatch(status(),
-                on(OK, typeToken).map((EntityFunction<List<String>, Object, Exception>) strings -> strings).capture(),
-                anyStatus().call(this::error));
+        final Capture capture = unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK, typeToken).map((EntityFunction<List<String>, Object, Exception>) strings -> strings).capture(),
+                        anyStatus().call(this::error));
 
-        assertThat(retriever.retrieve(typeToken), is(Optional.empty()));
-        assertThat(retriever.retrieve(List.class), is(not(Optional.empty())));
+        assertThat(capture.as(typeToken), is(empty()));
+        assertThat(capture.as(List.class), is(not(empty())));
     }
 
     private void error(final ClientHttpResponse response) {
