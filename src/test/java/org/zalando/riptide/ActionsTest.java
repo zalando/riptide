@@ -37,8 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
@@ -50,11 +49,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Actions.headers;
-import static org.zalando.riptide.Actions.propagate;
+import static org.zalando.riptide.Actions.*;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Selectors.statusCode;
 
 public final class ActionsTest {
 
@@ -76,6 +75,51 @@ public final class ActionsTest {
     }
 
     @Test
+    public void shouldPass() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess());
+
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK).call(pass()),
+                        anyStatus().call(this::fail));
+    }
+
+    @Test
+    public void shouldMapHeaders() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        final HttpHeaders headers = unit.execute(HEAD, url)
+                .dispatch(status(),
+                        on(OK).capture(headers()),
+                        anyStatus().call(this::fail))
+                .to(HttpHeaders.class);
+
+        assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
+    }
+
+    @Test
+    public void shouldMapLocation() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("http://example.org"));
+
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                .headers(headers));
+
+        final URI uri = unit.execute(HEAD, url)
+                .dispatch(status(),
+                        on(OK).capture(location()),
+                        anyStatus().call(this::fail))
+                .to(URI.class);
+
+        assertThat(uri, hasToString("http://example.org"));
+    }
+
+    @Test
     public void shouldPropagateException() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
@@ -89,22 +133,6 @@ public final class ActionsTest {
                 .dispatch(status(),
                         on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).call(propagate()),
                         anyStatus().call(this::fail));
-    }
-
-    @Test
-    public void shouldMapHeaders() {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final HttpHeaders headers = unit.execute(HEAD, url)
-                .dispatch(status(),
-                        on(OK).map(headers()).capture(),
-                        anyStatus().call(this::fail))
-                .to(HttpHeaders.class);
-
-        assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

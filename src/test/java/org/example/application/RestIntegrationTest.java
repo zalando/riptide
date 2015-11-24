@@ -171,7 +171,7 @@ public class RestIntegrationTest {
         };
         final Capture capture = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, typeToken).map((EntityFunction<List<String>, Object, Exception>) strings -> strings).capture(),
+                        on(OK, typeToken).capture((EntityFunction<List<String>, Object, Exception>) strings -> strings),
                         anyStatus().call(this::error));
 
         assertThat(capture.as(typeToken), is(empty()));

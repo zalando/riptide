@@ -195,9 +195,12 @@ statement.
 
 ## Exceptions
 
-*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to `call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` in a `try-catch` and directly catch it.
+*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
+`call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
+in a `try-catch` and directly catch it.
 
-The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and no wildcard condition either.
+The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 
+no wildcard condition either.
 
 ## License
 
