@@ -25,6 +25,7 @@ import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.net.URI;
 
 public final class Actions {
 
@@ -32,8 +33,19 @@ public final class Actions {
         // package private so we can trick code coverage
     }
 
+    public static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
+        return response -> {
+
+        };
+    }
+
     public static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
         return HttpMessage::getHeaders;
+    }
+
+    public static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
+        return response ->
+                response.getHeaders().getLocation();
     }
 
     public static <X extends Exception> EntityConsumer<X, X> propagate() {

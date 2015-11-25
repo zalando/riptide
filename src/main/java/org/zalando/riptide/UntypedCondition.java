@@ -63,6 +63,18 @@ public final class UntypedCondition<A> {
                 Capture.valueOf(response, ClientHttpResponse.class));
     }
 
+    public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
+        return map(function).capture();
+    }
+
+    public <T> Binding<A> capture(final ThrowingFunction<ClientHttpResponse, T, ?> function, final Class<T> mappedType) {
+        return capture(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Binding<A> capture(final ThrowingFunction<ClientHttpResponse, T, ?> function, final TypeToken<T> mappedType) {
+        return map(function, mappedType).capture();
+    }
+
     @SafeVarargs
     public final <B> Binding<A> dispatch(final Selector<B> selector, final Binding<B>... bindings) {
         return Binding.create(attribute, (response, converters) ->

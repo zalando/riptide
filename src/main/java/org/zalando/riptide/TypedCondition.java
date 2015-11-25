@@ -107,4 +107,28 @@ public final class TypedCondition<A, I> implements Capturer<A> {
                 Capture.valueOf(convert(response, converters), type));
     }
 
+    public Binding<A> capture(final EntityFunction<I, ?, ?> function) {
+        return map(function).capture();
+    }
+
+    public <T> Binding<A> capture(final EntityFunction<I, T, ?> function, final Class<T> mappedType) {
+        return capture(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Binding<A> capture(final EntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
+        return map(function, mappedType).capture();
+    }
+
+    public Binding<A> capture(final ResponseEntityFunction<I, ?, ?> function) {
+        return map(function).capture();
+    }
+
+    public <T> Binding<A> capture(final ResponseEntityFunction<I, T, ?> function, final Class<T> mappedType) {
+        return capture(function, TypeToken.of(mappedType));
+    }
+
+    public <T> Binding<A> capture(final ResponseEntityFunction<I, T, ?> function, final TypeToken<T> mappedType) {
+        return map(function, mappedType).capture();
+    }
+
 }
