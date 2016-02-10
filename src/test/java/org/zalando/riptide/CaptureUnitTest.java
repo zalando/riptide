@@ -23,6 +23,8 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
+import java.util.NoSuchElementException;
+
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Optional.empty;
 import static org.hamcrest.CoreMatchers.not;
@@ -77,6 +79,27 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(newArrayList(), listOf(String.class));
 
         assertThat(unit.as(listOf(Integer.class)), is(empty()));
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void shouldThrowOnRetrievingNull() {
+        final Capture unit = Capture.valueOf(null);
+
+        unit.to(String.class);
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void shouldThrowOnRetrievingWrongRawType() {
+        final Capture unit = Capture.valueOf("");
+
+        unit.to(Number.class);
+    }
+
+    @Test(expected = NoSuchElementException.class)
+    public void shouldThrowOnRetrievingWrongType() {
+        final Capture unit = Capture.valueOf(newArrayList(""));
+
+        unit.to(listOf(Number.class));
     }
 
 }

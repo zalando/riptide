@@ -48,7 +48,7 @@ public interface Capture {
     }
 
     default <T> T to(final TypeToken<T> type) {
-        return as(type).orElseThrow(AssertionError::new);
+        return as(type).get();
     }
 
     static Capture none() {
