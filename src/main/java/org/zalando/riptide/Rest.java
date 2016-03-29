@@ -24,13 +24,16 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.List;
 
 public final class Rest {
 
     private final RestTemplate template;
+    private final Router router = new Router();
 
     private Rest(final RestTemplate template) {
         this.template = template;
@@ -53,9 +56,10 @@ public final class Rest {
     }
 
     private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
-        final Callback<T> callback = new Callback<>(template.getMessageConverters(), entity);
+        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
+        final Callback<T> callback = new Callback<>(converters, entity);
         final ClientHttpResponse response = execute(method, url, callback);
-        return new Dispatcher(template, response);
+        return new Dispatcher(converters, response, router);
     }
 
     /**
