@@ -24,11 +24,16 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
+import java.net.NoRouteToHostException;
 import java.net.URI;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.GET;
@@ -37,6 +42,8 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
+import static org.zalando.riptide.AsyncRest.handle;
+import static org.zalando.riptide.Binding.route;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
 
@@ -107,11 +114,24 @@ public final class AsyncTest {
     }
     
     @Test
-    public void shouldIgnoreNoRouteException() {
+    public void shouldIgnoreException() {
         server.expect(requestTo(url)).andRespond(withSuccess());
         
         unit.execute(GET, url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()));
+    }
+
+    @Test
+    public void shouldHandleException() {
+        server.expect(requestTo(url)).andRespond(withSuccess());
+
+        final FailureCallback callback = mock(FailureCallback.class);
+
+        unit.execute(GET, url).dispatch(series(), route(
+                on(CLIENT_ERROR).call(pass())),
+                callback);
+
+        verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
     }
 
 }

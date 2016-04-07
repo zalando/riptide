@@ -142,7 +142,7 @@ public final class FailedDispatchTest {
                         .contentType(MediaTypes.SUCCESS));
 
         exception.expect(HttpMessageNotReadableException.class);
-        exception.expectMessage("Could not read JSON");
+        exception.expectMessage("Could not read");
 
         unit.execute(GET, url)
                 .dispatch(status(),

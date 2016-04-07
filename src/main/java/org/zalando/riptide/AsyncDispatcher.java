@@ -20,6 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
@@ -28,9 +30,12 @@ import org.springframework.util.concurrent.SuccessCallback;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
+import static org.zalando.riptide.AsyncRest.handle;
+import static org.zalando.riptide.Binding.route;
 
 public final class AsyncDispatcher {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncRest.class);
 
     private final List<HttpMessageConverter<?>> converters;
     private final ListenableFuture<ClientHttpResponse> future;
@@ -45,8 +50,15 @@ public final class AsyncDispatcher {
 
     @SafeVarargs
     public final <A> void dispatch(final Selector<A> selector, final Binding<A>... bindings) {
-        final SuccessCallback<ClientHttpResponse> success = response -> 
-                router.route(response, converters, selector, asList(bindings));
+        dispatch(selector, route(bindings), handle(throwable -> {
+            LOG.error("Failed to dispatch asynchronously", throwable);
+        }));
+    }
+
+    public final <A> void dispatch(final Selector<A> selector, final List<Binding<A>> bindings,
+            final FailureCallback callback) {
+        final SuccessCallback<ClientHttpResponse> success = response ->
+                router.route(response, converters, selector, bindings);
 
         final FailureCallback failure = exception -> {
             try {
@@ -54,10 +66,10 @@ public final class AsyncDispatcher {
             } catch (AlreadyConsumedResponseException e) {
                 success.onSuccess(e.getResponse());
             } catch (Throwable throwable) {
-                // TODO handle e
+                callback.onFailure(throwable);
             }
         };
-        
+
         future.addCallback(success, failure);
     }
 

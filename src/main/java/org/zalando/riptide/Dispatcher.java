@@ -41,7 +41,11 @@ public final class Dispatcher {
 
     @SafeVarargs
     public final <A> Capture dispatch(final Selector<A> selector, final Binding<A>... bindings) {
-        return router.route(response, converters, selector, asList(bindings));
+        return dispatch(selector, asList(bindings));
+    }
+
+    public final <A> Capture dispatch(final Selector<A> selector, final List<Binding<A>> bindings) {
+        return router.route(response, converters, selector, bindings);
     }
 
 }
