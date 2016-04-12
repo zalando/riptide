@@ -7,11 +7,33 @@
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
 
-A response router for Spring's RestTemplate. Riptide adds a customizable dispatcher on top of
-Spring's RestTemplate that allows you to handle different status codes, content types, etc.
-differently with an easy to use yet very powerful syntax.
+*Riptide* is an extension to Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/) that offers 
+what we call ***client-side response routing***.
 
-## Dependency
+It allows to dispatch HTTP responses very easily to different handler methods based on any characteristic of the
+response, including but not limited to status code, status family and content type. The way this works is intentionally
+very similar to server-side request routing where any request that reaches a web application is usually routed to the
+correct handler based on any combination of the following criteria: URI including query and path parameters, method, 
+`Accept` and `Content-Type` header. Instead of routing requests to handler methods on the server what *Riptide* does
+is the exact opposite: routing responses to handler methods on the client side.
+
+## Features
+
+- thin wrapper around RestTemplate
+- full access to the underlying HTTP client
+- encourages to write more resilient clients, by forcing you to consider
+  - fallbacks
+  - content negotiation
+  - robust error handling
+- elegant syntax
+- type-safety
+- easy to implement repeating patterns, e.g.
+  - follow redirects
+  - create resource and retrieve location
+
+## Installation
+
+Add the following dependency to your project:
 
 ```xml
 <dependency>
@@ -21,7 +43,7 @@ differently with an easy to use yet very powerful syntax.
 </dependency>
 ```
 
-## Setup
+## Configuration
 
 Create an instance based on an existing `RestTemplate`:
 
@@ -36,13 +58,9 @@ If you use Riptide to its full extent you probably don't want to have any [`Resp
 interfere with your dispatching. Therefore Riptide provides you with a *no-op* `ResponseErrorHandler`, which ensures
 that Riptide handles all success and error cases.
 
-In case you're using the **OAuth2RestTemplate**: It uses the given `ResponseErrorHandler` in the wrong way, which
-may result in the response body being already consumed and/or closed. To workaround this issue use this special
-`OAuth2CompatibilityResponseErrorHandler`:
-
-```java
-template.setErrorHandler(new OAuth2CompatibilityResponseErrorHandler());
-```
+**BEWARE** In case you're using the `OAuth2RestTemplate`: It uses the given `ResponseErrorHandler` in the wrong way,
+which may result in the response body being already consumed and/or closed. To workaround this issue use our special
+`OAuth2CompatibilityResponseErrorHandler` instead.
 
 ## Usage
 
@@ -56,7 +74,7 @@ rest.execute(GET, url).dispatch(status(),
         anyStatus().call(this::fail));
 ```
 
-You `onSuccess` method is allowed to have one of the following signatures:
+Your `onSuccess` method is allowed to have one of the following signatures:
 
 ```java
 void onSuccess(Success success) throws Exception;
@@ -65,19 +83,19 @@ void onSuccess(ResponseEntity<Success> success) throws Exception;
 
 The later one is useful if you e.g. need access to one or more header values.
 
-## Selectors
+### Selectors
 
 Routing of responses is controlled by a `Selector`, e.g. `status()` in the former example.
-A selector selects the attribute of a response you want to use to route it.
+A selector selects the attribute(s) of a response you want to use to route it.
 
 Riptide comes with the following selectors:
 
-| Selector                                                                                                                                   | Attribute                                                                                                                  |
-|--------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| [Selectors.series()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/SeriesSelector.java)           | [HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html) |
-| [Selectors.status()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusSelector.java)           | [HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)               |
-| [Selectors.statusCode()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | [Integer](http://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html)                                                 |
-| [Selectors.contentType()](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
+| Selector                                                                              | Attribute                                                                                                                  |
+|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [Selectors.series()](src/main/java/org/zalando/riptide/SeriesSelector.java)           | [HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html) |
+| [Selectors.status()](src/main/java/org/zalando/riptide/StatusSelector.java)           | [HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)               |
+| [Selectors.statusCode()](src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | [Integer](http://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html)                                                 |
+| [Selectors.contentType()](src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
 
 ```java
 rest.execute(..).dispatch(series(), ..);
@@ -92,21 +110,23 @@ You are free to write your own, which requires you to just implement this single
 Optional<A> attributeOf(ClientHttpResponse response)
 ```
 
-## Conditions
+An attribute can be a single scalar value but could be a complex type, based on your needs.
 
-[Conditions](https://github.com/whiskeysierra/riptide/blob/master/src/main/java/org/zalando/riptide/Conditions.java)
+### Conditions
+
+[Conditions](src/main/java/org/zalando/riptide/Conditions.java)
 describe which concrete attribute values you want to bind to which actions.
 
 ```java
 on(SUCCESS).call(..)
-on(CLIENT_ERROR, Error.class).call(..)
+on(CLIENT_ERROR, Problem.class).call(..)
 anySeries().call(..)
 ```
 
 Conditions can either be:
 
 1. *untyped*, e.g. `on(SUCCESS)`, 
-2. *typed*, e.g. `on(CLIENT_ERROR, Error.class)` or 
+2. *typed*, e.g. `on(CLIENT_ERROR, Problem.class)` or 
 3. *wildcards*, e.g. `anySeries()`. 
 
 Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
@@ -115,12 +135,15 @@ while typed conditions support typed actions, i.e. actions that operate on custo
 [`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
 directly.
 
-Wildcard conditions are comparable to a `default` case in a switch. They take effect if no match was found.
+Wildcard conditions are comparable to a `default` case in a switch. They take effect if no match was found. They are a
+very powerful tool in being a resilient client, i.e. you should consider to always have one wildcard condition to
+catch cases where the server introduced a new status code or content type. That way you can declare a meaningful
+handling of those cases upfront already.
 
-## Actions
+### Actions
 
 After the selector determined the attribute, the condition matched on a concrete attribute value the
-response will be routed to an action. An action can be one of the following:
+response will be routed to an action. An action can be one of the following types:
 
 | Action                                      | Syntax                         |
 |---------------------------------------------|--------------------------------|
@@ -130,7 +153,7 @@ response will be routed to an action. An action can be one of the following:
 | `Function<ClientHttpResponse, ?>` + capture | `on(..).map(..).capture()`     |
 | `Function<ResponseEntity<T>, ?>` + capture  | `on(.., ..).map(..).capture()` |
 | `Function<T, ?>` + capture                  | `on(.., ..).map(..).capture()` |
-| Nested Routing                              | see next section               |
+| Nested Routing                              | `on(..).dispatch(..)`          |
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
 Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
@@ -158,28 +181,22 @@ Please note: All consumer/function based actions are **not** `java.util.function
 not have any negative impact since most of the time you won't pass in a custom implementation, but rather a lambda or
 a method reference.
 
-### Nested Routing
+#### Nested Routing
 
 A special action is the *nested routing* which allows to have a very fine-grained control over how to route your
 responses:
 
 ```java
-final Success success = rest.execute(GET, url)
+Success success = rest.execute(GET, url)
         .dispatch(series(),
-                on(SUCCESSFUL)
-                        .dispatch(status(),
-                                on(CREATED, Success.class).capture(),
-                                on(ACCEPTED, Success.class).capture(),
-                                anyStatus().call(this::fail)),
+                on(SUCCESSFUL, Success.class).capture(),
                 on(CLIENT_ERROR)
                     .dispatch(status(),
                             on(UNAUTHORIZED).call(this::login),
                             on(UNPROCESSABLE_ENTITY)
                                     .dispatch(contentType(),
-                                            on(PROBLEM, Problem.class).capture(),
-                                            on(ERROR, Problem.class).capture(),
-                                            anyContentType().call(this::fail)),
-                            anyStatus().call(this::fail)),
+                                            on(PROBLEM, ThrowableProblem.class).call(propagate()),
+                                            on(ERROR, Exception.class).call(propagate()))),
                 on(SERVER_ERROR)
                     .dispatch(statusCode(),
                             on(503).call(this::retryLater),
@@ -193,7 +210,34 @@ router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to d
 matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
 statement.
 
-## Exceptions
+### Patterns and examples
+
+This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide: 
+
+#### Follow Redirects
+
+```java
+private void send(URI url, T body) {
+    rest.execute(POST, url, body).dispatch(series(),
+            on(SUCCESSFUL).call(pass()),
+            on(REDIRECTION).call(response ->
+                    send(response.getHeaders().getLocation(), body)),
+            anySeries().call(this::fail));
+}
+```
+
+#### Create resource and retrieve location
+
+```java
+private URI create(URI url, T body) {
+    return rest.execute(POST, url, body).dispatch(series(),
+            on(SUCCESSFUL).capture(location()),
+            anySeries().call(this::fail))
+            .to(URI.class);
+}
+```
+
+### Exceptions
 
 *Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
 `call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
@@ -202,18 +246,15 @@ in a `try-catch` and directly catch it.
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 
 no wildcard condition either.
 
-## License
+## Getting help
 
-Copyright [2015] Zalando SE
+If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+## Getting involved
 
-    http://www.apache.org/licenses/LICENSE-2.0
+To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change.
+For more details check the [contribution guidelines](CONTRIBUTING.md).
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+## Credits and references
+
+- [URL routing](http://littledev.nl/?p=99)
