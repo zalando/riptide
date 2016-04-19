@@ -264,6 +264,7 @@ rest.execute(GET, url).dispatch(status(), route(
 ```
 
 Notable differences between the signatures of `dispatch` in `Rest` and `AsyncRest`:
+
 1. Bindings are provided as a List, instead of varargs
 2. Exception handling is done inside a `FailureCallback`
 
