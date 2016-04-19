@@ -37,7 +37,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;
@@ -49,11 +51,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Actions.*;
+import static org.zalando.riptide.Actions.headers;
+import static org.zalando.riptide.Actions.location;
+import static org.zalando.riptide.Actions.pass;
+import static org.zalando.riptide.Actions.propagate;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.status;
-import static org.zalando.riptide.Selectors.statusCode;
 
 public final class ActionsTest {
 

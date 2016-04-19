@@ -35,9 +35,7 @@ import org.zalando.riptide.model.AccountBody;
 import java.io.IOException;
 import java.net.URI;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.GET;

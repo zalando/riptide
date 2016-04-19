@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -30,19 +29,23 @@ import static java.util.Arrays.asList;
 
 public final class Dispatcher {
 
-    private final RestTemplate template;
+    private final List<HttpMessageConverter<?>> converters;
     private final ClientHttpResponse response;
-    private final Router router = new Router();
+    private final Router router;
 
-    Dispatcher(final RestTemplate template, final ClientHttpResponse response) {
-        this.template = template;
+    Dispatcher(final List<HttpMessageConverter<?>> converters, final ClientHttpResponse response, final Router router) {
+        this.converters = converters;
         this.response = response;
+        this.router = router;
     }
 
     @SafeVarargs
     public final <A> Capture dispatch(final Selector<A> selector, final Binding<A>... bindings) {
-        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        return router.route(response, converters, selector, asList(bindings));
+        return dispatch(selector, asList(bindings));
+    }
+
+    public final <A> Capture dispatch(final Selector<A> selector, final List<Binding<A>> bindings) {
+        return router.route(response, converters, selector, bindings);
     }
 
 }

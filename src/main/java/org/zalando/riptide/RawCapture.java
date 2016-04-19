@@ -39,7 +39,7 @@ final class RawCapture implements Capture {
     @Override
     public boolean has(TypeToken<?> other) {
         return value.map(Object::getClass)
-                .filter(other::isAssignableFrom)
+                .filter(other::isSupertypeOf)
                 .isPresent();
     }
 

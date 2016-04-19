@@ -25,12 +25,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;

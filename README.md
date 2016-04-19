@@ -53,6 +53,14 @@ template.setErrorHandler(new PassThroughResponseErrorHandler());
 final Rest rest = Rest.create(template);
 ```
 
+Or alternatively an `AsyncRestTemplate`:
+
+```java
+final AsyncRestTemplate template = new AsyncRestTemplate();
+template.setErrorHandler(new PassThroughResponseErrorHandler());
+final AsyncRest rest = AsyncRest.create(template);
+```
+
 If you use Riptide to its full extent you probably don't want to have any [`ResponseErrorHandler`]
 (http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/ResponseErrorHandler.html)
 interfere with your dispatching. Therefore Riptide provides you with a *no-op* `ResponseErrorHandler`, which ensures
@@ -156,8 +164,10 @@ response will be routed to an action. An action can be one of the following type
 | Nested Routing                              | `on(..).dispatch(..)`          |
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
+
 Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
-later be retrieved, e.g. to produce a return value:
+later be retrieved, e.g. to produce a return value. Please be aware that captures are not available when using
+`AsyncRest`.
 
 ```java
 final Optional<Success> success = rest.execute(..)
@@ -241,7 +251,26 @@ private URI create(URI url, T body) {
 
 *Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
 `call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
-in a `try-catch` and directly catch it.
+in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, there is a 
+special syntax for it:
+
+```java
+rest.execute(GET, url).dispatch(status(), route(
+        on(CREATED, Success.class).call(this::onSuccess),
+        on(ACCEPTED, Success.class).call(this::onSuccess),
+        on(BAD_REQUEST).call(this::onError),
+        anyStatus().call(this::fail)),
+        handle(e -> LOG.error("Failed to execute asynchronous request", e));
+```
+
+Notable differences between the signatures of `dispatch` in `Rest` and `AsyncRest`:
+1. Bindings are provided as a List, instead of varargs
+2. Exception handling is done inside a `FailureCallback`
+
+```java
+<A> Capture dispatch(Selector<A> selector, Binding<A>... bindings);
+<A> void dispatch(Selector<A> selector, List<Binding<A>> bindings, FailureCallback callback);
+```
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 
 no wildcard condition either.

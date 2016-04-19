@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
+
 public final class Binding<A> implements Executor {
 
     private final Optional<A> attribute;
@@ -54,6 +56,11 @@ public final class Binding<A> implements Executor {
 
     static <A> Binding<A> create(final Optional<A> attribute, final Executor executor) {
         return new Binding<>(attribute, executor);
+    }
+
+    @SafeVarargs
+    public static <T> List<T> route(T... bindings) {
+        return asList(bindings);
     }
 
 }
