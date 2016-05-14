@@ -24,8 +24,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
+
+import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
+import static org.springframework.http.HttpHeaders.LOCATION;
 
 public final class Actions {
 
@@ -48,9 +53,52 @@ public final class Actions {
                 response.getHeaders().getLocation();
     }
 
+    public static ThrowingFunction<ClientHttpResponse, URI, IOException> contentLocation() {
+        return response ->
+                Optional.ofNullable(response.getHeaders().getFirst(CONTENT_LOCATION))
+                .map(URI::create)
+                .orElse(null);
+    }
+
     public static <X extends Exception> EntityConsumer<X, X> propagate() {
         return entity -> {
             throw entity;
+        };
+    }
+
+    /**
+     * Normalizes the {@code Location} and {@code Content-Location} headers of any given response by resolving them
+     * against the given {@code uri}.
+     *
+     * @param uri the base uri to resolve against
+     * @return a function that normalizes responses
+     */
+    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse, IOException> normalize(final URI uri) {
+        return response -> {
+            final HttpHeaders headers = new HttpHeaders();
+            headers.putAll(response.getHeaders());
+
+            Optional.ofNullable(headers.getLocation())
+                    .map(uri::resolve)
+                    .ifPresent(headers::setLocation);
+
+            Optional.ofNullable(headers.getFirst(CONTENT_LOCATION))
+                    .map(uri::resolve)
+                    .ifPresent(location -> headers.set(CONTENT_LOCATION, location.toASCIIString()));
+
+            return new ForwardingClientHttpResponse() {
+
+                @Override
+                protected ClientHttpResponse delegate() {
+                    return response;
+                }
+
+                @Override
+                public HttpHeaders getHeaders() {
+                    return headers;
+                }
+
+            };
         };
     }
 
