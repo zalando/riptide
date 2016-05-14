@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.util.concurrent.Futures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -31,7 +30,6 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
 
 import java.util.List;
-import java.util.concurrent.Future;
 
 import static org.zalando.riptide.AsyncRest.handle;
 import static org.zalando.riptide.Binding.route;

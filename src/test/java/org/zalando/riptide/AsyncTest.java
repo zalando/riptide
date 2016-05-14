@@ -29,7 +29,6 @@ import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -50,9 +49,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
-import static org.zalando.riptide.AsyncRest.handle;
 import static org.zalando.riptide.Binding.route;
-import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
