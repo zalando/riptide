@@ -167,8 +167,7 @@ response will be routed to an action. An action can be one of the following type
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
 
 Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
-later be retrieved, e.g. to produce a return value. Please be aware that captures are not available when using
-`AsyncRest`.
+later be retrieved, e.g. to produce a return value.
 
 ```java
 final Optional<Success> success = rest.execute(..)
@@ -184,6 +183,16 @@ dealing with an `Optional`:
 ```java
 return rest.execute(..)
         .dispatch(..)
+        .to(Success.class);
+```
+
+Please be aware that when using `AsyncRest` captures are returned as `Future<Capture>`, since the result may
+not be available immediately:
+
+```java
+return rest.execute(..)
+        .dispatch(..)
+        .get(10, SECONDS)
         .to(Success.class);
 ```
 

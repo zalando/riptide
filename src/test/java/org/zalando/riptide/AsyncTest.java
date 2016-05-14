@@ -21,31 +21,41 @@ package org.zalando.riptide;
  */
 
 import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
+import java.io.IOException;
 import java.net.NoRouteToHostException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
 import static org.zalando.riptide.AsyncRest.handle;
 import static org.zalando.riptide.Binding.route;
+import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Selectors.status;
 
 public final class AsyncTest {
 
@@ -125,6 +135,23 @@ public final class AsyncTest {
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
+    }
+
+    @Test
+    public void shouldCapture() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        final ClientHttpResponse response = unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK).capture())
+                .get(100, TimeUnit.MILLISECONDS)
+                .to(ClientHttpResponse.class);
+
+        assertThat(response.getStatusCode(), is(OK));
+        assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
 
     @Test
