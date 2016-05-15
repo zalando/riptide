@@ -20,7 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
@@ -49,12 +51,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
-import static org.zalando.riptide.Binding.route;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 
 public final class AsyncTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private final URI url = URI.create("http://localhost");
 
@@ -159,15 +163,27 @@ public final class AsyncTest {
                 on(CLIENT_ERROR).call(pass()));
     }
 
+    @Test(timeout = 250)
+    public void shouldHandleExceptionWithGet() throws InterruptedException, ExecutionException {
+        server.expect(requestTo(url)).andRespond(withSuccess());
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(NoRouteException.class));
+
+        unit.execute(GET, url).dispatch(series(),
+                on(CLIENT_ERROR).call(pass()))
+                .get();
+    }
+
     @Test
-    public void shouldHandleException() {
+    public void shouldHandleExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         final FailureCallback callback = mock(FailureCallback.class);
 
-        unit.execute(GET, url).dispatch(series(), route(
-                on(CLIENT_ERROR).call(pass())),
-                callback);
+        unit.execute(GET, url).dispatch(series(),
+                on(CLIENT_ERROR).call(pass()))
+                .addCallback($ -> {}, callback);
 
         verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
     }

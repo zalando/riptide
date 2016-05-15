@@ -20,13 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.gag.annotation.remark.OhNoYouDidnt;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 
@@ -70,12 +68,6 @@ public final class AsyncRest {
 
     public static AsyncRest create(final AsyncRestTemplate template) {
         return new AsyncRest(template);
-    }
-
-    // syntactic sugar
-    @OhNoYouDidnt
-    public static FailureCallback handle(final FailureCallback callback) {
-        return callback;
     }
 
 }
