@@ -268,7 +268,7 @@ exception will be thrown in another thread. You can either retrieve the exceptio
 try {
     rest.execute(GET, url).dispatch(..).get(10, SECONDS);
 } catch (final ExecutionException e) {
-    // TODO handle e.getCause()
+    // TODO implement
 }
 ```
 
@@ -276,7 +276,9 @@ or alternatively register a callback for handling the exception asynchronously:
 
 ```java
 rest.execute(GET, url).dispatch(..)
-        .addCallback(success, exception -> {});
+        .addCallback(handle(e -> {
+            // TODO implement
+        }));
 ```
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 

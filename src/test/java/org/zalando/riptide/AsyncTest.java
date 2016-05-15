@@ -51,6 +51,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
+import static org.zalando.riptide.AsyncRest.handle;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
@@ -163,7 +164,7 @@ public final class AsyncTest {
                 on(CLIENT_ERROR).call(pass()));
     }
 
-    @Test(timeout = 250)
+    @Test
     public void shouldHandleExceptionWithGet() throws InterruptedException, ExecutionException {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
@@ -183,9 +184,18 @@ public final class AsyncTest {
 
         unit.execute(GET, url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
-                .addCallback($ -> {}, callback);
+                .addCallback(handle(callback));
 
         verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
+    }
+
+    @Test
+    public void shouldIgnoreSuccessWhenHandlingExceptionWithCallback() {
+        server.expect(requestTo(url)).andRespond(withSuccess());
+
+        unit.execute(GET, url).dispatch(series(),
+                on(SUCCESSFUL).call(pass()))
+                .addCallback(handle(mock(FailureCallback.class)));
     }
 
 }
