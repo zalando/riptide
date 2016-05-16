@@ -40,23 +40,29 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
+import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Actions.contentLocation;
 import static org.zalando.riptide.Actions.headers;
 import static org.zalando.riptide.Actions.location;
+import static org.zalando.riptide.Actions.normalize;
 import static org.zalando.riptide.Actions.pass;
 import static org.zalando.riptide.Actions.propagate;
 import static org.zalando.riptide.Conditions.anyStatus;
 import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 
 public final class ActionsTest {
@@ -137,6 +143,68 @@ public final class ActionsTest {
                 .dispatch(status(),
                         on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).call(propagate()),
                         anyStatus().call(this::fail));
+    }
+
+    @Test
+    public void shouldNotFailIfNothingToNormalize() {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess());
+
+        final ClientHttpResponse response = unit.execute(GET, url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).map(normalize(url)).capture())
+                .to(ClientHttpResponse.class);
+
+        assertThat(response, hasToString(notNullValue()));
+    }
+
+    @Test
+    public void shouldNormalizeLocation() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/accounts/456"));
+        server.expect(requestTo(url)).andRespond(
+                withSuccess().headers(headers));
+
+        final URI location = unit.execute(GET, url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).map(normalize(url).andThen(location())).capture())
+                .to(URI.class);
+
+        assertThat(location, hasToString("https://api.example.com/accounts/456"));
+    }
+
+    @Test
+    public void shouldNormalizeContentLocation() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set(CONTENT_LOCATION, "/accounts/456");
+        server.expect(requestTo(url)).andRespond(
+                withSuccess().headers(headers));
+
+        final URI location = unit.execute(GET, url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).map(normalize(url).andThen(contentLocation())).capture())
+                .to(URI.class);
+
+        assertThat(location, hasToString("https://api.example.com/accounts/456"));
+
+    }
+
+    @Test
+    public void shouldNormalizeLocationAndContentLocation() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/accounts/456"));
+        headers.set(CONTENT_LOCATION, "/accounts/456");
+        server.expect(requestTo(url)).andRespond(
+                withSuccess().headers(headers));
+
+
+        final ClientHttpResponse response = unit.execute(GET, url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).map(normalize(url)).capture())
+                .to(ClientHttpResponse.class);
+
+        assertThat(response.getHeaders().getLocation(), hasToString("https://api.example.com/accounts/456"));
+        assertThat(response.getHeaders().getFirst(CONTENT_LOCATION), is("https://api.example.com/accounts/456"));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

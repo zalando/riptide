@@ -50,9 +50,8 @@ public final class AsyncDispatcher {
 
     @SafeVarargs
     public final <A> void dispatch(final Selector<A> selector, final Binding<A>... bindings) {
-        dispatch(selector, route(bindings), handle(throwable -> {
-            LOG.error("Failed to dispatch asynchronously", throwable);
-        }));
+        dispatch(selector, route(bindings), handle(throwable ->
+                LOG.error("Failed to dispatch asynchronously", throwable)));
     }
 
     public final <A> void dispatch(final Selector<A> selector, final List<Binding<A>> bindings,
