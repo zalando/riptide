@@ -79,7 +79,7 @@ public class WithUrlTest {
     public void shouldExpandMap() {
         expectRequestTo("https://api.example.com/123/456");
 
-        Map<String, Object> m = new HashMap<>();
+        final Map<String, Object> m = new HashMap<>();
         m.put("parent", 123);
         m.put("child", "456");
 
@@ -93,7 +93,7 @@ public class WithUrlTest {
             expectRequestTo("https://api.example.com");
         }
 
-        final RestWithURL withUrl = unit.withUrl("https://api.example.com");
+        final RestWithURL<Dispatcher> withUrl = unit.withUrl("https://api.example.com");
 
         withUrl.execute(GET);
         withUrl.execute(GET, new HttpHeaders());
