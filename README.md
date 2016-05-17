@@ -156,6 +156,7 @@ response will be routed to an action. An action can be one of the following type
 | Action                                      | Syntax                         |
 |---------------------------------------------|--------------------------------|
 | `Consumer<ClientHttpResponse>`              | `on(..).call(..)`              |
+| `Runnable`                                  | `on(..).call(..)`              |
 | `Consumer<ResponseEntity<T>>`               | `on(.., ..).call(..)`          |
 | `Consumer<T>`                               | `on(.., ..).call(..)`          |
 | `Function<ClientHttpResponse, ?>` + capture | `on(..).map(..).capture()`     |
@@ -186,7 +187,7 @@ return rest.execute(..)
         .to(Success.class);
 ```
 
-Please note: All consumer/function based actions are **not** `java.util.function.Consumer` and 
+Please note: All consumer/function based actions are **not** `java.util.function.Consumer`, `java.lang.Runnable` and
 `java.util.function.Function` respectively, but custom version that support throwing checked exceptions. This should
 not have any negative impact since most of the time you won't pass in a custom implementation, but rather a lambda or
 a method reference.

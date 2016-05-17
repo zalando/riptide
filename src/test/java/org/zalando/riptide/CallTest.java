@@ -107,6 +107,25 @@ public final class CallTest {
         verify(verifier).accept(any(AccountBody.class));
     }
 
+    @Test
+    public void shouldCallWithoutParameters() throws Exception {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        @SuppressWarnings("unchecked")
+        final ThrowingRunnable<Exception> verifier =
+                mock(ThrowingRunnable.class);
+
+        unit.execute(GET, url)
+                .dispatch(status(),
+                        on(OK).call(verifier),
+                        anyStatus().call(this::fail));
+
+        verify(verifier).run();
+    }
+
     @Test(expected = CheckedException.class)
     public void shouldThrowCheckedExceptionOnEntity() {
         server.expect(requestTo(url)).andRespond(

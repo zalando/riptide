@@ -75,6 +75,20 @@ public final class AsyncTest {
     }
 
     @Test
+    public void shouldCallWithoutParameters() {
+        server.expect(requestTo(url)).andRespond(withSuccess());
+
+        @SuppressWarnings("unchecked")
+        final ThrowingRunnable<RuntimeException> verifier = mock(ThrowingRunnable.class);
+
+        unit.execute(GET, url).dispatch(series(),
+                on(SUCCESSFUL).call(verifier));
+
+        verify(verifier).run();
+    }
+
+
+    @Test
     public void shouldCallWithHeaders() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
@@ -112,11 +126,11 @@ public final class AsyncTest {
 
         verify(verifier).accept(any());
     }
-    
+
     @Test
     public void shouldIgnoreException() {
         server.expect(requestTo(url)).andRespond(withSuccess());
-        
+
         unit.execute(GET, url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()));
     }
