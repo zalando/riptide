@@ -51,7 +51,7 @@ public class RouterTest {
     private final Router unit = new Router();
 
     @Test
-    public void shouldRejectDuplicateAttributes() {
+    public void shouldRejectDuplicateWildcards() {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate any conditions");
 
@@ -63,7 +63,7 @@ public class RouterTest {
     }
 
     @Test
-    public void shouldRejectDuplicateWildcards() {
+    public void shouldRejectDuplicateAttributes() {
         exception.expect(IllegalStateException.class);
         exception.expectMessage("Duplicate condition attribute: 200");
 
