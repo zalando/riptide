@@ -167,8 +167,7 @@ response will be routed to an action. An action can be one of the following type
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
 
 Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
-later be retrieved, e.g. to produce a return value. Please be aware that captures are not available when using
-`AsyncRest`.
+later be retrieved, e.g. to produce a return value.
 
 ```java
 final Optional<Success> success = rest.execute(..)
@@ -187,7 +186,17 @@ return rest.execute(..)
         .to(Success.class);
 ```
 
-Please note: All consumer/function based actions are **not** `java.util.function.Consumer`, `java.lang.Runnable` and
+Please be aware that when using `AsyncRest` captures are returned as `Future<Capture>`, since the result may
+not be available immediately:
+
+```java
+return rest.execute(..)
+        .dispatch(..)
+        .get(10, SECONDS)
+        .to(Success.class);
+```
+
+Also note: All consumer/function based actions are **not** `java.util.function.Consumer`, `java.lang.Runnable` and
 `java.util.function.Function` respectively, but custom version that support throwing checked exceptions. This should
 not have any negative impact since most of the time you won't pass in a custom implementation, but rather a lambda or
 a method reference.
@@ -252,26 +261,24 @@ private URI create(URI url, T body) {
 
 *Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
 `call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
-in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, there is a 
-special syntax for it:
+in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, since the
+exception will be thrown in another thread. You can either retrieve the exception upon calling `Future.get(..)`:
 
 ```java
-rest.execute(GET, url).dispatch(status(), route(
-        on(CREATED, Success.class).call(this::onSuccess),
-        on(ACCEPTED, Success.class).call(this::onSuccess),
-        on(BAD_REQUEST).call(this::onError),
-        anyStatus().call(this::fail)),
-        handle(e -> LOG.error("Failed to execute asynchronous request", e));
+try {
+    rest.execute(GET, url).dispatch(..).get(10, SECONDS);
+} catch (final ExecutionException e) {
+    // TODO implement
+}
 ```
 
-Notable differences between the signatures of `dispatch` in `Rest` and `AsyncRest`:
-
-1. Bindings are provided as a List, instead of varargs
-2. Exception handling is done inside a `FailureCallback`
+or alternatively register a callback for handling the exception asynchronously:
 
 ```java
-<A> Capture dispatch(Selector<A> selector, Binding<A>... bindings);
-<A> void dispatch(Selector<A> selector, List<Binding<A>> bindings, FailureCallback callback);
+rest.execute(GET, url).dispatch(..)
+        .addCallback(handle(e -> {
+            // TODO implement
+        }));
 ```
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 
