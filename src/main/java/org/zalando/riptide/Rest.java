@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 public final class Rest {
 
@@ -53,6 +54,14 @@ public final class Rest {
 
     public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
         return execute(method, url, new HttpEntity<>(body, headers));
+    }
+
+    public RestWithURL withUrl(final String uriTemplate, final Object... uriVariables) {
+        return new RestWithURL(template.getUriTemplateHandler().expand(uriTemplate, uriVariables));
+    }
+
+    public RestWithURL withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
+        return new RestWithURL(template.getUriTemplateHandler().expand(uriTemplate, uriVariables));
     }
 
     private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
@@ -81,4 +90,28 @@ public final class Rest {
         return new Rest(template);
     }
 
+    public class RestWithURL {
+
+        private final URI url;
+
+        private RestWithURL(final URI url) {
+            this.url = url;
+        }
+
+        public Dispatcher execute(final HttpMethod method) {
+            return Rest.this.execute(method, url, HttpEntity.EMPTY);
+        }
+
+        public Dispatcher execute(final HttpMethod method, final HttpHeaders headers) {
+            return Rest.this.execute(method, url, new HttpEntity<>(headers));
+        }
+
+        public Dispatcher execute(final HttpMethod method, final Object body) {
+            return Rest.this.execute(method, url, new HttpEntity<>(body));
+        }
+
+        public Dispatcher execute(final HttpMethod method, final HttpHeaders headers, final Object body) {
+            return Rest.this.execute(method, url, new HttpEntity<>(body, headers));
+        }
+    }
 }
