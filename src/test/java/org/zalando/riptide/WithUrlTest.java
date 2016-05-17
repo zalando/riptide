@@ -93,7 +93,7 @@ public class WithUrlTest {
             expectRequestTo("https://api.example.com");
         }
 
-        final Rest.RestWithURL withUrl = unit.withUrl("https://api.example.com");
+        final RestWithURL withUrl = unit.withUrl("https://api.example.com");
 
         withUrl.execute(GET);
         withUrl.execute(GET, new HttpHeaders());

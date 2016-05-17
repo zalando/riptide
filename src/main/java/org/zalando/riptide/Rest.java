@@ -21,7 +21,6 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -29,42 +28,15 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
-public final class Rest {
-
-    private final RestTemplate template;
-    private final Router router = new Router();
+public final class Rest extends RestBase<RestTemplate, Dispatcher>{
 
     private Rest(final RestTemplate template) {
-        this.template = template;
+        super(template, template::getUriTemplateHandler);
     }
 
-    public Dispatcher execute(final HttpMethod method, final URI url) {
-        return execute(method, url, HttpEntity.EMPTY);
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
-        return execute(method, url, new HttpEntity<>(headers));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final Object body) {
-        return execute(method, url, new HttpEntity<>(body));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
-        return execute(method, url, new HttpEntity<>(body, headers));
-    }
-
-    public RestWithURL withUrl(final String uriTemplate, final Object... uriVariables) {
-        return new RestWithURL(template.getUriTemplateHandler().expand(uriTemplate, uriVariables));
-    }
-
-    public RestWithURL withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
-        return new RestWithURL(template.getUriTemplateHandler().expand(uriTemplate, uriVariables));
-    }
-
-    private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
+    @Override
+    protected <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Callback<T> callback = new Callback<>(converters, entity);
         final ClientHttpResponse response = execute(method, url, callback);
@@ -88,30 +60,5 @@ public final class Rest {
 
     public static Rest create(final RestTemplate template) {
         return new Rest(template);
-    }
-
-    public class RestWithURL {
-
-        private final URI url;
-
-        private RestWithURL(final URI url) {
-            this.url = url;
-        }
-
-        public Dispatcher execute(final HttpMethod method) {
-            return Rest.this.execute(method, url, HttpEntity.EMPTY);
-        }
-
-        public Dispatcher execute(final HttpMethod method, final HttpHeaders headers) {
-            return Rest.this.execute(method, url, new HttpEntity<>(headers));
-        }
-
-        public Dispatcher execute(final HttpMethod method, final Object body) {
-            return Rest.this.execute(method, url, new HttpEntity<>(body));
-        }
-
-        public Dispatcher execute(final HttpMethod method, final HttpHeaders headers, final Object body) {
-            return Rest.this.execute(method, url, new HttpEntity<>(body, headers));
-        }
     }
 }
