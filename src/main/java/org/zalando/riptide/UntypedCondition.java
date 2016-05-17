@@ -44,6 +44,13 @@ public final class UntypedCondition<A> {
         });
     }
 
+    public Binding<A> call(final ThrowingRunnable<?> consumer) {
+        return Binding.create(attribute, (response, converters) -> {
+            consumer.run();
+            return none();
+        });
+    }
+
     public Capturer<A> map(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
         return () -> Binding.create(attribute, (response, converters) ->
                 Capture.valueOf(function.apply(response)));
