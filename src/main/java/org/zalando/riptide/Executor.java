@@ -25,9 +25,10 @@ import org.springframework.http.converter.HttpMessageConverter;
 
 import java.util.List;
 
+// TODO rename
 @FunctionalInterface
 interface Executor {
 
-    Capture execute(ClientHttpResponse response, List<HttpMessageConverter<?>> converters) throws Exception;
+    Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws Exception;
 
 }

@@ -77,7 +77,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(verifier),
+                        on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(anyResponseEntityOf(AccountBody.class));
@@ -101,7 +101,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(verifier),
+                        on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(any(AccountBody.class));
@@ -135,7 +135,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(this::validateEntity),
+                        on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail));
     }
 
@@ -152,7 +152,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(this::validateResponse),
+                        on(OK).call(AccountBody.class, this::validateResponse),
                         anyStatus().call(this::fail));
     }
 

@@ -40,7 +40,7 @@ final class TypedCapture<T> implements Capture {
 
     @Override
     public boolean has(TypeToken<?> other) {
-        return other.isAssignableFrom(type);
+        return other.isSupertypeOf(type);
     }
 
     @Override

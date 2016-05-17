@@ -32,16 +32,8 @@ public final class Conditions {
         // package private so we can trick code coverage
     }
 
-    public static <A> UntypedCondition<A> on(final A attribute) {
-        return new UntypedCondition<>(Optional.of(attribute));
-    }
-
-    public static <A, I> TypedCondition<A, I> on(final A attribute, final Class<I> type) {
-        return on(attribute, TypeToken.of(type));
-    }
-
-    public static <A, I> TypedCondition<A, I> on(final A attribute, final TypeToken<I> type) {
-        return new TypedCondition<>(attribute, type);
+    public static <A> Condition<A> on(final A attribute) {
+        return new Condition<>(Optional.of(attribute));
     }
 
     /**
@@ -57,7 +49,7 @@ public final class Conditions {
      * @see #anyStatusCode()
      * @see #anyContentType()
      */
-    public static <A> UntypedCondition<A> any(final Class<A> type) {
+    public static <A> Condition<A> any(final Class<A> type) {
         return any(TypeToken.of(type));
     }
 
@@ -74,23 +66,23 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> UntypedCondition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
-        return new UntypedCondition<>(Optional.<A>empty());
+    public static <A> Condition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
+        return new Condition<>(Optional.<A>empty());
     }
 
-    public static UntypedCondition<HttpStatus.Series> anySeries() {
+    public static Condition<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
     }
 
-    public static UntypedCondition<HttpStatus> anyStatus() {
+    public static Condition<HttpStatus> anyStatus() {
         return any(HttpStatus.class);
     }
     
-    public static UntypedCondition<Integer> anyStatusCode() {
+    public static Condition<Integer> anyStatusCode() {
         return any(Integer.class);
     }
 
-    public static UntypedCondition<MediaType> anyContentType() {
+    public static Condition<MediaType> anyContentType() {
         return any(MediaType.class);
     }
 

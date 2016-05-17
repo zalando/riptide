@@ -90,16 +90,16 @@ public final class NestedDispatchTest {
                 .dispatch(series(),
                         on(SUCCESSFUL)
                                 .dispatch(status(),
-                                        on(CREATED, Success.class).capture(),
-                                        on(ACCEPTED, Success.class).capture(),
+                                        on(CREATED).capture(Success.class),
+                                        on(ACCEPTED).capture(Success.class),
                                         anyStatus().call(this::fail)),
                         on(CLIENT_ERROR)
                                 .dispatch(status(),
                                         on(UNAUTHORIZED).capture(),
                                         on(UNPROCESSABLE_ENTITY)
                                                 .dispatch(contentType(),
-                                                        on(PROBLEM, Problem.class).capture(),
-                                                        on(ERROR, Problem.class).capture(),
+                                                        on(PROBLEM).capture(Problem.class),
+                                                        on(ERROR).capture(Problem.class),
                                                         anyContentType().call(this::fail)),
                                         anyStatus().call(this::fail)),
                         on(SERVER_ERROR)
@@ -154,7 +154,7 @@ public final class NestedDispatchTest {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
-                        .contentType(PROBLEM));
+                        .contentType(ERROR));
 
         final Problem problem = perform(Problem.class);
 

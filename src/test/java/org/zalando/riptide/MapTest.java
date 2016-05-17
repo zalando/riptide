@@ -70,23 +70,9 @@ public final class MapTest {
     }
 
     @Test
-    public void shouldMapResponse() {
+    public void shouldCaptureResponse() {
         answerWithAccount();
         final Account account = dispatch(on(OK).capture(this::fromResponse));
-        verify(account);
-    }
-
-    @Test
-    public void shouldMapTypedResponse() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK).capture(this::fromResponse, Account.class));
-        verify(account);
-    }
-
-    @Test
-    public void shouldMapAndCaptureTypedResponse() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK).map(this::fromResponse, Account.class).capture());
         verify(account);
     }
 
@@ -97,23 +83,10 @@ public final class MapTest {
     }
 
     @Test
-    public void shouldMapEntity() {
+    public void shouldCaptureEntity() {
         answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).capture(this::fromEntity));
-        verify(account);
-    }
-
-    @Test
-    public void shouldMapTypedEntity() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).capture(this::fromEntity, Account.class));
-        verify(account);
-    }
-
-    @Test
-    public void shouldMapAndCaptureTypedEntity() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromEntity, Account.class).capture());
+        final Account account = dispatch(
+                on(OK).capture(AccountBody.class, this::fromEntity));
         verify(account);
     }
 
@@ -122,23 +95,9 @@ public final class MapTest {
     }
 
     @Test
-    public void shouldMapResponseEntity() {
+    public void shouldCaptureResponseEntity() {
         answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).capture(this::fromResponseEntity));
-        verify(account, REVISION);
-    }
-
-    @Test
-    public void shouldMapTypedResponseEntity() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).capture(this::fromResponseEntity, Account.class));
-        verify(account, REVISION);
-    }
-
-    @Test
-    public void shouldAndCaptureMapTypedResponseEntity() {
-        answerWithAccount();
-        final Account account = dispatch(on(OK, AccountBody.class).map(this::fromResponseEntity, Account.class).capture());
+        final Account account = dispatch(on(OK).capture(AccountBody.class, this::fromResponseEntity));
         verify(account, REVISION);
     }
 
@@ -154,12 +113,6 @@ public final class MapTest {
         dispatch(on(OK).capture(this::validateResponse));
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnTypedResponse() {
-        answerWithAccount();
-        dispatch(on(OK).capture(this::validateResponse, Account.class));
-    }
-
     private Account validateResponse(final ClientHttpResponse response) throws CheckedException {
         throw new CheckedException();
     }
@@ -167,13 +120,7 @@ public final class MapTest {
     @Test(expected = CheckedException.class)
     public void shouldThrowCheckedExceptionOnEntity() {
         answerWithAccount();
-        dispatch(on(OK, AccountBody.class).capture(this::validateEntity));
-    }
-
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnTypedEntity() {
-        answerWithAccount();
-        dispatch(on(OK, AccountBody.class).capture(this::validateEntity, Account.class));
+        dispatch(on(OK).capture(AccountBody.class, this::validateEntity));
     }
 
     private Account validateEntity(final AccountBody account) throws CheckedException {
@@ -183,13 +130,7 @@ public final class MapTest {
     @Test(expected = CheckedException.class)
     public void shouldThrowCheckedExceptionOnResponseEntity() {
         answerWithAccount();
-        dispatch(on(OK, AccountBody.class).capture(this::validateResponseEntity));
-    }
-
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnTypedResponseEntity() {
-        answerWithAccount();
-        dispatch(on(OK, AccountBody.class).capture(this::validateResponseEntity, Account.class));
+        dispatch(on(OK).capture(AccountBody.class, this::validateResponseEntity));
     }
 
     private Account validateResponseEntity(final AccountBody account) throws CheckedException {

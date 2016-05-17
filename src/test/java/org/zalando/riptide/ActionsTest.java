@@ -141,7 +141,7 @@ public final class ActionsTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(UNPROCESSABLE_ENTITY, ThrowableProblem.class).call(propagate()),
+                        on(UNPROCESSABLE_ENTITY).call(ThrowableProblem.class, propagate()),
                         anyStatus().call(this::fail));
     }
 
@@ -152,7 +152,7 @@ public final class ActionsTest {
 
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).map(normalize(url)).capture())
+                        on(SUCCESSFUL).capture(normalize(url)))
                 .to(ClientHttpResponse.class);
 
         assertThat(response, hasToString(notNullValue()));
@@ -167,7 +167,7 @@ public final class ActionsTest {
 
         final URI location = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).map(normalize(url).andThen(location())).capture())
+                        on(SUCCESSFUL).capture(normalize(url).andThen(location())))
                 .to(URI.class);
 
         assertThat(location, hasToString("https://api.example.com/accounts/456"));
@@ -182,7 +182,7 @@ public final class ActionsTest {
 
         final URI location = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).map(normalize(url).andThen(contentLocation())).capture())
+                        on(SUCCESSFUL).capture(normalize(url).andThen(contentLocation())))
                 .to(URI.class);
 
         assertThat(location, hasToString("https://api.example.com/accounts/456"));
@@ -200,7 +200,7 @@ public final class ActionsTest {
 
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).map(normalize(url)).capture())
+                        on(SUCCESSFUL).capture(normalize(url)))
                 .to(ClientHttpResponse.class);
 
         assertThat(response.getHeaders().getLocation(), hasToString("https://api.example.com/accounts/456"));

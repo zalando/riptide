@@ -70,9 +70,9 @@ public final class RedirectTest {
 
     private String send(URI url) {
         return unit.execute(POST, url).dispatch(series(),
-                on(SUCCESSFUL, String.class).capture(),
-                on(REDIRECTION).map(response ->
-                        send(response.getHeaders().getLocation())).capture())
+                on(SUCCESSFUL).capture(String.class),
+                on(REDIRECTION).capture(response ->
+                        send(response.getHeaders().getLocation())))
                 .to(String.class);
     }
 

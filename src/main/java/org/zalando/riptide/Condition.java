@@ -1,0 +1,141 @@
+package org.zalando.riptide;
+
+/*
+ * ⁣​
+ * Riptide
+ * ⁣⁣
+ * Copyright (C) 2015 Zalando SE
+ * ⁣⁣
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ​⁣
+ */
+
+import com.google.common.reflect.TypeToken;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.HttpMessageConverterExtractor;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Arrays.asList;
+import static org.zalando.riptide.Capture.none;
+
+public final class Condition<A> {
+
+    private final Router router = new Router();
+    private final Optional<A> attribute;
+
+    Condition(final Optional<A> attribute) {
+        this.attribute = attribute;
+    }
+
+    public Binding<A> capture() {
+        return Binding.create(attribute, (response, converters) ->
+                Capture.valueOf(response, ClientHttpResponse.class));
+    }
+
+    public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
+        return Binding.create(attribute, (response, converters) ->
+                Capture.valueOf(function.apply(response)));
+    }
+
+    public Binding<A> call(final ThrowingRunnable<?> consumer) {
+        return Binding.create(attribute, (response, converters) -> {
+            consumer.run();
+            return none();
+        });
+    }
+
+    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ?> consumer) {
+        return Binding.create(attribute, (response, converters) -> {
+            consumer.accept(response);
+            return none();
+        });
+    }
+
+    // TODO ResponseEntity<T> version of this?
+    public <I> Binding<A> capture(final Class<I> type) {
+        return capture(TypeToken.of(type));
+    }
+
+    public <I> Binding<A> capture(final TypeToken<I> type) {
+        return Binding.create(attribute, (response, converters) ->
+                Capture.valueOf(convert(type, response, converters), type));
+    }
+
+    public <I> Binding<A> capture(final Class<I> type, final EntityFunction<I, ?, ?> function) {
+        return capture(TypeToken.of(type), function);
+    }
+
+    public <I> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, ?, ?> function) {
+        return Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(type, response, converters);
+            return Capture.valueOf(function.apply(entity));
+        });
+    }
+
+    public <I> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, ?, ?> function) {
+        return capture(TypeToken.of(type), function);
+    }
+
+    public <I> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, ?, ?> function) {
+        return Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(type, response, converters);
+            return Capture.valueOf(function.apply(toResponseEntity(entity, response)));
+        });
+    }
+
+    public <I> Binding<A> call(final Class<I> type, final EntityConsumer<I, ?> consumer) {
+        return call(TypeToken.of(type), consumer);
+    }
+
+    public <I> Binding<A> call(final TypeToken<I> type, final EntityConsumer<I, ?> consumer) {
+        return Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(type, response, converters);
+            consumer.accept(entity);
+            return none();
+        });
+    }
+
+    public <I> Binding<A> call(final Class<I> type, final ResponseEntityConsumer<I, ?> consumer) {
+        return call(TypeToken.of(type), consumer);
+    }
+
+    public <I> Binding<A> call(final TypeToken<I> type, ResponseEntityConsumer<I, ?> consumer) {
+        return Binding.create(attribute, (response, converters) -> {
+            final I entity = convert(type, response, converters);
+            consumer.accept(toResponseEntity(entity, response));
+            return none();
+        });
+    }
+
+    @SafeVarargs
+    public final <B> Binding<A> dispatch(final Selector<B> selector, final Binding<B>... bindings) {
+        return Binding.create(attribute, (response, converters) ->
+                router.route(response, converters, selector, asList(bindings)));
+    }
+
+    private static <I> ResponseEntity<I> toResponseEntity(final I entity, final ClientHttpResponse response)
+            throws IOException {
+        return new ResponseEntity<>(entity, response.getHeaders(), response.getStatusCode());
+    }
+
+    private static <I> I convert(final TypeToken<I> type, final ClientHttpResponse response,
+            final List<HttpMessageConverter<?>> converters) throws IOException {
+        return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+    }
+
+}
