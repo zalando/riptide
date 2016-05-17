@@ -20,22 +20,18 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
 
 import java.util.List;
 
-import static org.zalando.riptide.AsyncRest.handle;
-import static org.zalando.riptide.Binding.route;
+import static java.util.Arrays.asList;
 
 public final class AsyncDispatcher {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AsyncRest.class);
 
     private final List<HttpMessageConverter<?>> converters;
     private final ListenableFuture<ClientHttpResponse> future;
@@ -49,15 +45,15 @@ public final class AsyncDispatcher {
     }
 
     @SafeVarargs
-    public final <A> void dispatch(final Selector<A> selector, final Binding<A>... bindings) {
-        dispatch(selector, route(bindings), handle(throwable ->
-                LOG.error("Failed to dispatch asynchronously", throwable)));
+    public final <A> ListenableFuture<Capture> dispatch(Selector<A> selector, Binding<A>... bindings) {
+        return dispatch(selector, asList(bindings));
     }
 
-    public final <A> void dispatch(final Selector<A> selector, final List<Binding<A>> bindings,
-            final FailureCallback callback) {
+    public final <A> ListenableFuture<Capture> dispatch(final Selector<A> selector, final List<Binding<A>> bindings) {
+        final SettableListenableFuture<Capture> capture = new SettableListenableFuture<>();
+
         final SuccessCallback<ClientHttpResponse> success = response ->
-                router.route(response, converters, selector, bindings);
+                capture.set(router.route(response, converters, selector, bindings));
 
         final FailureCallback failure = exception -> {
             try {
@@ -65,11 +61,13 @@ public final class AsyncDispatcher {
             } catch (AlreadyConsumedResponseException e) {
                 success.onSuccess(e.getResponse());
             } catch (Throwable throwable) {
-                callback.onFailure(throwable);
+                capture.setException(throwable);
             }
         };
 
         future.addCallback(success, failure);
+
+        return capture;
     }
 
 }
