@@ -43,24 +43,24 @@ public final class Condition<A> {
     }
 
     public Binding<A> capture() {
-        return Binding.create(attribute, (response, converters) ->
+        return bind((response, converters) ->
                 Capture.valueOf(response, ClientHttpResponse.class));
     }
 
     public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
-        return Binding.create(attribute, (response, converters) ->
+        return bind((response, converters) ->
                 Capture.valueOf(function.apply(response)));
     }
 
     public Binding<A> call(final ThrowingRunnable<?> consumer) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             consumer.run();
             return none();
         });
     }
 
     public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ?> consumer) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             consumer.accept(response);
             return none();
         });
@@ -72,7 +72,7 @@ public final class Condition<A> {
     }
 
     public <I> Binding<A> capture(final TypeToken<I> type) {
-        return Binding.create(attribute, (response, converters) ->
+        return bind((response, converters) ->
                 Capture.valueOf(convert(type, response, converters), type));
     }
 
@@ -81,7 +81,7 @@ public final class Condition<A> {
     }
 
     public <I> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, ?, ?> function) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(entity));
         });
@@ -92,7 +92,7 @@ public final class Condition<A> {
     }
 
     public <I> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, ?, ?> function) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(toResponseEntity(entity, response)));
         });
@@ -103,7 +103,7 @@ public final class Condition<A> {
     }
 
     public <I> Binding<A> call(final TypeToken<I> type, final EntityConsumer<I, ?> consumer) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             consumer.accept(entity);
             return none();
@@ -115,7 +115,7 @@ public final class Condition<A> {
     }
 
     public <I> Binding<A> call(final TypeToken<I> type, ResponseEntityConsumer<I, ?> consumer) {
-        return Binding.create(attribute, (response, converters) -> {
+        return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             consumer.accept(toResponseEntity(entity, response));
             return none();
@@ -124,8 +124,12 @@ public final class Condition<A> {
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(final Selector<B> selector, final Binding<B>... bindings) {
-        return Binding.create(attribute, (response, converters) ->
+        return bind((response, converters) ->
                 router.route(response, converters, selector, asList(bindings)));
+    }
+
+    private Binding<A> bind(final Executor executor) {
+        return Binding.create(attribute, executor);
     }
 
     private static <I> ResponseEntity<I> toResponseEntity(final I entity, final ClientHttpResponse response)
