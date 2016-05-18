@@ -4,7 +4,7 @@ package org.zalando.riptide;
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 - 2016 Zalando SE
+ * Copyright (C) 2015 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,59 +21,66 @@ package org.zalando.riptide;
  */
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.Series.REDIRECTION;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Conditions.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Selectors.reasonPhrase;
 
-public final class RedirectTest {
+
+@RunWith(Parameterized.class)
+public final class ReasonPhraseDispatchTest {
+
+    private final URI url = URI.create("https://api.example.com");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public RedirectTest() {
+    private final String expected;
+
+    public ReasonPhraseDispatchTest(final String expected) {
+        this.expected = expected;
         final RestTemplate template = new RestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
-    @Test
-    public void shouldFollowRedirect() {
-        final URI originalUrl = URI.create("https://api.example.com/accounts/123");
-        final URI redirectUrl = URI.create("https://api.example.org/accounts/123");
-
-        server.expect(requestTo(originalUrl)).andRespond(
-                withStatus(HttpStatus.MOVED_PERMANENTLY)
-                        .location(redirectUrl));
-
-        server.expect(requestTo(redirectUrl)).andRespond(
-                withSuccess()
-                        .contentType(MediaType.TEXT_PLAIN)
-                        .body("123"));
-
-        assertThat(send(originalUrl), is("123"));
+    @Parameterized.Parameters(name = "{0}")
+    public static Iterable<Object[]> data() {
+        return HttpStatuses.supported()
+                .map(HttpStatus::getReasonPhrase)
+                .map(s -> new Object[]{s})
+                .collect(toList());
     }
 
-    private String send(final URI url) {
-        return unit.execute(POST, url).dispatch(series(),
-                on(SUCCESSFUL).capture(String.class),
-                on(REDIRECTION).capture(response ->
-                        send(response.getHeaders().getLocation())))
-                .to(String.class);
+    @Test
+    public void shouldDispatch() {
+        server.expect(requestTo(url)).andRespond(withStatus(HttpStatuses.supported()
+                .filter(s -> s.getReasonPhrase().equals(expected))
+                .findFirst().get()));
+
+        final ClientHttpResponseConsumer verifier = response ->
+                assertThat(response.getStatusText(), is(expected));
+
+        @SuppressWarnings("unchecked")
+        final Binding<String>[] bindings = HttpStatuses.supported()
+                .map(HttpStatus::getReasonPhrase)
+                .map(reasonPhrase -> on(reasonPhrase).call(verifier))
+                .toArray(Binding[]::new);
+
+        unit.execute(GET, url).dispatch(reasonPhrase(), bindings);
     }
 
 }

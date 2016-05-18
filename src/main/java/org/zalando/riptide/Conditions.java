@@ -24,8 +24,6 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.util.Optional;
-
 public final class Conditions {
 
     Conditions() {
@@ -33,7 +31,7 @@ public final class Conditions {
     }
 
     public static <A> Condition<A> on(final A attribute) {
-        return new Condition<>(Optional.of(attribute));
+        return new Condition<>(attribute);
     }
 
     /**
@@ -52,7 +50,7 @@ public final class Conditions {
     public static <A> Condition<A> any(final Class<A> type) {
         return any(TypeToken.of(type));
     }
-
+    
     /**
      * Creates a wildcard condition for the given type. Note that this method is meant to be
      * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
@@ -67,7 +65,7 @@ public final class Conditions {
      * @see #anyContentType() 
      */
     public static <A> Condition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
-        return new Condition<>(Optional.<A>empty());
+        return new Condition<>(null);
     }
 
     public static Condition<HttpStatus.Series> anySeries() {

@@ -23,6 +23,8 @@ package org.zalando.riptide;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -34,37 +36,45 @@ import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
 /**
  * @see Selectors#contentType()
  */
-final class ContentTypeSelector implements Selector<MediaType> {
+enum ContentTypeSelector implements EqualitySelector<MediaType> {
+
+    INSTANCE;
 
     private static final Comparator<Binding<MediaType>> BY_SPECIFICITY =
-            comparing(b -> b.getAttribute().get(), SPECIFICITY_COMPARATOR);
+            comparing(Binding::getAttribute, SPECIFICITY_COMPARATOR);
+
+
+    @Nullable
+    @Override
+    public MediaType attributeOf(ClientHttpResponse response) throws IOException {
+        return response.getHeaders().getContentType();
+    }
 
     @Override
-    public Optional<MediaType> attributeOf(final ClientHttpResponse response) {
-        return Optional.ofNullable(response.getHeaders().getContentType());
+    public Binding<MediaType> select(@Nullable final MediaType contentType,
+            final Map<MediaType, Binding<MediaType>> bindings) {
+
+        if (contentType == null) {
+            return null;
+        }
+
+        return Optional.ofNullable(exactMatch(contentType, bindings))
+                .orElseGet(bestMatch(contentType, bindings));
     }
 
-    @Override
-    public Optional<Binding<MediaType>> select(final Optional<MediaType> attribute,
-            final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
-
-        return exactMatch(attribute, bindings)
-                // needed because orElseGet unpacks the Optional, but we need one to return
-                .map(Optional::of)
-                .orElseGet(bestMatch(attribute, bindings));
+    @Nullable
+    private Binding<MediaType> exactMatch(@Nullable final MediaType attribute,
+            final Map<MediaType, Binding<MediaType>> bindings) {
+        return EqualitySelector.super.select(attribute, bindings);
     }
 
-    private Optional<Binding<MediaType>> exactMatch(final Optional<MediaType> attribute,
-            final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
-        return Selector.super.select(attribute, bindings);
-    }
+    private Supplier<Binding<MediaType>> bestMatch(@Nullable final MediaType attribute,
+            final Map<MediaType, Binding<MediaType>> bindings) {
 
-    private Supplier<Optional<Binding<MediaType>>> bestMatch(final Optional<MediaType> attribute, final Map<Optional<MediaType>, Binding<MediaType>> bindings) {
-        return () -> attribute.flatMap(a -> bindings.values().stream()
-                .filter(b -> b.getAttribute().isPresent())
+        return () -> bindings.values().stream()
                 .sorted(BY_SPECIFICITY)
-                .filter(b -> b.getAttribute().get().includes(a))
-                .findFirst());
+                .filter(binding -> binding.getAttribute().includes(attribute))
+                .findFirst().orElse(null);
     }
 
 }

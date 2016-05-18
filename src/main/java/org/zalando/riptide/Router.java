@@ -24,89 +24,85 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.function.Predicate;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toList;
 
 final class Router {
 
-    private static final Optional WILDCARD = Optional.empty();
-
-    final <A> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
+    final <A, S> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final Selector<A> selector, final Collection<Binding<A>> bindings) {
 
-        final Optional<A> attribute;
+        @Nullable
+        final Binding<A> wildcard = findWildcard(bindings);
 
         try {
-            attribute = selector.attributeOf(response);
-        } catch (final IOException e) {
-            throw new RestClientException("Unable to retrieve attribute of response", e);
-        }
+            final Collection<Binding<A>> nonWildcardBindings = bindings.stream()
+                    .filter(not(isWildcard())).collect(toList());
+            final Binding<A> match = selector.select(response, nonWildcardBindings);
 
-        final Map<Optional<A>, Binding<A>> index = bindings.stream()
-                .collect(toMap(Binding::getAttribute, identity(), this::denyDuplicates, LinkedHashMap::new));
-
-        final Optional<Binding<A>> match = selector.select(attribute, index);
-
-        try {
-            if (match.isPresent()) {
-                final Binding<A> binding = match.get();
-
-                try {
-                    return binding.execute(response, converters);
-                } catch (final NoRouteException e) {
-                    return propagateNoMatch(response, converters, index, e);
-                }
+            if (match == null) {
+                return routeToWildcardIfPossible(wildcard, response, converters);
             } else {
-                return routeNone(response, converters, index);
+                try {
+                    return match.execute(response, converters);
+                } catch (final NoRouteException e) {
+                    return bubbleUpToWildcardIfPossible(wildcard, response, converters, e);
+                }
             }
         } catch (final IOException e) {
             throw new RestClientException("Unable to execute binding", e);
         }
     }
 
-    private <A> Binding<A> denyDuplicates(final Binding<A> left, final Binding<A> right) {
-        left.getAttribute().ifPresent(a -> {
-            throw new IllegalStateException("Duplicate condition attribute: " + a);
-        });
+    @Nullable
+    private <A> Binding<A> findWildcard(final Collection<Binding<A>> bindings) {
+        final List<Binding<A>> list = bindings.stream()
+                .filter(isWildcard())
+                .collect(toList());
 
-        throw new IllegalStateException("Duplicate any conditions");
+        switch (list.size()) {
+            case 0:
+                return null;
+            case 1:
+                return list.get(0);
+            default:
+                throw new IllegalArgumentException("Multiple wildcard entries");
+        }
+     }
+
+    private <A> Predicate<Binding<A>> isWildcard() {
+        return binding -> binding.getAttribute() == null;
     }
 
-    private <A> Capture propagateNoMatch(final ClientHttpResponse response,
-            final List<HttpMessageConverter<?>> converters, final Map<Optional<A>, Binding<A>> bindings,
+    private <T> Predicate<T> not(final Predicate<T> predicate) {
+        return predicate.negate();
+    }
+
+    private <A> Capture bubbleUpToWildcardIfPossible(final @Nullable Binding<A> wildcard,
+            final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final NoRouteException e) throws IOException {
+
         try {
-            return routeNone(response, converters, bindings);
+            return routeToWildcardIfPossible(wildcard, response, converters);
         } catch (final NoRouteException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
-    private <A> Capture routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Map<Optional<A>, Binding<A>> bindings) throws IOException {
+    private <A> Capture routeToWildcardIfPossible(final @Nullable Binding<A> wildcard,
+            final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
 
-        if (containsWildcard(bindings)) {
-            final Binding<A> binding = getWildcard(bindings);
-            return binding.execute(response, converters);
-        } else {
+        if (wildcard == null) {
             throw new NoRouteException(response);
+        } else {
+            return wildcard.execute(response, converters);
         }
-    }
-
-    private <A> boolean containsWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.containsKey(WILDCARD);
-    }
-
-    private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.get(WILDCARD);
     }
 
 }

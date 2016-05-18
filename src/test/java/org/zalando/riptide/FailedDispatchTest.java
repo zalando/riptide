@@ -178,7 +178,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPropagateIfNoMatch() throws IOException {
+    public void shouldPropagateIfNoMatch() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -200,7 +200,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPropagateMultipleLevelsIfNoMatch() throws IOException {
+    public void shouldPropagateMultipleLevelsIfNoMatch() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))

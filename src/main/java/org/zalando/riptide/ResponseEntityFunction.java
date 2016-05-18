@@ -23,6 +23,6 @@ package org.zalando.riptide;
 import org.springframework.http.ResponseEntity;
 
 @FunctionalInterface
-public interface ResponseEntityFunction<F, T, X extends Exception> extends ThrowingFunction<ResponseEntity<F>, T, X> {
+public interface ResponseEntityFunction<F, T> extends ThrowingFunction<ResponseEntity<F>, T> {
 
 }

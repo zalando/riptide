@@ -24,16 +24,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * @see Selectors#status()
  */
-final class StatusSelector implements Selector<HttpStatus> {
+enum StatusSelector implements EqualitySelector<HttpStatus> {
+
+    INSTANCE;
 
     @Override
-    public Optional<HttpStatus> attributeOf(final ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getStatusCode());
+    public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusCode();
     }
 
 }

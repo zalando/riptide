@@ -20,9 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-@FunctionalInterface
-public interface ThrowingConsumer<T, X extends Exception> {
+import java.util.Objects;
 
-    void accept(T input) throws X;
+@FunctionalInterface
+public interface ThrowingConsumer<T> {
+
+    void accept(T input) throws Exception;
+
+    default ThrowingConsumer<T> andThen(ThrowingConsumer<? super T> after) {
+        Objects.requireNonNull(after);
+        return (T t) -> { accept(t); after.accept(t); };
+    }
 
 }

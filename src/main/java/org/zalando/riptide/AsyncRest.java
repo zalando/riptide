@@ -75,12 +75,12 @@ public final class AsyncRest {
     public static <T> ListenableFutureCallback<T> handle(final FailureCallback callback) {
         return new ListenableFutureCallback<T>() {
             @Override
-            public void onSuccess(T result) {
+            public void onSuccess(final T result) {
                 // ignored
             }
 
             @Override
-            public void onFailure(Throwable ex) {
+            public void onFailure(final Throwable ex) {
                 callback.onFailure(ex);
             }
         };

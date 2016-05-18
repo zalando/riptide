@@ -23,16 +23,17 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * @see Selectors#status()
  */
-final class StatusCodeSelector implements Selector<Integer> {
+enum StatusCodeSelector implements EqualitySelector<Integer> {
+
+    INSTANCE;
 
     @Override
-    public Optional<Integer> attributeOf(final ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getRawStatusCode());
+    public Integer attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getRawStatusCode();
     }
 
 }
