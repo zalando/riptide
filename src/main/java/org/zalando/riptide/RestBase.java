@@ -28,41 +28,41 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriTemplateHandler;
 
-abstract class RestBase<TEMPLATE, DISPATCHER> {
+abstract class RestBase<T, D> {
 
     protected final Router router = new Router();
-    protected final TEMPLATE template;
+    protected final T template;
 
     private final Supplier<UriTemplateHandler> uriTemplateHandler;
 
-    protected RestBase(final TEMPLATE template, final Supplier<UriTemplateHandler> uriTemplateHandler) {
+    protected RestBase(final T template, final Supplier<UriTemplateHandler> uriTemplateHandler) {
         this.template = template;
         this.uriTemplateHandler = uriTemplateHandler;
     }
 
-    protected abstract <T> DISPATCHER execute(HttpMethod method, URI url, HttpEntity<T> entity);
+    protected abstract <T> D execute(HttpMethod method, URI url, HttpEntity<T> entity);
 
-    public RestWithURL<DISPATCHER> withUrl(final String uriTemplate, final Object... uriVariables) {
+    public RestWithURL<D> withUrl(final String uriTemplate, final Object... uriVariables) {
         return new RestWithURL<>(this, uriTemplateHandler.get().expand(uriTemplate, uriVariables));
     }
 
-    public RestWithURL<DISPATCHER> withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
+    public RestWithURL<D> withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
         return new RestWithURL<>(this, uriTemplateHandler.get().expand(uriTemplate, uriVariables));
     }
 
-    public DISPATCHER execute(final HttpMethod method, final URI url) {
+    public D execute(final HttpMethod method, final URI url) {
         return execute(method, url, HttpEntity.EMPTY);
     }
 
-    public DISPATCHER execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
+    public D execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
         return execute(method, url, new HttpEntity<>(headers));
     }
 
-    public DISPATCHER execute(final HttpMethod method, final URI url, final Object body) {
+    public D execute(final HttpMethod method, final URI url, final Object body) {
         return execute(method, url, new HttpEntity<>(body));
     }
 
-    public DISPATCHER execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
+    public D execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
         return execute(method, url, new HttpEntity<>(body, headers));
     }
 }
