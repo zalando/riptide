@@ -7,13 +7,13 @@
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
 
-*Riptide* is an extension to Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/) that offers 
+*Riptide* is an extension to Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/) that offers
 what we call ***client-side response routing***.
 
 It allows to dispatch HTTP responses very easily to different handler methods based on any characteristic of the
 response, including but not limited to status code, status family and content type. The way this works is intentionally
 very similar to server-side request routing where any request that reaches a web application is usually routed to the
-correct handler based on any combination of the following criteria: URI including query and path parameters, method, 
+correct handler based on any combination of the following criteria: URI including query and path parameters, method,
 `Accept` and `Content-Type` header. Instead of routing requests to handler methods on the server what *Riptide* does
 is the exact opposite: routing responses to handler methods on the client side.
 
@@ -91,6 +91,14 @@ void onSuccess(ResponseEntity<Success> success) throws Exception;
 
 The later one is useful if you e.g. need access to one or more header values.
 
+Url template with variable expansion can be used in a same way as in `RestTemplate`, e.g.:
+
+```java
+rest.withUrl("https://example.com/posts/{id}?filter={filter}", postId, filter)
+    .execute(GET)
+    ...
+```
+
 ### Selectors
 
 Routing of responses is controlled by a `Selector`, e.g. `status()` in the former example.
@@ -133,9 +141,9 @@ anySeries().call(..)
 
 Conditions can either be:
 
-1. *untyped*, e.g. `on(SUCCESS)`, 
-2. *typed*, e.g. `on(CLIENT_ERROR, Problem.class)` or 
-3. *wildcards*, e.g. `anySeries()`. 
+1. *untyped*, e.g. `on(SUCCESS)`,
+2. *typed*, e.g. `on(CLIENT_ERROR, Problem.class)` or
+3. *wildcards*, e.g. `anySeries()`.
 
 Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
 [`ClientHttpResponse`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
@@ -166,7 +174,7 @@ response will be routed to an action. An action can be one of the following type
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
 
-Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
+Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can
 later be retrieved, e.g. to produce a return value. Please be aware that captures are not available when using
 `AsyncRest`.
 
@@ -223,7 +231,7 @@ statement.
 
 ### Patterns and examples
 
-This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide: 
+This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide:
 
 #### Follow Redirects
 
@@ -250,9 +258,9 @@ private URI create(URI url, T body) {
 
 ### Exceptions
 
-*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
-`call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
-in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, there is a 
+*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to
+`call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)`
+in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, there is a
 special syntax for it:
 
 ```java
@@ -274,7 +282,7 @@ Notable differences between the signatures of `dispatch` in `Rest` and `AsyncRes
 <A> void dispatch(Selector<A> selector, List<Binding<A>> bindings, FailureCallback callback);
 ```
 
-The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and 
+The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
 
 ## Getting help
