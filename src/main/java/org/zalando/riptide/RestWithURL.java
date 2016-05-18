@@ -25,29 +25,29 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-public class RestWithURL<DISPATCHER> {
+public class RestWithURL<D> {
 
-    private final RestBase<?, DISPATCHER> rest;
+    private final RestBase<?, D> rest;
     private final URI url;
 
-    RestWithURL(final RestBase<?, DISPATCHER> rest, final URI url) {
+    RestWithURL(final RestBase<?, D> rest, final URI url) {
         this.rest = rest;
         this.url = url;
     }
 
-    public DISPATCHER execute(final HttpMethod method) {
+    public D execute(final HttpMethod method) {
         return rest.execute(method, url, HttpEntity.EMPTY);
     }
 
-    public DISPATCHER execute(final HttpMethod method, final HttpHeaders headers) {
+    public D execute(final HttpMethod method, final HttpHeaders headers) {
         return rest.execute(method, url, new HttpEntity<>(headers));
     }
 
-    public DISPATCHER execute(final HttpMethod method, final Object body) {
+    public D execute(final HttpMethod method, final Object body) {
         return rest.execute(method, url, new HttpEntity<>(body));
     }
 
-    public DISPATCHER execute(final HttpMethod method, final HttpHeaders headers, final Object body) {
+    public D execute(final HttpMethod method, final HttpHeaders headers, final Object body) {
         return rest.execute(method, url, new HttpEntity<>(body, headers));
     }
 }
