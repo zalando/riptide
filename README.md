@@ -68,7 +68,13 @@ that Riptide handles all success and error cases.
 
 **BEWARE** In case you're using the `OAuth2RestTemplate`: It uses the given `ResponseErrorHandler` in the wrong way,
 which may result in the response body being already consumed and/or closed. To workaround this issue use our special
-`OAuth2CompatibilityResponseErrorHandler` instead.
+`OAuth2CompatibilityResponseErrorHandler` instead:
+
+```java
+final OAuth2RestTemplate template = new OAuth2RestTemplate();
+template.setErrorHandler(new OAuth2CompatibilityResponseErrorHandler());
+final Rest rest = Rest.create(template);
+```
 
 ## Usage
 
@@ -126,22 +132,10 @@ An attribute can be a single scalar value but could be a complex type, based on 
 describe which concrete attribute values you want to bind to which actions.
 
 ```java
-on(SUCCESS).call(..)
-on(CLIENT_ERROR, Problem.class).call(..)
+on(SUCCESS).call(..),
+on(CLIENT_ERROR).call(..),
 anySeries().call(..)
 ```
-
-Conditions can either be:
-
-1. *untyped*, e.g. `on(SUCCESS)`, 
-2. *typed*, e.g. `on(CLIENT_ERROR, Problem.class)` or 
-3. *wildcards*, e.g. `anySeries()`. 
-
-Untyped conditions only support untyped actions, i.e. actions that operate on a low-level
-[`ClientHttpResponse`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
-while typed conditions support typed actions, i.e. actions that operate on custom types or typed
-[`ResponseEntity`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
-directly.
 
 Wildcard conditions are comparable to a `default` case in a switch. They take effect if no match was found. They are a
 very powerful tool in being a resilient client, i.e. you should consider to always have one wildcard condition to
@@ -153,18 +147,26 @@ handling of those cases upfront already.
 After the selector determined the attribute, the condition matched on a concrete attribute value the
 response will be routed to an action. An action can be one of the following types:
 
-| Action                                      | Syntax                         |
-|---------------------------------------------|--------------------------------|
-| `Consumer<ClientHttpResponse>`              | `on(..).call(..)`              |
-| `Runnable`                                  | `on(..).call(..)`              |
-| `Consumer<ResponseEntity<T>>`               | `on(.., ..).call(..)`          |
-| `Consumer<T>`                               | `on(.., ..).call(..)`          |
-| `Function<ClientHttpResponse, ?>` + capture | `on(..).map(..).capture()`     |
-| `Function<ResponseEntity<T>, ?>` + capture  | `on(.., ..).map(..).capture()` |
-| `Function<T, ?>` + capture                  | `on(.., ..).map(..).capture()` |
-| Nested Routing                              | `on(..).dispatch(..)`          |
+| Action                            | Syntax                               |
+|-----------------------------------|--------------------------------------|
+| n/a                               | `on(..).capture()`                   |
+| `Function<ClientHttpResponse, ?>` | `on(..).capture(Function)`           |
+| `Runnable`                        | `on(..).call(Runnable)`              |
+| `Consumer<ClientHttpResponse>`    | `on(..).call(Consumer)`              |
+| n/a                               | `on(..).capture(Class<T>)`           |
+| `Function<T, ?>`                  | `on(..).capture(Class<T>, Function)` |
+| `Function<ResponseEntity<T>, ?>`  | `on(..).capture(Class<T>, Function)` |
+| `Consumer<T>`                     | `on(..).call(Class<T>, Consumer)`    |
+| `Consumer<ResponseEntity<T>>`     | `on(..).call(Class<T>, Consumer)`    |
+| Nested Routing                    | `on(..).dispatch(..)`                |
 
 Consumers can be used to trigger some dedicated function and they work well if no return value is required.
+
+Actions can operate on a low-level
+[`ClientHttpResponses`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
+as well as on custom types or typed
+[`ResponseEntities`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
+directly.
 
 Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can 
 later be retrieved, e.g. to produce a return value.
@@ -209,14 +211,14 @@ responses:
 ```java
 Success success = rest.execute(GET, url)
         .dispatch(series(),
-                on(SUCCESSFUL, Success.class).capture(),
+                on(SUCCESSFUL).capture(Success.class),
                 on(CLIENT_ERROR)
                     .dispatch(status(),
                             on(UNAUTHORIZED).call(this::login),
                             on(UNPROCESSABLE_ENTITY)
                                     .dispatch(contentType(),
-                                            on(PROBLEM, ThrowableProblem.class).call(propagate()),
-                                            on(ERROR, Exception.class).call(propagate()))),
+                                            on(PROBLEM).call(ThrowableProblem.class, propagate()),
+                                            on(ERROR).call(Exception.class, propagate()))),
                 on(SERVER_ERROR)
                     .dispatch(statusCode(),
                             on(503).call(this::retryLater),
@@ -260,7 +262,7 @@ private URI create(URI url, T body) {
 ### Exceptions
 
 *Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to 
-`call` or `map` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
+`call` or `capture` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)` 
 in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, since the
 exception will be thrown in another thread. You can either retrieve the exception upon calling `Future.get(..)`:
 

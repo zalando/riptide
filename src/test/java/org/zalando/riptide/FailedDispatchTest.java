@@ -109,9 +109,9 @@ public final class FailedDispatchTest {
         unit.execute(GET, url)
                 .dispatch(contentType(),
                         // note that we don't match on application/json explicitly
-                        on(SUCCESS, Success.class).capture(),
-                        on(PROBLEM, Problem.class).capture(),
-                        on(ERROR, Error.class).capture());
+                        on(SUCCESS).capture(Success.class),
+                        on(PROBLEM).capture(Problem.class),
+                        on(ERROR).capture(Error.class));
     }
 
     @Test
@@ -128,9 +128,9 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL, Success.class).capture(),
+                                        on(SUCCESSFUL).capture(Success.class),
                                         anySeries().capture()),
-                        on(HttpStatus.CREATED, Success.class).capture(),
+                        on(HttpStatus.CREATED).capture(Success.class),
                         anyStatus().call(this::fail));
     }
 
@@ -148,9 +148,9 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL, Success.class).capture(),
+                                        on(SUCCESSFUL).capture(Success.class),
                                         anySeries().capture()),
-                        on(HttpStatus.CREATED, Success.class).capture(),
+                        on(HttpStatus.CREATED).capture(Success.class),
                         anyStatus().call(this::fail));
     }
 
@@ -165,9 +165,9 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(contentType(),
-                                        on(MediaTypes.SUCCESS, Success.class).capture(),
+                                        on(MediaTypes.SUCCESS).capture(Success.class),
                                         anyContentType().call(this::fail)),
-                        on(HttpStatus.CREATED, Success.class).capture(),
+                        on(HttpStatus.CREATED).capture(Success.class),
                         anyStatus().call(this::fail));
 
         assertThat(capture.as(Success.class).isPresent(), is(false));

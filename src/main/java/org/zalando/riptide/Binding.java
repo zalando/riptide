@@ -24,11 +24,10 @@ import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-public final class Binding<A> implements Executor {
+public final class Binding<A> {
 
     private final Optional<A> attribute;
     private final Executor executor;
@@ -42,14 +41,9 @@ public final class Binding<A> implements Executor {
         return attribute;
     }
 
-    @Override
     @SneakyThrows(Exception.class)
-    public Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
+    Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
         return executor.execute(response, converters);
-    }
-
-    static <A> Binding<A> create(final A attribute, final Executor executor) {
-        return create(Optional.of(attribute), executor);
     }
 
     static <A> Binding<A> create(final Optional<A> attribute, final Executor executor) {

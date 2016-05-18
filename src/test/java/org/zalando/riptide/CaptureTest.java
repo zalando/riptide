@@ -90,7 +90,7 @@ public final class CaptureTest {
 
         final AccountBody account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).capture(),
+                        on(OK).capture(AccountBody.class),
                         anyStatus().call(this::fail))
                 .to(AccountBody.class);
 
@@ -113,31 +113,7 @@ public final class CaptureTest {
 
         final Account account = unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).capture(this::extract),
-                        anyStatus().call(this::fail))
-                .to(Account.class);
-
-        assertThat(account.getId(), is("1234567890"));
-        assertThat(account.getRevision(), is(revision));
-        assertThat(account.getName(), is("Acme Corporation"));
-    }
-
-    @Test
-    public void shouldMapAndCaptureEntity() {
-        final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setETag(revision);
-
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON)
-                        .headers(headers));
-
-        final Account account = unit.execute(GET, url)
-                .dispatch(status(),
-                        on(OK, AccountBody.class).capture(this::extract),
+                        on(OK).capture(AccountBody.class, this::extract),
                         anyStatus().call(this::fail))
                 .to(Account.class);
 

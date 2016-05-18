@@ -72,9 +72,9 @@ public final class ContentTypeDispatchTest {
     private <T> T perform(final Class<T> type) {
         return unit.execute(GET, url)
                 .dispatch(contentType(),
-                        on(SUCCESS, Success.class).capture(),
-                        on(PROBLEM, Problem.class).capture(),
-                        on(ERROR, Error.class).capture(),
+                        on(SUCCESS).capture(Success.class),
+                        on(PROBLEM).capture(Problem.class),
+                        on(ERROR).capture(Error.class),
                         anyContentType().call(this::fail))
                 .to(type);
     }
@@ -129,7 +129,7 @@ public final class ContentTypeDispatchTest {
         final Success success = unit.execute(GET, url)
                 .dispatch(contentType(),
                         on(parseMediaType("application/*+json")).call(this::fail),
-                        on(SUCCESS, Success.class).capture(),
+                        on(SUCCESS).capture(Success.class),
                         anyContentType().call(this::fail))
                 .to(Success.class);
 
@@ -145,7 +145,7 @@ public final class ContentTypeDispatchTest {
 
         unit.execute(GET, url)
                 .dispatch(contentType(),
-                        on(SUCCESS, Success.class).capture(),
+                        on(SUCCESS).capture(Success.class),
                         anyContentType().capture());
     }
 
@@ -159,7 +159,7 @@ public final class ContentTypeDispatchTest {
         final Success success = unit.execute(GET, url)
                 .dispatch(contentType(),
                         on(SUCCESS_V1).call(this::fail),
-                        on(SUCCESS_V2, Success.class).capture(),
+                        on(SUCCESS_V2).capture(Success.class),
                         anyContentType().call(this::fail))
                 .to(Success.class);
 
