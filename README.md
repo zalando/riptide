@@ -82,8 +82,8 @@ Make a request and route the response to your specific handler methods/callbacks
 
 ```java
 rest.execute(GET, url).dispatch(status(),
-        on(CREATED, Success.class).call(this::onSuccess),
-        on(ACCEPTED, Success.class).call(this::onSuccess),
+        on(CREATED).call(Success.class, this::onSuccess),
+        on(ACCEPTED).call(Success.class, this::onSuccess),
         on(BAD_REQUEST).call(this::onError),
         anyStatus().call(this::fail));
 ```
