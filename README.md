@@ -1,4 +1,4 @@
-# Riptide
+# Riptide: Client-side response routing
 
 [![Tidal wave](docs/wave.jpg)](http://pixabay.com/en/wave-water-sea-tsunami-giant-wave-11061/)
 
