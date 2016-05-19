@@ -131,7 +131,7 @@ rest.execute(..).dispatch(status(),
 #### [Selectors.statusCode()](src/main/java/org/zalando/riptide/StatusCodeSelector.java)
 
 ```java
-rest.execute(..).dispatch(status(),
+rest.execute(..).dispatch(statusCode(),
     on(200).capture(),
     on(201).capture(),
     on(202).call(poll),
@@ -141,7 +141,7 @@ rest.execute(..).dispatch(status(),
 #### [Selectors.reasonPhrase()](src/main/java/org/zalando/riptide/ReasonPhraseSelector.java)
 
 ```java
-rest.execute(..).dispatch(status(),
+rest.execute(..).dispatch(reasonPhrase(),
     on("OK").capture(),
     on("Created").capture(),
     on("Accepted").call(poll),
@@ -165,13 +165,10 @@ rest.execute(..).dispatch(contentType(),
 You are free to write your own, which requires you to implement the following interface:
 
 ```java
-public interface Selector<S, A> {
+public interface Selector<A> {
 
     @Nullable
-    S attributeOf(ClientHttpResponse response) throws IOException;
-
-    @Nullable
-    Binding<A> select(@Nullable S attribute, Map<A, Binding<A>> bindings);
+    Binding<A> select(final ClientHttpResponse response, final Collection<Binding<A>> bindings) throws IOException;
 
 }
 ```
@@ -217,6 +214,9 @@ rest.execute(POST, ..).dispatch(isCurrentRepresentation(),
 Binary selectors should be used very rarely as they are naturally very limited in terms of usability. Having a lot
 of them also increases the size if your routing tree significantly. Compared to *equality selectors*, you can think
 of binary selectors as being nothing more than *if* statements.
+
+The only built-in binary selector checks whether the `Location` and `Content-Location` header are present and have the
+same value, i.e. whether a client can use the response body of a `POST` without the need for a second `GET` request:
 
 ```java
 enum CurrentRepresentationSelector implements BinarySelector {
