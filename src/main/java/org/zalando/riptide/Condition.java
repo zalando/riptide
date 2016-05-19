@@ -26,9 +26,9 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static org.zalando.riptide.Capture.none;
@@ -36,9 +36,9 @@ import static org.zalando.riptide.Capture.none;
 public final class Condition<A> {
 
     private final Router router = new Router();
-    private final Optional<A> attribute;
+    private final A attribute;
 
-    Condition(final Optional<A> attribute) {
+    Condition(@Nullable final A attribute) {
         this.attribute = attribute;
     }
 
@@ -47,19 +47,19 @@ public final class Condition<A> {
                 Capture.valueOf(response, ClientHttpResponse.class));
     }
 
-    public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?, ?> function) {
+    public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?> function) {
         return bind((response, converters) ->
                 Capture.valueOf(function.apply(response)));
     }
 
-    public Binding<A> call(final ThrowingRunnable<?> consumer) {
+    public Binding<A> call(final ThrowingRunnable consumer) {
         return bind((response, converters) -> {
             consumer.run();
             return none();
         });
     }
 
-    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ?> consumer) {
+    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse> consumer) {
         return bind((response, converters) -> {
             consumer.accept(response);
             return none();
@@ -76,33 +76,33 @@ public final class Condition<A> {
                 Capture.valueOf(convert(type, response, converters), type));
     }
 
-    public <I> Binding<A> capture(final Class<I> type, final EntityFunction<I, ?, ?> function) {
+    public <I> Binding<A> capture(final Class<I> type, final EntityFunction<I, ?> function) {
         return capture(TypeToken.of(type), function);
     }
 
-    public <I> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, ?, ?> function) {
+    public <I> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, ?> function) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(entity));
         });
     }
 
-    public <I> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, ?, ?> function) {
+    public <I> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, ?> function) {
         return capture(TypeToken.of(type), function);
     }
 
-    public <I> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, ?, ?> function) {
+    public <I> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, ?> function) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(toResponseEntity(entity, response)));
         });
     }
 
-    public <I> Binding<A> call(final Class<I> type, final EntityConsumer<I, ?> consumer) {
+    public <I> Binding<A> call(final Class<I> type, final EntityConsumer<I> consumer) {
         return call(TypeToken.of(type), consumer);
     }
 
-    public <I> Binding<A> call(final TypeToken<I> type, final EntityConsumer<I, ?> consumer) {
+    public <I> Binding<A> call(final TypeToken<I> type, final EntityConsumer<I> consumer) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             consumer.accept(entity);
@@ -110,11 +110,11 @@ public final class Condition<A> {
         });
     }
 
-    public <I> Binding<A> call(final Class<I> type, final ResponseEntityConsumer<I, ?> consumer) {
+    public <I> Binding<A> call(final Class<I> type, final ResponseEntityConsumer<I> consumer) {
         return call(TypeToken.of(type), consumer);
     }
 
-    public <I> Binding<A> call(final TypeToken<I> type, ResponseEntityConsumer<I, ?> consumer) {
+    public <I> Binding<A> call(final TypeToken<I> type, final ResponseEntityConsumer<I> consumer) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             consumer.accept(toResponseEntity(entity, response));

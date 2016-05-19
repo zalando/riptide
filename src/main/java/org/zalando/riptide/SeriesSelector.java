@@ -24,16 +24,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * @see Selectors#series()
  */
-final class SeriesSelector implements Selector<HttpStatus.Series> {
+enum SeriesSelector implements EqualitySelector<HttpStatus.Series> {
+
+    INSTANCE;
 
     @Override
-    public Optional<HttpStatus.Series> attributeOf(final ClientHttpResponse response) throws IOException {
-        return Optional.of(response.getStatusCode().series());
+    public HttpStatus.Series attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusCode().series();
     }
 
 }

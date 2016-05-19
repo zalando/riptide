@@ -74,11 +74,11 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldCall() {
+    public void shouldCall() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse, RuntimeException> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.execute(GET, url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
@@ -87,11 +87,10 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldCallWithoutParameters() {
+    public void shouldCallWithoutParameters() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        @SuppressWarnings("unchecked")
-        final ThrowingRunnable<RuntimeException> verifier = mock(ThrowingRunnable.class);
+        final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
         unit.execute(GET, url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
@@ -101,11 +100,11 @@ public final class AsyncTest {
 
 
     @Test
-    public void shouldCallWithHeaders() {
+    public void shouldCallWithHeaders() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse, RuntimeException> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.execute(GET, url, new HttpHeaders()).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
@@ -114,11 +113,11 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldCallWithBody() {
+    public void shouldCallWithBody() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse, RuntimeException> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.execute(GET, url, "test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
@@ -127,11 +126,11 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldCallWithHeadersAndBody() {
+    public void shouldCallWithHeadersAndBody() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse, RuntimeException> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.execute(GET, url, new HttpHeaders(), "test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier));

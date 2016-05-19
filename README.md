@@ -104,27 +104,135 @@ A selector selects the attribute(s) of a response you want to use to route it.
 
 Riptide comes with the following selectors:
 
-| Selector                                                                              | Attribute                                                                                                                  |
-|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| [Selectors.series()](src/main/java/org/zalando/riptide/SeriesSelector.java)           | [HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html) |
-| [Selectors.status()](src/main/java/org/zalando/riptide/StatusSelector.java)           | [HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)               |
-| [Selectors.statusCode()](src/main/java/org/zalando/riptide/StatusCodeSelector.java)   | [Integer](http://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html)                                                 |
-| [Selectors.contentType()](src/main/java/org/zalando/riptide/ContentTypeSelector.java) | [MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)                 |
+#### [Selectors.series()](src/main/java/org/zalando/riptide/SeriesSelector.java)
+
+[HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html)
 
 ```java
-rest.execute(..).dispatch(series(), ..);
-rest.execute(..).dispatch(status(), ..);
-rest.execute(..).dispatch(statusCode(), ..);
-rest.execute(..).dispatch(contentType(), ..);
+rest.execute(..).dispatch(series(),
+    on(SUCCESSFUL).capture(),
+    on(REDIRECTION).capture(follow),
+    on(CLIENT_ERROR).call(fail),
+    on(SERVER_ERROR).call(retryLater));
 ```
 
-You are free to write your own, which requires you to just implement this single method:
+#### [Selectors.status()](src/main/java/org/zalando/riptide/StatusSelector.java)
+
+[HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)
 
 ```java
-Optional<A> attributeOf(ClientHttpResponse response)
+rest.execute(..).dispatch(status(),
+    on(OK).capture(),
+    on(CREATED).capture(),
+    on(ACCEPTED).call(poll),
+    on(NO_CONTENT).call(read));
+```
+
+#### [Selectors.statusCode()](src/main/java/org/zalando/riptide/StatusCodeSelector.java)
+
+```java
+rest.execute(..).dispatch(statusCode(),
+    on(200).capture(),
+    on(201).capture(),
+    on(202).call(poll),
+    on(204).call(read));
+```
+
+#### [Selectors.reasonPhrase()](src/main/java/org/zalando/riptide/ReasonPhraseSelector.java)
+
+```java
+rest.execute(..).dispatch(reasonPhrase(),
+    on("OK").capture(),
+    on("Created").capture(),
+    on("Accepted").call(poll),
+    on("No Content").call(read));
+```
+
+#### [Selectors.contentType()](src/main/java/org/zalando/riptide/ContentTypeSelector.java)
+
+[MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)
+
+```java
+rest.execute(..).dispatch(contentType(),
+    on(APPLICATION_JSON).capture(Success.class),
+    on(APPLICATION_XML).capture(Success.class),
+    on(PROBLEM).call(Problem.class, propagate()),
+    anyContentType().capture(String.class));
+```
+
+#### Custom Selector
+
+You are free to write your own, which requires you to implement the following interface:
+
+```java
+public interface Selector<A> {
+
+    @Nullable
+    Binding<A> select(final ClientHttpResponse response, final Collection<Binding<A>> bindings) throws IOException;
+
+}
+```
+
+Implementation note: Since selectors are very often stateless, it feels very natural to implement them as package-local
+enum singletons and expose them via static *factory* methods.
+
+##### `EqualitySelector`
+
+The most common type of selectors are actually *equality selectors*. The select an arbitrary attribute from the response
+and select the binding with the matching value. Think of them as close relative of the *switch* statement.
+
+```java
+enum StatusSelector implements EqualitySelector<HttpStatus> {
+
+    INSTANCE;
+
+    @Override
+    public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusCode();
+    }
+
+}
 ```
 
 An attribute can be a single scalar value but could be a complex type, based on your needs.
+
+##### `BinarySelector`
+
+A special version of the [`EqualitySelector`](#equalityselector) is a binary selector, i.e. only having two possible
+meaningful conditions:
+
+```java
+rest.execute(POST, ..).dispatch(isCurrentRepresentation(),
+    on(true).capture(),
+    on(false).capture(location().andThen(location ->
+        rest.execute(GET, location).dispatch(series(),
+            on(SUCCESSFUL).capture(),
+            anySeries().call(fail))
+    )));
+```
+
+Binary selectors should be used very rarely as they are naturally very limited in terms of usability. Having a lot
+of them also increases the size if your routing tree significantly. Compared to *equality selectors*, you can think
+of binary selectors as being nothing more than *if* statements.
+
+The only built-in binary selector checks whether the `Location` and `Content-Location` header are present and have the
+same value, i.e. whether a client can use the response body of a `POST` without the need for a second `GET` request:
+
+```java
+enum CurrentRepresentationSelector implements BinarySelector {
+
+    INSTANCE;
+
+    @Override
+    public Boolean attributeOf(final ClientHttpResponse response) throws IOException {
+        @Nullable final String location = response.getHeaders().getFirst("Location");
+        @Nullable final String contentLocation = response.getHeaders().getFirst("Content-Location");
+        return Objects.nonNull(location) &&
+                Objects.equals(location, contentLocation);
+    }
+
+}
+```
 
 ### Conditions
 
@@ -256,6 +364,23 @@ private URI create(URI url, T body) {
             on(SUCCESSFUL).capture(location()),
             anySeries().call(this::fail))
             .to(URI.class);
+}
+```
+
+#### Create resource and retrieve its current state
+
+```java
+private String create(URI url, String body) {
+    return unit.execute(POST, url, body).dispatch(series(),
+            on(SUCCESSFUL).dispatch(isCurrentRepresentation(),
+                    on(true).capture(String.class),
+                    on(false).capture(location().andThen(location ->
+                            unit.execute(GET, location).dispatch(series(),
+                                    on(SUCCESSFUL).capture(String.class),
+                                    anySeries().call(this::fail))
+                                    .to(String.class)))),
+            anySeries().call(this::fail))
+            .to(String.class);
 }
 ```
 

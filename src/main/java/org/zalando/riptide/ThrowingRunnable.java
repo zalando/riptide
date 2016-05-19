@@ -21,8 +21,8 @@ package org.zalando.riptide;
  */
 
 @FunctionalInterface
-public interface ThrowingRunnable<X extends Exception> {
+public interface ThrowingRunnable {
 
-    void run() throws X;
+    void run() throws Exception;
 
 }

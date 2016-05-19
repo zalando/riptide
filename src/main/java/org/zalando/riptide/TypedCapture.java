@@ -39,13 +39,13 @@ final class TypedCapture<T> implements Capture {
     }
 
     @Override
-    public boolean has(TypeToken<?> other) {
+    public boolean has(final TypeToken<?> other) {
         return other.isSupertypeOf(type);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <O> Optional<O> as(TypeToken<O> type) {
+    public <O> Optional<O> as(final TypeToken<O> type) {
         return has(type) ? value.map(v -> (O) v) : empty();
     }
 

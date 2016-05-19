@@ -22,10 +22,7 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
-
 @FunctionalInterface
-interface ClientHttpResponseConsumer
-        extends ThrowingConsumer<ClientHttpResponse, IOException> {
+interface ClientHttpResponseConsumer extends ThrowingConsumer<ClientHttpResponse> {
 
 }

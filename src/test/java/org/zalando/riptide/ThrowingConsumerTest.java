@@ -20,22 +20,25 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.web.client.AsyncRequestCallback;
+import org.hamcrest.Matchers;
+import org.junit.Test;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-final class AsyncRequestCallbackAdapter<T> implements AsyncRequestCallback {
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
 
-    private final Callback<T> callback;
+public final class ThrowingConsumerTest {
 
-    public AsyncRequestCallbackAdapter(final Callback<T> callback) {
-        this.callback = callback;
-    }
+    @Test
+    public void shouldAcceptBoth() throws Exception {
+        final List<String> list = new ArrayList<>();
 
-    @Override
-    public void doWithRequest(final AsyncClientHttpRequest request) throws IOException {
-        callback.doWithRequest(new AsyncClientHttpRequestAdapter(request));
+        final ThrowingConsumer<String> consumer = list::add;
+        consumer.andThen(consumer).accept("test");
+
+        assertThat(list, contains("test", "test"));
     }
 
 }

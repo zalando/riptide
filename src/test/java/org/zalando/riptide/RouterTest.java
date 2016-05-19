@@ -29,7 +29,6 @@ import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -52,26 +51,22 @@ public class RouterTest {
 
     @Test
     public void shouldRejectDuplicateWildcards() {
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Duplicate any conditions");
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Multiple wildcard entries");
 
         unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 anyStatus().capture(),
-                anyStatus().call(response -> {
-                    throw new IllegalStateException();
-                })));
+                anyStatus().capture()));
     }
 
     @Test
     public void shouldRejectDuplicateAttributes() {
-        exception.expect(IllegalStateException.class);
-        exception.expectMessage("Duplicate condition attribute: 200");
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Multiple entries with same key: 200");
 
         unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
                 on(OK).capture(),
-                on(OK).call(response -> {
-                    throw new IllegalStateException();
-                })));
+                on(OK).capture()));
     }
 
     @Test
@@ -90,7 +85,7 @@ public class RouterTest {
         exception.expect(RestClientException.class);
         exception.expectCause(instanceOf(IOException.class));
 
-        final Optional<HttpStatus> anyStatus = Optional.empty();
+        final HttpStatus anyStatus = null;
         final Binding<HttpStatus> binding = create(anyStatus, (response, converters) -> {
             throw new IOException();
         });

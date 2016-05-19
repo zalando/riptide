@@ -45,7 +45,7 @@ public final class AsyncDispatcher {
     }
 
     @SafeVarargs
-    public final <A> ListenableFuture<Capture> dispatch(Selector<A> selector, Binding<A>... bindings) {
+    public final <A> ListenableFuture<Capture> dispatch(final Selector<A> selector, final Binding<A>... bindings) {
         return dispatch(selector, asList(bindings));
     }
 
@@ -58,9 +58,9 @@ public final class AsyncDispatcher {
         final FailureCallback failure = exception -> {
             try {
                 throw exception;
-            } catch (AlreadyConsumedResponseException e) {
+            } catch (final AlreadyConsumedResponseException e) {
                 success.onSuccess(e.getResponse());
-            } catch (Throwable throwable) {
+            } catch (final Throwable throwable) {
                 capture.setException(throwable);
             }
         };

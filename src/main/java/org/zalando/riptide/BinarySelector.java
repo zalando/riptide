@@ -20,22 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.web.client.AsyncRequestCallback;
-
-import java.io.IOException;
-
-final class AsyncRequestCallbackAdapter<T> implements AsyncRequestCallback {
-
-    private final Callback<T> callback;
-
-    public AsyncRequestCallbackAdapter(final Callback<T> callback) {
-        this.callback = callback;
-    }
-
-    @Override
-    public void doWithRequest(final AsyncClientHttpRequest request) throws IOException {
-        callback.doWithRequest(new AsyncClientHttpRequestAdapter(request));
-    }
-
+@FunctionalInterface
+public interface BinarySelector extends EqualitySelector<Boolean> {
+    
 }

@@ -20,22 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.web.client.AsyncRequestCallback;
+import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
-final class AsyncRequestCallbackAdapter<T> implements AsyncRequestCallback {
+enum  ReasonPhraseSelector implements EqualitySelector<String> {
 
-    private final Callback<T> callback;
+    INSTANCE;
 
-    public AsyncRequestCallbackAdapter(final Callback<T> callback) {
-        this.callback = callback;
-    }
-
+    @Nullable
     @Override
-    public void doWithRequest(final AsyncClientHttpRequest request) throws IOException {
-        callback.doWithRequest(new AsyncClientHttpRequestAdapter(request));
+    public String attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusText();
     }
 
 }

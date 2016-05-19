@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.springframework.http.HttpStatus;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
@@ -40,7 +41,8 @@ final class HttpStatuses {
     );
 
     static Stream<HttpStatus> supported() {
-        return Stream.of(HttpStatus.values()).filter(DEPRECATED::contains);
+        final Predicate<HttpStatus> isDeprecated = DEPRECATED::contains;
+        return Stream.of(HttpStatus.values()).filter(isDeprecated.negate());
     }
 
 }

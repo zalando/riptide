@@ -23,24 +23,16 @@ package org.zalando.riptide;
 import java.util.Objects;
 
 @FunctionalInterface
-public interface ThrowingFunction<T, R, X extends Exception> {
+public interface ThrowingFunction<T, R> {
 
-    R apply(T input) throws X;
+    R apply(T input) throws Exception;
 
-    /**
-     * Returns a composed function that first applies this function to
-     * its input, and then applies the {@code after} function to the result.
-     * If evaluation of either function throws an exception, it is relayed to
-     * the caller of the composed function.
-     *
-     * @param <V> the type of output of the {@code after} function, and of the
-     *           composed function
-     * @param after the function to apply after this function is applied
-     * @return a composed function that first applies this function and then
-     * applies the {@code after} function
-     * @throws NullPointerException if after is null
-     */
-    default <V> ThrowingFunction<T, V, X> andThen(final ThrowingFunction<? super R, ? extends V, ? extends X> after) {
+    default <V> ThrowingFunction<V, R> compose(ThrowingFunction<? super V, ? extends T> before) {
+        Objects.requireNonNull(before);
+        return (V v) -> apply(before.apply(v));
+    }
+
+    default <V> ThrowingFunction<T, V> andThen(final ThrowingFunction<? super R, ? extends V> after) {
         Objects.requireNonNull(after);
         return (T t) -> after.apply(apply(t));
     }

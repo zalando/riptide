@@ -24,20 +24,21 @@ import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 public final class Binding<A> {
 
-    private final Optional<A> attribute;
+    private final A attribute;
     private final Executor executor;
 
-    private Binding(final Optional<A> attribute, final Executor executor) {
+    private Binding(@Nullable final A attribute, final Executor executor) {
         this.attribute = attribute;
         this.executor = executor;
     }
 
-    Optional<A> getAttribute() {
+    @Nullable
+    A getAttribute() {
         return attribute;
     }
 
@@ -46,7 +47,7 @@ public final class Binding<A> {
         return executor.execute(response, converters);
     }
 
-    static <A> Binding<A> create(final Optional<A> attribute, final Executor executor) {
+    static <A> Binding<A> create(@Nullable final A attribute, final Executor executor) {
         return new Binding<>(attribute, executor);
     }
 
