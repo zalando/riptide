@@ -25,7 +25,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-public class RestWithURL<D> {
+public final class RestWithURL<D> {
 
     private final RestBase<?, D> rest;
     private final URI url;
