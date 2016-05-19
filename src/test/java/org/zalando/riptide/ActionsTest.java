@@ -44,6 +44,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
+import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
 import static org.springframework.http.HttpStatus.OK;
@@ -186,7 +187,22 @@ public final class ActionsTest {
                 .to(URI.class);
 
         assertThat(location, hasToString("https://api.example.com/accounts/456"));
+    }
 
+    @Test
+    public void shouldNormalizeLocationInNestedDispatch() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set(LOCATION, "/accounts/456");
+        server.expect(requestTo(url)).andRespond(
+                withSuccess().headers(headers));
+
+        final URI location = unit.execute(GET, url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).dispatch(normalize(url), status(),
+                                on(OK).capture(location())))
+                .to(URI.class);
+
+        assertThat(location, hasToString("https://api.example.com/accounts/456"));
     }
 
     @Test

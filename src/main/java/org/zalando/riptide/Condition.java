@@ -128,6 +128,13 @@ public final class Condition<A> {
                 router.route(response, converters, selector, asList(bindings)));
     }
 
+    @SafeVarargs
+    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final Selector<B> selector, final Binding<B>... bindings) {
+        return bind((response, converters) ->
+                router.route(function.apply(response), converters, selector, asList(bindings)));
+    }
+
     private Binding<A> bind(final Executor executor) {
         return Binding.create(attribute, executor);
     }
