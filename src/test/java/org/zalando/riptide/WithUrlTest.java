@@ -19,7 +19,6 @@ package org.zalando.riptide;
  * limitations under the License.
  * ​⁣
  */
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -116,17 +115,27 @@ public class WithUrlTest {
     }
 
     @Test
-    public void shouldMakeCoverageHappy() {
-        for (int i = 0; i < 4; i++) {
-            expectRequestTo("https://api.example.com");
-        }
+    public void shouldExpandOnGetWithHeaders() {
+        expectRequestTo("https://api.example.com/123");
 
-        final RestWithURL<Dispatcher> withUrl = unit.withUrl("https://api.example.com");
+        unit.withUrl("https://api.example.com/123")
+            .execute(GET, new HttpHeaders());
+    }
 
-        withUrl.execute(GET);
-        withUrl.execute(GET, new HttpHeaders());
-        withUrl.execute(GET, "deadbody");
-        withUrl.execute(GET, new HttpHeaders(), "deadbody");
+    @Test
+    public void shouldExpandOnGetWithBody() {
+        expectRequestTo("https://api.example.com/123");
+
+        unit.withUrl("https://api.example.com/123")
+            .execute(GET, "deadbody");
+    }
+
+    @Test
+    public void shouldExpandOnGetWithHeadersAndBody() {
+        expectRequestTo("https://api.example.com/123");
+
+        unit.withUrl("https://api.example.com/123")
+            .execute(GET, new HttpHeaders(), "deadbody");
     }
 
     private void expectRequestTo(final String url) {
