@@ -29,6 +29,7 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static org.zalando.riptide.Capture.none;
@@ -133,6 +134,10 @@ public final class Condition<A> {
             final Selector<B> selector, final Binding<B>... bindings) {
         return bind((response, converters) ->
                 router.route(function.apply(response), converters, selector, asList(bindings)));
+    }
+
+    public Binding<A> embed(final Function<Condition<A>, Binding<A>> tree) {
+        return tree.apply(this);
     }
 
     private Binding<A> bind(final Executor executor) {
