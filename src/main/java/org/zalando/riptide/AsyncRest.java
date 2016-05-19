@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import com.google.gag.annotation.remark.OhNoYouDidnt;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -33,32 +32,14 @@ import org.springframework.web.client.AsyncRestTemplate;
 import java.net.URI;
 import java.util.List;
 
-public final class AsyncRest {
-
-    private final AsyncRestTemplate template;
-    private final Router router = new Router();
+public final class AsyncRest extends RestBase<AsyncRestTemplate, AsyncDispatcher> {
 
     private AsyncRest(final AsyncRestTemplate template) {
-        this.template = template;
+        super(template, template::getUriTemplateHandler);
     }
 
-    public AsyncDispatcher execute(final HttpMethod method, final URI url) {
-        return execute(method, url, HttpEntity.EMPTY);
-    }
-
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
-        return execute(method, url, new HttpEntity<>(headers));
-    }
-
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final Object body) {
-        return execute(method, url, new HttpEntity<>(body));
-    }
-
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
-        return execute(method, url, new HttpEntity<>(body, headers));
-    }
-
-    private <T> AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
+    @Override
+    protected <T> AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Callback<T> callback = new Callback<>(converters, entity);
 
@@ -77,5 +58,4 @@ public final class AsyncRest {
     public static FailureCallback handle(final FailureCallback callback) {
         return callback;
     }
-
 }
