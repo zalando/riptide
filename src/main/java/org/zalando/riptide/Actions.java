@@ -64,13 +64,13 @@ public final class Actions {
     }
 
     /**
-     * Normalizes the {@code Location} and {@code Content-Location} headers of any given response by resolving them
-     * against the given {@code uri}.
+     * Resolves the {@code Location} and {@code Content-Location} headers of the given response against the given
+     * {@code uri}.
      *
      * @param uri the base uri to resolve against
-     * @return a function that normalizes responses
+     * @return a function that resolves Location-style headers in responses
      */
-    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse> normalize(final URI uri) {
+    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse> resolveAgainst(final URI uri) {
         return response -> {
             final HttpHeaders headers = new HttpHeaders();
             headers.putAll(response.getHeaders());
