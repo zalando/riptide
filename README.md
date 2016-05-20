@@ -348,6 +348,31 @@ router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to d
 matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
 statement.
 
+Another feature of nested routing is to externalize and embed partial routing trees. Based on the previous example one
+could extract the problem handling into a method that can be re-used in different routing trees:
+
+```java
+Success success = rest.execute(GET, url)
+        .dispatch(series(),
+                on(SUCCESSFUL).capture(Success.class),
+                on(CLIENT_ERROR)
+                    .dispatch(status(),
+                            on(UNAUTHORIZED).call(this::login),
+                            on(UNPROCESSABLE_ENTITY).dispatch(this::problems)),
+                on(SERVER_ERROR)
+                    .dispatch(statusCode(),
+                            on(503).call(this::retryLater),
+                anySeries().call(this::fail))
+        .as(Success.class).orElse(null);
+
+private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
+    return condition.dispatch(contentType(),
+            on(PROBLEM).capture(Problem.class),
+            on(ERROR).capture(Problem.class),
+            anyContentType().call(this::fail));
+}
+```
+
 ### Patterns and examples
 
 This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide:
