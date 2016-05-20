@@ -350,14 +350,14 @@ Success success = rest.execute(GET, url)
                 on(CLIENT_ERROR)
                     .dispatch(status(),
                             on(UNAUTHORIZED).call(this::login),
-                            on(UNPROCESSABLE_ENTITY).embed(this::handleProblem)),
+                            on(UNPROCESSABLE_ENTITY).dispatch(this::problems)),
                 on(SERVER_ERROR)
                     .dispatch(statusCode(),
                             on(503).call(this::retryLater),
                 anySeries().call(this::fail))
         .as(Success.class).orElse(null);
 
-private Binding<HttpStatus> handleProblem(final Condition<HttpStatus> condition) {
+private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
     return condition.dispatch(contentType(),
             on(PROBLEM).capture(Problem.class),
             on(ERROR).capture(Problem.class),

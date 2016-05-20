@@ -136,7 +136,7 @@ public final class Condition<A> {
                 router.route(function.apply(response), converters, selector, asList(bindings)));
     }
 
-    public Binding<A> embed(final Function<Condition<A>, Binding<A>> tree) {
+    public Binding<A> dispatch(final Function<Condition<A>, Binding<A>> tree) {
         return tree.apply(this);
     }
 

@@ -96,7 +96,7 @@ public final class NestedDispatchTest {
                         on(CLIENT_ERROR)
                                 .dispatch(status(),
                                         on(UNAUTHORIZED).capture(),
-                                        anyStatus().embed(this::handleProblem)),
+                                        anyStatus().dispatch(this::handleProblem)),
                         on(SERVER_ERROR)
                                 .dispatch(statusCode(),
                                         on(500).capture(),
