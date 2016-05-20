@@ -58,7 +58,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Actions.contentLocation;
 import static org.zalando.riptide.Actions.headers;
 import static org.zalando.riptide.Actions.location;
-import static org.zalando.riptide.Actions.normalize;
+import static org.zalando.riptide.Actions.resolveAgainst;
 import static org.zalando.riptide.Actions.pass;
 import static org.zalando.riptide.Actions.propagate;
 import static org.zalando.riptide.Conditions.anyStatus;
@@ -147,20 +147,20 @@ public final class ActionsTest {
     }
 
     @Test
-    public void shouldNotFailIfNothingToNormalize() {
+    public void shouldNotFailIfNothingToResolve() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(normalize(url)))
+                        on(SUCCESSFUL).capture(resolveAgainst(url)))
                 .to(ClientHttpResponse.class);
 
         assertThat(response, hasToString(notNullValue()));
     }
 
     @Test
-    public void shouldNormalizeLocation() {
+    public void shouldResolveLocation() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/accounts/456"));
         server.expect(requestTo(url)).andRespond(
@@ -168,14 +168,14 @@ public final class ActionsTest {
 
         final URI location = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(normalize(url).andThen(location())))
+                        on(SUCCESSFUL).capture(resolveAgainst(url).andThen(location())))
                 .to(URI.class);
 
         assertThat(location, hasToString("https://api.example.com/accounts/456"));
     }
 
     @Test
-    public void shouldNormalizeContentLocation() {
+    public void shouldResolveContentLocation() {
         final HttpHeaders headers = new HttpHeaders();
         headers.set(CONTENT_LOCATION, "/accounts/456");
         server.expect(requestTo(url)).andRespond(
@@ -183,14 +183,14 @@ public final class ActionsTest {
 
         final URI location = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(normalize(url).andThen(contentLocation())))
+                        on(SUCCESSFUL).capture(resolveAgainst(url).andThen(contentLocation())))
                 .to(URI.class);
 
         assertThat(location, hasToString("https://api.example.com/accounts/456"));
     }
 
     @Test
-    public void shouldNormalizeLocationInNestedDispatch() {
+    public void shouldResolveLocationInNestedDispatch() {
         final HttpHeaders headers = new HttpHeaders();
         headers.set(LOCATION, "/accounts/456");
         server.expect(requestTo(url)).andRespond(
@@ -198,7 +198,7 @@ public final class ActionsTest {
 
         final URI location = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).dispatch(normalize(url), status(),
+                        on(SUCCESSFUL).dispatch(resolveAgainst(url), status(),
                                 on(OK).capture(location())))
                 .to(URI.class);
 
@@ -206,7 +206,7 @@ public final class ActionsTest {
     }
 
     @Test
-    public void shouldNormalizeLocationAndContentLocation() {
+    public void shouldResolveLocationAndContentLocation() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/accounts/456"));
         headers.set(CONTENT_LOCATION, "/accounts/456");
@@ -216,7 +216,7 @@ public final class ActionsTest {
 
         final ClientHttpResponse response = unit.execute(GET, url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(normalize(url)))
+                        on(SUCCESSFUL).capture(resolveAgainst(url)))
                 .to(ClientHttpResponse.class);
 
         assertThat(response.getHeaders().getLocation(), hasToString("https://api.example.com/accounts/456"));
