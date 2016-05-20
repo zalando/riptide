@@ -87,6 +87,20 @@ public final class AsyncTest {
     }
 
     @Test
+    public void shouldExpand() throws Exception {
+        server.expect(requestTo(URI.create("http://localhost/123"))).andRespond(withSuccess());
+
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+
+        unit.withUrl("http://localhost/{id}", 123)
+            .execute(GET, url).dispatch(series(),
+                on(SUCCESSFUL).call(verifier));
+
+        verify(verifier).accept(any());
+    }
+
+    @Test
     public void shouldCallWithoutParameters() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 

@@ -28,11 +28,19 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
+import org.springframework.web.util.UriTemplateHandler;
 
-public final class Rest extends RestBase<RestTemplate, Dispatcher>{
+public final class Rest extends RestBase<Dispatcher>{
+
+    private final RestTemplate template;
 
     private Rest(final RestTemplate template) {
-        super(template, template::getUriTemplateHandler);
+        this.template = template;
+    }
+
+    @Override
+    protected UriTemplateHandler getUriTemplateHandler() {
+        return template.getUriTemplateHandler();
     }
 
     @Override

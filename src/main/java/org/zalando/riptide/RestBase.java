@@ -22,32 +22,25 @@ package org.zalando.riptide;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.function.Supplier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriTemplateHandler;
 
-abstract class RestBase<T, D> {
+abstract class RestBase<D> {
 
     protected final Router router = new Router();
-    protected final T template;
-
-    private final Supplier<UriTemplateHandler> uriTemplateHandler;
-
-    protected RestBase(final T template, final Supplier<UriTemplateHandler> uriTemplateHandler) {
-        this.template = template;
-        this.uriTemplateHandler = uriTemplateHandler;
-    }
 
     protected abstract <T> D execute(HttpMethod method, URI url, HttpEntity<T> entity);
 
+    protected abstract UriTemplateHandler getUriTemplateHandler();
+
     public RestWithURL<D> withUrl(final String uriTemplate, final Object... uriVariables) {
-        return new RestWithURL<>(this, uriTemplateHandler.get().expand(uriTemplate, uriVariables));
+        return new RestWithURL<>(this, getUriTemplateHandler().expand(uriTemplate, uriVariables));
     }
 
     public RestWithURL<D> withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
-        return new RestWithURL<>(this, uriTemplateHandler.get().expand(uriTemplate, uriVariables));
+        return new RestWithURL<>(this, getUriTemplateHandler().expand(uriTemplate, uriVariables));
     }
 
     public D execute(final HttpMethod method, final URI url) {

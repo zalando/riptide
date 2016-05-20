@@ -31,11 +31,19 @@ import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
 import java.util.List;
+import org.springframework.web.util.UriTemplateHandler;
 
-public final class AsyncRest extends RestBase<AsyncRestTemplate, AsyncDispatcher> {
+public final class AsyncRest extends RestBase<AsyncDispatcher> {
+
+    private final AsyncRestTemplate template;
 
     private AsyncRest(final AsyncRestTemplate template) {
-        super(template, template::getUriTemplateHandler);
+        this.template = template;
+    }
+
+    @Override
+    protected UriTemplateHandler getUriTemplateHandler() {
+        return template.getUriTemplateHandler();
     }
 
     @Override
