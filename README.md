@@ -1,4 +1,4 @@
-# Riptide
+# Riptide: Client-side response routing
 
 [![Tidal wave](docs/wave.jpg)](http://pixabay.com/en/wave-water-sea-tsunami-giant-wave-11061/)
 
@@ -82,8 +82,8 @@ Make a request and route the response to your specific handler methods/callbacks
 
 ```java
 rest.execute(GET, url).dispatch(status(),
-        on(CREATED, Success.class).call(this::onSuccess),
-        on(ACCEPTED, Success.class).call(this::onSuccess),
+        on(CREATED).call(Success.class, this::onSuccess),
+        on(ACCEPTED).call(Success.class, this::onSuccess),
         on(BAD_REQUEST).call(this::onError),
         anyStatus().call(this::fail));
 ```
@@ -397,7 +397,7 @@ private URI create(URI url, T body) {
 ```java
 private String create(URI url, String body) {
     return unit.execute(POST, url, body).dispatch(series(),
-            on(SUCCESSFUL).dispatch(normalize(url), isCurrentRepresentation(),
+            on(SUCCESSFUL).dispatch(resolveAgainst(url), isCurrentRepresentation(),
                     on(true).capture(String.class),
                     on(false).capture(location().andThen(location ->
                             unit.execute(GET, location).dispatch(series(),
