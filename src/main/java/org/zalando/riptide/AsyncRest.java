@@ -36,7 +36,6 @@ import java.util.List;
 public final class AsyncRest {
 
     private final AsyncRestTemplate template;
-    private final Router router = new Router();
 
     private AsyncRest(final AsyncRestTemplate template) {
         this.template = template;
@@ -65,7 +64,7 @@ public final class AsyncRest {
         final ListenableFuture<ClientHttpResponse> future = template.execute(url, method,
                 new AsyncRequestCallbackAdapter<>(callback), BufferingClientHttpResponse::buffer);
 
-        return new AsyncDispatcher(converters, future, router);
+        return new AsyncDispatcher(converters, future);
     }
 
     public static AsyncRest create(final AsyncRestTemplate template) {

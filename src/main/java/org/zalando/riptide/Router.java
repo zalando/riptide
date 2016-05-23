@@ -30,12 +30,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
-final class Router {
+public final class Router<A> {
 
-    final <A, S> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Selector<A> selector, final Collection<Binding<A>> bindings) {
+    private final Selector<A> selector;
+    private final Collection<Binding<A>> bindings;
+
+    private Router(Selector<A> selector, Collection<Binding<A>> bindings) {
+        this.selector = selector;
+        this.bindings = bindings;
+    }
+
+    @SafeVarargs
+    public static <A> Router<A> create(final Selector<A> selector, final Binding<A> ... bindings) {
+        return new Router<A>(selector, asList(bindings));
+    }
+
+    public static <A> Router<A> create(final Selector<A> selector, final Collection<Binding<A>> bindings) {
+        return new Router<A>(selector, bindings);
+    }
+
+    final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
 
         @Nullable
         final Binding<A> wildcard = findWildcard(bindings);
@@ -60,7 +77,7 @@ final class Router {
     }
 
     @Nullable
-    private <A> Binding<A> findWildcard(final Collection<Binding<A>> bindings) {
+    private Binding<A> findWildcard(final Collection<Binding<A>> bindings) {
         final List<Binding<A>> list = bindings.stream()
                 .filter(isWildcard())
                 .collect(toList());
@@ -75,7 +92,7 @@ final class Router {
         }
      }
 
-    private <A> Predicate<Binding<A>> isWildcard() {
+    private Predicate<Binding<A>> isWildcard() {
         return binding -> binding.getAttribute() == null;
     }
 
@@ -83,7 +100,7 @@ final class Router {
         return predicate.negate();
     }
 
-    private <A> Capture bubbleUpToWildcardIfPossible(final @Nullable Binding<A> wildcard,
+    private <X> Capture bubbleUpToWildcardIfPossible(final @Nullable Binding<X> wildcard,
             final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final NoRouteException e) throws IOException {
 
@@ -95,7 +112,7 @@ final class Router {
         }
     }
 
-    private <A> Capture routeToWildcardIfPossible(final @Nullable Binding<A> wildcard,
+    private <X> Capture routeToWildcardIfPossible(final @Nullable Binding<X> wildcard,
             final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
 
         if (wildcard == null) {

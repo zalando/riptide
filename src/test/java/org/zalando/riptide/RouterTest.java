@@ -47,16 +47,15 @@ public class RouterTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final Router unit = new Router();
-
     @Test
     public void shouldRejectDuplicateWildcards() {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Multiple wildcard entries");
 
-        unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
+        Router.create(status(), asList(
                 anyStatus().capture(),
-                anyStatus().capture()));
+                anyStatus().capture()))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
     }
 
     @Test
@@ -64,9 +63,10 @@ public class RouterTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Multiple entries with same key: 200");
 
-        unit.route(new MockClientHttpResponse((byte[]) null, OK), emptyList(), status(), asList(
+        Router.create(status(), asList(
                 on(OK).capture(),
-                on(OK).capture()));
+                on(OK).capture()))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
     }
 
     @Test
@@ -77,7 +77,8 @@ public class RouterTest {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getStatusCode()).thenThrow(new IOException());
 
-        unit.route(response, emptyList(), status(), singletonList(anyStatus().capture()));
+        Router.create(status(), singletonList(anyStatus().capture()))
+                .route(response, emptyList());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class RouterTest {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getStatusCode()).thenReturn(OK);
 
-        unit.route(response, emptyList(), status(), singletonList(binding));
+        Router.create(status(), singletonList(binding))
+                .route(response, emptyList());
     }
-
 }

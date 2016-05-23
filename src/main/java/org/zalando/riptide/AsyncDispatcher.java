@@ -35,13 +35,10 @@ public final class AsyncDispatcher {
 
     private final List<HttpMessageConverter<?>> converters;
     private final ListenableFuture<ClientHttpResponse> future;
-    private final Router router;
 
-    AsyncDispatcher(final List<HttpMessageConverter<?>> converters, final ListenableFuture<ClientHttpResponse> future, 
-            final Router router) {
+    AsyncDispatcher(final List<HttpMessageConverter<?>> converters, final ListenableFuture<ClientHttpResponse> future) {
         this.converters = converters;
         this.future = future;
-        this.router = router;
     }
 
     @SafeVarargs
@@ -50,10 +47,14 @@ public final class AsyncDispatcher {
     }
 
     public final <A> ListenableFuture<Capture> dispatch(final Selector<A> selector, final List<Binding<A>> bindings) {
+        return dispatch(Router.create(selector, bindings));
+    }
+
+    public final <A> ListenableFuture<Capture> dispatch(Router<A> router) {
         final SettableListenableFuture<Capture> capture = new SettableListenableFuture<>();
 
         final SuccessCallback<ClientHttpResponse> success = response ->
-                capture.set(router.route(response, converters, selector, bindings));
+                capture.set(router.route(response, converters));
 
         final FailureCallback failure = exception -> {
             try {
@@ -69,5 +70,4 @@ public final class AsyncDispatcher {
 
         return capture;
     }
-
 }

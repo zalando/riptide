@@ -33,7 +33,6 @@ import java.util.List;
 public final class Rest {
 
     private final RestTemplate template;
-    private final Router router = new Router();
 
     private Rest(final RestTemplate template) {
         this.template = template;
@@ -59,7 +58,7 @@ public final class Rest {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Callback<T> callback = new Callback<>(converters, entity);
         final ClientHttpResponse response = execute(method, url, callback);
-        return new Dispatcher(converters, response, router);
+        return new Dispatcher(converters, response);
     }
 
     /**
