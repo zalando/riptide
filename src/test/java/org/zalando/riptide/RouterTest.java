@@ -38,6 +38,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.Binding.create;
 import static org.zalando.riptide.Conditions.anyStatus;
@@ -50,10 +51,36 @@ public class RouterTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void shouldBeExtendable() {
-        Capture result = Router.create(status(), on(OK).capture())
+    public void shouldCreateNewRouterIfChanged() {
+        Router<HttpStatus> router = Router.create(status(), on(OK).capture());
+        Router<HttpStatus> result = router.add(anyStatus().capture());
+        Assert.assertNotEquals(router, result);
+    }
+
+    @Test
+    public void shouldCreateNewRouterIfNotChanged() {
+        Router<HttpStatus> router = Router.create(status(), on(OK).capture());
+        Router<HttpStatus> result = router.add(on(OK).capture());
+        Assert.assertNotEquals(router, result);
+    }
+
+    @Test
+    public void shouldSubstituteBinding() {
+        Capture result = Router.create(status(), on(OK).call(() -> { throw new RuntimeException(); }))
                 .add(anyStatus().call(() -> { throw new RuntimeException(); }))
+                .add(on(OK).capture())
                 .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertThat(result, Matchers.notNullValue(Capture.class));
+        Assert.assertFalse(result.as(byte[].class).isPresent());
+    }
+
+    @Test
+    public void shouldExtendBinding() {
+        Capture result = Router.create(status())
+                .add(anyStatus().call(() -> { throw new RuntimeException(); }))
+                .add(on(CREATED).capture())
+                .route(new MockClientHttpResponse((byte[]) null, CREATED), emptyList());
 
         Assert.assertThat(result, Matchers.notNullValue(Capture.class));
         Assert.assertFalse(result.as(byte[].class).isPresent());
@@ -62,7 +89,7 @@ public class RouterTest {
     @Test
     public void shouldRejectDuplicateWildcards() {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Multiple wildcard entries");
+        exception.expectMessage("Multiple entries with same key: wildcard");
 
         Router.create(status(), asList(
                 anyStatus().capture(),

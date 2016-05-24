@@ -26,14 +26,13 @@ import org.springframework.web.client.RestClientException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
@@ -43,9 +42,9 @@ public final class Router<A> {
     private final Selector<A> selector;
     private final Map<A, Binding<A>> bindings;
 
-    private Router(Selector<A> selector, Collection<Binding<A>> bindings) {
+    private Router(Selector<A> selector, Map<A, Binding<A>> bindings) {
         this.selector = selector;
-        this.bindings = Router.createMap(bindings);
+        this.bindings = bindings;
     }
 
     @SafeVarargs
@@ -54,24 +53,19 @@ public final class Router<A> {
     }
 
     public static <A> Router<A> create(final Selector<A> selector, final Collection<Binding<A>> bindings) {
-        return new Router<A>(selector, new ArrayList<>(bindings));
+        return new Router<A>(selector, Router.createMap(bindings));
     }
 
     private static <A> Map<A, Binding<A>> createMap(Collection<Binding<A>> bindings) {
         return bindings.stream()
-                .filter(checkDuplicates(new HashSet<>()))
-                .collect(toMap(Binding::getAttribute, Function.identity()));
+                .collect(toMap(Binding::getAttribute, Function.identity(), checkDuplicates()));
     }
 
-    private static <A> Predicate<? super Binding<A>> checkDuplicates(final Set<A> keys) {
-        return binding -> {
-            if (!keys.add(binding.getAttribute())) {
-                if (binding.getAttribute() == null) {
-                    throw new IllegalArgumentException("Multiple wildcard entries");
-                }
-                throw new IllegalArgumentException("Multiple entries with same key: " + binding.getAttribute());
-            }
-            return true;
+    private static <A> BinaryOperator<Binding<A>> checkDuplicates() {
+        return (u, v) -> {
+            throw new IllegalArgumentException(
+                    String.format("Multiple entries with same key: %s",
+                            (u.getAttribute() != null) ? u.getAttribute() : "wildcard"));
         };
     }
 
@@ -130,7 +124,9 @@ public final class Router<A> {
 
     @SafeVarargs
     public final Router<A> add(Binding<A>... bindings) {
-        this.bindings.putAll(Router.createMap(asList(bindings)));
-        return this;
+        Map<A, Binding<A>> map = Router.createMap(asList(bindings));
+        return new Router<A>(selector,
+                Stream.concat(this.bindings.entrySet().stream(), map.entrySet().stream())
+                        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (u, v) -> v)));
     }
 }

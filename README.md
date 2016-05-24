@@ -168,7 +168,7 @@ You are free to write your own, which requires you to implement the following in
 public interface Selector<A> {
 
     @Nullable
-    Binding<A> select(final ClientHttpResponse response, final Collection<Binding<A>> bindings) throws IOException;
+    Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException;
 
 }
 ```
@@ -364,6 +364,49 @@ private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
             anyContentType().call(this::fail));
 }
 ```
+
+#### Template Routing
+
+Routing and response handling is sometimes pretty similar for many request, and can even be handle using the same
+defined routing logic for different requests. To enable reuse of this routing logic, Riptide supports the creation
+of nested *template routing*, that can be reused for dispatching different request. The following example defines
+a nested hierarchy of routing templates:
+
+```java
+static final Router<MediaType> CONTENT_ROUTER = Router.create(contentType(),
+        on(PERTNER).capture(Partner.class),
+        on(CONTRACT).capture(Contract.class),
+        on(PROBLEM).call(Problem.class, Example::propagate),
+        on(ERROR).call(Error.class, Example::propagate),
+        anyContentType().call(Example::failContent));
+
+static final Router<HttpStatus> STATUS_ROUTER = Router.create(status(),
+        on(OK).dispatch(CONTENT_ROUTER),
+        anyStatus().call(Example::failStatus));
+
+static final Router<HttpStatus.Series> SERIES_ROUTER = Router.create(series(),
+        on(SUCCESSFUL).dispatch(CONTENT_ROUTER),
+        on(CLIENT_ERROR).dispatch(CONTENT_ROUTER),
+        on(SERVER_ERROR).dispatch(STATUS_ROUTER),
+        anySeries().call(Example::failStatus));
+```
+
+These templates can be used as follows to extend their functionality with a retry mechanism on internal server
+errors:
+
+```java
+Rest rest = Rest.create(new RestTemplate());
+Router<HttpStatus> router = STATUS_ROUTER.add(on(INTERNAL_SERVER_ERROR).call(this::retryLater));
+Partner partner = rest.execute(HttpMethod.GET, URI.create("http://example.com/api"))
+           .dispatch(SERIES_ROUTER.add(on(SERVER_ERROR).dispatch(router)))
+           .as(Partner.class);
+
+```
+
+Note: the need to change the routing template derives from the fact, that it needs to access an instance property.
+If this is not the case, the routing template can be used unchanged.
+
+Warning: be careful that all methods and instances referenced by the routing template are thread safe.
 
 ### Patterns and examples
 
