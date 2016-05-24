@@ -28,24 +28,28 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public final class Router<A> {
 
     private final Selector<A> selector;
-    private final Collection<Binding<A>> bindings;
+    private final Map<A, Binding<A>> bindings;
 
     private Router(Selector<A> selector, Collection<Binding<A>> bindings) {
         this.selector = selector;
-        this.bindings = bindings;
+        this.bindings = Router.createMap(bindings);
     }
 
     @SafeVarargs
-    public static <A> Router<A> create(final Selector<A> selector, final Binding<A> ... bindings) {
+    public static <A> Router<A> create(final Selector<A> selector, final Binding<A>... bindings) {
         return create(selector, asList(bindings));
     }
 
@@ -53,15 +57,32 @@ public final class Router<A> {
         return new Router<A>(selector, new ArrayList<>(bindings));
     }
 
-    final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
+    private static <A> Map<A, Binding<A>> createMap(Collection<Binding<A>> bindings) {
+        return bindings.stream()
+                .filter(checkDuplicates(new HashSet<>()))
+                .collect(toMap(Binding::getAttribute, Function.identity()));
+    }
 
-        @Nullable
-        final Binding<A> wildcard = findWildcard(bindings);
+    private static <A> Predicate<? super Binding<A>> checkDuplicates(final Set<A> keys) {
+        return binding -> {
+            if (!keys.add(binding.getAttribute())) {
+                if (binding.getAttribute() == null) {
+                    throw new IllegalArgumentException("Multiple wildcard entries");
+                }
+                throw new IllegalArgumentException("Multiple entries with same key: " + binding.getAttribute());
+            }
+            return true;
+        };
+    }
+
+    final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
+        final Binding<A> wildcard = bindings.get(null);
 
         try {
-            final Collection<Binding<A>> nonWildcardBindings = bindings.stream()
-                    .filter(not(isWildcard())).collect(toList());
-            final Binding<A> match = selector.select(response, nonWildcardBindings);
+            final Map<A, Binding<A>> nonWildcards = bindings.entrySet()
+                    .stream().filter(not(isWildcard()))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            final Binding<A> match = selector.select(response, nonWildcards);
 
             if (match == null) {
                 return routeToWildcardIfPossible(wildcard, response, converters);
@@ -77,24 +98,8 @@ public final class Router<A> {
         }
     }
 
-    @Nullable
-    private Binding<A> findWildcard(final Collection<Binding<A>> bindings) {
-        final List<Binding<A>> list = bindings.stream()
-                .filter(isWildcard())
-                .collect(toList());
-
-        switch (list.size()) {
-            case 0:
-                return null;
-            case 1:
-                return list.get(0);
-            default:
-                throw new IllegalArgumentException("Multiple wildcard entries");
-        }
-     }
-
-    private Predicate<Binding<A>> isWildcard() {
-        return binding -> binding.getAttribute() == null;
+    private Predicate<Map.Entry<A, Binding<A>>> isWildcard() {
+        return entry -> entry.getKey() == null;
     }
 
     private <T> Predicate<T> not(final Predicate<T> predicate) {
@@ -125,7 +130,7 @@ public final class Router<A> {
 
     @SafeVarargs
     public final Router<A> add(Binding<A>... bindings) {
-        this.bindings.addAll(asList(bindings));
+        this.bindings.putAll(Router.createMap(asList(bindings)));
         return this;
     }
 }

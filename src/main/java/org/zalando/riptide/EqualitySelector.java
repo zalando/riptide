@@ -20,17 +20,14 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.collect.Maps;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 
 @FunctionalInterface
 public interface EqualitySelector<A> extends Selector<A> {
-
 
     /**
      * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
@@ -38,7 +35,7 @@ public interface EqualitySelector<A> extends Selector<A> {
      * @inheritDoc
      */
     @Override
-    default Binding<A> select(final ClientHttpResponse response, final Collection<Binding<A>> bindings) throws IOException {
+    default Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException {
         final A attribute = attributeOf(response);
         return select(attribute, bindings);
     }
@@ -53,13 +50,7 @@ public interface EqualitySelector<A> extends Selector<A> {
     @Nullable
     A attributeOf(final ClientHttpResponse response) throws IOException;
 
-    default Binding<A> select(@Nullable A attribute, Collection<Binding<A>> bindings) {
-        final Map<A, Binding<A>> index = Maps.uniqueIndex(bindings, Binding::getAttribute);
-        return select(attribute, index);
-    }
-
     default Binding<A> select(@Nullable A attribute, Map<A, Binding<A>> index) {
         return index.get(attribute);
     }
-
 }
