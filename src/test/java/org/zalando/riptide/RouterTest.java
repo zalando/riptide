@@ -20,6 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,6 +48,16 @@ public class RouterTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void shouldBeExtendable() {
+        Capture result = Router.create(status(), on(OK).capture())
+                .add(anyStatus().call(() -> { throw new RuntimeException(); }))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertThat(result, Matchers.notNullValue(Capture.class));
+        Assert.assertFalse(result.as(byte[].class).isPresent());
+    }
 
     @Test
     public void shouldRejectDuplicateWildcards() {

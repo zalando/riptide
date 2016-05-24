@@ -26,6 +26,7 @@ import org.springframework.web.client.RestClientException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
@@ -45,11 +46,11 @@ public final class Router<A> {
 
     @SafeVarargs
     public static <A> Router<A> create(final Selector<A> selector, final Binding<A> ... bindings) {
-        return new Router<A>(selector, asList(bindings));
+        return create(selector, asList(bindings));
     }
 
     public static <A> Router<A> create(final Selector<A> selector, final Collection<Binding<A>> bindings) {
-        return new Router<A>(selector, bindings);
+        return new Router<A>(selector, new ArrayList<>(bindings));
     }
 
     final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
@@ -122,4 +123,9 @@ public final class Router<A> {
         }
     }
 
+    @SafeVarargs
+    public final Router<A> add(Binding<A>... bindings) {
+        this.bindings.addAll(asList(bindings));
+        return this;
+    }
 }
