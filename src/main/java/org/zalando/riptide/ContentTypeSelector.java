@@ -71,9 +71,8 @@ enum ContentTypeSelector implements EqualitySelector<MediaType> {
             final Map<MediaType, Executor> routes) {
         
         Optional<Map.Entry<MediaType, Executor>> route = routes.entrySet().stream()
-                .sorted(BY_SPECIFICITY)
-                .filter(entry -> entry.getKey().includes(attribute))
-                .findFirst();
+                .filter(entry -> entry.getKey() != null && entry.getKey().includes(attribute))
+                .sorted(BY_SPECIFICITY).findFirst();
         return route.isPresent() ? route.get().getValue() : null;
     }
 
