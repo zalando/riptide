@@ -77,22 +77,22 @@ public final class Condition<A> {
                 Capture.valueOf(convert(type, response, converters), type));
     }
 
-    public <I> Binding<A> capture(final Class<I> type, final EntityFunction<I, ?> function) {
+    public <I, T> Binding<A> capture(final Class<I> type, final EntityFunction<I, T> function) {
         return capture(TypeToken.of(type), function);
     }
 
-    public <I> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, ?> function) {
+    public <I, T> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, T> function) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(entity));
         });
     }
 
-    public <I> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, ?> function) {
+    public <I, T> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, T> function) {
         return capture(TypeToken.of(type), function);
     }
 
-    public <I> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, ?> function) {
+    public <I, T> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, T> function) {
         return bind((response, converters) -> {
             final I entity = convert(type, response, converters);
             return Capture.valueOf(function.apply(toResponseEntity(entity, response)));
