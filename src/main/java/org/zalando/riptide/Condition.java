@@ -31,12 +31,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.util.Arrays.asList;
 import static org.zalando.riptide.Capture.none;
 
 public final class Condition<A> {
 
-    private final Router router = new Router();
     private final A attribute;
 
     Condition(@Nullable final A attribute) {
@@ -125,15 +123,24 @@ public final class Condition<A> {
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(final Selector<B> selector, final Binding<B>... bindings) {
-        return bind((response, converters) ->
-                router.route(response, converters, selector, asList(bindings)));
+        return dispatch(Router.create(selector, bindings));
     }
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
             final Selector<B> selector, final Binding<B>... bindings) {
+        return dispatch(function, Router.create(selector, bindings));
+    }
+
+    public final <B> Binding<A> dispatch(final Router<B> router) {
         return bind((response, converters) ->
-                router.route(function.apply(response), converters, selector, asList(bindings)));
+                router.route(response, converters));
+    }
+
+    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final Router<B> router) {
+        return bind((response, converters) ->
+                router.route(function.apply(response), converters));
     }
 
     public Binding<A> dispatch(final Function<Condition<A>, Binding<A>> tree) {
@@ -153,5 +160,4 @@ public final class Condition<A> {
             final List<HttpMessageConverter<?>> converters) throws IOException {
         return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
     }
-
 }

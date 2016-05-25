@@ -176,7 +176,7 @@ You are free to write your own, which requires you to implement the following in
 public interface Selector<A> {
 
     @Nullable
-    Binding<A> select(final ClientHttpResponse response, final Collection<Binding<A>> bindings) throws IOException;
+    Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException;
 
 }
 ```
@@ -373,7 +373,45 @@ private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
 }
 ```
 
-### Patterns and examples
+#### Routing Templates
+
+Response handling is sometimes pretty similar for many types of requests, and can often be handled using the same
+routing logic. To enable reuse of routing logic, Riptide supports the creation of *routing templates*, that can be
+used for dispatching any number of responses. The following example defines a nested hierarchy of routing templates to support similar expected behaviors:
+
+```java
+static final Router<MediaType> CONTENT_ROUTER = Router.create(contentType(),
+        on(PERTNER).capture(Partner.class),
+        on(CONTRACT).capture(Contract.class),
+        on(PROBLEM).call(Problem.class, Example::propagate),
+        on(ERROR).call(Error.class, Example::propagate),
+        anyContentType().call(Example::failContent));
+
+static final Router<HttpStatus> STATUS_ROUTER = Router.create(status(),
+        on(OK).dispatch(CONTENT_ROUTER),
+        anyStatus().call(Example::failStatus));
+
+static final Router<HttpStatus.Series> SERIES_ROUTER = Router.create(series(),
+        on(SUCCESSFUL).dispatch(CONTENT_ROUTER),
+        on(CLIENT_ERROR).dispatch(CONTENT_ROUTER),
+        on(SERVER_ERROR).dispatch(STATUS_ROUTER),
+        anySeries().call(Example::failStatus));
+```
+
+These templates can be used and adapted as follows to support a retry mechanism on internal server errors:
+
+```java
+Rest rest = Rest.create(new RestTemplate());
+Router<HttpStatus> router = STATUS_ROUTER.add(on(INTERNAL_SERVER_ERROR).call(this::retryLater));
+Partner partner = rest.execute(HttpMethod.GET, URI.create("http://example.com/api"))
+           .dispatch(SERIES_ROUTER.add(on(SERVER_ERROR).dispatch(router)))
+           .as(Partner.class);
+
+```
+
+Warning: be careful that all methods and instances referenced by the routing template are thread safe.
+
+### Patterns and Examples
 
 This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide:
 

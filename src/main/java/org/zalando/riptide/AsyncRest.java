@@ -54,7 +54,7 @@ public final class AsyncRest extends RestBase<AsyncDispatcher> {
         final ListenableFuture<ClientHttpResponse> future = template.execute(url, method,
                 new AsyncRequestCallbackAdapter<>(callback), BufferingClientHttpResponse::buffer);
 
-        return new AsyncDispatcher(converters, future, router);
+        return new AsyncDispatcher(converters, future);
     }
 
     public static AsyncRest create(final AsyncRestTemplate template) {
