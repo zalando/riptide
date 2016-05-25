@@ -365,12 +365,11 @@ private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
 }
 ```
 
-#### Template Routing
+#### Routing Templates
 
-Routing and response handling is sometimes pretty similar for many request, and can even be handle using the same
-defined routing logic for different requests. To enable reuse of this routing logic, Riptide supports the creation
-of nested *template routing*, that can be reused for dispatching different request. The following example defines
-a nested hierarchy of routing templates:
+Response handling is sometimes pretty similar for many types of requests, and can often be handled using the same
+routing logic. To enable reuse of routing logic, Riptide supports the creation of *routing templates*, that can be
+used for dispatching any number of responses. The following example defines a nested hierarchy of routing templates to support similar expected behaviors:
 
 ```java
 static final Router<MediaType> CONTENT_ROUTER = Router.create(contentType(),
@@ -391,8 +390,7 @@ static final Router<HttpStatus.Series> SERIES_ROUTER = Router.create(series(),
         anySeries().call(Example::failStatus));
 ```
 
-These templates can be used as follows to extend their functionality with a retry mechanism on internal server
-errors:
+These templates can be used and adapted as follows to support a retry mechanism on internal server errors:
 
 ```java
 Rest rest = Rest.create(new RestTemplate());
@@ -403,12 +401,9 @@ Partner partner = rest.execute(HttpMethod.GET, URI.create("http://example.com/ap
 
 ```
 
-Note: the need to change the routing template derives from the fact, that it needs to access an instance property.
-If this is not the case, the routing template can be used unchanged.
-
 Warning: be careful that all methods and instances referenced by the routing template are thread safe.
 
-### Patterns and examples
+### Patterns and Examples
 
 This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide: 
 
