@@ -38,7 +38,6 @@ import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
-import java.io.IOException;
 import java.net.URI;
 
 import static java.util.Collections.singletonList;

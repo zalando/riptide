@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static java.util.Comparator.comparing;
 import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
@@ -40,8 +39,8 @@ enum ContentTypeSelector implements EqualitySelector<MediaType> {
 
     INSTANCE;
 
-    private static final Comparator<Binding<MediaType>> BY_SPECIFICITY =
-            comparing(Binding::getAttribute, SPECIFICITY_COMPARATOR);
+    private static final Comparator<Map.Entry<MediaType, Executor>> BY_SPECIFICITY =
+            comparing(Map.Entry::getKey, SPECIFICITY_COMPARATOR);
 
 
     @Nullable
@@ -51,30 +50,31 @@ enum ContentTypeSelector implements EqualitySelector<MediaType> {
     }
 
     @Override
-    public Binding<MediaType> select(@Nullable final MediaType contentType,
-            final Map<MediaType, Binding<MediaType>> bindings) {
+    public Executor select(@Nullable final MediaType contentType,
+            final Map<MediaType, Executor> routes) {
 
         if (contentType == null) {
             return null;
         }
 
-        return Optional.ofNullable(exactMatch(contentType, bindings))
-                .orElseGet(bestMatch(contentType, bindings));
+        return Optional.ofNullable(exactMatch(contentType, routes))
+                .orElse(bestMatch(contentType, routes));
     }
 
     @Nullable
-    private Binding<MediaType> exactMatch(@Nullable final MediaType attribute,
-            final Map<MediaType, Binding<MediaType>> bindings) {
-        return EqualitySelector.super.select(attribute, bindings);
+    private Executor exactMatch(@Nullable final MediaType attribute,
+            final Map<MediaType, Executor> routes) {
+        return EqualitySelector.super.select(attribute, routes);
     }
 
-    private Supplier<Binding<MediaType>> bestMatch(@Nullable final MediaType attribute,
-            final Map<MediaType, Binding<MediaType>> bindings) {
-
-        return () -> bindings.values().stream()
+    private Executor bestMatch(@Nullable final MediaType attribute,
+            final Map<MediaType, Executor> routes) {
+        
+        Optional<Map.Entry<MediaType, Executor>> route = routes.entrySet().stream()
                 .sorted(BY_SPECIFICITY)
-                .filter(binding -> binding.getAttribute().includes(attribute))
-                .findFirst().orElse(null);
+                .filter(entry -> entry.getKey().includes(attribute))
+                .findFirst();
+        return route.isPresent() ? route.get().getValue() : null;
     }
 
 }

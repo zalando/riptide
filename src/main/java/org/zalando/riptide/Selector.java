@@ -38,10 +38,10 @@ public interface Selector<A> {
      * Attempts to find a matching binding for the given response.
      *
      * @param response the received response
-     * @param bindings  a map of all bindings
+     * @param routes  a map containing all routes
      * @return an optional binding match, if found
      */
     @Nullable
-    Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException;
+    Executor select(final ClientHttpResponse response, final Map<A, Executor> routes) throws IOException;
 
 }

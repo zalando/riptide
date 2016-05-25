@@ -20,12 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import lombok.SneakyThrows;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
-
 import javax.annotation.Nullable;
-import java.util.List;
 
 public final class Binding<A> {
 
@@ -42,9 +37,8 @@ public final class Binding<A> {
         return attribute;
     }
 
-    @SneakyThrows(Exception.class)
-    Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
-        return executor.execute(response, converters);
+    public Executor getExecutor() {
+        return executor;
     }
 
     static <A> Binding<A> create(@Nullable final A attribute, final Executor executor) {

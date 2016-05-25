@@ -35,9 +35,9 @@ public interface EqualitySelector<A> extends Selector<A> {
      * @inheritDoc
      */
     @Override
-    default Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException {
+    default Executor select(final ClientHttpResponse response, final Map<A, Executor> routes) throws IOException {
         final A attribute = attributeOf(response);
-        return select(attribute, bindings);
+        return select(attribute, routes);
     }
 
     /**
@@ -50,7 +50,7 @@ public interface EqualitySelector<A> extends Selector<A> {
     @Nullable
     A attributeOf(final ClientHttpResponse response) throws IOException;
 
-    default Binding<A> select(@Nullable A attribute, Map<A, Binding<A>> index) {
+    default Executor select(@Nullable A attribute, Map<A, Executor> index) {
         return index.get(attribute);
     }
 }
