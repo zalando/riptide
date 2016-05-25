@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +50,106 @@ public class RouterTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
+    public void shouldUsedAttributeRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(OK, (u, v) -> expected),
+                Binding.create(null, (u, v) -> other))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUsedWildcardRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(OK, (u, v) -> other),
+                Binding.create(null, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, CREATED), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUsedAddedAttributeRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(null, (u, v) -> other))
+                .add(Binding.create(OK, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUsedAddedWildcardRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(OK, (u, v) -> other))
+                .add(Binding.create(null, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, CREATED), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUseLastWildcardRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create((HttpStatus) null, (u, v) -> other),
+                Binding.create((HttpStatus) null, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUseLastAttributeRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(), asList(
+                Binding.create(OK, (u, v) -> other),
+                Binding.create(OK, (u, v) -> expected)))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUseLastAddedAttributeRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(OK, (u, v) -> other),
+                Binding.create(null, (u, v) -> other))
+                .add(Binding.create(OK, (u, v) -> other),
+                        Binding.create(OK, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldUseLastAddedWildcardeRoute() {
+        final Capture other = Capture.none();
+        final Capture expected = Capture.none();
+        Capture actual = Router.create(status(),
+                Binding.create(OK, (u, v) -> other),
+                Binding.create(null, (u, v) -> other))
+                .add(Binding.create(null, (u, v) -> other),
+                        Binding.create(null, (u, v) -> expected))
+                .route(new MockClientHttpResponse((byte[]) null, CREATED), emptyList());
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
     public void shouldCreateNewRouterIfChanged() {
         Router<HttpStatus> router = Router.create(status(), on(OK).capture());
         Router<HttpStatus> result = router.add(anyStatus().capture());
@@ -62,50 +161,6 @@ public class RouterTest {
         Router<HttpStatus> router = Router.create(status(), on(OK).capture());
         Router<HttpStatus> result = router.add(on(OK).capture());
         Assert.assertNotEquals(router, result);
-    }
-
-    @Test
-    public void shouldSubstituteBinding() {
-        Capture result = Router.create(status(), on(OK).call(() -> { throw new RuntimeException(); }))
-                .add(anyStatus().call(() -> { throw new RuntimeException(); }))
-                .add(on(OK).capture())
-                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
-
-        Assert.assertThat(result, Matchers.notNullValue(Capture.class));
-        Assert.assertFalse(result.as(byte[].class).isPresent());
-    }
-
-    @Test
-    public void shouldExtendBinding() {
-        Capture result = Router.create(status())
-                .add(anyStatus().call(() -> { throw new RuntimeException(); }))
-                .add(on(CREATED).capture())
-                .route(new MockClientHttpResponse((byte[]) null, CREATED), emptyList());
-
-        Assert.assertThat(result, Matchers.notNullValue(Capture.class));
-        Assert.assertFalse(result.as(byte[].class).isPresent());
-    }
-
-    @Test
-    public void shouldRejectDuplicateWildcards() {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Multiple entries with same key: wildcard");
-
-        Router.create(status(), asList(
-                anyStatus().capture(),
-                anyStatus().capture()))
-                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
-    }
-
-    @Test
-    public void shouldRejectDuplicateAttributes() {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Multiple entries with same key: 200");
-
-        Router.create(status(), asList(
-                on(OK).capture(),
-                on(OK).capture()))
-                .route(new MockClientHttpResponse((byte[]) null, OK), emptyList());
     }
 
     @Test

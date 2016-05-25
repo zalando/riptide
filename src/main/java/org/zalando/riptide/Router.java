@@ -27,9 +27,9 @@ import org.springframework.web.client.RestClientException;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -58,15 +58,7 @@ public final class Router<A> {
 
     private static <A> Map<A, Binding<A>> createMap(Collection<Binding<A>> bindings) {
         return bindings.stream()
-                .collect(toMap(Binding::getAttribute, Function.identity(), checkDuplicates()));
-    }
-
-    private static <A> BinaryOperator<Binding<A>> checkDuplicates() {
-        return (u, v) -> {
-            throw new IllegalArgumentException(
-                    String.format("Multiple entries with same key: %s",
-                            (u.getAttribute() != null) ? u.getAttribute() : "wildcard"));
-        };
+                .collect(toMap(Binding::getAttribute, Function.identity(), (u, v) -> v, LinkedHashMap::new));
     }
 
     final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
