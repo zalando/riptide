@@ -28,6 +28,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.model.AccountBody;
 import org.zalando.riptide.model.CheckedException;
 
@@ -56,6 +57,9 @@ public final class CallTest {
 
     public CallTest() {
         final RestTemplate template = new RestTemplate();
+        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
+        templateHandler.setBaseUrl("https://api.example.com");
+        template.setUriTemplateHandler(templateHandler);
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
@@ -74,7 +78,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final ResponseEntityConsumer<AccountBody> verifier = mock(ResponseEntityConsumer.class);
 
-        unit.execute(GET, url)
+        unit.execute(GET, "/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
@@ -97,7 +101,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final EntityConsumer<AccountBody> verifier = mock(EntityConsumer.class);
 
-        unit.execute(GET, url)
+        unit.execute(GET, "/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
@@ -114,7 +118,7 @@ public final class CallTest {
 
         final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
-        unit.execute(GET, url)
+        unit.execute(GET, "/accounts/123")
                 .dispatch(status(),
                         on(OK).call(verifier),
                         anyStatus().call(this::fail));
@@ -129,7 +133,7 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        unit.execute(GET, url)
+        unit.execute(GET, "/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail));
@@ -146,7 +150,7 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        unit.execute(GET, url)
+        unit.execute(GET, "/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateResponse),
                         anyStatus().call(this::fail));

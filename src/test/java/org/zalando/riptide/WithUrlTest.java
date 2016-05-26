@@ -25,6 +25,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.junit.Test;
+import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpMethod.GET;
@@ -33,12 +34,15 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class WithUrlTest {
 
-    private final RestTemplate template;
     private final Rest unit;
     private final MockRestServiceServer server;
 
     public WithUrlTest() {
-        this.template = new RestTemplate();
+        final RestTemplate template = new RestTemplate();
+        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
+        templateHandler.setBaseUrl("https://api.example.com");
+        template.setUriTemplateHandler(templateHandler);
+
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
@@ -47,7 +51,7 @@ public class WithUrlTest {
     public void shouldExpandWithoutVariables() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("https://api.example.com/123")
+        unit.withUrl("/123")
             .execute(GET);
     }
 
@@ -55,7 +59,7 @@ public class WithUrlTest {
     public void shouldExpandOne() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("https://api.example.com/{id}", 123)
+        unit.withUrl("/{id}", 123)
             .execute(GET);
     }
 
@@ -63,7 +67,7 @@ public class WithUrlTest {
     public void shouldExpandTwo() {
         expectRequestTo("https://api.example.com/123/456");
 
-        unit.withUrl("https://api.example.com/{parent}/{child}", 123, "456")
+        unit.withUrl("/{parent}/{child}", 123, "456")
             .execute(GET);
     }
 
@@ -71,7 +75,7 @@ public class WithUrlTest {
     public void shouldExpandWithEmptyMap() {
         expectRequestTo("https://api.example.com/");
 
-        unit.withUrl("https://api.example.com/", emptyMap())
+        unit.withUrl("/", emptyMap())
             .execute(GET);
     }
 
@@ -83,7 +87,7 @@ public class WithUrlTest {
         m.put("parent", 123);
         m.put("child", "456");
 
-        unit.withUrl("https://api.example.com/{parent}/{child}", m)
+        unit.withUrl("/{parent}/{child}", m)
             .execute(GET);
     }
 
@@ -118,7 +122,7 @@ public class WithUrlTest {
     public void shouldExpandOnGetWithHeaders() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("https://api.example.com/123")
+        unit.withUrl("/123")
             .execute(GET, new HttpHeaders());
     }
 
@@ -126,7 +130,7 @@ public class WithUrlTest {
     public void shouldExpandOnGetWithBody() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("https://api.example.com/123")
+        unit.withUrl("/123")
             .execute(GET, "deadbody");
     }
 
@@ -134,7 +138,7 @@ public class WithUrlTest {
     public void shouldExpandOnGetWithHeadersAndBody() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("https://api.example.com/123")
+        unit.withUrl("/123")
             .execute(GET, new HttpHeaders(), "deadbody");
     }
 

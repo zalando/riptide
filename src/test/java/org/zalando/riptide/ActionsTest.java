@@ -47,6 +47,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
 import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
@@ -71,7 +72,7 @@ public final class ActionsTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final URI url = URI.create("https://api.example.com/accounts/123");
+    private final String url = "https://api.example.com/accounts/123";
 
     private final Rest unit;
     private final MockRestServiceServer server;
@@ -166,7 +167,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(GET, url)
+        final URI location = unit.execute(POST, url, new HttpHeaders())
                 .dispatch(series(),
                         on(SUCCESSFUL).capture(resolveAgainst(url).andThen(location())))
                 .to(URI.class);
@@ -181,7 +182,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(GET, url)
+        final URI location = unit.execute(POST, url, "")
                 .dispatch(series(),
                         on(SUCCESSFUL).capture(resolveAgainst(url).andThen(contentLocation())))
                 .to(URI.class);
@@ -196,7 +197,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(GET, url)
+        final URI location = unit.execute(POST, url, new HttpHeaders(), "")
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(resolveAgainst(url), status(),
                                 on(OK).capture(location())))

@@ -29,8 +29,6 @@ import org.springframework.web.util.UriTemplateHandler;
 
 abstract class RestBase<D> {
 
-    protected abstract <T> D execute(HttpMethod method, URI url, HttpEntity<T> entity);
-
     protected abstract UriTemplateHandler getUriTemplateHandler();
 
     public RestWithURL<D> withUrl(final String uriTemplate, final Object... uriVariables) {
@@ -39,6 +37,26 @@ abstract class RestBase<D> {
 
     public RestWithURL<D> withUrl(final String uriTemplate, final Map<String, ?> uriVariables) {
         return new RestWithURL<>(this, getUriTemplateHandler().expand(uriTemplate, uriVariables));
+    }
+
+    public D execute(final HttpMethod method, final String url) {
+        return expandAndExecute(method, url, HttpEntity.EMPTY);
+    }
+
+    public D execute(final HttpMethod method, final String url, final HttpHeaders headers) {
+        return expandAndExecute(method, url, new HttpEntity<>(headers));
+    }
+
+    public D execute(final HttpMethod method, final String url, final Object body) {
+        return expandAndExecute(method, url, new HttpEntity<>(body));
+    }
+
+    public D execute(final HttpMethod method, final String url, final HttpHeaders headers, final Object body) {
+        return expandAndExecute(method, url, new HttpEntity<>(body, headers));
+    }
+
+    private <T> D expandAndExecute(final HttpMethod method, final String url, final HttpEntity<T> entity) {
+        return execute(method, getUriTemplateHandler().expand(url), entity);
     }
 
     public D execute(final HttpMethod method, final URI url) {
@@ -56,4 +74,7 @@ abstract class RestBase<D> {
     public D execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
         return execute(method, url, new HttpEntity<>(body, headers));
     }
+
+    protected abstract <T> D execute(final HttpMethod method, final URI url, final HttpEntity<T> entity);
+
 }
