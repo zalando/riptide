@@ -17,6 +17,32 @@ correct handler based on any combination of the following criteria: URI includin
 `Accept` and `Content-Type` header. Instead of routing requests to handler methods on the server what *Riptide* does
 is the exact opposite: routing responses to handler methods on the client side.
 
+Usage typically looks like this, an adaptation of the canonical Github sample. Compare this to 
+[Feign](https://github.com/Netflix/feign#basics) or
+[Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
+
+```java
+@JsonAutoDetect(fieldVisibility = NON_PRIVATE)
+static class Contributor {
+    String login;
+    int contributions;
+}
+
+public static void main(final String... args) {
+    final RestTemplate template = new RestTemplate();
+    final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
+    handler.setBaseUrl("https://api.github.com");
+    template.setUriTemplateHandler(handler);
+    template.setErrorHandler(new PassThroughResponseErrorHandler());
+    final Rest rest = Rest.create(template);
+
+    rest.execute(GET, "/repos/zalando/riptide/contributors").dispatch(series(),
+        on(SUCCESSFUL).call(listOf(Contributor.class), (List<Contributor> contributors) ->
+            contributors.forEach(contributor ->
+                System.out.println(contributor.login + " (" + contributor.contributions + ")"))));
+}
+```
+
 ## Features
 
 - thin wrapper around RestTemplate
