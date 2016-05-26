@@ -29,8 +29,6 @@ import org.springframework.web.util.UriTemplateHandler;
 
 abstract class RestBase<D> {
 
-    protected final Router router = new Router();
-
     protected abstract <T> D execute(HttpMethod method, URI url, HttpEntity<T> entity);
 
     protected abstract UriTemplateHandler getUriTemplateHandler();
