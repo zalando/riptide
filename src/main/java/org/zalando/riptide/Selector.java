@@ -22,37 +22,26 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 /**
- * A {@link Selector} can be used change the dispatching strategy. Its purpose is to select an attribute
- * of the response and find a binding for it.
+ * A {@link Selector} can be used change the dispatching strategy. Its purpose is to find a binding for a given
+ * response.
  *
- * @param <A> generic response attribute type
+ * @param <A> generic binding attribute type
  */
-@FunctionalInterface
 public interface Selector<A> {
 
     /**
-     * Retrieves an attribute from the given response
+     * Attempts to find a matching binding for the given response.
      *
-     * @param response the incoming response
-     * @return an attribute based on the response which is then used to select the correct binding
-     * @throws IOException if accessing the response failed
-     */
-    Optional<A> attributeOf(ClientHttpResponse response) throws IOException;
-
-    /**
-     * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
-     *
-     * @param attribute the previously selected attribute
-     * @param bindings  all bindings
+     * @param response the received response
+     * @param routes  a map containing all routes
      * @return an optional binding match, if found
      */
-    default Optional<Binding<A>> select(final Optional<A> attribute, final Map<Optional<A>, Binding<A>> bindings) {
-        return Optional.ofNullable(bindings.get(attribute));
-    }
+    @Nullable
+    Executor select(final ClientHttpResponse response, final Map<A, Executor> routes) throws IOException;
 
 }

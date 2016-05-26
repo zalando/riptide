@@ -24,89 +24,99 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 
+import lombok.SneakyThrows;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
-import static java.util.function.Function.identity;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 
-final class Router {
+public final class Router<A> {
 
-    private static final Optional WILDCARD = Optional.empty();
+    private final Selector<A> selector;
+    private final Map<A, Executor> routes;
 
-    final <A> Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Selector<A> selector, final Collection<Binding<A>> bindings) {
+    private Router(Selector<A> selector, Map<A, Executor> bindings) {
+        this.selector = selector;
+        this.routes = bindings;
+    }
 
-        final Optional<A> attribute;
+    @SafeVarargs
+    public static <A> Router<A> create(final Selector<A> selector, final Binding<A>... bindings) {
+        return create(selector, asList(bindings));
+    }
 
+    public static <A> Router<A> create(final Selector<A> selector, final Collection<Binding<A>> bindings) {
+        return new Router<A>(selector, Router.createMap(bindings));
+    }
+
+    private static <A> Map<A, Executor> createMap(Collection<Binding<A>> bindings) {
+        return bindings.stream().collect(toLinkedMap(Binding::getAttribute, Binding::getExecutor));
+    }
+
+    private static <T, K, U>
+            Collector<T, ?, Map<K, U>> toLinkedMap(Function<? super T, ? extends K> keyMapper,
+                    Function<? super T, ? extends U> valueMapper) {
+        return toMap(keyMapper, valueMapper, (u, v) -> v, LinkedHashMap::new);
+    }
+
+    final Capture route(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) {
         try {
-            attribute = selector.attributeOf(response);
-        } catch (final IOException e) {
-            throw new RestClientException("Unable to retrieve attribute of response", e);
-        }
+            final Executor match = selector.select(response, routes);
 
-        final Map<Optional<A>, Binding<A>> index = bindings.stream()
-                .collect(toMap(Binding::getAttribute, identity(), this::denyDuplicates, LinkedHashMap::new));
-
-        final Optional<Binding<A>> match = selector.select(attribute, index);
-
-        try {
-            if (match.isPresent()) {
-                final Binding<A> binding = match.get();
-
-                try {
-                    return binding.execute(response, converters);
-                } catch (final NoRouteException e) {
-                    return propagateNoMatch(response, converters, index, e);
-                }
+            if (match == null) {
+                return routeToWildcardIfPossible(response, converters);
             } else {
-                return routeNone(response, converters, index);
+                try {
+                    return routeToTarget(match, response, converters);
+                } catch (final NoRouteException e) {
+                    return bubbleUpToWildcardIfPossible(response, converters, e);
+                }
             }
         } catch (final IOException e) {
             throw new RestClientException("Unable to execute binding", e);
         }
     }
 
-    private <A> Binding<A> denyDuplicates(final Binding<A> left, final Binding<A> right) {
-        left.getAttribute().ifPresent(a -> {
-            throw new IllegalStateException("Duplicate condition attribute: " + a);
-        });
-
-        throw new IllegalStateException("Duplicate any conditions");
+    @SneakyThrows(Exception.class)
+    private Capture routeToTarget(final Executor executor, final ClientHttpResponse response,
+            final List<HttpMessageConverter<?>> converters) {
+        return  executor.execute(response, converters);
     }
 
-    private <A> Capture propagateNoMatch(final ClientHttpResponse response,
-            final List<HttpMessageConverter<?>> converters, final Map<Optional<A>, Binding<A>> bindings,
+    private <X> Capture routeToWildcardIfPossible(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
+        final Executor wildcard = routes.get(null);
+
+        if (wildcard == null) {
+            throw new NoRouteException(response);
+        } else {
+            return routeToTarget(wildcard, response, converters);
+        }
+    }
+
+    private <X> Capture bubbleUpToWildcardIfPossible(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
             final NoRouteException e) throws IOException {
+    
         try {
-            return routeNone(response, converters, bindings);
+            return routeToWildcardIfPossible(response, converters);
         } catch (final NoRouteException ignored) {
             // propagating didn't work, preserve original exception
             throw e;
         }
     }
 
-    private <A> Capture routeNone(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters,
-            final Map<Optional<A>, Binding<A>> bindings) throws IOException {
-
-        if (containsWildcard(bindings)) {
-            final Binding<A> binding = getWildcard(bindings);
-            return binding.execute(response, converters);
-        } else {
-            throw new NoRouteException(response);
-        }
+    @SafeVarargs
+    public final Router<A> add(Binding<A>... bindings) {
+        Map<A, Executor> map = Router.createMap(asList(bindings));
+        return new Router<A>(selector,
+                Stream.concat(this.routes.entrySet().stream(), map.entrySet().stream())
+                        .collect(toLinkedMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
-
-    private <A> boolean containsWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.containsKey(WILDCARD);
-    }
-
-    private <A> Binding<A> getWildcard(final Map<Optional<A>, Binding<A>> bindings) {
-        return bindings.get(WILDCARD);
-    }
-
 }

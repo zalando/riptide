@@ -72,12 +72,11 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ResponseEntityConsumer<AccountBody, Exception> verifier =
-                mock(ResponseEntityConsumer.class);
+        final ResponseEntityConsumer<AccountBody> verifier = mock(ResponseEntityConsumer.class);
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(verifier),
+                        on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(anyResponseEntityOf(AccountBody.class));
@@ -96,12 +95,11 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final EntityConsumer<AccountBody, Exception> verifier =
-                mock(EntityConsumer.class);
+        final EntityConsumer<AccountBody> verifier = mock(EntityConsumer.class);
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(verifier),
+                        on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(any(AccountBody.class));
@@ -114,9 +112,7 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        @SuppressWarnings("unchecked")
-        final ThrowingRunnable<Exception> verifier =
-                mock(ThrowingRunnable.class);
+        final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
         unit.execute(GET, url)
                 .dispatch(status(),
@@ -135,7 +131,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(this::validateEntity),
+                        on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail));
     }
 
@@ -152,7 +148,7 @@ public final class CallTest {
 
         unit.execute(GET, url)
                 .dispatch(status(),
-                        on(OK, AccountBody.class).call(this::validateResponse),
+                        on(OK).call(AccountBody.class, this::validateResponse),
                         anyStatus().call(this::fail));
     }
 

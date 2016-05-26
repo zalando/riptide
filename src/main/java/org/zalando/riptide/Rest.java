@@ -21,7 +21,6 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -29,37 +28,27 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
+import org.springframework.web.util.UriTemplateHandler;
 
-public final class Rest {
+public final class Rest extends RestBase<Dispatcher>{
 
     private final RestTemplate template;
-    private final Router router = new Router();
 
     private Rest(final RestTemplate template) {
         this.template = template;
     }
 
-    public Dispatcher execute(final HttpMethod method, final URI url) {
-        return execute(method, url, HttpEntity.EMPTY);
+    @Override
+    protected UriTemplateHandler getUriTemplateHandler() {
+        return template.getUriTemplateHandler();
     }
 
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
-        return execute(method, url, new HttpEntity<>(headers));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final Object body) {
-        return execute(method, url, new HttpEntity<>(body));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
-        return execute(method, url, new HttpEntity<>(body, headers));
-    }
-
-    private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
+    @Override
+    protected <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
         final Callback<T> callback = new Callback<>(converters, entity);
         final ClientHttpResponse response = execute(method, url, callback);
-        return new Dispatcher(converters, response, router);
+        return new Dispatcher(converters, response);
     }
 
     /**
@@ -80,5 +69,4 @@ public final class Rest {
     public static Rest create(final RestTemplate template) {
         return new Rest(template);
     }
-
 }

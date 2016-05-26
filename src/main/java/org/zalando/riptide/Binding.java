@@ -20,47 +20,29 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import lombok.SneakyThrows;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
+import javax.annotation.Nullable;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+public final class Binding<A> {
 
-import static java.util.Arrays.asList;
-
-public final class Binding<A> implements Executor {
-
-    private final Optional<A> attribute;
+    private final A attribute;
     private final Executor executor;
 
-    private Binding(final Optional<A> attribute, final Executor executor) {
+    private Binding(@Nullable final A attribute, final Executor executor) {
         this.attribute = attribute;
         this.executor = executor;
     }
 
-    Optional<A> getAttribute() {
+    @Nullable
+    A getAttribute() {
         return attribute;
     }
 
-    @Override
-    @SneakyThrows(Exception.class)
-    public Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws IOException {
-        return executor.execute(response, converters);
+    public Executor getExecutor() {
+        return executor;
     }
 
-    static <A> Binding<A> create(final A attribute, final Executor executor) {
-        return create(Optional.of(attribute), executor);
-    }
-
-    static <A> Binding<A> create(final Optional<A> attribute, final Executor executor) {
+    static <A> Binding<A> create(@Nullable final A attribute, final Executor executor) {
         return new Binding<>(attribute, executor);
-    }
-
-    @SafeVarargs
-    public static <T> List<T> route(T... bindings) {
-        return asList(bindings);
     }
 
 }

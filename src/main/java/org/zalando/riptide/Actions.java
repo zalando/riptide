@@ -24,13 +24,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
 import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
-import static org.springframework.http.HttpHeaders.LOCATION;
 
 public final class Actions {
 
@@ -38,42 +35,42 @@ public final class Actions {
         // package private so we can trick code coverage
     }
 
-    public static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
+    public static ThrowingConsumer<ClientHttpResponse> pass() {
         return response -> {
 
         };
     }
 
-    public static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
+    public static ThrowingFunction<ClientHttpResponse, HttpHeaders> headers() {
         return HttpMessage::getHeaders;
     }
 
-    public static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
+    public static ThrowingFunction<ClientHttpResponse, URI> location() {
         return response ->
                 response.getHeaders().getLocation();
     }
 
-    public static ThrowingFunction<ClientHttpResponse, URI, IOException> contentLocation() {
+    public static ThrowingFunction<ClientHttpResponse, URI> contentLocation() {
         return response ->
                 Optional.ofNullable(response.getHeaders().getFirst(CONTENT_LOCATION))
                 .map(URI::create)
                 .orElse(null);
     }
 
-    public static <X extends Exception> EntityConsumer<X, X> propagate() {
+    public static <X extends Exception> EntityConsumer<X> propagate() {
         return entity -> {
             throw entity;
         };
     }
 
     /**
-     * Normalizes the {@code Location} and {@code Content-Location} headers of any given response by resolving them
-     * against the given {@code uri}.
+     * Resolves the {@code Location} and {@code Content-Location} headers of the given response against the given
+     * {@code uri}.
      *
      * @param uri the base uri to resolve against
-     * @return a function that normalizes responses
+     * @return a function that resolves Location-style headers in responses
      */
-    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse, IOException> normalize(final URI uri) {
+    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse> resolveAgainst(final URI uri) {
         return response -> {
             final HttpHeaders headers = new HttpHeaders();
             headers.putAll(response.getHeaders());

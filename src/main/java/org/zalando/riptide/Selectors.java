@@ -21,6 +21,7 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
 
 public final class Selectors {
@@ -33,10 +34,10 @@ public final class Selectors {
      * A {@link Selector} that selects a binding based on the response's status code series
      *
      * @return an HTTP status code series selector
-     * @see org.springframework.http.HttpStatus.Series
+     * @see Series
      */
-    public static Selector<HttpStatus.Series> series() {
-        return new SeriesSelector();
+    public static EqualitySelector<Series> series() {
+        return SeriesSelector.INSTANCE;
     }
 
     /**
@@ -46,8 +47,8 @@ public final class Selectors {
      * @see HttpStatus
      * @see #statusCode()
      */
-    public static Selector<HttpStatus> status() {
-        return new StatusSelector();
+    public static EqualitySelector<HttpStatus> status() {
+        return StatusSelector.INSTANCE;
     }
 
     /**
@@ -57,8 +58,22 @@ public final class Selectors {
      * @see HttpStatus
      * @see #status()
      */
-    public static Selector<Integer> statusCode() {
-        return new StatusCodeSelector();
+    public static EqualitySelector<Integer> statusCode() {
+        return StatusCodeSelector.INSTANCE;
+    }
+
+    /**
+     * A {@link Selector} that selects a binding based on the response's reason phrase.
+     *
+     * Be aware that this, even though it's standardized, could be changed by servers.
+     *
+     * @return an HTTP reason phrase selector
+     * @see HttpStatus#getReasonPhrase()
+     * @see #status()
+     * @see #statusCode()
+     */
+    public static EqualitySelector<String> reasonPhrase() {
+        return ReasonPhraseSelector.INSTANCE;
     }
 
     /**
@@ -67,8 +82,26 @@ public final class Selectors {
      * @return a Content-Type selector
      * @see MediaType
      */
-    public static Selector<MediaType> contentType() {
-        return new ContentTypeSelector();
+    public static EqualitySelector<MediaType> contentType() {
+        return ContentTypeSelector.INSTANCE;
+    }
+
+    /**
+     * A {@link BinarySelector} that selects a binding based on whether the {@code Location} header is present
+     * and has the same field value as the {@code Content-Location} header.
+     *
+     * <pre>
+     * For a 201 (Created) response to a state-changing method, a
+     * Content-Location field-value that is identical to the Location
+     * field-value indicates that this payload is a current
+     * representation of the newly created resource.
+     * </pre>
+     * 
+     * @return a Content-Location header selector
+     * @see <a href="https://tools.ietf.org/html/rfc7231#section-3.1.4.2">RFC 7231 Section 3.1.4.2. Content-Location</a>
+     */
+    public static BinarySelector isCurrentRepresentation() {
+        return CurrentRepresentationSelector.INSTANCE;
     }
 
 }

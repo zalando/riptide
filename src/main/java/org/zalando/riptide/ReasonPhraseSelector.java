@@ -4,7 +4,7 @@ package org.zalando.riptide;
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-@FunctionalInterface
-public interface Capturer<A> {
+import org.springframework.http.client.ClientHttpResponse;
 
-    Binding<A> capture();
+import javax.annotation.Nullable;
+import java.io.IOException;
+
+enum  ReasonPhraseSelector implements EqualitySelector<String> {
+
+    INSTANCE;
+
+    @Nullable
+    @Override
+    public String attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusText();
+    }
 
 }

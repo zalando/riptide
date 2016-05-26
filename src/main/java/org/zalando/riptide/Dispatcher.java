@@ -31,12 +31,10 @@ public final class Dispatcher {
 
     private final List<HttpMessageConverter<?>> converters;
     private final ClientHttpResponse response;
-    private final Router router;
 
-    Dispatcher(final List<HttpMessageConverter<?>> converters, final ClientHttpResponse response, final Router router) {
+    Dispatcher(final List<HttpMessageConverter<?>> converters, final ClientHttpResponse response) {
         this.converters = converters;
         this.response = response;
-        this.router = router;
     }
 
     @SafeVarargs
@@ -45,7 +43,10 @@ public final class Dispatcher {
     }
 
     public final <A> Capture dispatch(final Selector<A> selector, final List<Binding<A>> bindings) {
-        return router.route(response, converters, selector, bindings);
+        return dispatch(Router.create(selector, bindings));
     }
 
+    public final <A> Capture dispatch(Router<A> router) {
+        return router.route(response, converters);
+    }
 }

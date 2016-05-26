@@ -20,22 +20,27 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.web.client.AsyncRequestCallback;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Objects;
 
-final class AsyncRequestCallbackAdapter<T> implements AsyncRequestCallback {
+/**
+ * @see Selectors#isCurrentRepresentation()
+ */
+enum CurrentRepresentationSelector implements BinarySelector {
 
-    private final Callback<T> callback;
-
-    public AsyncRequestCallbackAdapter(final Callback<T> callback) {
-        this.callback = callback;
-    }
+    INSTANCE;
 
     @Override
-    public void doWithRequest(final AsyncClientHttpRequest request) throws IOException {
-        callback.doWithRequest(new AsyncClientHttpRequestAdapter(request));
+    public Boolean attributeOf(final ClientHttpResponse response) throws IOException {
+        final HttpHeaders headers = response.getHeaders();
+        @Nullable final String location = headers.getFirst("Location");
+        @Nullable final String contentLocation = headers.getFirst("Content-Location");
+        return Objects.nonNull(location) &&
+                Objects.equals(location, contentLocation);
     }
 
 }

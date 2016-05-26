@@ -37,7 +37,7 @@ final class RawCapture implements Capture {
     }
 
     @Override
-    public boolean has(TypeToken<?> other) {
+    public boolean has(final TypeToken<?> other) {
         return value.map(Object::getClass)
                 .filter(other::isSupertypeOf)
                 .isPresent();
@@ -45,7 +45,7 @@ final class RawCapture implements Capture {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <O> Optional<O> as(TypeToken<O> type) {
+    public <O> Optional<O> as(final TypeToken<O> type) {
         return has(type) ? value.map(v -> (O) v) : empty();
     }
 

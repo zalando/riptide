@@ -21,6 +21,6 @@ package org.zalando.riptide;
  */
 
 @FunctionalInterface
-public interface EntityFunction<F, T, X extends Exception> extends ThrowingFunction<F, T, X> {
+public interface EntityFunction<F, T> extends ThrowingFunction<F, T> {
 
 }
