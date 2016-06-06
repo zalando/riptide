@@ -65,6 +65,7 @@ public class UriTemplateTest {
         this.method = method;
         this.executor = executor;
     }
+
     interface Executor<R> {
         Requester<R> execute(RestClient<R> client, String uriTemplate, Object... uriVariables);
     }

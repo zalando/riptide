@@ -203,7 +203,7 @@ public final class InputStreamTest {
                         .body(new InputStreamResource(content))
                         .contentType(APPLICATION_OCTET_STREAM));
 
-        final InputStream inputStream = unit.execute(GET, url)
+        final InputStream inputStream = unit.get(url)
                 .dispatch(contentType(),
                         on(APPLICATION_OCTET_STREAM).capture(InputStream.class))
                 .as(InputStream.class)

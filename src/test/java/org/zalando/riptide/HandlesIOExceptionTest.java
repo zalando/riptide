@@ -23,13 +23,11 @@ package org.zalando.riptide;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.util.Collections.emptyList;
@@ -52,7 +50,7 @@ public class HandlesIOExceptionTest {
         };
 
         Rest.create(factory, emptyList())
-                .execute(HttpMethod.GET, new URI("http://localhost/"))
+                .get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).capture());
     }
@@ -68,7 +66,7 @@ public class HandlesIOExceptionTest {
         };
 
         AsyncRest.create(factory, emptyList())
-                .execute(HttpMethod.GET, new URI("http://localhost/"))
+                .get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).capture());
     }

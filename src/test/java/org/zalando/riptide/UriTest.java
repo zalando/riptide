@@ -62,6 +62,7 @@ public class UriTest {
         this.method = method;
         this.executor = executor;
     }
+
     interface Executor<R> {
         Requester<R> execute(RestClient<R> client, URI uri);
     }
