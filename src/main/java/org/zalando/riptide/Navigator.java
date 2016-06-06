@@ -4,7 +4,7 @@ package org.zalando.riptide;
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,25 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * A {@link Selector} can be used change the dispatching strategy. Its purpose is to find a binding for a given
- * response.
- *
- * @param <A> generic binding attribute type
- */
-public interface Selector<A> {
+@FunctionalInterface
+public interface Navigator<A> {
 
-    /**
-     * Attempts to find a matching binding for the given response.
-     *
-     * @param response the received response
-     * @param routes  a map containing all routes
-     * @return an optional binding match, if found
-     */
-    @Nullable
-    Executor select(final ClientHttpResponse response, final Map<A, Executor> routes) throws IOException;
+    Optional<Route> navigate(final ClientHttpResponse response, final RoutingTree<A> tree) throws IOException;
+
+    default List<Binding<A>> merge(final List<Binding<A>> present, final List<Binding<A>> additional) {
+        final Map<A, Binding<A>> bindings = new LinkedHashMap<>(present.size() + additional.size());
+
+        present.forEach(binding -> bindings.put(binding.getAttribute(), binding));
+        additional.forEach(binding -> bindings.put(binding.getAttribute(), binding));
+
+        return new ArrayList<>(bindings.values());
+    }
 
 }

@@ -20,19 +20,27 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Objects;
 
-enum  ReasonPhraseSelector implements EqualitySelector<String> {
+/**
+ * @see Selectors#isCurrentRepresentation()
+ */
+enum CurrentRepresentationNavigator implements BinaryNavigator {
 
     INSTANCE;
 
-    @Nullable
     @Override
-    public String attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getStatusText();
+    public Boolean attributeOf(final ClientHttpResponse response) throws IOException {
+        final HttpHeaders headers = response.getHeaders();
+        @Nullable final String location = headers.getFirst("Location");
+        @Nullable final String contentLocation = headers.getFirst("Content-Location");
+        return Objects.nonNull(location) &&
+                Objects.equals(location, contentLocation);
     }
 
 }

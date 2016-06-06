@@ -29,13 +29,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Immutable
+@FunctionalInterface
 public interface Capture {
-
-    default boolean has(final Class<?> type) {
-        return has(TypeToken.of(type));
-    }
-
-    boolean has(final TypeToken<?> type);
 
     default <T> Optional<T> as(final Class<T> type) {
         return as(TypeToken.of(type));
@@ -56,15 +51,14 @@ public interface Capture {
     }
 
     static <T> Capture valueOf(@Nullable final T value) {
-        return new RawCapture(Optional.ofNullable(value));
-    }
+        return new Capture() {
 
-    static <T> Capture valueOf(@Nullable final T value, final Class<T> type) {
-        return valueOf(value, TypeToken.of(type));
-    }
-
-    static <T> Capture valueOf(@Nullable final T value, final TypeToken<T> type) {
-        return new TypedCapture<>(Optional.ofNullable(value), type);
+            @Override
+            @SuppressWarnings("unchecked")
+            public <O> Optional<O> as(final TypeToken<O> type) {
+                return Optional.ofNullable(value).map(v -> (O) v);
+            }
+        };
     }
 
     static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {

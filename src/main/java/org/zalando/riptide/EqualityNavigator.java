@@ -24,21 +24,9 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Optional;
 
-@FunctionalInterface
-public interface EqualitySelector<A> extends Selector<A> {
-
-    /**
-     * Attempts to find a matching binding for the given attribute. Defaults to a direct map lookup.
-     *
-     * @inheritDoc
-     */
-    @Override
-    default Executor select(final ClientHttpResponse response, final Map<A, Executor> routes) throws IOException {
-        final A attribute = attributeOf(response);
-        return select(attribute, routes);
-    }
+public interface EqualityNavigator<A> extends Navigator<A> {
 
     /**
      * Retrieves an attribute from the given response
@@ -50,7 +38,14 @@ public interface EqualitySelector<A> extends Selector<A> {
     @Nullable
     A attributeOf(final ClientHttpResponse response) throws IOException;
 
-    default Executor select(@Nullable A attribute, Map<A, Executor> index) {
-        return index.get(attribute);
+    @Override
+    default Optional<Route> navigate(final ClientHttpResponse response, final RoutingTree<A> tree) throws IOException {
+        @Nullable final A attribute = attributeOf(response);
+        return navigate(attribute, tree);
     }
+
+    default Optional<Route> navigate(@Nullable final A attribute, final RoutingTree<A> tree) throws IOException {
+        return attribute == null ? tree.getWildcard() : tree.get(attribute);
+    }
+
 }

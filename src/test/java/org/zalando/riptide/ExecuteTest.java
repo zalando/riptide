@@ -23,10 +23,11 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gag.annotation.remark.Hack;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
@@ -35,23 +36,25 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Success;
 
-import java.net.URI;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Selectors.series;
 
 public final class ExecuteTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final URI url = URI.create("https://api.example.com");
+    private final String url = "https://api.example.com";
 
     private final RestTemplate template;
     private final Rest unit;
@@ -66,13 +69,20 @@ public final class ExecuteTest {
         this.unit = Rest.create(template);
     }
 
+    @After
+    public void after() {
+        server.verify();
+    }
+
     @Test
     public void shouldSendNoBody() {
         server.expect(requestTo(url))
                 .andExpect(content().string(""))
                 .andRespond(withSuccess());
 
-        unit.execute(GET, url);
+        unit.trace(url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
@@ -81,10 +91,10 @@ public final class ExecuteTest {
                 .andExpect(header("X-Foo", "bar"))
                 .andRespond(withSuccess());
 
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Foo", "bar");
-
-        unit.execute(GET, url, headers);
+        unit.head(url)
+                .header("X-Foo", "bar")
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
@@ -93,7 +103,8 @@ public final class ExecuteTest {
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
                 .andRespond(withSuccess());
 
-        unit.execute(GET, url, ImmutableMap.of("foo", "bar"));
+        unit.post(url)
+                .body(ImmutableMap.of("foo", "bar"));
     }
 
     @Test
@@ -103,27 +114,27 @@ public final class ExecuteTest {
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
                 .andRespond(withSuccess());
 
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Foo", "bar");
-
-        unit.execute(GET, url, headers, ImmutableMap.of("foo", "bar"));
+        unit.put(url)
+                .header("X-Foo", "bar")
+                .body(ImmutableMap.of("foo", "bar"));
     }
 
     @Test
     public void shouldFailIfNoConverterFoundForBody() {
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
+                .andExpect(header("Accept", MediaType.APPLICATION_JSON_VALUE))
                 .andRespond(withSuccess());
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_XML);
 
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
         exception.expectMessage("application/xml");
 
-        unit.execute(GET, url, headers, new Success(true));
+        unit.patch(url)
+                .accept(APPLICATION_JSON)
+                .contentType(APPLICATION_XML)
+                .body(new Success(true));
     }
 
     @Test
@@ -140,7 +151,8 @@ public final class ExecuteTest {
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
 
-        unit.execute(GET, url, new Success(true));
+        unit.delete(url)
+                .body(new Success(true));
     }
 
 }

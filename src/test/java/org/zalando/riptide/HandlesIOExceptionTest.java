@@ -33,6 +33,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.util.Collections.emptyList;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Selectors.series;
 
 public class HandlesIOExceptionTest {
     @Rule
@@ -44,11 +47,14 @@ public class HandlesIOExceptionTest {
         exception.expect(ResourceAccessException.class);
         exception.expectMessage("I/O error on GET request");
 
-        final ClientHttpRequestFactory clientHttpRequestFactory = (uri, httpMethod) -> {
+        final ClientHttpRequestFactory factory = (uri, httpMethod) -> {
             throw new IOException("Could not create request");
         };
-        
-        Rest.create(clientHttpRequestFactory, emptyList()).execute(HttpMethod.GET, new URI("http://localhost/"));
+
+        Rest.create(factory, emptyList())
+                .execute(HttpMethod.GET, new URI("http://localhost/"))
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
@@ -57,11 +63,14 @@ public class HandlesIOExceptionTest {
         exception.expect(ResourceAccessException.class);
         exception.expectMessage("I/O error on GET request");
 
-        final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory = (uri, httpMethod) -> {
+        final AsyncClientHttpRequestFactory factory = (uri, httpMethod) -> {
             throw new IOException("Could not create request");
         };
 
-        AsyncRest.create(asyncClientHttpRequestFactory, emptyList()).execute(HttpMethod.GET, new URI("http://localhost/"));
+        AsyncRest.create(factory, emptyList())
+                .execute(HttpMethod.GET, new URI("http://localhost/"))
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
 }

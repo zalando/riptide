@@ -27,7 +27,7 @@ public interface ThrowingFunction<T, R> {
 
     R apply(T input) throws Exception;
 
-    default <V> ThrowingFunction<V, R> compose(ThrowingFunction<? super V, ? extends T> before) {
+    default <V> ThrowingFunction<V, R> compose(final ThrowingFunction<? super V, ? extends T> before) {
         Objects.requireNonNull(before);
         return (V v) -> apply(before.apply(v));
     }

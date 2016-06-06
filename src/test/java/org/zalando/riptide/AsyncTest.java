@@ -43,16 +43,15 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Actions.pass;
+import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.AsyncRest.handle;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 
@@ -79,7 +78,7 @@ public final class AsyncTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
@@ -92,8 +91,8 @@ public final class AsyncTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
-        unit.withUrl("http://localhost/{id}", 123)
-            .execute(GET, url).dispatch(series(),
+        unit.get("http://localhost/{id}", 123)
+            .dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
@@ -105,7 +104,7 @@ public final class AsyncTest {
 
         final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).run();
@@ -119,7 +118,7 @@ public final class AsyncTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
-        unit.execute(GET, url, new HttpHeaders()).dispatch(series(),
+        unit.get(url).headers(new HttpHeaders()).dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
@@ -132,7 +131,7 @@ public final class AsyncTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
-        unit.execute(GET, url, "test").dispatch(series(),
+        unit.get(url).body("test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
@@ -145,7 +144,7 @@ public final class AsyncTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
-        unit.execute(GET, url, new HttpHeaders(), "test").dispatch(series(),
+        unit.get(url).headers(new HttpHeaders()).body("test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier));
 
         verify(verifier).accept(any());
@@ -158,7 +157,7 @@ public final class AsyncTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ClientHttpResponse response = unit.execute(GET, url)
+        final ClientHttpResponse response = unit.get(url)
                 .dispatch(status(),
                         on(OK).capture())
                 .get(100, TimeUnit.MILLISECONDS)
@@ -172,7 +171,7 @@ public final class AsyncTest {
     public void shouldIgnoreException() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()));
     }
 
@@ -183,7 +182,7 @@ public final class AsyncTest {
         exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
                 .get();
     }
@@ -194,7 +193,7 @@ public final class AsyncTest {
 
         final FailureCallback callback = mock(FailureCallback.class);
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
                 .addCallback(handle(callback));
 
@@ -205,7 +204,7 @@ public final class AsyncTest {
     public void shouldIgnoreSuccessWhenHandlingExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        unit.execute(GET, url).dispatch(series(),
+        unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(pass()))
                 .addCallback(handle(mock(FailureCallback.class)));
     }

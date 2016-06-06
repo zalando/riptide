@@ -29,6 +29,6 @@ import java.util.List;
 @FunctionalInterface
 interface Executor {
 
-    Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters) throws Exception;
+    Capture execute(final ClientHttpResponse response, final List<HttpMessageConverter<?>> converters);
 
 }

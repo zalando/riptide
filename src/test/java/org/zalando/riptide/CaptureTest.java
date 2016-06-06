@@ -21,6 +21,7 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -38,13 +39,12 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.status;
 
 public final class CaptureTest {
@@ -70,7 +70,7 @@ public final class CaptureTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ClientHttpResponse response = unit.execute(GET, url)
+        final ClientHttpResponse response = unit.get(url)
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
@@ -87,9 +87,9 @@ public final class CaptureTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final AccountBody account = unit.execute(GET, url)
+        final AccountBody account = unit.get(url)
                 .dispatch(status(),
-                        on(OK).capture(AccountBody.class),
+                        on(OK).capture(TypeToken.of(AccountBody.class)),
                         anyStatus().call(this::fail))
                 .to(AccountBody.class);
 
@@ -110,7 +110,7 @@ public final class CaptureTest {
                         .contentType(APPLICATION_JSON)
                         .headers(headers));
 
-        final Account account = unit.execute(GET, url)
+        final Account account = unit.get(url)
                 .dispatch(status(),
                         on(OK).capture(AccountBody.class, this::extract),
                         anyStatus().call(this::fail))

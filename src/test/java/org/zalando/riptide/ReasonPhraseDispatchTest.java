@@ -32,10 +32,9 @@ import java.net.URI;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.reasonPhrase;
 
 
@@ -79,7 +78,7 @@ public final class ReasonPhraseDispatchTest {
                 .map(reasonPhrase -> on(reasonPhrase).call(verifier))
                 .toArray(Binding[]::new);
 
-        unit.execute(GET, url).dispatch(reasonPhrase(), bindings);
+        unit.get(url).dispatch(reasonPhrase(), bindings);
     }
 
 }

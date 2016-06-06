@@ -24,14 +24,14 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-public final class Conditions {
+public final class Bindings {
 
-    Conditions() {
+    Bindings() {
         // package private so we can trick code coverage
     }
 
-    public static <A> Condition<A> on(final A attribute) {
-        return new Condition<>(attribute);
+    public static <A> PartialBinding<A> on(final A attribute) {
+        return new PartialBinding<>(attribute);
     }
 
     /**
@@ -47,7 +47,7 @@ public final class Conditions {
      * @see #anyStatusCode()
      * @see #anyContentType()
      */
-    public static <A> Condition<A> any(final Class<A> type) {
+    public static <A> PartialBinding<A> any(final Class<A> type) {
         return any(TypeToken.of(type));
     }
     
@@ -64,23 +64,23 @@ public final class Conditions {
      * @see #anyStatusCode() 
      * @see #anyContentType() 
      */
-    public static <A> Condition<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
-        return new Condition<>(null);
+    public static <A> PartialBinding<A> any(@SuppressWarnings("UnusedParameters") final TypeToken<A> type) {
+        return new PartialBinding<>(null);
     }
 
-    public static Condition<HttpStatus.Series> anySeries() {
+    public static PartialBinding<HttpStatus.Series> anySeries() {
         return any(HttpStatus.Series.class);
     }
 
-    public static Condition<HttpStatus> anyStatus() {
+    public static PartialBinding<HttpStatus> anyStatus() {
         return any(HttpStatus.class);
     }
     
-    public static Condition<Integer> anyStatusCode() {
+    public static PartialBinding<Integer> anyStatusCode() {
         return any(Integer.class);
     }
 
-    public static Condition<MediaType> anyContentType() {
+    public static PartialBinding<MediaType> anyContentType() {
         return any(MediaType.class);
     }
 

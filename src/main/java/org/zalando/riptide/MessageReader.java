@@ -4,7 +4,7 @@ package org.zalando.riptide;
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,32 +21,17 @@ package org.zalando.riptide;
  */
 
 import com.google.common.reflect.TypeToken;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.concurrent.Immutable;
-import java.util.Optional;
+import java.io.IOException;
 
-import static java.util.Optional.empty;
+public interface MessageReader {
 
-@Immutable
-final class TypedCapture<T> implements Capture {
+    <I> I readEntity(TypeToken<I> type, ClientHttpResponse response) throws IOException;
 
-    private final Optional<T> value;
-    private final TypeToken<T> type;
-
-    TypedCapture(final Optional<T> value, final TypeToken<T> type) {
-        this.value = value;
-        this.type = type;
-    }
-
-    @Override
-    public boolean has(final TypeToken<?> other) {
-        return other.isSupertypeOf(type);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <O> Optional<O> as(final TypeToken<O> type) {
-        return has(type) ? value.map(v -> (O) v) : empty();
+    default <I> ResponseEntity<I> readResponseEntity(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
+        return new ResponseEntity<I>(readEntity(type, response), response.getHeaders(), response.getStatusCode());
     }
 
 }

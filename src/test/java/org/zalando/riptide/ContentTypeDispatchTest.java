@@ -37,15 +37,17 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyContentType;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyContentType;
+import static org.zalando.riptide.Bindings.anySeries;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.contentType;
+import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -69,7 +71,7 @@ public final class ContentTypeDispatchTest {
     }
 
     private <T> T perform(final Class<T> type) {
-        return unit.execute(GET, url)
+        return unit.get(url)
                 .dispatch(contentType(),
                         on(SUCCESS).capture(Success.class),
                         on(PROBLEM).capture(Problem.class),
@@ -125,10 +127,10 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(SUCCESS));
 
-        final Success success = unit.execute(GET, url)
+        final Success success = unit.get(url)
                 .dispatch(contentType(),
                         on(parseMediaType("application/*+json")).call(this::fail),
-                        on(SUCCESS).capture(Success.class),
+                        on(parseMediaType("application/success+json;version=2")).capture(Success.class),
                         anyContentType().call(this::fail))
                 .to(Success.class);
 
@@ -142,10 +144,11 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(null));
 
-        unit.execute(GET, url)
-                .dispatch(contentType(),
-                        on(SUCCESS).capture(Success.class),
-                        anyContentType().capture());
+        unit.get(url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).dispatch(contentType(),
+                                on(SUCCESS).capture(Success.class)),
+                        anySeries().capture());
     }
 
     @Test
@@ -155,7 +158,7 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(SUCCESS_V2));
 
-        final Success success = unit.execute(GET, url)
+        final Success success = unit.get(url)
                 .dispatch(contentType(),
                         on(SUCCESS_V1).call(this::fail),
                         on(SUCCESS_V2).capture(Success.class),

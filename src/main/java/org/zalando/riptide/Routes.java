@@ -29,9 +29,9 @@ import java.util.Optional;
 
 import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
 
-public final class Actions {
+public final class Routes {
 
-    Actions() {
+    Routes() {
         // package private so we can trick code coverage
     }
 

@@ -20,27 +20,30 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpHeaders;
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.HttpMessageConverterExtractor;
 
-import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.List;
 
-/**
- * @see Selectors#isCurrentRepresentation()
- */
-enum CurrentRepresentationSelector implements BinarySelector {
+final class DefaultMessageReader implements MessageReader {
 
-    INSTANCE;
+    private final List<HttpMessageConverter<?>> converters;
+
+    DefaultMessageReader(final List<HttpMessageConverter<?>> converters) {
+        this.converters = converters;
+    }
 
     @Override
-    public Boolean attributeOf(final ClientHttpResponse response) throws IOException {
-        final HttpHeaders headers = response.getHeaders();
-        @Nullable final String location = headers.getFirst("Location");
-        @Nullable final String contentLocation = headers.getFirst("Content-Location");
-        return Objects.nonNull(location) &&
-                Objects.equals(location, contentLocation);
+    public <I> I readEntity(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
+        final I data = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+        if (!(data instanceof Closeable)) {
+            response.close();
+        }
+        return data;
     }
 
 }

@@ -32,7 +32,7 @@ public final class NoRouteException extends RestClientException {
 
     private final ClientHttpResponse response;
 
-    NoRouteException(final ClientHttpResponse response) throws IOException {
+    public NoRouteException(final ClientHttpResponse response) throws IOException {
         super(formatMessage(response));
         this.response = response;
     }

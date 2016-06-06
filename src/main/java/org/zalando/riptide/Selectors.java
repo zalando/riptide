@@ -31,39 +31,39 @@ public final class Selectors {
     }
 
     /**
-     * A {@link Selector} that selects a binding based on the response's status code series
+     * A {@link Navigator} that selects a binding based on the response's status code series
      *
      * @return an HTTP status code series selector
      * @see Series
      */
-    public static EqualitySelector<Series> series() {
-        return SeriesSelector.INSTANCE;
+    public static Navigator<Series> series() {
+        return SeriesNavigator.INSTANCE;
     }
 
     /**
-     * A {@link Selector} that selects a binding based on the response's status.
+     * A {@link Navigator} that selects a binding based on the response's status.
      *
      * @return an HTTP status selector
      * @see HttpStatus
      * @see #statusCode()
      */
-    public static EqualitySelector<HttpStatus> status() {
-        return StatusSelector.INSTANCE;
+    public static Navigator<HttpStatus> status() {
+        return StatusNavigator.INSTANCE;
     }
 
     /**
-     * A {@link Selector} that selects a binding based on the response's status code.
+     * A {@link Navigator} that selects a binding based on the response's status code.
      *
      * @return an HTTP status code selector
      * @see HttpStatus
      * @see #status()
      */
-    public static EqualitySelector<Integer> statusCode() {
-        return StatusCodeSelector.INSTANCE;
+    public static Navigator<Integer> statusCode() {
+        return StatusCodeNavigator.INSTANCE;
     }
 
     /**
-     * A {@link Selector} that selects a binding based on the response's reason phrase.
+     * A {@link Navigator} that selects a binding based on the response's reason phrase.
      *
      * Be aware that this, even though it's standardized, could be changed by servers.
      *
@@ -72,22 +72,22 @@ public final class Selectors {
      * @see #status()
      * @see #statusCode()
      */
-    public static EqualitySelector<String> reasonPhrase() {
-        return ReasonPhraseSelector.INSTANCE;
+    public static Navigator<String> reasonPhrase() {
+        return ReasonPhraseNavigator.INSTANCE;
     }
 
     /**
-     * A {@link Selector} that selects the best binding based on the response's content type.
+     * A {@link Navigator} that selects the best binding based on the response's content type.
      *
      * @return a Content-Type selector
      * @see MediaType
      */
-    public static EqualitySelector<MediaType> contentType() {
-        return ContentTypeSelector.INSTANCE;
+    public static Navigator<MediaType> contentType() {
+        return ContentTypeNavigator.INSTANCE;
     }
 
     /**
-     * A {@link BinarySelector} that selects a binding based on whether the {@code Location} header is present
+     * A {@link BinaryNavigator} that selects a binding based on whether the {@code Location} header is present
      * and has the same field value as the {@code Content-Location} header.
      *
      * <pre>
@@ -100,8 +100,8 @@ public final class Selectors {
      * @return a Content-Location header selector
      * @see <a href="https://tools.ietf.org/html/rfc7231#section-3.1.4.2">RFC 7231 Section 3.1.4.2. Content-Location</a>
      */
-    public static BinarySelector isCurrentRepresentation() {
-        return CurrentRepresentationSelector.INSTANCE;
+    public static Navigator<Boolean> isCurrentRepresentation() {
+        return CurrentRepresentationNavigator.INSTANCE;
     }
 
 }

@@ -41,7 +41,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
@@ -53,11 +52,11 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.zalando.riptide.Conditions.anyContentType;
-import static org.zalando.riptide.Conditions.anySeries;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.anyStatusCode;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyContentType;
+import static org.zalando.riptide.Bindings.anySeries;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.anyStatusCode;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
@@ -85,7 +84,7 @@ public final class NestedDispatchTest {
     }
 
     private <T> T perform(final Class<T> type) {
-        return unit.execute(GET, url)
+        return unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
                                 .dispatch(status(),
@@ -95,7 +94,7 @@ public final class NestedDispatchTest {
                         on(CLIENT_ERROR)
                                 .dispatch(status(),
                                         on(UNAUTHORIZED).capture(),
-                                        anyStatus().dispatch(this::handleProblem)),
+                                        anyStatus().bind(problemHandling())),
                         on(SERVER_ERROR)
                                 .dispatch(statusCode(),
                                         on(500).capture(),
@@ -105,8 +104,8 @@ public final class NestedDispatchTest {
                 .as(type).orElse(null);
     }
 
-    private Binding<HttpStatus> handleProblem(final Condition<HttpStatus> condition) {
-        return condition.dispatch(contentType(),
+    private Route problemHandling() {
+        return Route.dispatch(contentType(),
                 on(PROBLEM).capture(Problem.class),
                 on(ERROR).capture(Problem.class),
                 anyContentType().call(this::fail));

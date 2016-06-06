@@ -48,8 +48,6 @@ import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -63,10 +61,10 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyContentType;
-import static org.zalando.riptide.Conditions.anySeries;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyContentType;
+import static org.zalando.riptide.Bindings.anySeries;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.contentType;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
@@ -79,7 +77,7 @@ public final class FailedDispatchTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final URI url = URI.create("https://api.example.com");
+    private final String url = "https://api.example.com";
 
     private final Rest unit;
     private final MockRestServiceServer server;
@@ -104,7 +102,7 @@ public final class FailedDispatchTest {
         exception.expectMessage("Unable to dispatch response (200 OK, Content-Type: application/json)");
         exception.expect(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
-        unit.execute(GET, url)
+        unit.options(url)
                 .dispatch(contentType(),
                         // note that we don't match on application/json explicitly
                         on(SUCCESS).capture(Success.class),
@@ -122,7 +120,7 @@ public final class FailedDispatchTest {
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found for response type");
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
@@ -142,7 +140,7 @@ public final class FailedDispatchTest {
         exception.expect(HttpMessageNotReadableException.class);
         exception.expectMessage("Could not read");
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
@@ -159,7 +157,7 @@ public final class FailedDispatchTest {
                         .body("")
                         .contentType(MediaTypes.SUCCESS));
 
-        final Capture capture = unit.execute(GET, url)
+        final Capture capture = unit.get(url)
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(contentType(),
@@ -184,7 +182,7 @@ public final class FailedDispatchTest {
 
         final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(status(),
                                 on(OK).dispatch(contentType(),
@@ -206,7 +204,7 @@ public final class FailedDispatchTest {
 
         final ClientHttpResponseConsumer consumer = mock(ClientHttpResponseConsumer.class);
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(status(),
                                 on(OK).dispatch(contentType(),
@@ -230,7 +228,7 @@ public final class FailedDispatchTest {
         exception.expectMessage("Unable to dispatch response (201 Created, Content-Type: application/json)");
         exception.expect(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
-        unit.execute(POST, url)
+        unit.post(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(contentType(),
                                 on(APPLICATION_JSON).dispatch(status(),
