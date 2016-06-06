@@ -71,7 +71,7 @@ public final class Rest {
      */
     private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
         try {
-            return template.execute(url, method, callback, BufferingClientHttpResponse::buffer);
+            return template.execute(url, method, callback, r -> r);
         } catch (final AlreadyConsumedResponseException e) {
             return e.getResponse();
         }
