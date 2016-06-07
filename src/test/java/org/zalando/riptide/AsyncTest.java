@@ -27,7 +27,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.net.NoRouteToHostException;
 import java.net.URI;
 
 import static org.hamcrest.Matchers.instanceOf;
@@ -42,7 +41,6 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Actions.pass;
-import static org.zalando.riptide.AsyncRest.handle;
 import static org.zalando.riptide.Binding.route;
 import static org.zalando.riptide.Conditions.on;
 import static org.zalando.riptide.Selectors.series;
@@ -57,8 +55,8 @@ public final class AsyncTest {
     public AsyncTest() {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
-        this.unit = AsyncRest.create(template);
         this.server = MockRestServiceServer.createServer(template);
+        this.unit = AsyncRest.create(template);
     }
 
     @Test

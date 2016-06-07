@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -70,6 +71,7 @@ public class OAuth2CompatibilityTest {
     }
 
     @Test
+    @Ignore("Response is no longer consumed by error handlers")
     public void responseIsConsumedIfOtherHandlerIsUsed() throws IOException {
         final RestTemplate template = new RestTemplate();
         final MockRestServiceServer server = MockRestServiceServer.createServer(template);
