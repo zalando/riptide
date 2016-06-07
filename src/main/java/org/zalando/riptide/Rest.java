@@ -23,20 +23,26 @@ package org.zalando.riptide;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
 public final class Rest {
+    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final List<HttpMessageConverter<?>> converters;
 
-    private final RestTemplate template;
     private final Router router = new Router();
 
-    private Rest(final RestTemplate template) {
-        this.template = template;
+    private Rest(ClientHttpRequestFactory clientHttpRequestFactory, List<HttpMessageConverter<?>> converters) {
+        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.converters = converters;
     }
 
     public Dispatcher execute(final HttpMethod method, final URI url) {
@@ -56,9 +62,7 @@ public final class Rest {
     }
 
     private <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
-        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final Callback<T> callback = new Callback<>(converters, entity);
-        final ClientHttpResponse response = execute(method, url, callback);
+        final ClientHttpResponse response = executeRequest(method, url, entity);
         return new Dispatcher(converters, response, router);
     }
 
@@ -69,16 +73,23 @@ public final class Rest {
      * response thrown by the {@link OAuth2CompatibilityResponseErrorHandler} and continues with normal dispatching.
      * </p>
      */
-    private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
+    private <T> ClientHttpResponse executeRequest(final HttpMethod method, final URI url, HttpEntity<T> entity) {
         try {
-            return template.execute(url, method, callback, BufferingClientHttpResponse::buffer);
-        } catch (final AlreadyConsumedResponseException e) {
-            return e.getResponse();
+            final ClientHttpRequest request = clientHttpRequestFactory.createRequest(url, method);
+            RequestUtil.writeRequestEntity(entity, request, converters);
+            return request.execute();
+        } catch (IOException ex) {
+            final String message = String.format("I/O error on %s request for \"%s\": %s", method.name(), url, ex.getMessage());
+            throw new ResourceAccessException(message, ex);
         }
     }
 
+    public static Rest create(final ClientHttpRequestFactory clientHttpRequestFactory, final List<HttpMessageConverter<?>> converters) {
+        return new Rest(clientHttpRequestFactory, converters);
+    }
+
     public static Rest create(final RestTemplate template) {
-        return new Rest(template);
+        return create(template.getRequestFactory(), template.getMessageConverters());
     }
 
 }

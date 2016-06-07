@@ -52,8 +52,8 @@ public final class AnyDispatchTest {
     public AnyDispatchTest() {
         final RestTemplate template = new RestTemplate();
         template.setErrorHandler(new PassThroughResponseErrorHandler());
-        this.unit = Rest.create(template);
         this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.create(template);
     }
 
     @Test
