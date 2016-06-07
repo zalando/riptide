@@ -190,7 +190,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldHandleExceptionWithCallback() {
+    public void shouldHandleNoRouteExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         final FailureCallback callback = mock(FailureCallback.class);

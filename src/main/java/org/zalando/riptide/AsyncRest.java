@@ -25,6 +25,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
@@ -32,10 +33,11 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.springframework.web.util.UriTemplateHandler;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -77,8 +79,9 @@ public final class AsyncRest extends RestBase<AsyncDispatcher> {
             final ExceptionWrappingFuture future = new ExceptionWrappingFuture(responseFuture);
 
             return new AsyncDispatcher(converters, future);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (IOException ex) {
+            final String message = String.format("I/O error on %s request for \"%s\":%s", method.name(), url, ex.getMessage());
+            throw new ResourceAccessException(message, ex);
         }
     }
 
@@ -90,18 +93,18 @@ public final class AsyncRest extends RestBase<AsyncDispatcher> {
 
         @Override
         protected final ClientHttpResponse adapt(ClientHttpResponse response) throws ExecutionException {
-            try {
-                return response;
-            } catch (Throwable ex) {
-                throw new ExecutionException(ex);
-            }
+            return response;
         }
     }
 
-
     public static AsyncRest create(final AsyncRestTemplate template) {
-        return new AsyncRest(template.getAsyncRequestFactory(), template.getMessageConverters(), template.getUriTemplateHandler());
+        return create(template.getAsyncRequestFactory(), template.getMessageConverters(), template.getUriTemplateHandler());
     }
+
+    public static AsyncRest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters) {
+        return create(asyncClientHttpRequestFactory, converters, new DefaultUriTemplateHandler());
+    }
+
 
     public static AsyncRest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters, UriTemplateHandler uriTemplateHandler) {
         return new AsyncRest(asyncClientHttpRequestFactory, converters, uriTemplateHandler);

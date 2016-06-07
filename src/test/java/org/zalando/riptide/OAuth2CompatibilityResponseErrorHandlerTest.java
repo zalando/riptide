@@ -20,25 +20,17 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.hamcrest.Matcher;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 
 public final class OAuth2CompatibilityResponseErrorHandlerTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     private final OAuth2CompatibilityResponseErrorHandler unit = new OAuth2CompatibilityResponseErrorHandler();
 
@@ -55,28 +47,11 @@ public final class OAuth2CompatibilityResponseErrorHandlerTest {
     }
 
     @Test
-    public void throwsResponseWrappedInException() throws IOException {
+    public void shouldIgnoreErrors() throws IOException {
         final ClientHttpResponse expectedResponse =
                 new MockClientHttpResponse(new byte[]{0x13, 0x37}, HttpStatus.INTERNAL_SERVER_ERROR);
 
-        exception.expect(AlreadyConsumedResponseException.class);
-        exception.expect(hasFeature("response", AlreadyConsumedResponseException::getResponse, 
-                statusCode(HttpStatus.INTERNAL_SERVER_ERROR)));
-
         unit.handleError(expectedResponse);
-    }
-
-    private Matcher<ClientHttpResponse> statusCode(final HttpStatus status) {
-        return hasFeature("statusCode", new Function<ClientHttpResponse, HttpStatus>() {
-            @Override
-            public HttpStatus apply(final ClientHttpResponse response) {
-                try {
-                    return response.getStatusCode();
-                } catch (final Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }, is(status));
     }
 
 }

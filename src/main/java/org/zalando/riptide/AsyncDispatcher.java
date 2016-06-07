@@ -59,8 +59,6 @@ public final class AsyncDispatcher {
         final FailureCallback failure = exception -> {
             try {
                 throw exception;
-            } catch (final AlreadyConsumedResponseException e) {
-                success.onSuccess(e.getResponse());
             } catch (final Throwable throwable) {
                 capture.setException(throwable);
             }
