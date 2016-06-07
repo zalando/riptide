@@ -21,33 +21,51 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriTemplateHandler;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
-import org.springframework.web.util.UriTemplateHandler;
 
 public final class Rest extends RestBase<Dispatcher>{
 
-    private final RestTemplate template;
+    private final ClientHttpRequestFactory clientHttpRequestFactory;
+    private final List<HttpMessageConverter<?>> converters;
+    private final UriTemplateHandler uriTemplateHandler;
 
-    private Rest(final RestTemplate template) {
-        this.template = template;
+    private Rest(ClientHttpRequestFactory clientHttpRequestFactory, List<HttpMessageConverter<?>> converters, UriTemplateHandler uriTemplateHandler) {
+        this.clientHttpRequestFactory = clientHttpRequestFactory;
+        this.converters = converters;
+        this.uriTemplateHandler = uriTemplateHandler;
     }
 
     @Override
     protected UriTemplateHandler getUriTemplateHandler() {
-        return template.getUriTemplateHandler();
+        return uriTemplateHandler;
     }
 
-    @Override
-    protected <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
-        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final Callback<T> callback = new Callback<>(converters, entity);
-        final ClientHttpResponse response = execute(method, url, callback);
+    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
+        return execute(method, url, new HttpEntity<>(headers));
+    }
+
+    public Dispatcher execute(final HttpMethod method, final URI url, final Object body) {
+        return execute(method, url, new HttpEntity<>(body));
+    }
+
+    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
+        return execute(method, url, new HttpEntity<>(body, headers));
+    }
+
+    protected  <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
+        final ClientHttpResponse response = executeRequest(method, url, entity);
         return new Dispatcher(converters, response);
     }
 
@@ -58,15 +76,23 @@ public final class Rest extends RestBase<Dispatcher>{
      * response thrown by the {@link OAuth2CompatibilityResponseErrorHandler} and continues with normal dispatching.
      * </p>
      */
-    private <T> ClientHttpResponse execute(final HttpMethod method, final URI url, final Callback<T> callback) {
+    private <T> ClientHttpResponse executeRequest(final HttpMethod method, final URI url, HttpEntity<T> entity) {
         try {
-            return template.execute(url, method, callback, r -> r);
+            final ClientHttpRequest request = clientHttpRequestFactory.createRequest(url, method);
+            RequestUtil.writeRequestEntity(entity, request, converters);
+            return request.execute();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         } catch (final AlreadyConsumedResponseException e) {
             return e.getResponse();
         }
     }
 
+    public static Rest create(final ClientHttpRequestFactory clientHttpRequestFactory, final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
+        return new Rest(clientHttpRequestFactory, converters, uriTemplateHandler);
+    }
+
     public static Rest create(final RestTemplate template) {
-        return new Rest(template);
+        return new Rest(template.getRequestFactory(), template.getMessageConverters(), template.getUriTemplateHandler());
     }
 }

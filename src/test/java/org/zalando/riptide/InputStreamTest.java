@@ -201,7 +201,7 @@ public final class InputStreamTest {
 
         final InputStream inputStream = unit.execute(GET, url)
                 .dispatch(contentType(),
-                        on(APPLICATION_OCTET_STREAM, InputStream.class).capture())
+                        on(APPLICATION_OCTET_STREAM).capture(InputStream.class))
                 .as(InputStream.class)
                 .orElseThrow(AssertionError::new);
 
