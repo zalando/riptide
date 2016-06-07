@@ -23,6 +23,7 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 
+@Deprecated
 public final class PassThroughResponseErrorHandler implements ResponseErrorHandler {
 
     @Override

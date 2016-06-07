@@ -32,9 +32,9 @@ import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureAdapter;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -74,8 +74,9 @@ public final class AsyncRest {
             final ExceptionWrappingFuture future = new ExceptionWrappingFuture(responseFuture);
 
             return new AsyncDispatcher(converters, future, router);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (IOException ex) {
+            final String message = String.format("I/O error on %s request for \"%s\":%s", method.name(), url, ex.getMessage());
+            throw new ResourceAccessException(message, ex);
         }
     }
 
@@ -87,17 +88,13 @@ public final class AsyncRest {
 
         @Override
         protected final ClientHttpResponse adapt(ClientHttpResponse response) throws ExecutionException {
-            try {
-                return response;
-            } catch (Throwable ex) {
-                throw new ExecutionException(ex);
-            }
+            return response;
         }
     }
 
 
     public static AsyncRest create(final AsyncRestTemplate template) {
-        return new AsyncRest(template.getAsyncRequestFactory(), template.getMessageConverters());
+        return create(template.getAsyncRequestFactory(), template.getMessageConverters());
     }
 
     public static AsyncRest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters) {

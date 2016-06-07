@@ -27,10 +27,10 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 
@@ -78,10 +78,9 @@ public final class Rest {
             final ClientHttpRequest request = clientHttpRequestFactory.createRequest(url, method);
             RequestUtil.writeRequestEntity(entity, request, converters);
             return request.execute();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (final AlreadyConsumedResponseException e) {
-            return e.getResponse();
+        } catch (IOException ex) {
+            final String message = String.format("I/O error on %s request for \"%s\": %s", method.name(), url, ex.getMessage());
+            throw new ResourceAccessException(message, ex);
         }
     }
 
@@ -90,7 +89,7 @@ public final class Rest {
     }
 
     public static Rest create(final RestTemplate template) {
-        return new Rest(template.getRequestFactory(), template.getMessageConverters());
+        return create(template.getRequestFactory(), template.getMessageConverters());
     }
 
 }

@@ -134,7 +134,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldHandleException() {
+    public void shouldHandleNoRouteExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         final FailureCallback callback = mock(FailureCallback.class);
@@ -144,6 +144,19 @@ public final class AsyncTest {
                 callback);
 
         verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
+    }
+
+    @Test
+    public void shouldHandleException() {
+        server.expect(requestTo(url)).andRespond(withSuccess());
+
+        final FailureCallback callback = mock(FailureCallback.class);
+
+        unit.execute(GET, url).dispatch(series(), route(
+                        on(SUCCESSFUL).call(() -> {throw new IllegalStateException("Client error");})),
+                callback);
+
+        verify(callback).onFailure(argThat(is(instanceOf(IllegalStateException.class))));
     }
 
 }
