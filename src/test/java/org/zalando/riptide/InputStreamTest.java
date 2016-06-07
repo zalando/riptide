@@ -178,6 +178,17 @@ public final class InputStreamTest {
             assertEquals("Stream is already closed", e.getMessage());
         }
     }
+    @Test
+    public void shouldNotAllowReadAfterClose() throws IOException {
+        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        content.close();
+        try {
+            final int ch = content.read();
+            fail("Should prevent read calls after close");
+        } catch (IOException e) {
+            assertEquals("Stream is already closed", e.getMessage());
+        }
+    }
 
     @Test
     public void shouldExtractOriginalBody() throws Exception {
@@ -195,6 +206,9 @@ public final class InputStreamTest {
                 .orElseThrow(AssertionError::new);
 
         assertEquals(content, inputStream);
+
+        final int ch1 = inputStream.read();
+        assertEquals('b', ch1);
     }
 
 }
