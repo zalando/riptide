@@ -41,6 +41,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -82,6 +83,76 @@ public final class InputStreamTest {
         }
 
     }
+
+    static class CloseOnceInputStream extends InputStream {
+        private final InputStream inputStream;
+        private boolean isClosed;
+
+        public CloseOnceInputStream(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        public CloseOnceInputStream(byte[] buf) {
+            this(new ByteArrayInputStream(buf));
+        }
+
+        public CloseOnceInputStream(byte[] buf, int offset, int length) {
+            this(new ByteArrayInputStream(buf, offset, length));
+        }
+
+        private void checkClosed() throws IOException {
+            if (isClosed) {
+                throw new IOException("Stream is already closed");
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            checkClosed();
+            isClosed = true;
+            inputStream.close();
+        }
+
+        @Override
+        public synchronized void mark(int readlimit) {
+            inputStream.mark(readlimit);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            checkClosed();
+            inputStream.reset();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return inputStream.markSupported();
+        }
+
+        @Override
+        public synchronized int read() throws IOException {
+            checkClosed();
+            return inputStream.read();
+        }
+
+        @Override
+        public synchronized int read(byte[] b, int off, int len) throws IOException {
+            checkClosed();
+            return inputStream.read(b, off, len);
+        }
+
+        @Override
+        public synchronized long skip(long n) throws IOException {
+            checkClosed();
+            return inputStream.skip(n);
+        }
+
+        @Override
+        public synchronized int available() throws IOException {
+            checkClosed();
+            return inputStream.available();
+        }
+    }
     private final URI url = URI.create("https://api.example.com/blobs/123");
 
     private final Rest unit;
@@ -97,8 +168,20 @@ public final class InputStreamTest {
     }
 
     @Test
+    public void shouldAllowCloseOnce() throws IOException {
+        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        content.close();
+        try {
+            content.close();
+            fail("Should prevent multiple close calls");
+        } catch (IOException e) {
+            assertEquals("Stream is already closed", e.getMessage());
+        }
+    }
+
+    @Test
     public void shouldExtractOriginalBody() throws Exception {
-        final InputStream content = new ByteArrayInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
 
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
