@@ -25,7 +25,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
@@ -74,7 +73,7 @@ public final class AsyncRest extends RestBase<AsyncDispatcher> {
     protected <T> AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         try {
             final AsyncClientHttpRequest request = asyncClientHttpRequestFactory.createAsyncRequest(url, method);
-            RequestUtil.writeRequestEntity(entity, new AsyncClientHttpRequestAdapter(request), converters);
+            writeRequestEntity(entity, new AsyncClientHttpRequestAdapter(request), converters);
             final ListenableFuture<ClientHttpResponse> responseFuture = request.executeAsync();
             final ExceptionWrappingFuture future = new ExceptionWrappingFuture(responseFuture);
 

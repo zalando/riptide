@@ -43,9 +43,4 @@ public final class EnforceCoverageTest {
         new Selectors();
     }
 
-    @Test
-    public void shouldUseRequestUtilConstructor() {
-        new RequestUtil();
-    }
-
 }

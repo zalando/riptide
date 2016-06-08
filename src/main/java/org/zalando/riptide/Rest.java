@@ -80,7 +80,7 @@ public final class Rest extends RestBase<Dispatcher>{
     private <T> ClientHttpResponse executeRequest(final HttpMethod method, final URI url, HttpEntity<T> entity) {
         try {
             final ClientHttpRequest request = clientHttpRequestFactory.createRequest(url, method);
-            RequestUtil.writeRequestEntity(entity, request, converters);
+            writeRequestEntity(entity, request, converters);
             return request.execute();
         } catch (IOException ex) {
             final String message = String.format("I/O error on %s request for \"%s\": %s", method.name(), url, ex.getMessage());
