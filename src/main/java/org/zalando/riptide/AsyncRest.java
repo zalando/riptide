@@ -58,18 +58,6 @@ public final class AsyncRest extends RestBase<AsyncDispatcher> {
         return uriTemplateHandler;
     }
 
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
-        return execute(method, url, new HttpEntity<>(headers));
-    }
-
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final Object body) {
-        return execute(method, url, new HttpEntity<>(body));
-    }
-
-    public AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
-        return execute(method, url, new HttpEntity<>(body, headers));
-    }
-
     protected <T> AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         try {
             final AsyncClientHttpRequest request = asyncClientHttpRequestFactory.createAsyncRequest(url, method);

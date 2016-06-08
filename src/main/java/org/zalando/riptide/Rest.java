@@ -53,18 +53,6 @@ public final class Rest extends RestBase<Dispatcher>{
         return uriTemplateHandler;
     }
 
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers) {
-        return execute(method, url, new HttpEntity<>(headers));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final Object body) {
-        return execute(method, url, new HttpEntity<>(body));
-    }
-
-    public Dispatcher execute(final HttpMethod method, final URI url, final HttpHeaders headers, final Object body) {
-        return execute(method, url, new HttpEntity<>(body, headers));
-    }
-
     protected  <T> Dispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
         final ClientHttpResponse response = executeRequest(method, url, entity);
         return new Dispatcher(converters, response);
