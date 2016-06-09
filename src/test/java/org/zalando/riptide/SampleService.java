@@ -46,7 +46,6 @@ public final class SampleService {
         final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
         handler.setBaseUrl("https://api.github.com");
         template.setUriTemplateHandler(handler);
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         final Rest rest = Rest.create(template);
 
         rest.execute(GET, "/repos/zalando/riptide/contributors").dispatch(series(),

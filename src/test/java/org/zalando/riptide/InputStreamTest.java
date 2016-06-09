@@ -28,7 +28,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
@@ -153,6 +152,7 @@ public final class InputStreamTest {
             return inputStream.available();
         }
     }
+
     private final URI url = URI.create("https://api.example.com/blobs/123");
 
     private final Rest unit;
@@ -162,14 +162,13 @@ public final class InputStreamTest {
         final RestTemplate template = new RestTemplate();
         final InputStreamHttpMessageConverter converter = new InputStreamHttpMessageConverter();
         template.setMessageConverters(Collections.singletonList(converter));
-        template.setErrorHandler(new OAuth2ErrorHandler(new OAuth2CompatibilityResponseErrorHandler(), null));
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
     @Test
     public void shouldAllowCloseOnce() throws IOException {
-        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
         content.close();
         try {
             content.close();
@@ -178,9 +177,10 @@ public final class InputStreamTest {
             assertEquals("Stream is already closed", e.getMessage());
         }
     }
+
     @Test
     public void shouldNotAllowReadAfterClose() throws IOException {
-        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
         content.close();
         try {
             final int ch = content.read();
@@ -192,7 +192,7 @@ public final class InputStreamTest {
 
     @Test
     public void shouldExtractOriginalBody() throws Exception {
-        final InputStream content = new CloseOnceInputStream(new byte[] {'b', 'l', 'o', 'b'});
+        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
 
         server.expect(requestTo(url)).andRespond(
                 withSuccess()

@@ -20,12 +20,10 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.security.oauth2.client.http.OAuth2ErrorHandler;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
@@ -59,7 +57,6 @@ public class OAuth2CompatibilityTest {
                 .andRespond(withUnauthorizedRequest()
                         .body(new byte[]{0x13, 0x37}));
         
-        template.setErrorHandler(new OAuth2ErrorHandler(new OAuth2CompatibilityResponseErrorHandler(), null));
         final Rest rest = Rest.create(template);
 
         final ClientHttpResponse response = rest.execute(GET, url)
@@ -71,29 +68,6 @@ public class OAuth2CompatibilityTest {
     }
 
     @Test
-    @Ignore("Response is no longer consumed by error handlers")
-    public void responseIsConsumedIfOtherHandlerIsUsed() throws IOException {
-        final RestTemplate template = new RestTemplate();
-        final MockRestServiceServer server = MockRestServiceServer.createServer(template);
-        
-        server.expect(requestTo(url))
-                .andRespond(withUnauthorizedRequest()
-                        .body(new byte[]{0x13, 0x37}));
-        
-        template.setErrorHandler(new OAuth2ErrorHandler(new PassThroughResponseErrorHandler(), null));
-        final Rest rest = Rest.create(template);
-
-        final ClientHttpResponse response = rest.execute(GET, url)
-                .dispatch(status(),
-                        on(UNAUTHORIZED).capture())
-                .to(ClientHttpResponse.class);
-
-        // Since our mocked response is using a byte[] stream we check for the remaining bytes instead
-        // of expecting an "already closed" IOException.
-        assertThat(response.getBody().available(), is(0));
-    }
-    
-    @Test
     public void dispatchesConsumedAsyncResponseAgain() throws IOException {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         final MockRestServiceServer server = MockRestServiceServer.createServer(template);
@@ -102,7 +76,6 @@ public class OAuth2CompatibilityTest {
                 .andRespond(withUnauthorizedRequest()
                         .body(new byte[]{0x13, 0x37}));
         
-        template.setErrorHandler(new OAuth2ErrorHandler(new OAuth2CompatibilityResponseErrorHandler(), null));
         final AsyncRest rest = AsyncRest.create(template);
 
         final AtomicReference<ClientHttpResponse> reference = new AtomicReference<>();

@@ -57,7 +57,6 @@ public final class SeriesDispatchTest {
     public SeriesDispatchTest(final HttpStatus expected) {
         this.expected = expected;
         final RestTemplate template = new RestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }

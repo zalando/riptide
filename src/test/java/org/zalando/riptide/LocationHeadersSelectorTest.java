@@ -42,7 +42,6 @@ public final class LocationHeadersSelectorTest {
 
     public LocationHeadersSelectorTest() {
         final RestTemplate template = new RestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }

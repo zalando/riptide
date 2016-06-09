@@ -68,7 +68,6 @@ public final class AsyncTest {
 
     public AsyncTest() {
         final AsyncRestTemplate template = new AsyncRestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = AsyncRest.create(template);
     }
