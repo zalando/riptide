@@ -99,6 +99,10 @@ public final class InputStreamTest {
             this(new ByteArrayInputStream(buf, offset, length));
         }
 
+        public boolean isClosed() {
+            return isClosed;
+        }
+
         private void checkClosed() throws IOException {
             if (isClosed) {
                 throw new IOException("Stream is already closed");
