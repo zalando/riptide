@@ -24,9 +24,7 @@ import com.google.common.reflect.TypeToken;
 import org.objectweb.asm.Type;
 
 import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -54,28 +52,39 @@ class TypeInference {
     }
 
     @SuppressWarnings("unchecked")
-    private static <R> Optional<TypeToken<R>> returnTypeToken(Method lambdaMethod) {
+    private static <R> TypeToken<R> uncheckedTypeToken(java.lang.reflect.Type type) {
+        return (TypeToken<R>) TypeToken.of(type);
+    }
+
+    private static <R> Optional<TypeToken<R>> returnTypeToken(java.lang.reflect.Type genericReturnType) {
         final TypeToken<Void> voidTypeToken = TypeToken.of(Void.TYPE);
-        return Optional.of((TypeToken<R>)TypeToken.of(lambdaMethod.getGenericReturnType())).filter(type -> !voidTypeToken.equals(type));
+        final TypeToken<R> typeToken = uncheckedTypeToken(genericReturnType);
+        return Optional.of(typeToken).filter(type -> !voidTypeToken.equals(type));
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> TypeToken<T> argumentTypeToken(Method lambdaMethod) {
-        return (TypeToken<T>) TypeToken.of(lambdaMethod.getGenericParameterTypes()[0]);
-    }
-
-    @SuppressWarnings("unchecked")
     private static <R> Optional<TypeToken<R>> returnTypeToken(java.lang.reflect.Type[] actualTypeParameters) {
         if (actualTypeParameters.length > 1) {
-            return Optional.of((TypeToken<R>) TypeToken.of(actualTypeParameters[1]));
+            final TypeToken<R> typeToken = uncheckedTypeToken(actualTypeParameters[1]);
+            return Optional.of(typeToken);
         } else {
             return Optional.empty();
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <R> TypeToken<R> argumentTypeToken(java.lang.reflect.Type[] actualTypeParameters) {
-        return (TypeToken<R>) TypeToken.of(actualTypeParameters[0]);
+    private static void verifyNoRawType(java.lang.reflect.Type type) {
+        if (type instanceof Class) {
+            final TypeVariable[] typeParameters = ((Class) type).getTypeParameters();
+            if (typeParameters.length > 0) {
+                throw new IllegalStateException("Could not determine generic type parameters for raw type [" + type.getTypeName() + "]");
+            }
+        } else if (type instanceof ParameterizedType) {
+            final java.lang.reflect.Type[] actualTypeArguments = ((ParameterizedType) type).getActualTypeArguments();
+            for (java.lang.reflect.Type actualTypeArgument : actualTypeArguments) {
+                verifyNoRawType(actualTypeArgument);
+            }
+        } else {
+            throw new IllegalStateException("Could not determine generic type parameters for unknown type [" + type.getTypeName() + "]");
+        }
     }
 
     private static <T, R> FunctionInfo<T, R> getFunctionInfoForClass(Object function, Class<?> functionalInterface) {
@@ -87,40 +96,54 @@ class TypeInference {
                 .filter(type -> type.getRawType() == functionalInterface)
                 .map(type -> {
                     final java.lang.reflect.Type[] actualTypeArguments = type.getActualTypeArguments();
+                    for (java.lang.reflect.Type actualTypeArgument : actualTypeArguments) {
+                        verifyNoRawType(actualTypeArgument);
+                    }
+
                     final Optional<TypeToken<R>> returnType = returnTypeToken(actualTypeArguments);
-                    final TypeToken<T> argumentType = argumentTypeToken(actualTypeArguments);
+                    final TypeToken<T> argumentType = uncheckedTypeToken(actualTypeArguments[0]);
                     return new FunctionInfo<>(returnType, argumentType);
                 })
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Could not extract generic types from [" + function.getClass() + "]"));
     }
 
+    private static boolean isStatic(final Method method) {
+        return (method.getModifiers() & Modifier.STATIC) != 0;
+    }
+
     private static <T, R> FunctionInfo<T, R> getFunctionInfoForMethodReference(Object function) {
         final Method lambdaMethod = getCorrespondingMethod(function);
 
-        final Optional<TypeToken<R>> returnType = returnTypeToken(lambdaMethod);
-        final TypeToken<T> argumentType = argumentTypeToken(lambdaMethod);
+        java.lang.reflect.Type genericReturnType = lambdaMethod.getGenericReturnType();
+        java.lang.reflect.Type genericParameterType = isStatic(lambdaMethod) ? lambdaMethod.getGenericParameterTypes()[0] : lambdaMethod.getDeclaringClass();
+
+        verifyNoRawType(genericReturnType);
+        verifyNoRawType(genericParameterType);
+
+        final Optional<TypeToken<R>> returnType = returnTypeToken(genericReturnType);
+        final TypeToken<T> argumentType = uncheckedTypeToken(genericParameterType);
 
         return new FunctionInfo<>(returnType, argumentType);
     }
 
-    private static Method getCorrespondingMethod(Object functionalInterface) {
+    private static Method getCorrespondingMethod(final Object functionalInterface) {
         try {
-            Method writeReplace = functionalInterface.getClass().getDeclaredMethod("writeReplace");
+            final Method writeReplace = functionalInterface.getClass().getDeclaredMethod("writeReplace");
             writeReplace.setAccessible(true);
-            SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(functionalInterface);
-            Class<?> implClass = loadClass(lambda.getImplClass());
-            Type[] argumentTypes = Type.getArgumentTypes(lambda.getImplMethodSignature());
-            Class<?>[] argumentClasses = Arrays.stream(argumentTypes).map(Type::getClassName).map(TypeInference::loadClass).toArray(Class<?>[]::new);
+            final SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(functionalInterface);
 
-            Method lambdaMethod = implClass.getDeclaredMethod(lambda.getImplMethodName(), argumentClasses);
-            boolean synthetic = lambdaMethod.isSynthetic();
+            final String implMethodName = lambda.getImplMethodName();
+            final String implMethodSignature = lambda.getImplMethodSignature();
 
-            if (synthetic) {
-                throw new IllegalStateException("Extracting generic types from lambda functions is not supported, please use method references or explicit type parameters");
-            }
+            final Class<?> implClass = loadClass(lambda.getImplClass());
 
-            return lambdaMethod;
+            final Class<?>[] argumentClasses = Arrays.stream(Type.getArgumentTypes(implMethodSignature))
+                    .map(Type::getClassName)
+                    .map(TypeInference::loadClass)
+                    .toArray(Class<?>[]::new);
+
+            return implClass.getDeclaredMethod(implMethodName, argumentClasses);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new IllegalStateException(e);
         }

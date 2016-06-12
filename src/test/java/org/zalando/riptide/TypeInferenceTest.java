@@ -20,8 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeToken;
 import org.junit.*;
-import org.junit.rules.ExpectedException;
 import org.zalando.riptide.model.Account;
 
 import java.util.List;
@@ -29,6 +29,10 @@ import java.util.List;
 import static org.zalando.riptide.Capture.listOf;
 
 public class TypeInferenceTest {
+
+    static void account(Account account) {
+
+    }
 
     static List<String> names(List<Account> accounts) {
         return null;
@@ -38,8 +42,97 @@ public class TypeInferenceTest {
 
     }
 
+
     @Test
     public void shouldInferFunctionMethodReference() {
+        TypeInference.FunctionInfo<Account, String> info = TypeInference.forFunction(Account::getName);
+
+        Assert.assertTrue(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(String.class), info.getReturnType().get());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferConsumerMethodReference() {
+        TypeInference.FunctionInfo<Account, ?> info = TypeInference.forConsumer(TypeInferenceTest::account);
+
+        Assert.assertFalse(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferFunctionLocalMethodReference() {
+        ThrowingFunction<Account, String> name = Account::getName;
+        TypeInference.FunctionInfo<Account, String> info = TypeInference.forFunction(name);
+
+        Assert.assertTrue(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(String.class), info.getReturnType().get());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferConsumerLocalMethodReference() {
+        ThrowingConsumer<Account> account = TypeInferenceTest::account;
+        TypeInference.FunctionInfo<Account, ?> info = TypeInference.forConsumer(account);
+
+        Assert.assertFalse(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferFunctionLambda() {
+        ThrowingFunction<Account, String> name = args -> args.getName();
+        TypeInference.FunctionInfo<Account, String> info = TypeInference.forFunction(name);
+
+        Assert.assertTrue(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(String.class), info.getReturnType().get());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferConsumerLambda() {
+
+        ThrowingConsumer<Account> account = (args) -> {};
+        TypeInference.FunctionInfo<Account, ?> info = TypeInference.forConsumer(account);
+
+        Assert.assertFalse(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferFunctionImplementation() {
+        ThrowingFunction<Account, String> name = new ThrowingFunction<Account, String>() {
+
+            @Override
+            public String apply(Account input) throws Exception {
+                return null;
+            }
+        };
+
+        TypeInference.FunctionInfo<Account, String> info = TypeInference.forFunction(name);
+
+        Assert.assertTrue(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(String.class), info.getReturnType().get());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferConsumerImplementation() {
+        final ThrowingConsumer<Account> account = new ThrowingConsumer<Account>() {
+            @Override
+            public void accept(Account input) throws Exception {
+
+            }
+        };
+
+        TypeInference.FunctionInfo<Account, ?> info = TypeInference.forConsumer(account);
+
+        Assert.assertFalse(info.getReturnType().isPresent());
+        Assert.assertEquals(TypeToken.of(Account.class), info.getArgumentType());
+    }
+
+    @Test
+    public void shouldInferGenericFunctionMethodReference() {
         TypeInference.FunctionInfo<List<Account>, List<String>> info = TypeInference.forFunction(TypeInferenceTest::names);
 
         Assert.assertTrue(info.getReturnType().isPresent());
@@ -49,7 +142,7 @@ public class TypeInferenceTest {
     }
 
     @Test
-    public void shouldInferConsumerMethodReference() {
+    public void shouldInferGenericConsumerMethodReference() {
         TypeInference.FunctionInfo<List<Account>, ?> info = TypeInference.forConsumer(TypeInferenceTest::accounts);
 
         Assert.assertFalse(info.getReturnType().isPresent());
@@ -59,7 +152,7 @@ public class TypeInferenceTest {
 
 
     @Test
-    public void shouldInferFunctionLocalMethodReference() {
+    public void shouldInferGenericFunctionLocalMethodReference() {
         ThrowingFunction<List<Account>, List<String>> names = TypeInferenceTest::names;
         TypeInference.FunctionInfo<List<Account>, List<String>> info = TypeInference.forFunction(names);
 
@@ -70,7 +163,7 @@ public class TypeInferenceTest {
     }
 
     @Test
-    public void shouldInferConsumerLocalMethodReference() {
+    public void shouldInferGenericConsumerLocalMethodReference() {
         ThrowingConsumer<List<Account>> accounts = TypeInferenceTest::accounts;
         TypeInference.FunctionInfo<List<Account>, ?> info = TypeInference.forConsumer(accounts);
 
@@ -80,8 +173,8 @@ public class TypeInferenceTest {
     }
 
     @Test
-    @Ignore
-    public void shouldInferFunctionLambda() {
+    @Ignore("OpenJDK does not emit the generic signature for generated synthetic methods")
+    public void shouldInferGenericFunctionLambda() {
         ThrowingFunction<List<Account>, List<String>> names = args -> names(args);
         TypeInference.FunctionInfo<List<Account>, List<String>> info = TypeInference.forFunction(names);
 
@@ -92,8 +185,8 @@ public class TypeInferenceTest {
     }
 
     @Test
-    @Ignore
-    public void shouldInferConsumerLambda() {
+    @Ignore("OpenJDK does not emit the generic signature for generated synthetic methods")
+    public void shouldInferGenericConsumerLambda() {
 
         ThrowingConsumer<List<Account>> accounts = (args) -> accounts(args);
         TypeInference.FunctionInfo<List<Account>, ?> info = TypeInference.forConsumer(accounts);
@@ -104,7 +197,7 @@ public class TypeInferenceTest {
     }
 
     @Test
-    public void shouldInferFunctionImplementation() {
+    public void shouldInferGenericFunctionImplementation() {
         ThrowingFunction<List<Account>, List<String>> names = new ThrowingFunction<List<Account>, List<String>>() {
 
             @Override
@@ -122,7 +215,7 @@ public class TypeInferenceTest {
     }
 
     @Test
-    public void shouldInferConsumerImplementation() {
+    public void shouldInferGenericConsumerImplementation() {
         final ThrowingConsumer<List<Account>> accounts = new ThrowingConsumer<List<Account>>() {
             @Override
             public void accept(List<Account> accounts) throws Exception {
