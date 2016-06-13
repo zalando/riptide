@@ -46,7 +46,6 @@ public final class RedirectTest {
 
     public RedirectTest() {
         final RestTemplate template = new RestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }

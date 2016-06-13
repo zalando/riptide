@@ -21,44 +21,80 @@ package org.zalando.riptide;
  */
 
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.util.DefaultUriTemplateHandler;
+import org.springframework.web.util.UriTemplateHandler;
+import org.springframework.web.client.ResourceAccessException;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import org.springframework.web.util.UriTemplateHandler;
+import java.util.concurrent.ExecutionException;
 
 public final class AsyncRest extends RestBase<AsyncDispatcher> {
 
-    private final AsyncRestTemplate template;
+    private final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory;
+    private final List<HttpMessageConverter<?>> converters;
+    private final UriTemplateHandler uriTemplateHandler;
 
-    private AsyncRest(final AsyncRestTemplate template) {
-        this.template = template;
+    private AsyncRest(AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, List<HttpMessageConverter<?>> converters, UriTemplateHandler uriTemplateHandler) {
+        this.asyncClientHttpRequestFactory = asyncClientHttpRequestFactory;
+        this.converters = converters;
+        this.uriTemplateHandler = uriTemplateHandler;
     }
 
     @Override
     protected UriTemplateHandler getUriTemplateHandler() {
-        return template.getUriTemplateHandler();
+        return uriTemplateHandler;
     }
 
-    @Override
     protected <T> AsyncDispatcher execute(final HttpMethod method, final URI url, final HttpEntity<T> entity) {
-        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final Callback<T> callback = new Callback<>(converters, entity);
+        try {
+            final AsyncClientHttpRequest request = asyncClientHttpRequestFactory.createAsyncRequest(url, method);
+            writeRequestEntity(entity, new AsyncClientHttpRequestAdapter(request), converters);
+            final ListenableFuture<ClientHttpResponse> responseFuture = request.executeAsync();
+            final ExceptionWrappingFuture future = new ExceptionWrappingFuture(responseFuture);
 
-        final ListenableFuture<ClientHttpResponse> future = template.execute(url, method,
-                new AsyncRequestCallbackAdapter<>(callback), BufferingClientHttpResponse::buffer);
+            return new AsyncDispatcher(converters, future);
+        } catch (IOException ex) {
+            final String message = String.format("I/O error on %s request for \"%s\":%s", method.name(), url, ex.getMessage());
+            throw new ResourceAccessException(message, ex);
+        }
+    }
 
-        return new AsyncDispatcher(converters, future);
+    static class ExceptionWrappingFuture extends ListenableFutureAdapter<ClientHttpResponse, ClientHttpResponse> {
+
+        public ExceptionWrappingFuture(final ListenableFuture<ClientHttpResponse> clientHttpResponseFuture) {
+            super(clientHttpResponseFuture);
+        }
+
+        @Override
+        protected final ClientHttpResponse adapt(ClientHttpResponse response) throws ExecutionException {
+            return response;
+        }
     }
 
     public static AsyncRest create(final AsyncRestTemplate template) {
-        return new AsyncRest(template);
+        return create(template.getAsyncRequestFactory(), template.getMessageConverters(), template.getUriTemplateHandler());
+    }
+
+    public static AsyncRest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters) {
+        return create(asyncClientHttpRequestFactory, converters, new DefaultUriTemplateHandler());
+    }
+
+
+    public static AsyncRest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters, UriTemplateHandler uriTemplateHandler) {
+        return new AsyncRest(asyncClientHttpRequestFactory, converters, uriTemplateHandler);
     }
 
     public static <T> ListenableFutureCallback<T> handle(final FailureCallback callback) {

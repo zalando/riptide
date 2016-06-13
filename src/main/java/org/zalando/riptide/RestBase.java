@@ -20,12 +20,23 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.net.URI;
-import java.util.Map;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriTemplateHandler;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.lang.String.format;
 
 abstract class RestBase<D> {
 
@@ -76,5 +87,44 @@ abstract class RestBase<D> {
     }
 
     protected abstract <T> D execute(final HttpMethod method, final URI url, final HttpEntity<T> entity);
+
+    static <T> void writeRequestEntity(final HttpEntity<T> entity, final ClientHttpRequest request, List<HttpMessageConverter<?>> converters) throws IOException {
+        final HttpHeaders headers = entity.getHeaders();
+        request.getHeaders().putAll(headers);
+
+        @Nullable final T body = entity.getBody();
+
+        if (body != null) {
+
+            final Class<?> type = body.getClass();
+            @Nullable final MediaType contentType = headers.getContentType();
+
+            final Optional<HttpMessageConverter<T>> match = converters.stream()
+                    .filter(c -> c.canWrite(type, contentType))
+                    .map(RestBase::<T>cast)
+                    .findFirst();
+
+            if (match.isPresent()) {
+                final HttpMessageConverter<T> converter = match.get();
+
+                converter.write(body, contentType, request);
+            } else {
+                final String message = format(
+                        "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
+                        type.getName());
+
+                if (contentType == null) {
+                    throw new RestClientException(message);
+                } else {
+                    throw new RestClientException(format("%s and content type [%s]", message, contentType));
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> HttpMessageConverter<T> cast(final HttpMessageConverter<?> converter) {
+        return (HttpMessageConverter<T>) converter;
+    }
 
 }

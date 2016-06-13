@@ -27,6 +27,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
@@ -158,6 +159,11 @@ public final class Condition<A> {
 
     private static <I> I convert(final TypeToken<I> type, final ClientHttpResponse response,
             final List<HttpMessageConverter<?>> converters) throws IOException {
-        return new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
+        final HttpMessageConverterExtractor<I> extractor = new HttpMessageConverterExtractor<>(type.getType(), converters);
+        I data = extractor.extractData(response);
+        if (!(data instanceof Closeable)) {
+            response.close();
+        }
+        return data;
     }
 }

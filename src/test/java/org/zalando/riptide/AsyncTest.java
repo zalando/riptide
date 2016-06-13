@@ -68,9 +68,8 @@ public final class AsyncTest {
 
     public AsyncTest() {
         final AsyncRestTemplate template = new AsyncRestTemplate();
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
-        this.unit = AsyncRest.create(template);
         this.server = MockRestServiceServer.createServer(template);
+        this.unit = AsyncRest.create(template);
     }
 
     @Test
@@ -190,7 +189,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldHandleExceptionWithCallback() {
+    public void shouldHandleNoRouteExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         final FailureCallback callback = mock(FailureCallback.class);

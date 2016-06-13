@@ -64,7 +64,6 @@ public final class MapTest {
         template = new RestTemplate();
         template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
                 new ObjectMapper().findAndRegisterModules())));
-        template.setErrorHandler(new PassThroughResponseErrorHandler());
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
