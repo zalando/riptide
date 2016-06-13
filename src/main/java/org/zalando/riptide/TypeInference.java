@@ -20,13 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
+import com.google.gag.annotation.remark.Hack;
 import org.objectweb.asm.Type;
 
 import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 class TypeInference {
     TypeInference() {
@@ -42,7 +49,7 @@ class TypeInference {
             this.argumentType = argumentType;
         }
 
-        public Optional<TypeToken<R>> getReturnType() {
+        Optional<TypeToken<R>> getReturnType() {
             return returnType;
         }
 
@@ -87,10 +94,12 @@ class TypeInference {
         }
     }
 
-    private static <T, R> FunctionInfo<T, R> getFunctionInfoForClass(Object function, Class<?> functionalInterface) {
-        final java.lang.reflect.Type[] genericInterfaces = function.getClass().getGenericInterfaces();
+    private static Stream<java.lang.reflect.Type> genericInterfaces(Class<?> clazz) {
+        return Arrays.stream(clazz.getGenericInterfaces());
+    }
 
-        return Arrays.stream(genericInterfaces)
+    private static <T, R> FunctionInfo<T, R> getFunctionInfoForClass(Object function, Class<?> functionalInterface) {
+        return genericInterfaces(function.getClass())
                 .filter(ParameterizedType.class::isInstance)
                 .map(ParameterizedType.class::cast)
                 .filter(type -> type.getRawType() == functionalInterface)
@@ -127,7 +136,9 @@ class TypeInference {
         return new FunctionInfo<>(returnType, argumentType);
     }
 
-    private static Method getCorrespondingMethod(final Object functionalInterface) {
+    @VisibleForTesting
+    @Hack("package visible so that we can force the catch clause to be covered")
+    static Method getCorrespondingMethod(final Object functionalInterface) {
         try {
             final Method writeReplace = functionalInterface.getClass().getDeclaredMethod("writeReplace");
             writeReplace.setAccessible(true);
@@ -158,9 +169,14 @@ class TypeInference {
         }
     }
 
+    private static boolean isMethodReference(Object function) {
+        // TODO: Make sure this is really the correct way to identify method references and lambdas
+        return function.getClass().isSynthetic();
+    }
+
     static <T, R> FunctionInfo<T, R> forFunction(final ThrowingFunction<T, R> function) {
 
-        if (function.getClass().isSynthetic()) {
+        if (isMethodReference(function)) {
             return getFunctionInfoForMethodReference(function);
         } else {
             return getFunctionInfoForClass(function, ThrowingFunction.class);
@@ -169,7 +185,7 @@ class TypeInference {
 
     static <T> FunctionInfo<T, Void> forConsumer(final ThrowingConsumer<T> function) {
 
-        if (function.getClass().isSynthetic()) {
+        if (isMethodReference(function)) {
             return getFunctionInfoForMethodReference(function);
         } else {
             return getFunctionInfoForClass(function, ThrowingConsumer.class);
