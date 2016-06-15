@@ -30,12 +30,12 @@ public final class EnforceCoverageTest {
 
     @Test
     public void shouldUseActionsConstructor() {
-        new Actions();
+        new Routes();
     }
     
     @Test
-    public void shouldUseConditionsConstructor() {
-        new Conditions();
+    public void shouldUseBindingsConstructor() {
+        new Bindings();
     }
 
     @Test

@@ -45,9 +45,6 @@ import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
 import static org.springframework.http.HttpHeaders.LOCATION;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.HEAD;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
@@ -56,28 +53,28 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Actions.contentLocation;
-import static org.zalando.riptide.Actions.headers;
-import static org.zalando.riptide.Actions.location;
-import static org.zalando.riptide.Actions.resolveAgainst;
-import static org.zalando.riptide.Actions.pass;
-import static org.zalando.riptide.Actions.propagate;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Routes.contentLocation;
+import static org.zalando.riptide.Routes.headers;
+import static org.zalando.riptide.Routes.location;
+import static org.zalando.riptide.Routes.pass;
+import static org.zalando.riptide.Routes.propagate;
+import static org.zalando.riptide.Routes.resolveAgainst;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.series;
 import static org.zalando.riptide.Selectors.status;
 
-public final class ActionsTest {
+public final class RoutesTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final String url = "https://api.example.com/accounts/123";
+    private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public ActionsTest() {
+    public RoutesTest() {
         final RestTemplate template = new RestTemplate();
         template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
                 new ObjectMapper().findAndRegisterModules())));
@@ -90,7 +87,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(status(),
                         on(OK).call(pass()),
                         anyStatus().call(this::fail));
@@ -103,7 +100,7 @@ public final class ActionsTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final HttpHeaders headers = unit.execute(HEAD, url)
+        final HttpHeaders headers = unit.head(url)
                 .dispatch(status(),
                         on(OK).capture(headers()),
                         anyStatus().call(this::fail))
@@ -121,7 +118,7 @@ public final class ActionsTest {
                 withSuccess()
                 .headers(headers));
 
-        final URI uri = unit.execute(HEAD, url)
+        final URI uri = unit.head(url)
                 .dispatch(status(),
                         on(OK).capture(location()),
                         anyStatus().call(this::fail))
@@ -140,7 +137,7 @@ public final class ActionsTest {
         exception.expect(ThrowableProblem.class);
         exception.expect(hasFeature("title", Problem::getTitle, is("Unprocessable Entity")));
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(status(),
                         on(UNPROCESSABLE_ENTITY).call(ThrowableProblem.class, propagate()),
                         anyStatus().call(this::fail));
@@ -151,9 +148,9 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
-        final ClientHttpResponse response = unit.execute(GET, url)
+        final ClientHttpResponse response = unit.get(url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(resolveAgainst(url)))
+                        on(SUCCESSFUL).capture(resolveAgainst("https://api.example.com/accounts/123")))
                 .to(ClientHttpResponse.class);
 
         assertThat(response, hasToString(notNullValue()));
@@ -166,7 +163,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(POST, url, new HttpHeaders())
+        final URI location = unit.post(url).headers(new HttpHeaders())
                 .dispatch(series(),
                         on(SUCCESSFUL).capture(resolveAgainst(url).andThen(location())))
                 .to(URI.class);
@@ -181,7 +178,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(POST, url, "")
+        final URI location = unit.post(url).body("")
                 .dispatch(series(),
                         on(SUCCESSFUL).capture(resolveAgainst(url).andThen(contentLocation())))
                 .to(URI.class);
@@ -196,7 +193,7 @@ public final class ActionsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess().headers(headers));
 
-        final URI location = unit.execute(POST, url, new HttpHeaders(), "")
+        final URI location = unit.post(url).headers(new HttpHeaders()).body("")
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(resolveAgainst(url), status(),
                                 on(OK).capture(location())))
@@ -214,9 +211,10 @@ public final class ActionsTest {
                 withSuccess().headers(headers));
 
 
-        final ClientHttpResponse response = unit.execute(GET, url)
+        final ClientHttpResponse response = unit.get(url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture(resolveAgainst(url)))
+                        on(SUCCESSFUL).dispatch(resolveAgainst(url),
+                                RoutingTree.create(status(), on(OK).capture())))
                 .to(ClientHttpResponse.class);
 
         assertThat(response.getHeaders().getLocation(), hasToString("https://api.example.com/accounts/456"));

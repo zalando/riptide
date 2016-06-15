@@ -24,7 +24,7 @@ import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
-import static org.zalando.riptide.Conditions.anyStatus;
+import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Selectors.status;
 
 /**
@@ -91,11 +91,6 @@ public final class LambdaTest {
     public void shouldSupportLambdaOnCallTypeTokenResponseEntity() {
         anyStatus().call(TypeToken.of(String.class), (ResponseEntity<String> entity) -> {
         });
-    }
-
-    @Test
-    public void shouldSupportDispatch() {
-        anyStatus().dispatch(condition -> condition.capture(String.class));
     }
 
     @Test

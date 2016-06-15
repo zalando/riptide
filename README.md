@@ -36,7 +36,7 @@ public static void main(final String... args) {
     template.setErrorHandler(new PassThroughResponseErrorHandler());
     final Rest rest = Rest.create(template);
 
-    rest.execute(GET, "/repos/zalando/riptide/contributors").dispatch(series(),
+    rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide").dispatch(series(),
         on(SUCCESSFUL).call(listOf(Contributor.class), (List<Contributor> contributors) ->
             contributors.forEach(contributor ->
                 System.out.println(contributor.login + " (" + contributor.contributions + ")"))));

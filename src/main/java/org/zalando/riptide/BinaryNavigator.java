@@ -21,6 +21,6 @@ package org.zalando.riptide;
  */
 
 @FunctionalInterface
-public interface BinarySelector extends EqualitySelector<Boolean> {
+public interface BinaryNavigator extends EqualityNavigator<Boolean> {
     
 }

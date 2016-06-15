@@ -20,7 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -28,12 +28,12 @@ import java.io.IOException;
 /**
  * @see Selectors#series()
  */
-enum SeriesSelector implements EqualitySelector<HttpStatus.Series> {
+enum SeriesNavigator implements EqualityNavigator<Series> {
 
     INSTANCE;
 
     @Override
-    public HttpStatus.Series attributeOf(final ClientHttpResponse response) throws IOException {
+    public Series attributeOf(final ClientHttpResponse response) throws IOException {
         return response.getStatusCode().series();
     }
 

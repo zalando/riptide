@@ -20,33 +20,21 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.reflect.TypeToken;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 
-import javax.annotation.concurrent.Immutable;
-import java.util.Optional;
+import java.io.IOException;
 
-import static java.util.Optional.empty;
+/**
+ * @see Selectors#status()
+ */
+enum StatusNavigator implements EqualityNavigator<HttpStatus> {
 
-@Immutable
-final class RawCapture implements Capture {
-
-    private final Optional<Object> value;
-
-    RawCapture(final Optional<Object> value) {
-        this.value = value;
-    }
+    INSTANCE;
 
     @Override
-    public boolean has(final TypeToken<?> other) {
-        return value.map(Object::getClass)
-                .filter(other::isSupertypeOf)
-                .isPresent();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <O> Optional<O> as(final TypeToken<O> type) {
-        return has(type) ? value.map(v -> (O) v) : empty();
+    public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusCode();
     }
 
 }

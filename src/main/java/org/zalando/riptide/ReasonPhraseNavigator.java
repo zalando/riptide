@@ -4,7 +4,7 @@ package org.zalando.riptide;
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,17 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
-/**
- * @see Selectors#status()
- */
-enum StatusCodeSelector implements EqualitySelector<Integer> {
+enum ReasonPhraseNavigator implements EqualityNavigator<String> {
 
     INSTANCE;
 
+    @Nullable
     @Override
-    public Integer attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getRawStatusCode();
+    public String attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getStatusText();
     }
 
 }

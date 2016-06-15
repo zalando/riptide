@@ -20,21 +20,34 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public abstract class Dispatcher<R> {
+public interface RoutingTree<A> extends Route {
+
+    Set<A> keySet();
+
+    Optional<Route> get(final A attribute);
+
+    Optional<Route> getWildcard();
+
+    default RoutingTree<A> merge(final Binding<A> binding) {
+        return merge(Collections.singletonList(binding));
+    }
+
+    RoutingTree<A> merge(final List<Binding<A>> bindings);
 
     @SafeVarargs
-    public final <A> R dispatch(final Navigator<A> selector, final Binding<A>... bindings) {
-        return dispatch(selector, asList(bindings));
+    static <A> RoutingTree<A> create(final Navigator<A> navigator, final Binding<A>... bindings) {
+        return create(navigator, asList(bindings));
     }
 
-    public final <A> R dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) {
-        return dispatch(RoutingTree.create(selector, bindings));
+    static <A> RoutingTree<A> create(final Navigator<A> navigator, final List<Binding<A>> bindings) {
+        return new DefaultRoutingTree<>(navigator, bindings);
     }
-
-    public abstract <A> R dispatch(final RoutingTree<A> tree);
 
 }

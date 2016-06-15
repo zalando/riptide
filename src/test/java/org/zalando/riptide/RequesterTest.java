@@ -19,25 +19,26 @@ package org.zalando.riptide;
  * limitations under the License.
  * ​⁣
  */
-import java.util.HashMap;
-import java.util.Map;
+
+import org.junit.After;
+import org.junit.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import org.junit.Test;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
-import static java.util.Collections.emptyMap;
-import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Selectors.series;
 
-public class WithUrlTest {
+public class RequesterTest {
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public WithUrlTest() {
+    public RequesterTest() {
         final RestTemplate template = new RestTemplate();
         final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
         templateHandler.setBaseUrl("https://api.example.com");
@@ -47,48 +48,36 @@ public class WithUrlTest {
         this.unit = Rest.create(template);
     }
 
+    @After
+    public void after() {
+        server.verify();
+    }
+
     @Test
     public void shouldExpandWithoutVariables() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("/123")
-            .execute(GET);
+        unit.get("/123")
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldExpandOne() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("/{id}", 123)
-            .execute(GET);
+        unit.get("/{id}", 123)
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldExpandTwo() {
         expectRequestTo("https://api.example.com/123/456");
 
-        unit.withUrl("/{parent}/{child}", 123, "456")
-            .execute(GET);
-    }
-
-    @Test
-    public void shouldExpandWithEmptyMap() {
-        expectRequestTo("https://api.example.com/");
-
-        unit.withUrl("/", emptyMap())
-            .execute(GET);
-    }
-
-    @Test
-    public void shouldExpandMap() {
-        expectRequestTo("https://api.example.com/123/456");
-
-        final Map<String, Object> m = new HashMap<>();
-        m.put("parent", 123);
-        m.put("child", "456");
-
-        unit.withUrl("/{parent}/{child}", m)
-            .execute(GET);
+        unit.get("/{parent}/{child}", 123, "456")
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
@@ -98,52 +87,59 @@ public class WithUrlTest {
         final int postId = 123;
         final String filter = "new";
 
-        unit.withUrl("https://example.com/posts/{id}?filter={filter}", postId, filter)
-            .execute(GET);
+        unit.get("https://example.com/posts/{id}?filter={filter}", postId, filter)
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldEncodePath() {
         expectRequestTo("https://ru.wikipedia.org/wiki/%D0%9E%D1%82%D0%B1%D0%BE%D0%B9%D0%BD%D0%BE%D0%B5_%D1%82%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5");
 
-        unit.withUrl("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
-            .execute(GET);
+        unit.get("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldEncodeQueraparams() {
         expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
-        unit.withUrl("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
-            .execute(GET);
+        unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldExpandOnGetWithHeaders() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("/123")
-            .execute(GET, new HttpHeaders());
+        unit.get("/123")
+                .headers(new HttpHeaders())
+                .dispatch(series(),
+                        on(SUCCESSFUL).capture());
     }
 
     @Test
     public void shouldExpandOnGetWithBody() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("/123")
-            .execute(GET, "deadbody");
+        unit.get("/123")
+                .body("deadbody");
     }
 
     @Test
     public void shouldExpandOnGetWithHeadersAndBody() {
         expectRequestTo("https://api.example.com/123");
 
-        unit.withUrl("/123")
-            .execute(GET, new HttpHeaders(), "deadbody");
+        unit.get("/123")
+                .headers(new HttpHeaders())
+                .body("deadbody");
     }
 
     private void expectRequestTo(final String url) {
         server.expect(requestTo(url))
-            .andRespond(withSuccess());
+                .andRespond(withSuccess());
     }
+
 }

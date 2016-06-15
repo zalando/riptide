@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.INFORMATIONAL;
 import static org.springframework.http.HttpStatus.Series.REDIRECTION;
@@ -41,7 +40,7 @@ import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.series;
 
 @RunWith(Parameterized.class)
@@ -79,7 +78,7 @@ public final class SeriesDispatchTest {
         final ClientHttpResponseConsumer verifier = response ->
                 assertThat(response.getStatusCode().series(), is(expected.series()));
 
-        unit.execute(GET, url)
+        unit.get(url)
                 .dispatch(series(),
                         on(INFORMATIONAL).call(verifier),
                         on(SUCCESSFUL).call(verifier),

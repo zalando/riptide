@@ -45,7 +45,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.contentType;
 
 public final class InputStreamTest {
@@ -53,12 +53,12 @@ public final class InputStreamTest {
     static class InputStreamHttpMessageConverter implements HttpMessageConverter<InputStream> {
 
         @Override
-        public boolean canRead(Class<?> clazz, MediaType mediaType) {
+        public boolean canRead(final Class<?> clazz, final MediaType mediaType) {
             return InputStream.class.isAssignableFrom(clazz);
         }
 
         @Override
-        public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+        public boolean canWrite(final Class<?> clazz, final MediaType mediaType) {
             return false;
         }
 
@@ -68,13 +68,13 @@ public final class InputStreamTest {
         }
 
         @Override
-        public InputStream read(Class<? extends InputStream> clazz, HttpInputMessage inputMessage) throws IOException,
+        public InputStream read(final Class<? extends InputStream> clazz, final HttpInputMessage inputMessage) throws IOException,
                 HttpMessageNotReadableException {
             return inputMessage.getBody();
         }
 
         @Override
-        public void write(InputStream t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException,
+        public void write(final InputStream t, final MediaType contentType, final HttpOutputMessage outputMessage) throws IOException,
                 HttpMessageNotWritableException {
             throw new IllegalStateException();
 
@@ -87,15 +87,15 @@ public final class InputStreamTest {
         private final InputStream inputStream;
         private boolean isClosed;
 
-        public CloseOnceInputStream(InputStream inputStream) {
+        public CloseOnceInputStream(final InputStream inputStream) {
             this.inputStream = inputStream;
         }
 
-        public CloseOnceInputStream(byte[] buf) {
+        public CloseOnceInputStream(final byte[] buf) {
             this(new ByteArrayInputStream(buf));
         }
 
-        public CloseOnceInputStream(byte[] buf, int offset, int length) {
+        public CloseOnceInputStream(final byte[] buf, final int offset, final int length) {
             this(new ByteArrayInputStream(buf, offset, length));
         }
 
@@ -117,7 +117,7 @@ public final class InputStreamTest {
         }
 
         @Override
-        public synchronized void mark(int readlimit) {
+        public synchronized void mark(final int readlimit) {
             inputStream.mark(readlimit);
         }
 
@@ -139,13 +139,13 @@ public final class InputStreamTest {
         }
 
         @Override
-        public synchronized int read(byte[] b, int off, int len) throws IOException {
+        public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
             checkClosed();
             return inputStream.read(b, off, len);
         }
 
         @Override
-        public synchronized long skip(long n) throws IOException {
+        public synchronized long skip(final long n) throws IOException {
             checkClosed();
             return inputStream.skip(n);
         }
@@ -177,7 +177,7 @@ public final class InputStreamTest {
         try {
             content.close();
             fail("Should prevent multiple close calls");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             assertEquals("Stream is already closed", e.getMessage());
         }
     }
@@ -189,7 +189,7 @@ public final class InputStreamTest {
         try {
             final int ch = content.read();
             fail("Should prevent read calls after close");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             assertEquals("Stream is already closed", e.getMessage());
         }
     }

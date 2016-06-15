@@ -27,20 +27,19 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.isCurrentRepresentation;
 
-public final class LocationHeadersSelectorTest {
+public final class CurrentRepresentationNavigatorTest {
 
     private final URI url = URI.create("https://api.example.com");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public LocationHeadersSelectorTest() {
+    public CurrentRepresentationNavigatorTest() {
         final RestTemplate template = new RestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
@@ -56,7 +55,7 @@ public final class LocationHeadersSelectorTest {
                 .andRespond(withSuccess()
                         .headers(headers));
 
-        unit.execute(GET, url).dispatch(isCurrentRepresentation(),
+        unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
                 on(false).call(() -> {throw new AssertionError();}));
     }
@@ -71,7 +70,7 @@ public final class LocationHeadersSelectorTest {
                 .andRespond(withSuccess()
                         .headers(headers));
 
-        unit.execute(GET, url).dispatch(isCurrentRepresentation(),
+        unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
                 on(false).call(() -> {throw new UnsupportedOperationException();}));
     }
@@ -81,7 +80,7 @@ public final class LocationHeadersSelectorTest {
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
 
-        unit.execute(GET, url).dispatch(isCurrentRepresentation(),
+        unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
                 on(false).call(() -> {throw new UnsupportedOperationException();}));
     }

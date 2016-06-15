@@ -30,13 +30,13 @@ import java.net.URI;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.REDIRECTION;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Routes.location;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.series;
 
 public final class RedirectTest {
@@ -68,10 +68,9 @@ public final class RedirectTest {
     }
 
     private String send(final URI url) {
-        return unit.execute(POST, url).dispatch(series(),
+        return unit.post(url).dispatch(series(),
                 on(SUCCESSFUL).capture(String.class),
-                on(REDIRECTION).capture(response ->
-                        send(response.getHeaders().getLocation())))
+                on(REDIRECTION).capture(location().andThen(this::send)))
                 .to(String.class);
     }
 

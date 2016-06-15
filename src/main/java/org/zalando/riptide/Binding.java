@@ -25,24 +25,24 @@ import javax.annotation.Nullable;
 public final class Binding<A> {
 
     private final A attribute;
-    private final Executor executor;
+    private final Route route;
 
-    private Binding(@Nullable final A attribute, final Executor executor) {
+    private Binding(@Nullable final A attribute, final Route route) {
         this.attribute = attribute;
-        this.executor = executor;
+        this.route = route;
     }
 
     @Nullable
-    A getAttribute() {
+    public A getAttribute() {
         return attribute;
     }
 
-    public Executor getExecutor() {
-        return executor;
+    public Route getRoute() {
+        return route;
     }
 
-    static <A> Binding<A> create(@Nullable final A attribute, final Executor executor) {
-        return new Binding<>(attribute, executor);
+    public static <A> Binding<A> create(@Nullable final A attribute, final Route route) {
+        return new Binding<>(attribute, route);
     }
 
 }

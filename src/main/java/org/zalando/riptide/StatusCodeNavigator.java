@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -28,13 +27,13 @@ import java.io.IOException;
 /**
  * @see Selectors#status()
  */
-enum StatusSelector implements EqualitySelector<HttpStatus> {
+enum StatusCodeNavigator implements EqualityNavigator<Integer> {
 
     INSTANCE;
 
     @Override
-    public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getStatusCode();
+    public Integer attributeOf(final ClientHttpResponse response) throws IOException {
+        return response.getRawStatusCode();
     }
 
 }

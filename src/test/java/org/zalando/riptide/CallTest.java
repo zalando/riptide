@@ -39,13 +39,12 @@ import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.status;
 
 public final class CallTest {
@@ -77,7 +76,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final ResponseEntityConsumer<AccountBody> verifier = mock(ResponseEntityConsumer.class);
 
-        unit.execute(GET, "/accounts/123")
+        unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
@@ -100,7 +99,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final EntityConsumer<AccountBody> verifier = mock(EntityConsumer.class);
 
-        unit.execute(GET, "/accounts/123")
+        unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
@@ -117,7 +116,7 @@ public final class CallTest {
 
         final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
-        unit.execute(GET, "/accounts/123")
+        unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(verifier),
                         anyStatus().call(this::fail));
@@ -132,7 +131,7 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        unit.execute(GET, "/accounts/123")
+        unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail));
@@ -149,7 +148,7 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        unit.execute(GET, "/accounts/123")
+        unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateResponse),
                         anyStatus().call(this::fail));

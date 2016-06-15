@@ -34,11 +34,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.status;
 
 public class OAuth2CompatibilityTest {
@@ -56,10 +55,10 @@ public class OAuth2CompatibilityTest {
         server.expect(requestTo(url))
                 .andRespond(withUnauthorizedRequest()
                         .body(new byte[]{0x13, 0x37}));
-        
+
         final Rest rest = Rest.create(template);
 
-        final ClientHttpResponse response = rest.execute(GET, url)
+        final ClientHttpResponse response = rest.get(url)
                 .dispatch(status(),
                         on(UNAUTHORIZED).capture())
                 .to(ClientHttpResponse.class);
@@ -75,12 +74,12 @@ public class OAuth2CompatibilityTest {
         server.expect(requestTo(url))
                 .andRespond(withUnauthorizedRequest()
                         .body(new byte[]{0x13, 0x37}));
-        
+
         final AsyncRest rest = AsyncRest.create(template);
 
         final AtomicReference<ClientHttpResponse> reference = new AtomicReference<>();
         
-        rest.execute(GET, url)
+        rest.get(url)
                 .dispatch(status(),
                         on(UNAUTHORIZED).call(reference::set));
 

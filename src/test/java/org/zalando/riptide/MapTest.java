@@ -41,13 +41,12 @@ import java.net.URI;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Conditions.anyStatus;
-import static org.zalando.riptide.Conditions.on;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Selectors.status;
 
 public final class MapTest {
@@ -148,7 +147,7 @@ public final class MapTest {
     }
 
     private Account dispatch(final Binding<HttpStatus> capturer) {
-        return unit.execute(GET, url)
+        return unit.get(url)
                 .dispatch(status(),
                         capturer,
                         anyStatus().call(this::fail))

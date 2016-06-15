@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.ArrayList;

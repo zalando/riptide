@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import java.util.NoSuchElementException;
@@ -38,15 +37,6 @@ public class CaptureUnitTest {
     public void shouldNotRetrieveNullOnCaptured() {
         final Capture unit = Capture.valueOf(null);
 
-        assertThat(unit.has(String.class), is(false));
-        assertThat(unit.as(String.class), is(empty()));
-    }
-
-    @Test
-    public void shouldRetrieveNullOnTypedCaptured() {
-        final Capture unit = Capture.valueOf(null, TypeToken.of(String.class));
-
-        assertThat(unit.has(String.class), is(true));
         assertThat(unit.as(String.class), is(empty()));
     }
 
@@ -54,31 +44,14 @@ public class CaptureUnitTest {
     public void shouldRetrieveCaptured() {
         final Capture unit = Capture.valueOf("");
 
-        assertThat(unit.has(String.class), is(true));
         assertThat(unit.as(String.class), is(not(empty())));
     }
 
     @Test
-    public void shouldNotRetrieveCapturedOnParameterizedType() {
+    public void shouldRetrieveTypedCapture() {
         final Capture unit = Capture.valueOf(newArrayList());
 
-        assertThat(unit.has(listOf(String.class)), is(false));
-        assertThat(unit.as(listOf(String.class)), is(empty()));
-    }
-
-    @Test
-    public void shouldRetrieveTypedCapture() {
-        final Capture unit = Capture.valueOf(newArrayList(), listOf(String.class));
-
-        assertThat(unit.has(listOf(String.class)), is(true));
         assertThat(unit.as(listOf(String.class)), is(not(empty())));
-    }
-
-    @Test
-    public void shouldNotRetrieveTypedCapture() {
-        final Capture unit = Capture.valueOf(newArrayList(), listOf(String.class));
-
-        assertThat(unit.as(listOf(Integer.class)), is(empty()));
     }
 
     @Test(expected = NoSuchElementException.class)
@@ -86,20 +59,6 @@ public class CaptureUnitTest {
         final Capture unit = Capture.valueOf(null);
 
         unit.to(String.class);
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void shouldThrowOnRetrievingWrongRawType() {
-        final Capture unit = Capture.valueOf("");
-
-        unit.to(Number.class);
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void shouldThrowOnRetrievingWrongType() {
-        final Capture unit = Capture.valueOf(newArrayList(""));
-
-        unit.to(listOf(Number.class));
     }
 
 }
