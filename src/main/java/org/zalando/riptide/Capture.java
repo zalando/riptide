@@ -26,6 +26,7 @@ import com.google.common.reflect.TypeToken;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Immutable
@@ -74,5 +75,24 @@ public interface Capture {
 
         return listType.where(elementType, entityType);
     }
+
+    static <K, V> TypeToken<Map<K, V>> mapOf(final Class<K> keyType, final Class<V> valueType) {
+        return mapOf(TypeToken.of(keyType), TypeToken.of(valueType));
+    }
+
+    static <K, V> TypeToken<Map<K, V>> mapOf(final TypeToken<K> keyType, final TypeToken<V> valueType) {
+        final TypeToken<Map<K, V>> mapType = new TypeToken<Map<K, V>>() {
+        };
+
+        final TypeParameter<K> keyParameter = new TypeParameter<K>() {
+        };
+
+        final TypeParameter<V> valueParameter = new TypeParameter<V>() {
+        };
+
+        return mapType.where(keyParameter, keyType).where(valueParameter, valueType);
+
+    }
+
 
 }

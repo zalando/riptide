@@ -20,10 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @FunctionalInterface
-public interface ThrowingFunction<T, R> {
+public interface ThrowingFunction<T, R> extends Serializable {
 
     R apply(T input) throws Exception;
 

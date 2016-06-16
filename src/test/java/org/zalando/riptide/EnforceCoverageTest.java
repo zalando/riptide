@@ -43,4 +43,9 @@ public final class EnforceCoverageTest {
         new Selectors();
     }
 
+    @Test
+    public void shouldUseTypeInferenceConstructor() {
+        new TypeInference();
+    }
+
 }
