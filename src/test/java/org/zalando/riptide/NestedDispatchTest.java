@@ -29,15 +29,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
@@ -75,7 +78,7 @@ public final class NestedDispatchTest {
     private final MockRestServiceServer server;
 
     public NestedDispatchTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
@@ -83,7 +86,7 @@ public final class NestedDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(final Class<T> type) {
+    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException {
         return unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
@@ -101,7 +104,7 @@ public final class NestedDispatchTest {
                                         on(503).capture(),
                                         anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
-                .as(type).orElse(null);
+                .get().as(type).orElse(null);
     }
 
     private Route problemHandling() {
@@ -128,17 +131,18 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelOne() {
+    public void shouldDispatchLevelOne() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
-        exception.expect(Failure.class);
-        exception.expect(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(Failure.class));
+        exception.expectCause(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
 
         perform(Void.class);
     }
 
     @Test
-    public void shouldDispatchLevelTwo() {
+    public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
@@ -150,7 +154,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() {
+    public void shouldDispatchLevelThree() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))

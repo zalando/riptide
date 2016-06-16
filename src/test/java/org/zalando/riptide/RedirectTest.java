@@ -24,9 +24,10 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -35,8 +36,8 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Selectors.series;
 
 public final class RedirectTest {
@@ -45,13 +46,13 @@ public final class RedirectTest {
     private final MockRestServiceServer server;
 
     public RedirectTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
     @Test
-    public void shouldFollowRedirect() {
+    public void shouldFollowRedirect() throws ExecutionException, InterruptedException {
         final URI originalUrl = URI.create("https://api.example.com/accounts/123");
         final URI redirectUrl = URI.create("https://api.example.org/accounts/123");
 
@@ -67,10 +68,11 @@ public final class RedirectTest {
         assertThat(send(originalUrl), is("123"));
     }
 
-    private String send(final URI url) {
+    private String send(final URI url) throws ExecutionException, InterruptedException {
         return unit.post(url).dispatch(series(),
                 on(SUCCESSFUL).capture(String.class),
                 on(REDIRECTION).capture(location().andThen(this::send)))
+                .get()
                 .to(String.class);
     }
 

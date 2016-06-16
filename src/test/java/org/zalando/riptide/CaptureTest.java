@@ -29,12 +29,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
@@ -55,7 +56,7 @@ public final class CaptureTest {
     private final MockRestServiceServer server;
 
     public CaptureTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));
@@ -64,7 +65,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCaptureResponse() throws IOException {
+    public void shouldCaptureResponse() throws IOException, ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -74,14 +75,14 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
-                .to(ClientHttpResponse.class);
+                .get().to(ClientHttpResponse.class);
 
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
 
     @Test
-    public void shouldCaptureEntity() {
+    public void shouldCaptureEntity() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -91,14 +92,14 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(TypeToken.of(AccountBody.class)),
                         anyStatus().call(this::fail))
-                .to(AccountBody.class);
+                .get().to(AccountBody.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
     @Test
-    public void shouldCaptureMappedEntity() {
+    public void shouldCaptureMappedEntity() throws ExecutionException, InterruptedException {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();
@@ -114,7 +115,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(AccountBody.class, this::extract),
                         anyStatus().call(this::fail))
-                .to(Account.class);
+                .get().to(Account.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is(revision));

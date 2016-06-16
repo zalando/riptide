@@ -24,7 +24,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -39,7 +39,7 @@ public class RequesterTest {
     private final MockRestServiceServer server;
 
     public RequesterTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
         templateHandler.setBaseUrl("https://api.example.com");
         template.setUriTemplateHandler(templateHandler);

@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -49,10 +49,10 @@ public class UriTest {
     private final MockRestServiceServer server;
 
     private final HttpMethod method;
-    private final Executor<Capture> executor;
+    private final Executor executor;
 
-    public UriTest(final HttpMethod method, final Executor<Capture> executor) {
-        final RestTemplate template = new RestTemplate();
+    public UriTest(final HttpMethod method, final Executor executor) {
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
                 new ObjectMapper().findAndRegisterModules())));
 
@@ -63,8 +63,8 @@ public class UriTest {
         this.executor = executor;
     }
 
-    interface Executor<R> {
-        Requester<R> execute(RestClient<R> client, URI uri);
+    interface Executor {
+        Requester execute(RestClient client, URI uri);
     }
 
     @Parameterized.Parameters(name= "{0}")

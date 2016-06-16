@@ -23,42 +23,43 @@ package org.zalando.riptide;
 import com.google.common.collect.Lists;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.annotation.Nullable;
 
-public abstract class Requester<R> extends Dispatcher<R> {
+public abstract class Requester extends Dispatcher {
 
     private final HttpHeaders headers = new HttpHeaders();
 
-    public final Requester<R> header(final String name, final String value) {
+    public final Requester header(final String name, final String value) {
         headers.add(name, value);
         return this;
     }
 
-    public final Requester<R> headers(final HttpHeaders headers) {
+    public final Requester headers(final HttpHeaders headers) {
         this.headers.putAll(headers);
         return this;
     }
 
-    public final Requester<R> accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
+    public final Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
         headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
         return this;
     }
 
-    public final Requester<R> contentType(final MediaType contentType) {
+    public final Requester contentType(final MediaType contentType) {
         headers.setContentType(contentType);
         return this;
     }
 
-    public final <T> Dispatcher<R> body(final T body) {
+    public final <T> Dispatcher body(final T body) {
         return execute(headers, body);
     }
 
     @Override
-    public final <A> R dispatch(final RoutingTree<A> tree) {
+    public final <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) {
         return execute(headers, null).dispatch(tree);
     }
 
-    protected abstract <T> Dispatcher<R> execute(final HttpHeaders headers, final @Nullable T body);
+    protected abstract <T> Dispatcher execute(final HttpHeaders headers, final @Nullable T body);
 
 }

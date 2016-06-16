@@ -29,7 +29,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,7 +41,6 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -163,7 +162,7 @@ public final class InputStreamTest {
     private final MockRestServiceServer server;
 
     public InputStreamTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final InputStreamHttpMessageConverter converter = new InputStreamHttpMessageConverter();
         template.setMessageConverters(Collections.singletonList(converter));
         this.server = MockRestServiceServer.createServer(template);
@@ -206,6 +205,7 @@ public final class InputStreamTest {
         final InputStream inputStream = unit.get(url)
                 .dispatch(contentType(),
                         on(APPLICATION_OCTET_STREAM).capture(InputStream.class))
+                .get()
                 .as(InputStream.class)
                 .orElseThrow(AssertionError::new);
 

@@ -26,10 +26,10 @@ import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -48,8 +48,8 @@ public class OAuth2CompatibilityTest {
     private final URI url = URI.create("http://localhost");
 
     @Test
-    public void dispatchesConsumedResponseAgain() throws IOException {
-        final RestTemplate template = new RestTemplate();
+    public void dispatchesConsumedResponseAgain() throws IOException, ExecutionException, InterruptedException {
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final MockRestServiceServer server = MockRestServiceServer.createServer(template);
         
         server.expect(requestTo(url))
@@ -61,7 +61,7 @@ public class OAuth2CompatibilityTest {
         final ClientHttpResponse response = rest.get(url)
                 .dispatch(status(),
                         on(UNAUTHORIZED).capture())
-                .to(ClientHttpResponse.class);
+                .get().to(ClientHttpResponse.class);
 
         assertThat(response.getBody().available(), is(2));
     }
@@ -75,7 +75,7 @@ public class OAuth2CompatibilityTest {
                 .andRespond(withUnauthorizedRequest()
                         .body(new byte[]{0x13, 0x37}));
 
-        final AsyncRest rest = AsyncRest.create(template);
+        final Rest rest = Rest.create(template);
 
         final AtomicReference<ClientHttpResponse> reference = new AtomicReference<>();
         

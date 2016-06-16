@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import java.util.Arrays;
@@ -49,10 +49,10 @@ public class UriTemplateTest {
     private final MockRestServiceServer server;
 
     private final HttpMethod method;
-    private final Executor<Capture> executor;
+    private final Executor executor;
 
-    public UriTemplateTest(final HttpMethod method, final Executor<Capture> executor) {
-        final RestTemplate template = new RestTemplate();
+    public UriTemplateTest(final HttpMethod method, final Executor executor) {
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
         templateHandler.setBaseUrl("https://api.example.org");
         template.setUriTemplateHandler(templateHandler);
@@ -66,8 +66,8 @@ public class UriTemplateTest {
         this.executor = executor;
     }
 
-    interface Executor<R> {
-        Requester<R> execute(RestClient<R> client, String uriTemplate, Object... uriVariables);
+    interface Executor {
+        Requester execute(RestClient client, String uriTemplate, Object... uriVariables);
     }
 
     @Parameterized.Parameters(name= "{0}")

@@ -20,13 +20,17 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
@@ -34,19 +38,22 @@ import static org.zalando.riptide.Selectors.isCurrentRepresentation;
 
 public final class CurrentRepresentationNavigatorTest {
 
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+
     private final URI url = URI.create("https://api.example.com");
 
     private final Rest unit;
     private final MockRestServiceServer server;
 
     public CurrentRepresentationNavigatorTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
     @Test
-    public void shouldMatchOnSameHeader() {
+    public void shouldMatchOnSameHeader() throws ExecutionException, InterruptedException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set("Location", "/foo");
         headers.set("Content-Location", "/foo");
@@ -57,11 +64,14 @@ public final class CurrentRepresentationNavigatorTest {
 
         unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
-                on(false).call(() -> {throw new AssertionError();}));
+                on(false).call(() -> {
+                    throw new AssertionError();
+                }))
+                .get();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void shouldNotMatchOnDifferentHeaders() {
+    @Test
+    public void shouldNotMatchOnDifferentHeaders() throws ExecutionException, InterruptedException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set("Location", "/foo");
         headers.set("Content-Location", "/bar");
@@ -70,19 +80,31 @@ public final class CurrentRepresentationNavigatorTest {
                 .andRespond(withSuccess()
                         .headers(headers));
 
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(UnsupportedOperationException.class));
+
         unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
-                on(false).call(() -> {throw new UnsupportedOperationException();}));
+                on(false).call(() -> {
+                    throw new UnsupportedOperationException();
+                }))
+                .get();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void shouldNotMatchOnMissingHeaders() {
+    @Test
+    public void shouldNotMatchOnMissingHeaders() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
 
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(UnsupportedOperationException.class));
+
         unit.get(url).dispatch(isCurrentRepresentation(),
                 on(true).capture(),
-                on(false).call(() -> {throw new UnsupportedOperationException();}));
+                on(false).call(() -> {
+                    throw new UnsupportedOperationException();
+                }))
+                .get();
     }
 
 }

@@ -24,11 +24,13 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -49,13 +51,13 @@ public final class AnyDispatchTest {
     private final MockRestServiceServer server;
 
     public AnyDispatchTest() {
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
 
     @Test
-    public void shouldDispatchAny() throws IOException {
+    public void shouldDispatchAny() throws IOException, ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -65,6 +67,7 @@ public final class AnyDispatchTest {
                 .dispatch(status(),
                         on(CREATED).capture(AccountBody.class),
                         anyStatus().capture())
+                .get()
                 .as(ClientHttpResponse.class).orElse(null);
 
         assertThat(response.getStatusCode(), is(OK));

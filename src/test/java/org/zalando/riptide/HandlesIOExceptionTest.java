@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
@@ -45,27 +44,11 @@ public class HandlesIOExceptionTest {
         exception.expect(ResourceAccessException.class);
         exception.expectMessage("I/O error on GET request");
 
-        final ClientHttpRequestFactory factory = (uri, httpMethod) -> {
-            throw new IOException("Could not create request");
-        };
-
-        Rest.create(factory, emptyList())
-                .get("http://localhost/")
-                .dispatch(series(),
-                        on(SUCCESSFUL).capture());
-    }
-
-    @Test
-    public void shouldHandleExceptionDuringAsyncRequestCreation() throws URISyntaxException {
-
-        exception.expect(ResourceAccessException.class);
-        exception.expectMessage("I/O error on GET request");
-
         final AsyncClientHttpRequestFactory factory = (uri, httpMethod) -> {
             throw new IOException("Could not create request");
         };
 
-        AsyncRest.create(factory, emptyList())
+        Rest.create(factory, emptyList())
                 .get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).capture());

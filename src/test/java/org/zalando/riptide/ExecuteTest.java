@@ -32,8 +32,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Success;
 
 import java.util.List;
@@ -56,12 +56,12 @@ public final class ExecuteTest {
 
     private final String url = "https://api.example.com";
 
-    private final RestTemplate template;
+    private final AsyncRestTemplate template;
     private final Rest unit;
     private final MockRestServiceServer server;
 
     public ExecuteTest() {
-        this.template = new RestTemplate();
+        this.template = new AsyncRestTemplate();
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
         template.setMessageConverters(singletonList(converter));

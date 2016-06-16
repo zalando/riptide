@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
 
@@ -50,7 +50,7 @@ public final class StatusDispatchTest {
 
     public StatusDispatchTest(final HttpStatus expected) {
         this.expected = expected;
-        final RestTemplate template = new RestTemplate();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.create(template);
     }
