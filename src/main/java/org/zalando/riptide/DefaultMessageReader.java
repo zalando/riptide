@@ -40,9 +40,6 @@ final class DefaultMessageReader implements MessageReader {
     @Override
     public <I> I readEntity(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
         final I data = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-        if (!(data instanceof Closeable)) {
-            response.close();
-        }
         return data;
     }
 

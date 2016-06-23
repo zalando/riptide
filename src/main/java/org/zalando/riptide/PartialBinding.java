@@ -33,6 +33,10 @@ public final class PartialBinding<A> {
         this.attribute = attribute;
     }
 
+    public <I> Binding<A> stream(final TypeToken<I> type) {
+        return bind(Route.stream(type));
+    }
+
     public Binding<A> capture() {
         return bind(Route.capture());
     }
