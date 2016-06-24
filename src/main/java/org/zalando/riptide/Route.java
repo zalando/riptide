@@ -52,15 +52,19 @@ public interface Route {
 
     static Route call(final ThrowingRunnable consumer) {
         return (response, reader) -> {
-            consumer.run();
-            return none();
+            try (final ClientHttpResponse responseToClose = response) {
+                consumer.run();
+                return none();
+            }
         };
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
         return (response, reader) -> {
-            consumer.accept(response);
-            return none();
+            try (final ClientHttpResponse responseToClose = response) {
+                consumer.accept(responseToClose);
+                return none();
+            }
         };
     }
 

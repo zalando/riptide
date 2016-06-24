@@ -45,12 +45,18 @@ public final class Capture {
     }
 
     public <T> Optional<T> as(final TypeToken<T> type) {
-        return stream(type).findFirst();
+        try (final Stream<T> stream = stream(type)) {
+            return stream.findFirst();
+        }
     }
 
     @SuppressWarnings("unchecked")
     public <T> Stream<T> stream(final TypeToken<T> type) {
         return stream.map(v -> (T)v);
+    }
+
+    public <T> Stream<T> stream(final Class<T> type) {
+        return stream.map(type::cast);
     }
 
     public <T> T to(final Class<T> type) {
