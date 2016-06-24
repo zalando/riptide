@@ -24,9 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Created by jhorstmann on 24.06.16.
- */
 class CloseOnceInputStream extends InputStream {
     private final InputStream inputStream;
     private boolean isClosed;
