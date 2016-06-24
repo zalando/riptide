@@ -23,12 +23,22 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 import static org.zalando.riptide.Capture.none;
 
 @FunctionalInterface
 public interface Route {
 
     Capture execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
+
+    static <T> Route stream(final TypeToken<T> typeToken) {
+        return (response, reader) -> {
+            final Stream<T> stream = StreamSupport.stream(new ResponseSpliterator<>(response, reader, typeToken), false).onClose(response::close);
+            return Capture.ofStream(stream);
+        };
+    }
 
     static Route capture() {
         return (response, reader) ->
@@ -42,15 +52,19 @@ public interface Route {
 
     static Route call(final ThrowingRunnable consumer) {
         return (response, reader) -> {
-            consumer.run();
-            return none();
+            try (final ClientHttpResponse responseToClose = response) {
+                consumer.run();
+                return none();
+            }
         };
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
         return (response, reader) -> {
-            consumer.accept(response);
-            return none();
+            try (final ClientHttpResponse responseToClose = response) {
+                consumer.accept(responseToClose);
+                return none();
+            }
         };
     }
 

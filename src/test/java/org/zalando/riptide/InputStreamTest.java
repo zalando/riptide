@@ -31,7 +31,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -81,80 +80,6 @@ public final class InputStreamTest {
 
         }
 
-    }
-
-    static class CloseOnceInputStream extends InputStream {
-        private final InputStream inputStream;
-        private boolean isClosed;
-
-        public CloseOnceInputStream(final InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        public CloseOnceInputStream(final byte[] buf) {
-            this(new ByteArrayInputStream(buf));
-        }
-
-        public CloseOnceInputStream(final byte[] buf, final int offset, final int length) {
-            this(new ByteArrayInputStream(buf, offset, length));
-        }
-
-        public boolean isClosed() {
-            return isClosed;
-        }
-
-        private void checkClosed() throws IOException {
-            if (isClosed) {
-                throw new IOException("Stream is already closed");
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            checkClosed();
-            isClosed = true;
-            inputStream.close();
-        }
-
-        @Override
-        public synchronized void mark(final int readlimit) {
-            inputStream.mark(readlimit);
-        }
-
-        @Override
-        public synchronized void reset() throws IOException {
-            checkClosed();
-            inputStream.reset();
-        }
-
-        @Override
-        public boolean markSupported() {
-            return inputStream.markSupported();
-        }
-
-        @Override
-        public synchronized int read() throws IOException {
-            checkClosed();
-            return inputStream.read();
-        }
-
-        @Override
-        public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
-            checkClosed();
-            return inputStream.read(b, off, len);
-        }
-
-        @Override
-        public synchronized long skip(final long n) throws IOException {
-            checkClosed();
-            return inputStream.skip(n);
-        }
-
-        @Override
-        public synchronized int available() throws IOException {
-            checkClosed();
-            return inputStream.available();
-        }
     }
 
     private final URI url = URI.create("https://api.example.com/blobs/123");

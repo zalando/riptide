@@ -27,38 +27,56 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
-@FunctionalInterface
-public interface Capture {
+public final class Capture {
 
-    default <T> Optional<T> as(final Class<T> type) {
+    private final Stream<?> stream;
+
+    Capture(final Stream<?> stream) {
+        this.stream = checkNotNull(stream);
+    }
+
+    public <T> Optional<T> as(final Class<T> type) {
         return as(TypeToken.of(type));
     }
 
-    <T> Optional<T> as(final TypeToken<T> type);
+    public <T> Optional<T> as(final TypeToken<T> type) {
+        try (final Stream<T> stream = stream(type)) {
+            return stream.findFirst();
+        }
+    }
 
-    default <T> T to(final Class<T> type) {
+    @SuppressWarnings("unchecked")
+    public <T> Stream<T> stream(final TypeToken<T> type) {
+        return stream.map(v -> (T)v);
+    }
+
+    public <T> Stream<T> stream(final Class<T> type) {
+        return stream.map(type::cast);
+    }
+
+    public <T> T to(final Class<T> type) {
         return to(TypeToken.of(type));
     }
 
-    default <T> T to(final TypeToken<T> type) {
+    public <T> T to(final TypeToken<T> type) {
         return as(type).get();
     }
 
     static Capture none() {
-        return valueOf(null);
+        return new Capture(Stream.empty());
     }
 
     static <T> Capture valueOf(@Nullable final T value) {
-        return new Capture() {
+        return new Capture(value == null ? Stream.empty() : Stream.of(value));
+    }
 
-            @Override
-            @SuppressWarnings("unchecked")
-            public <O> Optional<O> as(final TypeToken<O> type) {
-                return Optional.ofNullable(value).map(v -> (O) v);
-            }
-        };
+    static <T> Capture ofStream(final Stream<T> stream) {
+        return new Capture(stream);
     }
 
     static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
