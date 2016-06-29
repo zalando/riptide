@@ -86,22 +86,4 @@ public final class Navigators {
         return ContentTypeNavigator.INSTANCE;
     }
 
-    /**
-     * A {@link BinaryNavigator} that selects a binding based on whether the {@code Location} header is present
-     * and has the same field value as the {@code Content-Location} header.
-     *
-     * <pre>
-     * For a 201 (Created) response to a state-changing method, a
-     * Content-Location field-value that is identical to the Location
-     * field-value indicates that this payload is a current
-     * representation of the newly created resource.
-     * </pre>
-     * 
-     * @return a Content-Location header selector
-     * @see <a href="https://tools.ietf.org/html/rfc7231#section-3.1.4.2">RFC 7231 Section 3.1.4.2. Content-Location</a>
-     */
-    public static Navigator<Boolean> isCurrentRepresentation() {
-        return CurrentRepresentationNavigator.INSTANCE;
-    }
-
 }

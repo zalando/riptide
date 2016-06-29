@@ -36,14 +36,9 @@ import java.util.concurrent.ExecutionException;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
-import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -52,14 +47,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Routes.contentLocation;
 import static org.zalando.riptide.Routes.headers;
 import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.Routes.propagate;
-import static org.zalando.riptide.Routes.resolveAgainst;
 
 public final class RoutesTest {
 
@@ -155,84 +147,6 @@ public final class RoutesTest {
                         on(UNPROCESSABLE_ENTITY).call(IOException.class, propagate()),
                         anyStatus().call(this::fail))
                 .get();
-    }
-
-    @Test
-    public void shouldNotFailIfNothingToResolve() throws ExecutionException, InterruptedException, IOException {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess());
-
-        final ClientHttpResponse response = unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).capture(resolveAgainst("https://api.example.com/accounts/123")))
-                .get().to(ClientHttpResponse.class);
-
-        assertThat(response, hasToString(notNullValue()));
-    }
-
-    @Test
-    public void shouldResolveLocation() throws ExecutionException, InterruptedException, IOException {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/accounts/456"));
-        server.expect(requestTo(url)).andRespond(
-                withSuccess().headers(headers));
-
-        final URI location = unit.post(url).headers(new HttpHeaders())
-                .dispatch(series(),
-                        on(SUCCESSFUL).capture(resolveAgainst(url).andThen(location())))
-                .get().to(URI.class);
-
-        assertThat(location, hasToString("https://api.example.com/accounts/456"));
-    }
-
-    @Test
-    public void shouldResolveContentLocation() throws ExecutionException, InterruptedException, IOException {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set(CONTENT_LOCATION, "/accounts/456");
-        server.expect(requestTo(url)).andRespond(
-                withSuccess().headers(headers));
-
-        final URI location = unit.post(url).body("")
-                .dispatch(series(),
-                        on(SUCCESSFUL).capture(resolveAgainst(url).andThen(contentLocation())))
-                .get().to(URI.class);
-
-        assertThat(location, hasToString("https://api.example.com/accounts/456"));
-    }
-
-    @Test
-    public void shouldResolveLocationInNestedDispatch() throws ExecutionException, InterruptedException, IOException {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set(LOCATION, "/accounts/456");
-        server.expect(requestTo(url)).andRespond(
-                withSuccess().headers(headers));
-
-        final URI location = unit.post(url).headers(new HttpHeaders()).body("")
-                .dispatch(series(),
-                        on(SUCCESSFUL).dispatch(resolveAgainst(url), status(),
-                                on(OK).capture(location())))
-                .get().to(URI.class);
-
-        assertThat(location, hasToString("https://api.example.com/accounts/456"));
-    }
-
-    @Test
-    public void shouldResolveLocationAndContentLocation() throws ExecutionException, InterruptedException, IOException {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/accounts/456"));
-        headers.set(CONTENT_LOCATION, "/accounts/456");
-        server.expect(requestTo(url)).andRespond(
-                withSuccess().headers(headers));
-
-
-        final ClientHttpResponse response = unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).dispatch(resolveAgainst(url),
-                                RoutingTree.create(status(), on(OK).capture())))
-                .get().to(ClientHttpResponse.class);
-
-        assertThat(response.getHeaders().getLocation(), hasToString("https://api.example.com/accounts/456"));
-        assertThat(response.getHeaders().getFirst(CONTENT_LOCATION), is("https://api.example.com/accounts/456"));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
