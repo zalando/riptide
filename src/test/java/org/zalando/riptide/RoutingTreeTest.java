@@ -40,7 +40,7 @@ import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.Binding.create;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 public class RoutingTreeTest {
 

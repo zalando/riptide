@@ -20,11 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import lombok.SneakyThrows;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Routes.location;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 public final class RedirectTest {
 
@@ -46,9 +46,9 @@ public final class RedirectTest {
     private final MockRestServiceServer server;
 
     public RedirectTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
@@ -68,7 +68,8 @@ public final class RedirectTest {
         assertThat(send(originalUrl), is("123"));
     }
 
-    private String send(final URI url) throws ExecutionException, InterruptedException {
+    @SneakyThrows // TODO find a good way to make Future and Throwing* work together
+    private String send(final URI url) {
         return unit.post(url).dispatch(series(),
                 on(SUCCESSFUL).capture(String.class),
                 on(REDIRECTION).capture(location().andThen(this::send)))

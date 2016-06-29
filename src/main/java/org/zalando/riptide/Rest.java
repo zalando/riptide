@@ -20,19 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import lombok.SneakyThrows;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
@@ -40,27 +37,26 @@ import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.springframework.web.util.UriTemplateHandler;
-import org.springframework.web.client.ResourceAccessException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
 
 public final class Rest extends RestClient {
 
-    private final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory;
+    private final AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters;
     private final UriTemplateHandler uriTemplateHandler;
+    private final MessageReader reader;
 
-    private Rest(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
-        this.asyncClientHttpRequestFactory = asyncClientHttpRequestFactory;
+    private Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
+        this.requestFactory = requestFactory;
         this.converters = converters;
         this.uriTemplateHandler = uriTemplateHandler;
+        this.reader = new DefaultMessageReader(converters);
     }
 
     @Override
@@ -85,39 +81,42 @@ public final class Rest extends RestClient {
         }
 
         @Override
-        protected <T> Dispatcher execute(final HttpHeaders headers, @Nullable final T body) {
-            try {
-                final HttpEntity<T> entity = new HttpEntity<>(body, headers);
-                final AsyncClientHttpRequest request = asyncClientHttpRequestFactory.createAsyncRequest(url, method);
-                writeRequestEntity(entity, new AsyncClientHttpRequestAdapter(request));
-                final ListenableFuture<ClientHttpResponse> responseFuture = request.executeAsync();
-                final ExceptionWrappingFuture future = new ExceptionWrappingFuture(responseFuture);
+        protected <T> Dispatcher execute(final HttpHeaders headers, @Nullable final T body) throws IOException {
+            final HttpEntity<T> entity = new HttpEntity<>(body, headers);
+            final AsyncClientHttpRequest request = createRequest(entity);
+            final ListenableFuture<ClientHttpResponse> future = request.executeAsync();
 
-                return new Dispatcher() {
-                    @Override
-                    public <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) {
-                        final MessageReader reader = new DefaultMessageReader(converters); // TODO cache?
-                        final SettableListenableFuture<Capture> capture = new SettableListenableFuture<>();
-                        final SuccessCallback<ClientHttpResponse> success = new Success<>(reader, capture, tree);
-                        future.addCallback(success, capture::setException);
-                        return capture;
-                    }
-                };
-            } catch (final IOException ex) {
-                final String message = String.format("I/O error on %s request for \"%s\":%s", method.name(), url, ex.getMessage());
-                throw new ResourceAccessException(message, ex);
-            }
+            return new Dispatcher() {
+                @Override
+                public <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) {
+                    final SettableListenableFuture<Capture> capture = new SettableListenableFuture<>();
+                    final FailureCallback failure = capture::setException;
+                    final SuccessCallback<ClientHttpResponse> success = response -> {
+                        try {
+                            capture.set(tree.execute(response, reader));
+                        } catch (final Throwable e) {
+                            failure.onFailure(e);
+                        }
+                    };
+
+                    future.addCallback(success, failure);
+                    return capture;
+                }
+            };
         }
 
-        private  <T> void writeRequestEntity(final HttpEntity<T> entity, final ClientHttpRequest request)
+        private <T> AsyncClientHttpRequest createRequest(final HttpEntity<T> entity)
                 throws IOException {
+
+            final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
+
             final HttpHeaders headers = entity.getHeaders();
             request.getHeaders().putAll(headers);
 
             @Nullable final T body = entity.getBody();
 
             if (body == null) {
-                return;
+                return request;
             }
 
             final Class<?> type = body.getClass();
@@ -139,6 +138,8 @@ public final class Rest extends RestClient {
                         }
                     })
                     .write(body, contentType, request);
+
+            return request;
         }
 
         @SuppressWarnings("unchecked")
@@ -148,52 +149,23 @@ public final class Rest extends RestClient {
 
     }
 
-    static class ExceptionWrappingFuture extends ListenableFutureAdapter<ClientHttpResponse, ClientHttpResponse> {
-
-        public ExceptionWrappingFuture(final ListenableFuture<ClientHttpResponse> clientHttpResponseFuture) {
-            super(clientHttpResponseFuture);
-        }
-
-        @Override
-        protected final ClientHttpResponse adapt(final ClientHttpResponse response) throws ExecutionException {
-            return response;
-        }
-    }
-
-    private static class Success<A> implements SuccessCallback<ClientHttpResponse> {
-
-        private final MessageReader reader;
-        private final SettableListenableFuture<Capture> capture;
-
-        private final RoutingTree<A> tree;
-
-        public Success(final MessageReader reader, final SettableListenableFuture<Capture> future,
-                final RoutingTree<A> tree) {
-            this.reader = reader;
-            this.capture = future;
-            this.tree = tree;
-        }
-
-        @Override
-        @SneakyThrows
-        public void onSuccess(final ClientHttpResponse response) {
-            capture.set(tree.execute(response, reader));
-        }
-
-    }
-
     @Deprecated
     public static Rest create(final AsyncRestTemplate template) {
-        return create(template.getAsyncRequestFactory(), template.getMessageConverters(), template.getUriTemplateHandler());
+        final AsyncClientHttpRequestFactory factory = template.getAsyncRequestFactory();
+        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
+        final UriTemplateHandler uriTemplateHandler = template.getUriTemplateHandler();
+        return create(factory, converters, uriTemplateHandler);
     }
 
-    public static Rest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters) {
-        return create(asyncClientHttpRequestFactory, converters, new DefaultUriTemplateHandler());
+    public static Rest create(final AsyncClientHttpRequestFactory factory,
+            final List<HttpMessageConverter<?>> converters) {
+        return create(factory, converters, new DefaultUriTemplateHandler());
     }
 
 
-    public static Rest create(final AsyncClientHttpRequestFactory asyncClientHttpRequestFactory, final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
-        return new Rest(asyncClientHttpRequestFactory, converters, uriTemplateHandler);
+    public static Rest create(final AsyncClientHttpRequestFactory factory,
+            final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
+        return new Rest(factory, converters, uriTemplateHandler);
     }
 
     public static <T> ListenableFutureCallback<T> handle(final FailureCallback callback) {

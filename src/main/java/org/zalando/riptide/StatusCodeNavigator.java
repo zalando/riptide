@@ -25,7 +25,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.IOException;
 
 /**
- * @see Selectors#status()
+ * @see Navigators#status()
  */
 enum StatusCodeNavigator implements EqualityNavigator<Integer> {
 

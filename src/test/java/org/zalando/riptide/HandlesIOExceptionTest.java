@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -32,17 +31,18 @@ import java.net.URISyntaxException;
 import static java.util.Collections.emptyList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
-public class HandlesIOExceptionTest {
+public final class HandlesIOExceptionTest {
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void shouldHandleExceptionDuringRequestCreation() throws URISyntaxException {
+    public void shouldHandleExceptionDuringRequestCreation() throws URISyntaxException, IOException {
 
-        exception.expect(ResourceAccessException.class);
-        exception.expectMessage("I/O error on GET request");
+        exception.expect(IOException.class);
+        exception.expectMessage("Could not create request");
 
         final AsyncClientHttpRequestFactory factory = (uri, httpMethod) -> {
             throw new IOException("Could not create request");

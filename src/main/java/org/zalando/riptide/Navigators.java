@@ -24,9 +24,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
 
-public final class Selectors {
+public final class Navigators {
 
-    Selectors() {
+    Navigators() {
         // package private so we can trick code coverage
     }
 

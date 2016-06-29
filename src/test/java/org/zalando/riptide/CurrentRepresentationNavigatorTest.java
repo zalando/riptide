@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.isCurrentRepresentation;
+import static org.zalando.riptide.Navigators.isCurrentRepresentation;
 
 public final class CurrentRepresentationNavigatorTest {
 
@@ -47,13 +47,13 @@ public final class CurrentRepresentationNavigatorTest {
     private final MockRestServiceServer server;
 
     public CurrentRepresentationNavigatorTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
-    public void shouldMatchOnSameHeader() throws ExecutionException, InterruptedException {
+    public void shouldMatchOnSameHeader() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set("Location", "/foo");
         headers.set("Content-Location", "/foo");
@@ -71,7 +71,7 @@ public final class CurrentRepresentationNavigatorTest {
     }
 
     @Test
-    public void shouldNotMatchOnDifferentHeaders() throws ExecutionException, InterruptedException {
+    public void shouldNotMatchOnDifferentHeaders() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set("Location", "/foo");
         headers.set("Content-Location", "/bar");
@@ -92,7 +92,7 @@ public final class CurrentRepresentationNavigatorTest {
     }
 
     @Test
-    public void shouldNotMatchOnMissingHeaders() throws ExecutionException, InterruptedException {
+    public void shouldNotMatchOnMissingHeaders() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
 

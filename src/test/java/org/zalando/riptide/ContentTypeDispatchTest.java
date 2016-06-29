@@ -20,13 +20,10 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
@@ -35,7 +32,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -47,8 +43,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyContentType;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -63,15 +59,12 @@ public final class ContentTypeDispatchTest {
     private final MockRestServiceServer server;
 
     public ContentTypeDispatchTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
-    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException {
+    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
         return unit.get(url)
                 .dispatch(contentType(),
                         on(SUCCESS).capture(Success.class),
@@ -82,7 +75,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchSuccess() throws ExecutionException, InterruptedException {
+    public void shouldDispatchSuccess() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -94,7 +87,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchProblem() throws ExecutionException, InterruptedException {
+    public void shouldDispatchProblem() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -109,7 +102,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchError() throws ExecutionException, InterruptedException {
+    public void shouldDispatchError() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("error.json"))
@@ -122,7 +115,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToMostSpecificContentType() throws ExecutionException, InterruptedException {
+    public void shouldDispatchToMostSpecificContentType() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -139,7 +132,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldNotFailIfNoContentTypeSpecified() throws ExecutionException, InterruptedException {
+    public void shouldNotFailIfNoContentTypeSpecified() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -154,7 +147,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToFullMatch() throws ExecutionException, InterruptedException {
+    public void shouldDispatchToFullMatch() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))

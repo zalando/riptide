@@ -25,13 +25,14 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Capture.listOf;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 public final class SampleService {
 
@@ -41,7 +42,7 @@ public final class SampleService {
         int contributions;
     }
 
-    public static void main(final String... args) {
+    public static void main(final String... args) throws IOException {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
         handler.setBaseUrl("https://api.github.com");

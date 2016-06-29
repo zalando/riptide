@@ -20,24 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.zalando.problem.Problem;
 import org.zalando.problem.ThrowableProblem;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -57,14 +52,14 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Routes.contentLocation;
 import static org.zalando.riptide.Routes.headers;
 import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.Routes.propagate;
 import static org.zalando.riptide.Routes.resolveAgainst;
-import static org.zalando.riptide.Selectors.series;
-import static org.zalando.riptide.Selectors.status;
 
 public final class RoutesTest {
 
@@ -77,15 +72,13 @@ public final class RoutesTest {
     private final MockRestServiceServer server;
 
     public RoutesTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules())));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
-    public void shouldPass() {
+    public void shouldPass() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
@@ -96,7 +89,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldMapHeaders() throws ExecutionException, InterruptedException {
+    public void shouldMapHeaders() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -112,7 +105,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldMapLocation() throws ExecutionException, InterruptedException {
+    public void shouldMapLocation() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("http://example.org"));
 
@@ -130,15 +123,15 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldPropagateException() throws ExecutionException, InterruptedException {
+    public void shouldPropagateException() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
                         .contentType(APPLICATION_JSON));
 
         exception.expect(ExecutionException.class);
-        exception.expectCause(instanceOf(ThrowableProblem.class));
-        exception.expectCause(hasFeature("title", ThrowableProblem::getTitle, is("Unprocessable Entity")));
+        exception.expectCause(instanceOf(IOException.class));
+        exception.expectCause(hasFeature("cause", Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
         unit.get(url)
                 .dispatch(status(),
@@ -148,7 +141,24 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldNotFailIfNothingToResolve() throws ExecutionException, InterruptedException {
+    public void shouldPropagateIOExceptionAsIs() throws ExecutionException, InterruptedException, IOException {
+        server.expect(requestTo(url)).andRespond(
+                withStatus(UNPROCESSABLE_ENTITY)
+                        .body("{}")
+                        .contentType(APPLICATION_JSON));
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
+        unit.get(url)
+                .dispatch(status(),
+                        on(UNPROCESSABLE_ENTITY).call(IOException.class, propagate()),
+                        anyStatus().call(this::fail))
+                .get();
+    }
+
+    @Test
+    public void shouldNotFailIfNothingToResolve() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
@@ -161,7 +171,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldResolveLocation() throws ExecutionException, InterruptedException {
+    public void shouldResolveLocation() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/accounts/456"));
         server.expect(requestTo(url)).andRespond(
@@ -176,7 +186,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldResolveContentLocation() throws ExecutionException, InterruptedException {
+    public void shouldResolveContentLocation() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set(CONTENT_LOCATION, "/accounts/456");
         server.expect(requestTo(url)).andRespond(
@@ -191,7 +201,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldResolveLocationInNestedDispatch() throws ExecutionException, InterruptedException {
+    public void shouldResolveLocationInNestedDispatch() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.set(LOCATION, "/accounts/456");
         server.expect(requestTo(url)).andRespond(
@@ -207,7 +217,7 @@ public final class RoutesTest {
     }
 
     @Test
-    public void shouldResolveLocationAndContentLocation() throws ExecutionException, InterruptedException {
+    public void shouldResolveLocationAndContentLocation() throws ExecutionException, InterruptedException, IOException {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/accounts/456"));
         headers.set(CONTENT_LOCATION, "/accounts/456");

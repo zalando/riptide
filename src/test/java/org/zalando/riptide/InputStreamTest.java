@@ -29,13 +29,11 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -45,7 +43,7 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
+import static org.zalando.riptide.Navigators.contentType;
 
 public final class InputStreamTest {
 
@@ -162,11 +160,10 @@ public final class InputStreamTest {
     private final MockRestServiceServer server;
 
     public InputStreamTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final InputStreamHttpMessageConverter converter = new InputStreamHttpMessageConverter();
-        template.setMessageConverters(Collections.singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        setup.getConverters().add(new InputStreamHttpMessageConverter());
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test

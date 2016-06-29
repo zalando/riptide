@@ -30,7 +30,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
@@ -60,10 +59,10 @@ import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.anyStatusCode;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
-import static org.zalando.riptide.Selectors.series;
-import static org.zalando.riptide.Selectors.status;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Navigators.statusCode;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -86,7 +85,7 @@ public final class NestedDispatchTest {
         this.unit = Rest.create(template);
     }
 
-    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException {
+    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
         return unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
@@ -131,7 +130,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelOne() throws ExecutionException, InterruptedException {
+    public void shouldDispatchLevelOne() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
         exception.expect(ExecutionException.class);
@@ -142,7 +141,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException {
+    public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
@@ -154,7 +153,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() throws ExecutionException, InterruptedException {
+    public void shouldDispatchLevelThree() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))

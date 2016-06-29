@@ -40,7 +40,7 @@ public final class EnforceCoverageTest {
 
     @Test
     public void shouldUseSelectorsConstructor() {
-        new Selectors();
+        new Navigators();
     }
 
 }

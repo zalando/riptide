@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
@@ -59,7 +60,11 @@ public final class Routes {
 
     public static <X extends Exception> EntityConsumer<X> propagate() {
         return entity -> {
-            throw entity;
+            if (entity instanceof IOException) {
+                throw (IOException) entity;
+            } else {
+                throw new IOException(entity);
+            }
         };
     }
 

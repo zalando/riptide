@@ -20,27 +20,24 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 
-import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 @RunWith(Parameterized.class)
 public class UriTest {
@@ -52,12 +49,9 @@ public class UriTest {
     private final Executor executor;
 
     public UriTest(final HttpMethod method, final Executor executor) {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules())));
-
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
 
         this.method = method;
         this.executor = executor;
@@ -94,7 +88,7 @@ public class UriTest {
     }
 
     @Test
-    public void shouldExpand() {
+    public void shouldExpand() throws IOException {
         executor.execute(unit, URI.create("https://api.example.org/pages/123"))
                 .dispatch(series(),
                         on(SUCCESSFUL).capture());

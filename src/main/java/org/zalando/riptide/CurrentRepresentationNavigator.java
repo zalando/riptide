@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * @see Selectors#isCurrentRepresentation()
+ * @see Navigators#isCurrentRepresentation()
  */
 enum CurrentRepresentationNavigator implements BinaryNavigator {
 

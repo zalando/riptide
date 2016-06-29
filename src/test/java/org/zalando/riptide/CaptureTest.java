@@ -20,16 +20,13 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
 
@@ -37,7 +34,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.OK;
@@ -46,7 +42,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 public final class CaptureTest {
 
@@ -56,12 +52,9 @@ public final class CaptureTest {
     private final MockRestServiceServer server;
 
     public CaptureTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
@@ -82,7 +75,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCaptureEntity() throws ExecutionException, InterruptedException {
+    public void shouldCaptureEntity() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -99,7 +92,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCaptureMappedEntity() throws ExecutionException, InterruptedException {
+    public void shouldCaptureMappedEntity() throws ExecutionException, InterruptedException, IOException {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();

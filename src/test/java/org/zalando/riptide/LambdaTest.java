@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 /**
  * Tests whether all callbacks/functions can be supplied as lambdas. If this class compiles everything is already fine.

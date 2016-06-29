@@ -24,14 +24,14 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
+
+import java.io.IOException;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 public class RequesterTest {
 
@@ -39,13 +39,9 @@ public class RequesterTest {
     private final MockRestServiceServer server;
 
     public RequesterTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
-        templateHandler.setBaseUrl("https://api.example.com");
-        template.setUriTemplateHandler(templateHandler);
-
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @After
@@ -54,7 +50,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandWithoutVariables() {
+    public void shouldExpandWithoutVariables() throws IOException {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -63,7 +59,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOne() {
+    public void shouldExpandOne() throws IOException {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/{id}", 123)
@@ -72,7 +68,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandTwo() {
+    public void shouldExpandTwo() throws IOException {
         expectRequestTo("https://api.example.com/123/456");
 
         unit.get("/{parent}/{child}", 123, "456")
@@ -81,7 +77,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandQueryparams() {
+    public void shouldExpandQueryparams() throws IOException {
         expectRequestTo("https://example.com/posts/123?filter=new");
 
         final int postId = 123;
@@ -93,7 +89,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodePath() {
+    public void shouldEncodePath() throws IOException {
         expectRequestTo("https://ru.wikipedia.org/wiki/%D0%9E%D1%82%D0%B1%D0%BE%D0%B9%D0%BD%D0%BE%D0%B5_%D1%82%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5");
 
         unit.get("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
@@ -102,7 +98,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeQueraparams() {
+    public void shouldEncodeQueraparams() throws IOException {
         expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
         unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
@@ -111,7 +107,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithHeaders() {
+    public void shouldExpandOnGetWithHeaders() throws IOException {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -121,7 +117,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithBody() {
+    public void shouldExpandOnGetWithBody() throws IOException {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -129,7 +125,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithHeadersAndBody() {
+    public void shouldExpandOnGetWithHeadersAndBody() throws IOException {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")

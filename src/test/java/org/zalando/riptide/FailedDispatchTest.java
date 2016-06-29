@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,19 +28,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -67,9 +64,9 @@ import static org.zalando.riptide.Bindings.anyContentType;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
-import static org.zalando.riptide.Selectors.series;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -85,16 +82,13 @@ public final class FailedDispatchTest {
     private final MockRestServiceServer server;
 
     public FailedDispatchTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
-    public void shouldThrowIfNoMatch() throws ExecutionException, InterruptedException {
+    public void shouldThrowIfNoMatch() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -115,7 +109,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType() throws ExecutionException, InterruptedException {
+    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{}")
@@ -137,7 +131,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfFaultyBody() throws ExecutionException, InterruptedException {
+    public void shouldThrowOnFailedConversionBecauseOfFaultyBody() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{")
@@ -159,7 +153,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldHandleNoBodyAtAll() throws ExecutionException, InterruptedException {
+    public void shouldHandleNoBodyAtAll() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withStatus(HttpStatus.OK)
                         .body("")
@@ -227,7 +221,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPreserveExceptionIfPropagateFailed() throws ExecutionException, InterruptedException {
+    public void shouldPreserveExceptionIfPropagateFailed() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withCreatedEntity(URI.create("about:blank"))
                         .body(new ClassPathResource("success.json"))

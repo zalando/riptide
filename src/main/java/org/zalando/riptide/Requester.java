@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 
 public abstract class Requester extends Dispatcher {
 
@@ -51,15 +52,15 @@ public abstract class Requester extends Dispatcher {
         return this;
     }
 
-    public final <T> Dispatcher body(final T body) {
+    public final <T> Dispatcher body(final T body) throws IOException {
         return execute(headers, body);
     }
 
     @Override
-    public final <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) {
+    public final <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) throws IOException {
         return execute(headers, null).dispatch(tree);
     }
 
-    protected abstract <T> Dispatcher execute(final HttpHeaders headers, final @Nullable T body);
+    protected abstract <T> Dispatcher execute(final HttpHeaders headers, final @Nullable T body) throws IOException;
 
 }

@@ -20,25 +20,21 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.gag.annotation.remark.Hack;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
+import java.io.IOException;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
@@ -47,7 +43,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 public final class ExecuteTest {
 
@@ -56,17 +52,15 @@ public final class ExecuteTest {
 
     private final String url = "https://api.example.com";
 
-    private final AsyncRestTemplate template;
     private final Rest unit;
     private final MockRestServiceServer server;
+    private final List<HttpMessageConverter<?>> converters;
 
     public ExecuteTest() {
-        this.template = new AsyncRestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
+        this.converters = setup.getConverters();
     }
 
     @After
@@ -75,7 +69,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendNoBody() {
+    public void shouldSendNoBody() throws IOException {
         server.expect(requestTo(url))
                 .andExpect(content().string(""))
                 .andRespond(withSuccess());
@@ -86,7 +80,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeaders() {
+    public void shouldSendHeaders() throws IOException {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andRespond(withSuccess());
@@ -98,7 +92,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendBody() {
+    public void shouldSendBody() throws IOException {
         server.expect(requestTo(url))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
                 .andRespond(withSuccess());
@@ -108,7 +102,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeadersAndBody() {
+    public void shouldSendHeadersAndBody() throws IOException {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
@@ -120,7 +114,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBody() {
+    public void shouldFailIfNoConverterFoundForBody() throws IOException {
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andExpect(header("Accept", MediaType.APPLICATION_JSON_VALUE))
@@ -138,10 +132,9 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
-        @Hack("Couldn't find a better way to prevent the Jackson converter from running")
-        final List<HttpMessageConverter<?>> converters = singletonList(new Jaxb2RootElementHttpMessageConverter());
-        template.setMessageConverters(converters);
+    public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() throws IOException {
+        converters.clear();
+        converters.add(new Jaxb2RootElementHttpMessageConverter());
 
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
