@@ -93,10 +93,4 @@ public final class LambdaTest {
         });
     }
 
-    @Test
-    public void shouldSupportDispatchWithSelector() {
-        anyStatus().dispatch(response -> response, status());
-    }
-
-
 }

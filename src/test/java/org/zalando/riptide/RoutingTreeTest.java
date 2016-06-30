@@ -190,8 +190,10 @@ public class RoutingTreeTest {
                 .execute(response, reader);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldFailForDuplicateBindings() {
+        exception.expect(IllegalArgumentException.class);
+
         RoutingTree.create(status(),
                 on(OK).capture(),
                 on(OK).call(pass()));
