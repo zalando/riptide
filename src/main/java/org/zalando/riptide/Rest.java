@@ -45,7 +45,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-public final class Rest extends RestClient {
+public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters;
@@ -59,14 +59,76 @@ public final class Rest extends RestClient {
         this.reader = new DefaultMessageReader(converters);
     }
 
-    @Override
-    protected Requester execute(final HttpMethod method, final String uriTemplate,
+    public final Requester get(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.GET, urlTemplate, urlVariables);
+    }
+
+    public final Requester get(final URI url) {
+        return execute(HttpMethod.GET, url);
+    }
+
+    public final Requester head(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.HEAD, urlTemplate, urlVariables);
+    }
+
+    public final Requester head(final URI url) {
+        return execute(HttpMethod.HEAD, url);
+    }
+
+    public final Requester post(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.POST, urlTemplate, urlVariables);
+    }
+
+    public final Requester post(final URI url) {
+        return execute(HttpMethod.POST, url);
+    }
+
+    public final Requester put(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.PUT, urlTemplate, urlVariables);
+    }
+
+    public final Requester put(final URI url) {
+        return execute(HttpMethod.PUT, url);
+    }
+
+    public final Requester patch(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.PATCH, urlTemplate, urlVariables);
+    }
+
+    public final Requester patch(final URI url) {
+        return execute(HttpMethod.PATCH, url);
+    }
+
+    public final Requester delete(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.DELETE, urlTemplate, urlVariables);
+    }
+
+    public final Requester delete(final URI url) {
+        return execute(HttpMethod.DELETE, url);
+    }
+
+    public final Requester options(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.OPTIONS, urlTemplate, urlVariables);
+    }
+
+    public final Requester options(final URI url) {
+        return execute(HttpMethod.OPTIONS, url);
+    }
+
+    public final Requester trace(final String urlTemplate, final Object... urlVariables) {
+        return execute(HttpMethod.TRACE, urlTemplate, urlVariables);
+    }
+
+    public final Requester trace(final URI url) {
+        return execute(HttpMethod.TRACE, url);
+    }
+
+    private Requester execute(final HttpMethod method, final String uriTemplate,
             final Object... uriVariables) {
         return execute(method, uriTemplateHandler.expand(uriTemplate, uriVariables));
     }
 
-    @Override
-    protected Requester execute(final HttpMethod method, final URI uri) {
+    private Requester execute(final HttpMethod method, final URI uri) {
         return new ListenableFutureRequester(uri, method);
     }
 

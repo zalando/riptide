@@ -58,20 +58,20 @@ public class UriTest {
     }
 
     interface Executor {
-        Requester execute(RestClient client, URI uri);
+        Requester execute(Rest client, URI uri);
     }
 
     @Parameterized.Parameters(name= "{0}")
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {HttpMethod.GET, (Executor) RestClient::get},
-                {HttpMethod.HEAD, (Executor) RestClient::head},
-                {HttpMethod.POST, (Executor) RestClient::post},
-                {HttpMethod.PUT, (Executor) RestClient::put},
-                {HttpMethod.PATCH, (Executor) RestClient::patch},
-                {HttpMethod.DELETE, (Executor) RestClient::delete},
-                {HttpMethod.OPTIONS, (Executor) RestClient::options},
-                {HttpMethod.TRACE, (Executor) RestClient::trace},
+                {HttpMethod.GET, (Executor) Rest::get},
+                {HttpMethod.HEAD, (Executor) Rest::head},
+                {HttpMethod.POST, (Executor) Rest::post},
+                {HttpMethod.PUT, (Executor) Rest::put},
+                {HttpMethod.PATCH, (Executor) Rest::patch},
+                {HttpMethod.DELETE, (Executor) Rest::delete},
+                {HttpMethod.OPTIONS, (Executor) Rest::options},
+                {HttpMethod.TRACE, (Executor) Rest::trace},
         });
     }
 

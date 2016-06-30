@@ -51,13 +51,6 @@ public final class Routes {
                 response.getHeaders().getLocation();
     }
 
-    public static ThrowingFunction<ClientHttpResponse, URI> contentLocation() {
-        return response ->
-                Optional.ofNullable(response.getHeaders().getFirst(CONTENT_LOCATION))
-                .map(URI::create)
-                .orElse(null);
-    }
-
     public static <X extends Exception> EntityConsumer<X> propagate() {
         return entity -> {
             if (entity instanceof IOException) {
