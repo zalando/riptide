@@ -167,9 +167,7 @@ public final class Rest {
             };
         }
 
-        private <T> AsyncClientHttpRequest createRequest(final HttpEntity<T> entity)
-                throws IOException {
-
+        private <T> AsyncClientHttpRequest createRequest(final HttpEntity<T> entity) throws IOException {
             final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
 
             final HttpHeaders headers = entity.getHeaders();
@@ -185,20 +183,10 @@ public final class Rest {
             @Nullable final MediaType contentType = headers.getContentType();
 
             converters.stream()
-                    .filter(c -> c.canWrite(type, contentType))
+                    .filter(converter -> converter.canWrite(type, contentType))
                     .map(this::<T>cast)
                     .findFirst()
-                    .orElseThrow(() -> {
-                        final String message = format(
-                                "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
-                                type.getName());
-
-                        if (contentType == null) {
-                            return new RestClientException(message);
-                        } else {
-                            return new RestClientException(format("%s and content type [%s]", message, contentType));
-                        }
-                    })
+                    .orElseThrow(() -> fail(type, contentType))
                     .write(body, contentType, request);
 
             return request;
@@ -207,6 +195,18 @@ public final class Rest {
         @SuppressWarnings("unchecked")
         private <T> HttpMessageConverter<T> cast(final HttpMessageConverter<?> converter) {
             return (HttpMessageConverter<T>) converter;
+        }
+
+        private RestClientException fail(final Class<?> type, @Nullable final MediaType contentType) {
+            final String message = format(
+                    "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
+                    type.getName());
+
+            if (contentType == null) {
+                return new RestClientException(message);
+            } else {
+                return new RestClientException(format("%s and content type [%s]", message, contentType));
+            }
         }
 
     }
