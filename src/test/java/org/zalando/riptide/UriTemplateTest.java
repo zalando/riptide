@@ -20,27 +20,23 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 
+import java.io.IOException;
 import java.util.Arrays;
 
-import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 @RunWith(Parameterized.class)
 public class UriTemplateTest {
@@ -49,43 +45,38 @@ public class UriTemplateTest {
     private final MockRestServiceServer server;
 
     private final HttpMethod method;
-    private final Executor<Capture> executor;
+    private final Executor executor;
 
-    public UriTemplateTest(final HttpMethod method, final Executor<Capture> executor) {
-        final RestTemplate template = new RestTemplate();
-        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
-        templateHandler.setBaseUrl("https://api.example.org");
-        template.setUriTemplateHandler(templateHandler);
-        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules())));
-
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+    public UriTemplateTest(final HttpMethod method, final Executor executor) {
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
 
         this.method = method;
         this.executor = executor;
     }
-    interface Executor<R> {
-        Requester<R> execute(RestClient<R> client, String uriTemplate, Object... uriVariables);
+
+    interface Executor {
+        Requester execute(Rest client, String uriTemplate, Object... uriVariables);
     }
 
     @Parameterized.Parameters(name= "{0}")
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {HttpMethod.GET, (Executor) RestClient::get},
-                {HttpMethod.HEAD, (Executor) RestClient::head},
-                {HttpMethod.POST, (Executor) RestClient::post},
-                {HttpMethod.PUT, (Executor) RestClient::put},
-                {HttpMethod.PATCH, (Executor) RestClient::patch},
-                {HttpMethod.DELETE, (Executor) RestClient::delete},
-                {HttpMethod.OPTIONS, (Executor) RestClient::options},
-                {HttpMethod.TRACE, (Executor) RestClient::trace},
+                {HttpMethod.GET, (Executor) Rest::get},
+                {HttpMethod.HEAD, (Executor) Rest::head},
+                {HttpMethod.POST, (Executor) Rest::post},
+                {HttpMethod.PUT, (Executor) Rest::put},
+                {HttpMethod.PATCH, (Executor) Rest::patch},
+                {HttpMethod.DELETE, (Executor) Rest::delete},
+                {HttpMethod.OPTIONS, (Executor) Rest::options},
+                {HttpMethod.TRACE, (Executor) Rest::trace},
         });
     }
 
     @Before
     public void setUp() {
-        server.expect(requestTo("https://api.example.org/pages/123"))
+        server.expect(requestTo("https://api.example.com/pages/123"))
                 .andExpect(method(method))
                 .andRespond(withSuccess());
     }
@@ -96,7 +87,7 @@ public class UriTemplateTest {
     }
 
     @Test
-    public void shouldExpand() {
+    public void shouldExpand() throws IOException {
         executor.execute(unit, "/pages/{page}", 123)
                 .dispatch(series(),
                         on(SUCCESSFUL).capture());

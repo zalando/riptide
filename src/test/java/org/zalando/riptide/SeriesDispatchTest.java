@@ -25,8 +25,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.stream.Stream;
 
@@ -41,7 +41,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.series;
 
 @RunWith(Parameterized.class)
 public final class SeriesDispatchTest {
@@ -54,10 +54,10 @@ public final class SeriesDispatchTest {
     private final HttpStatus expected;
 
     public SeriesDispatchTest(final HttpStatus expected) {
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
         this.expected = expected;
-        final RestTemplate template = new RestTemplate();
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
     }
 
     @Parameterized.Parameters(name = "{0}")
@@ -72,7 +72,7 @@ public final class SeriesDispatchTest {
     }
 
     @Test
-    public void shouldDispatch() {
+    public void shouldDispatch() throws IOException {
         server.expect(requestTo(url)).andRespond(withStatus(expected));
 
         final ClientHttpResponseConsumer verifier = response ->

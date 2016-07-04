@@ -20,24 +20,22 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
@@ -57,10 +55,11 @@ import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.anyStatusCode;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
-import static org.zalando.riptide.Selectors.series;
-import static org.zalando.riptide.Selectors.status;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Navigators.statusCode;
+import static org.zalando.riptide.RoutingTree.create;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -75,24 +74,21 @@ public final class NestedDispatchTest {
     private final MockRestServiceServer server;
 
     public NestedDispatchTest() {
-        final RestTemplate template = new RestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
-    private <T> T perform(final Class<T> type) {
+    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
         return unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(status(),
+                                .dispatch(response -> response, create(status(),
                                         on(CREATED).capture(Success.class),
                                         on(ACCEPTED).capture(Success.class),
-                                        anyStatus().call(this::fail)),
+                                        anyStatus().call(this::fail))),
                         on(CLIENT_ERROR)
-                                .dispatch(status(),
+                                .dispatch(response -> response, status(),
                                         on(UNAUTHORIZED).capture(),
                                         anyStatus().bind(problemHandling())),
                         on(SERVER_ERROR)
@@ -101,7 +97,7 @@ public final class NestedDispatchTest {
                                         on(503).capture(),
                                         anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
-                .as(type).orElse(null);
+                .get().as(type).orElse(null);
     }
 
     private Route problemHandling() {
@@ -128,17 +124,18 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelOne() {
+    public void shouldDispatchLevelOne() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
-        exception.expect(Failure.class);
-        exception.expect(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(Failure.class));
+        exception.expectCause(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
 
         perform(Void.class);
     }
 
     @Test
-    public void shouldDispatchLevelTwo() {
+    public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("success.json"))
@@ -150,7 +147,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() {
+    public void shouldDispatchLevelThree() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))

@@ -26,7 +26,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.IOException;
 
 /**
- * @see Selectors#series()
+ * @see Navigators#series()
  */
 enum SeriesNavigator implements EqualityNavigator<Series> {
 

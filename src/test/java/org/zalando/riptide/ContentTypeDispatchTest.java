@@ -20,21 +20,18 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -46,8 +43,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyContentType;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.contentType;
-import static org.zalando.riptide.Selectors.series;
+import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -62,26 +59,23 @@ public final class ContentTypeDispatchTest {
     private final MockRestServiceServer server;
 
     public ContentTypeDispatchTest() {
-        final RestTemplate template = new RestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
-    private <T> T perform(final Class<T> type) {
+    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
         return unit.get(url)
                 .dispatch(contentType(),
                         on(SUCCESS).capture(Success.class),
                         on(PROBLEM).capture(Problem.class),
                         on(ERROR).capture(Error.class),
                         anyContentType().call(this::fail))
-                .to(type);
+                .get().to(type);
     }
 
     @Test
-    public void shouldDispatchSuccess() {
+    public void shouldDispatchSuccess() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -93,7 +87,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchProblem() {
+    public void shouldDispatchProblem() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -108,7 +102,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchError() {
+    public void shouldDispatchError() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("error.json"))
@@ -121,7 +115,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToMostSpecificContentType() {
+    public void shouldDispatchToMostSpecificContentType() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -132,13 +126,13 @@ public final class ContentTypeDispatchTest {
                         on(parseMediaType("application/*+json")).call(this::fail),
                         on(parseMediaType("application/success+json;version=2")).capture(Success.class),
                         anyContentType().call(this::fail))
-                .to(Success.class);
+                .get().to(Success.class);
 
         assertThat(success.isHappy(), is(true));
     }
 
     @Test
-    public void shouldNotFailIfNoContentTypeSpecified() {
+    public void shouldNotFailIfNoContentTypeSpecified() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -148,11 +142,12 @@ public final class ContentTypeDispatchTest {
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(contentType(),
                                 on(SUCCESS).capture(Success.class)),
-                        anySeries().capture());
+                        anySeries().capture())
+                .get();
     }
 
     @Test
-    public void shouldDispatchToFullMatch() {
+    public void shouldDispatchToFullMatch() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -163,7 +158,7 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESS_V1).call(this::fail),
                         on(SUCCESS_V2).capture(Success.class),
                         anyContentType().call(this::fail))
-                .to(Success.class);
+                .get().to(Success.class);
 
         assertThat(success.isHappy(), is(true));
     }

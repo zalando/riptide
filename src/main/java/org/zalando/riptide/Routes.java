@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
@@ -50,56 +51,13 @@ public final class Routes {
                 response.getHeaders().getLocation();
     }
 
-    public static ThrowingFunction<ClientHttpResponse, URI> contentLocation() {
-        return response ->
-                Optional.ofNullable(response.getHeaders().getFirst(CONTENT_LOCATION))
-                .map(URI::create)
-                .orElse(null);
-    }
-
     public static <X extends Exception> EntityConsumer<X> propagate() {
         return entity -> {
-            throw entity;
-        };
-    }
-
-    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse> resolveAgainst(final String url) {
-        return resolveAgainst(URI.create(url));
-    }
-
-    /**
-     * Resolves the {@code Location} and {@code Content-Location} headers of the given response against the given
-     * {@code uri}.
-     *
-     * @param url the base uri to resolve against
-     * @return a function that resolves Location-style headers in responses
-     */
-    public static ThrowingFunction<ClientHttpResponse, ClientHttpResponse> resolveAgainst(final URI url) {
-        return response -> {
-            final HttpHeaders headers = new HttpHeaders();
-            headers.putAll(response.getHeaders());
-
-            Optional.ofNullable(headers.getLocation())
-                    .map(url::resolve)
-                    .ifPresent(headers::setLocation);
-
-            Optional.ofNullable(headers.getFirst(CONTENT_LOCATION))
-                    .map(url::resolve)
-                    .ifPresent(location -> headers.set(CONTENT_LOCATION, location.toASCIIString()));
-
-            return new ForwardingClientHttpResponse() {
-
-                @Override
-                protected ClientHttpResponse delegate() {
-                    return response;
-                }
-
-                @Override
-                public HttpHeaders getHeaders() {
-                    return headers;
-                }
-
-            };
+            if (entity instanceof IOException) {
+                throw (IOException) entity;
+            } else {
+                throw new IOException(entity);
+            }
         };
     }
 

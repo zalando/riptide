@@ -20,23 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.OK;
@@ -45,7 +42,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 public final class CaptureTest {
 
@@ -55,16 +52,13 @@ public final class CaptureTest {
     private final MockRestServiceServer server;
 
     public CaptureTest() {
-        final RestTemplate template = new RestTemplate();
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
-    public void shouldCaptureResponse() throws IOException {
+    public void shouldCaptureResponse() throws IOException, ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -74,14 +68,14 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(),
                         anyStatus().call(this::fail))
-                .to(ClientHttpResponse.class);
+                .get().to(ClientHttpResponse.class);
 
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
 
     @Test
-    public void shouldCaptureEntity() {
+    public void shouldCaptureEntity() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -91,14 +85,14 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(TypeToken.of(AccountBody.class)),
                         anyStatus().call(this::fail))
-                .to(AccountBody.class);
+                .get().to(AccountBody.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getName(), is("Acme Corporation"));
     }
 
     @Test
-    public void shouldCaptureMappedEntity() {
+    public void shouldCaptureMappedEntity() throws ExecutionException, InterruptedException, IOException {
         final String revision = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
         final HttpHeaders headers = new HttpHeaders();
@@ -114,7 +108,7 @@ public final class CaptureTest {
                 .dispatch(status(),
                         on(OK).capture(AccountBody.class, this::extract),
                         anyStatus().call(this::fail))
-                .to(Account.class);
+                .get().to(Account.class);
 
         assertThat(account.getId(), is("1234567890"));
         assertThat(account.getRevision(), is(revision));

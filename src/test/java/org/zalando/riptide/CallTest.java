@@ -20,22 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.model.AccountBody;
-import org.zalando.riptide.model.CheckedException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -45,9 +43,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 public final class CallTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
@@ -55,15 +56,9 @@ public final class CallTest {
     private final MockRestServiceServer server;
 
     public CallTest() {
-        final RestTemplate template = new RestTemplate();
-        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
-        templateHandler.setBaseUrl("https://api.example.com");
-        template.setUriTemplateHandler(templateHandler);
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        template.setMessageConverters(singletonList(converter));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
     }
 
     @Test
@@ -124,38 +119,46 @@ public final class CallTest {
         verify(verifier).run();
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnEntity() {
+    @Test
+    public void shouldThrowCheckedExceptionOnEntity() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
 
         unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateEntity),
-                        anyStatus().call(this::fail));
+                        anyStatus().call(this::fail))
+                .get();
     }
 
-    private void validateEntity(final AccountBody account) throws CheckedException {
-        throw new CheckedException();
+    private void validateEntity(final AccountBody account) throws IOException {
+        throw new IOException();
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnResponseEntity() {
+    @Test
+    public void shouldThrowCheckedExceptionOnResponseEntity() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
         unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateResponse),
-                        anyStatus().call(this::fail));
+                        anyStatus().call(this::fail))
+                .get();
     }
 
-    private void validateResponse(final ResponseEntity<AccountBody> account) throws CheckedException {
-        throw new CheckedException();
+    private void validateResponse(final ResponseEntity<AccountBody> account) throws IOException {
+        throw new IOException();
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

@@ -20,12 +20,13 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.io.IOException;
 import java.util.Objects;
 
 @FunctionalInterface
 public interface ThrowingConsumer<T> {
 
-    void accept(T input) throws Exception;
+    void accept(T input) throws IOException;
 
     default ThrowingConsumer<T> andThen(final ThrowingConsumer<? super T> after) {
         Objects.requireNonNull(after);

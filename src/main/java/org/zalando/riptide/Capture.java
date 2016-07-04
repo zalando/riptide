@@ -58,6 +58,7 @@ public interface Capture {
             public <O> Optional<O> as(final TypeToken<O> type) {
                 return Optional.ofNullable(value).map(v -> (O) v);
             }
+
         };
     }
 

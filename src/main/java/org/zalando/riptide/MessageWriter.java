@@ -1,10 +1,10 @@
-package org.zalando.riptide.model;
+package org.zalando.riptide;
 
 /*
  * ⁣​
  * Riptide
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,13 @@ package org.zalando.riptide.model;
  * ​⁣
  */
 
-public final class CheckedException extends Exception {
+import org.springframework.http.HttpEntity;
+import org.springframework.http.client.AsyncClientHttpRequest;
+
+import java.io.IOException;
+
+interface MessageWriter {
+
+    <T> void write(final AsyncClientHttpRequest request, final HttpEntity<T> entity) throws IOException;
+
 }

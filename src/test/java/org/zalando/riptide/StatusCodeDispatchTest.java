@@ -25,8 +25,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 
 import static java.util.stream.Collectors.toList;
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.statusCode;
+import static org.zalando.riptide.Navigators.statusCode;
 
 
 @RunWith(Parameterized.class)
@@ -49,10 +49,10 @@ public final class StatusCodeDispatchTest {
     private final int expected;
 
     public StatusCodeDispatchTest(final int expected) {
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
         this.expected = expected;
-        final RestTemplate template = new RestTemplate();
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
     }
 
     @Parameterized.Parameters(name = "{0}")
@@ -64,7 +64,7 @@ public final class StatusCodeDispatchTest {
     }
 
     @Test
-    public void shouldDispatch() {
+    public void shouldDispatch() throws IOException {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(expected)));
 
         final ClientHttpResponseConsumer verifier = response ->

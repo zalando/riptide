@@ -20,9 +20,11 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.io.IOException;
+
 @FunctionalInterface
 public interface ThrowingRunnable {
 
-    void run() throws Exception;
+    void run() throws IOException;
 
 }

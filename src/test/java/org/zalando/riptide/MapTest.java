@@ -20,25 +20,26 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpMessageConverterExtractor;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
-import org.zalando.riptide.model.CheckedException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.OK;
@@ -47,41 +48,43 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 public final class MapTest {
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     private static final String REVISION = '"' + "1aa9520a-0cdd-11e5-aa27-8361dd72e660" + '"';
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
-    private final RestTemplate template;
     private final Rest unit;
     private final MockRestServiceServer server;
+    private final List<HttpMessageConverter<?>> converters;
 
     public MapTest() {
-        template = new RestTemplate();
-        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules())));
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.create(template);
+        final MockSetup setup = new MockSetup();
+        this.unit = setup.getRest();
+        this.server = setup.getServer();
+        this.converters = setup.getConverters();
     }
 
     @Test
-    public void shouldCaptureResponse() {
+    public void shouldCaptureResponse() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
         final Account account = dispatch(on(OK).capture(this::fromResponse));
         verify(account);
     }
 
     private Account fromResponse(final ClientHttpResponse response) throws IOException {
-        final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class,
-                template.getMessageConverters()).extractData(response);
+        final AccountBody account = new HttpMessageConverterExtractor<>(AccountBody.class, converters)
+                .extractData(response);
         return new Account(account.getId(), "fake", account.getName());
     }
 
     @Test
-    public void shouldCaptureEntity() {
+    public void shouldCaptureEntity() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
         final Account account = dispatch(
                 on(OK).capture(AccountBody.class, this::fromEntity));
@@ -93,7 +96,7 @@ public final class MapTest {
     }
 
     @Test
-    public void shouldCaptureResponseEntity() {
+    public void shouldCaptureResponseEntity() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
         final Account account = dispatch(on(OK).capture(AccountBody.class, this::fromResponseEntity));
         verify(account, REVISION);
@@ -105,34 +108,46 @@ public final class MapTest {
         return new Account(account.getId(), revision, account.getName());
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnResponse() {
+    @Test
+    public void shouldThrowCheckedExceptionOnResponse() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
         dispatch(on(OK).capture(this::validateResponse));
     }
 
-    private Account validateResponse(final ClientHttpResponse response) throws CheckedException {
-        throw new CheckedException();
+    private Account validateResponse(final ClientHttpResponse response) throws IOException {
+        throw new IOException();
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnEntity() {
+    @Test
+    public void shouldThrowCheckedExceptionOnEntity() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
         dispatch(on(OK).capture(AccountBody.class, this::validateEntity));
     }
 
-    private Account validateEntity(final AccountBody account) throws CheckedException {
-        throw new CheckedException();
+    private Account validateEntity(final AccountBody account) throws IOException {
+        throw new IOException();
     }
 
-    @Test(expected = CheckedException.class)
-    public void shouldThrowCheckedExceptionOnResponseEntity() {
+    @Test
+    public void shouldThrowCheckedExceptionOnResponseEntity() throws ExecutionException, InterruptedException, IOException {
         answerWithAccount();
+
+        exception.expect(ExecutionException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
         dispatch(on(OK).capture(AccountBody.class, this::validateResponseEntity));
     }
 
-    private Account validateResponseEntity(final AccountBody account) throws CheckedException {
-        throw new CheckedException();
+    private Account validateResponseEntity(final AccountBody account) throws IOException {
+        throw new IOException();
     }
 
     private void answerWithAccount() {
@@ -146,12 +161,12 @@ public final class MapTest {
                         .headers(headers));
     }
 
-    private Account dispatch(final Binding<HttpStatus> capturer) {
+    private Account dispatch(final Binding<HttpStatus> capturer) throws ExecutionException, InterruptedException, IOException {
         return unit.get(url)
                 .dispatch(status(),
                         capturer,
                         anyStatus().call(this::fail))
-                .to(Account.class);
+                .get().to(Account.class);
     }
 
     private void verify(final Account account) {

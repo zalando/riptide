@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import lombok.SneakyThrows;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -85,8 +84,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     @Override
-    @SneakyThrows
-    public Capture execute(final ClientHttpResponse response, final MessageReader reader) {
+    public Capture execute(final ClientHttpResponse response, final MessageReader reader) throws IOException {
         final Optional<Route> route = navigator.navigate(response, this);
 
         if (route.isPresent()) {
@@ -101,7 +99,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     private Capture executeWildcardOrThrow(final ClientHttpResponse response,
-            final MessageReader reader, final ThrowingSupplier<NoRouteException> e) throws Exception {
+            final MessageReader reader, final ThrowingSupplier<NoRouteException> e) throws IOException {
 
         if (wildcard.isPresent()) {
             return wildcard.get().execute(response, reader);

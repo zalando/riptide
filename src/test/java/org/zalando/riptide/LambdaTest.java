@@ -22,10 +22,13 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Collections;
+
 import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Selectors.status;
+import static org.zalando.riptide.Navigators.status;
 
 /**
  * Tests whether all callbacks/functions can be supplied as lambdas. If this class compiles everything is already fine.
@@ -97,6 +100,5 @@ public final class LambdaTest {
     public void shouldSupportDispatchWithSelector() {
         anyStatus().dispatch(response -> response, status());
     }
-
 
 }

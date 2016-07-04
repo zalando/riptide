@@ -23,12 +23,14 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
+
 import static org.zalando.riptide.Capture.none;
 
 @FunctionalInterface
 public interface Route {
 
-    Capture execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
+    Capture execute(final ClientHttpResponse response, final MessageReader reader) throws IOException;
 
     static Route capture() {
         return (response, reader) ->

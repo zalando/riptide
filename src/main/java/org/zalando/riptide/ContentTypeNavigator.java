@@ -30,7 +30,7 @@ import java.util.Optional;
 import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
 
 /**
- * @see Selectors#contentType()
+ * @see Navigators#contentType()
  */
 enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
 
