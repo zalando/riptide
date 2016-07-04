@@ -22,13 +22,17 @@ package org.zalando.riptide;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
+import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Capture.listOf;
@@ -43,11 +47,10 @@ public final class SampleService {
     }
 
     public static void main(final String... args) throws IOException {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
         final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
         handler.setBaseUrl("https://api.github.com");
-        template.setUriTemplateHandler(handler);
-        final Rest rest = Rest.create(template);
+        final Rest rest = Rest.create(new HttpComponentsAsyncClientHttpRequestFactory(),
+                singletonList(new MappingJackson2XmlHttpMessageConverter()), handler);
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .accept(MediaType.APPLICATION_JSON)

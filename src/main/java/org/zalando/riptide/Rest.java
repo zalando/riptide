@@ -23,7 +23,6 @@ package org.zalando.riptide;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -33,8 +32,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.springframework.web.util.UriTemplateHandler;
 
@@ -43,20 +40,20 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static java.lang.String.format;
-
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
-    private final List<HttpMessageConverter<?>> converters;
     private final UriTemplateHandler uriTemplateHandler;
-    private final MessageReader reader;
 
-    private Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
+    private final MessageReader reader;
+    private final MessageWriter writer;
+
+    private Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
+            final UriTemplateHandler uriTemplateHandler) {
         this.requestFactory = requestFactory;
-        this.converters = converters;
         this.uriTemplateHandler = uriTemplateHandler;
         this.reader = new DefaultMessageReader(converters);
+        this.writer = new DefaultMessageWriter(converters);
     }
 
     public final Requester get(final String urlTemplate, final Object... urlVariables) {
@@ -169,54 +166,10 @@ public final class Rest {
 
         private <T> AsyncClientHttpRequest createRequest(final HttpEntity<T> entity) throws IOException {
             final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
-
-            final HttpHeaders headers = entity.getHeaders();
-            request.getHeaders().putAll(headers);
-
-            @Nullable final T body = entity.getBody();
-
-            if (body == null) {
-                return request;
-            }
-
-            final Class<?> type = body.getClass();
-            @Nullable final MediaType contentType = headers.getContentType();
-
-            converters.stream()
-                    .filter(converter -> converter.canWrite(type, contentType))
-                    .map(this::<T>cast)
-                    .findFirst()
-                    .orElseThrow(() -> fail(type, contentType))
-                    .write(body, contentType, request);
-
+            writer.write(request, entity);
             return request;
         }
 
-        @SuppressWarnings("unchecked")
-        private <T> HttpMessageConverter<T> cast(final HttpMessageConverter<?> converter) {
-            return (HttpMessageConverter<T>) converter;
-        }
-
-        private RestClientException fail(final Class<?> type, @Nullable final MediaType contentType) {
-            final String message = format(
-                    "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
-                    type.getName());
-
-            if (contentType == null) {
-                return new RestClientException(message);
-            } else {
-                return new RestClientException(format("%s and content type [%s]", message, contentType));
-            }
-        }
-
-    }
-
-    @Deprecated
-    public static Rest create(final AsyncRestTemplate template) {
-        final AsyncClientHttpRequestFactory factory = template.getAsyncRequestFactory();
-        final List<HttpMessageConverter<?>> converters = template.getMessageConverters();
-        final UriTemplateHandler uriTemplateHandler = template.getUriTemplateHandler();
-        return create(factory, converters, uriTemplateHandler);
     }
 
     public static Rest create(final AsyncClientHttpRequestFactory factory,
@@ -230,6 +183,7 @@ public final class Rest {
         return new Rest(factory, converters, uriTemplateHandler);
     }
 
+    // TODO move somewhere else?
     public static <T> ListenableFutureCallback<T> handle(final FailureCallback callback) {
         return new ListenableFutureCallback<T>() {
             @Override
