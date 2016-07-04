@@ -63,6 +63,7 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
+import static org.zalando.riptide.RoutingTree.create;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -89,12 +90,12 @@ public final class NestedDispatchTest {
         return unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(status(),
+                                .dispatch(response -> response, create(status(),
                                         on(CREATED).capture(Success.class),
                                         on(ACCEPTED).capture(Success.class),
-                                        anyStatus().call(this::fail)),
+                                        anyStatus().call(this::fail))),
                         on(CLIENT_ERROR)
-                                .dispatch(status(),
+                                .dispatch(response -> response, status(),
                                         on(UNAUTHORIZED).capture(),
                                         anyStatus().bind(problemHandling())),
                         on(SERVER_ERROR)

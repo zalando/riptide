@@ -111,4 +111,16 @@ public interface Route {
         return RoutingTree.create(navigator, bindings);
     }
 
+    @SafeVarargs
+    static <B> Route dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final Navigator<B> navigator, final Binding<B>... bindings) {
+        return dispatch(function, RoutingTree.create(navigator, bindings));
+    }
+
+    static <B> Route dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final RoutingTree<B> tree) {
+        return (response, reader) ->
+                tree.execute(function.apply(response), reader);
+    }
+
 }

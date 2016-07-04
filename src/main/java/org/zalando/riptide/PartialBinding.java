@@ -95,6 +95,17 @@ public final class PartialBinding<A> {
         return bind(Route.dispatch(navigator, bindings));
     }
 
+    @SafeVarargs
+    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final Navigator<B> navigator, final Binding<B>... bindings) {
+        return bind(Route.dispatch(function, navigator, bindings));
+    }
+
+    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
+            final RoutingTree<B> tree) {
+        return bind(Route.dispatch(function, tree));
+    }
+
     public Binding<A> bind(final Route route) {
         return Binding.create(attribute, route);
     }
