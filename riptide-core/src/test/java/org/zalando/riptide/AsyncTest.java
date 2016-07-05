@@ -39,9 +39,9 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -49,10 +49,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Rest.handle;
-import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Rest.handle;
+import static org.zalando.riptide.Routes.pass;
 
 public final class AsyncTest {
 
