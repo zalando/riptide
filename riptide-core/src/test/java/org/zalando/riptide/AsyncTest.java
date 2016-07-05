@@ -51,7 +51,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Rest.handle;
 import static org.zalando.riptide.Routes.pass;
 
 public final class AsyncTest {
@@ -193,7 +192,7 @@ public final class AsyncTest {
 
         unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
-                .addCallback(handle(callback));
+                .addCallback(result -> {}, callback);
 
         verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
     }
@@ -204,7 +203,7 @@ public final class AsyncTest {
 
         unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(pass()))
-                .addCallback(handle(mock(FailureCallback.class)));
+                .addCallback(result -> {}, (mock(FailureCallback.class)));
     }
 
 }

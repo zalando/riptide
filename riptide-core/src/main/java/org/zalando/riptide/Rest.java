@@ -31,7 +31,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
 import org.springframework.web.client.RestTemplate;
@@ -43,10 +42,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public final class Rest implements Closeable {
 
@@ -213,21 +210,6 @@ public final class Rest implements Closeable {
     public static Rest create(final AsyncClientHttpRequestFactory factory,
             final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
         return new Rest(factory, converters, uriTemplateHandler);
-    }
-
-    // TODO move somewhere else?
-    public static <T> ListenableFutureCallback<T> handle(final FailureCallback callback) {
-        return new ListenableFutureCallback<T>() {
-            @Override
-            public void onSuccess(final T result) {
-                // ignored
-            }
-
-            @Override
-            public void onFailure(final Throwable ex) {
-                callback.onFailure(ex);
-            }
-        };
     }
 
 }
