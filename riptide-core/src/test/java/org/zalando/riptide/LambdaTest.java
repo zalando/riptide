@@ -21,12 +21,11 @@ package org.zalando.riptide;
  */
 
 import com.google.common.reflect.TypeToken;
+import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
-import java.util.Collections;
-
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Navigators.status;
 
@@ -34,11 +33,6 @@ import static org.zalando.riptide.Navigators.status;
  * Tests whether all callbacks/functions can be supplied as lambdas. If this class compiles everything is already fine.
  */
 public final class LambdaTest {
-
-    @Test
-    public void shouldSupportLambdaOnCaptureResponse() {
-        anyStatus().capture(response -> null);
-    }
 
     @Test
     public void shouldSupportLambdaOnCallRunnable() {
@@ -53,46 +47,16 @@ public final class LambdaTest {
     }
 
     @Test
-    public void shouldSupportLambdaOnCaptureClassEntity() {
-        anyStatus().capture(String.class, (String entity) -> null);
-    }
-
-    @Test
-    public void shouldSupportLambdaOnCaptureTypeTokenEntity() {
-        anyStatus().capture(TypeToken.of(String.class), (String entity) -> null);
-    }
-
-    @Test
-    public void shouldSupportLambdaOnCaptureClassResponseEntity() {
-        anyStatus().capture(String.class, (ResponseEntity<String> entity) -> null);
-    }
-
-    @Test
-    public void shouldSupportLambdaOnCaptureTypeTokenResponseEntity() {
-        anyStatus().capture(TypeToken.of(String.class), (ResponseEntity<String> entity) -> null);
-    }
-
-    @Test
     public void shouldSupportLambdaOnCallClassEntity() {
-        anyStatus().call(String.class, (String entity) -> {
+        anyStatus().call(String.class, entity -> {
+            Assert.assertThat(entity, is(instanceOf(String.class)));
         });
     }
 
     @Test
     public void shouldSupportLambdaOnCallTypeTokenEntity() {
-        anyStatus().call(TypeToken.of(String.class), (String entity) -> {
-        });
-    }
-
-    @Test
-    public void shouldSupportLambdaOnCallClassResponseEntity() {
-        anyStatus().call(String.class, (ResponseEntity<String> entity) -> {
-        });
-    }
-
-    @Test
-    public void shouldSupportLambdaOnCallTypeTokenResponseEntity() {
-        anyStatus().call(TypeToken.of(String.class), (ResponseEntity<String> entity) -> {
+        anyStatus().call(TypeToken.of(String.class), entity -> {
+            Assert.assertThat(entity, is(instanceOf(String.class)));
         });
     }
 

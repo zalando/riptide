@@ -20,10 +20,12 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public final class PartialBinding<A> {
 
@@ -33,81 +35,54 @@ public final class PartialBinding<A> {
         this.attribute = attribute;
     }
 
-    public Binding<A> capture() {
-        return bind(Route.capture());
-    }
-
-    public Binding<A> capture(final ThrowingFunction<ClientHttpResponse, ?> function) {
-        return bind(Route.capture(function));
-    }
-
     public Binding<A> call(final ThrowingRunnable consumer) {
-        return bind(Route.call(consumer));
+        return call(Route.call(consumer));
     }
 
     public Binding<A> call(final ThrowingConsumer<ClientHttpResponse> consumer) {
-        return bind(Route.call(consumer));
+        return call(Route.call(consumer));
     }
 
-    // TODO ResponseEntity<T> version of this?
-    public <I> Binding<A> capture(final Class<I> type) {
-        return bind(Route.capture(type));
+    public <I> Binding<A> call(final Class<I> type, final ThrowingConsumer<I> consumer) {
+        return call(Route.call(type, consumer));
     }
 
-    public <I> Binding<A> capture(final TypeToken<I> type) {
-        return bind(Route.capture(type));
-    }
-
-    public <I, T> Binding<A> capture(final Class<I> type, final EntityFunction<I, T> function) {
-        return bind(Route.capture(type, function));
-    }
-
-    public <I, T> Binding<A> capture(final TypeToken<I> type, final EntityFunction<I, T> function) {
-        return bind(Route.capture(type, function));
-    }
-
-    public <I, T> Binding<A> capture(final Class<I> type, final ResponseEntityFunction<I, T> function) {
-        return bind(Route.capture(type, function));
-    }
-
-    public <I, T> Binding<A> capture(final TypeToken<I> type, final ResponseEntityFunction<I, T> function) {
-        return bind(Route.capture(type, function));
-    }
-
-    public <I> Binding<A> call(final Class<I> type, final EntityConsumer<I> consumer) {
-        return bind(Route.call(type, consumer));
-    }
-
-    public <I> Binding<A> call(final TypeToken<I> type, final EntityConsumer<I> consumer) {
-        return bind(Route.call(type, consumer));
-    }
-
-    public <I> Binding<A> call(final Class<I> type, final ResponseEntityConsumer<I> consumer) {
-        return bind(Route.call(type, consumer));
-    }
-
-    public <I> Binding<A> call(final TypeToken<I> type, final ResponseEntityConsumer<I> consumer) {
-        return bind(Route.call(type, consumer));
+    public <I> Binding<A> call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
+        return call(Route.call(type, consumer));
     }
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(final Navigator<B> navigator, final Binding<B>... bindings) {
-        return bind(Route.dispatch(navigator, bindings));
+        return call(RoutingTree.dispatch(navigator, bindings));
     }
 
     @SafeVarargs
     public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
             final Navigator<B> navigator, final Binding<B>... bindings) {
-        return bind(Route.dispatch(function, navigator, bindings));
+        return call(Route.dispatch(function, navigator, bindings));
     }
 
     public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
             final RoutingTree<B> tree) {
-        return bind(Route.dispatch(function, tree));
+        return call(Route.dispatch(function, tree));
     }
 
-    public Binding<A> bind(final Route route) {
+    public Binding<A> call(final Route route) {
         return Binding.create(attribute, route);
+    }
+
+    public static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
+        return listOf(TypeToken.of(entityType));
+    }
+
+    public static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
+        final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
+        };
+
+        final TypeParameter<T> elementType = new TypeParameter<T>() {
+        };
+
+        return listType.where(elementType, entityType);
     }
 
 }

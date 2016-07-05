@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.pass;
 
 public final class HandlesIOExceptionTest {
 
@@ -51,7 +52,7 @@ public final class HandlesIOExceptionTest {
         Rest.create(factory, emptyList())
                 .get("http://localhost/")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
 }

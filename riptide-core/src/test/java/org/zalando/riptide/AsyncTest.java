@@ -156,14 +156,13 @@ public final class AsyncTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ClientHttpResponse response = unit.get(url)
+        unit.get(url)
                 .dispatch(status(),
-                        on(OK).capture())
-                .get(100, TimeUnit.MILLISECONDS)
-                .to(ClientHttpResponse.class);
-
-        assertThat(response.getStatusCode(), is(OK));
-        assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
+                        on(OK).call(response -> {
+                            assertThat(response.getStatusCode(), is(OK));
+                            assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
+                        }))
+                .get(100, TimeUnit.MILLISECONDS);
     }
 
     @Test

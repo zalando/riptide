@@ -38,6 +38,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.pass;
 
 @RunWith(Parameterized.class)
 public class UriTest {
@@ -91,7 +92,7 @@ public class UriTest {
     public void shouldExpand() throws IOException {
         executor.execute(unit, URI.create("https://api.example.org/pages/123"))
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
 }

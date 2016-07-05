@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -74,8 +75,6 @@ public final class InputStreamTest {
         public void write(final InputStream t, final MediaType contentType, final HttpOutputMessage outputMessage) throws IOException,
                 HttpMessageNotWritableException {
             throw new IllegalStateException();
-
-
         }
 
     }
@@ -90,14 +89,6 @@ public final class InputStreamTest {
 
         public CloseOnceInputStream(final byte[] buf) {
             this(new ByteArrayInputStream(buf));
-        }
-
-        public CloseOnceInputStream(final byte[] buf, final int offset, final int length) {
-            this(new ByteArrayInputStream(buf, offset, length));
-        }
-
-        public boolean isClosed() {
-            return isClosed;
         }
 
         private void checkClosed() throws IOException {
@@ -199,12 +190,14 @@ public final class InputStreamTest {
                         .body(new InputStreamResource(content))
                         .contentType(APPLICATION_OCTET_STREAM));
 
-        final InputStream inputStream = unit.get(url)
+        final AtomicReference<InputStream> capture = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(contentType(),
-                        on(APPLICATION_OCTET_STREAM).capture(InputStream.class))
-                .get()
-                .as(InputStream.class)
-                .orElseThrow(AssertionError::new);
+                        on(APPLICATION_OCTET_STREAM).call(InputStream.class, capture::set))
+                .get();
+
+        final InputStream inputStream = capture.get();
 
         assertEquals(content, inputStream);
 

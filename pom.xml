@@ -59,6 +59,7 @@
 
     <modules>
         <module>riptide-core</module>
+        <module>riptide-capture</module>
     </modules>
 
     <properties>

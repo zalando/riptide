@@ -1,10 +1,10 @@
-package org.zalando.riptide;
+package org.zalando.riptide.model;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide: Core
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@FunctionalInterface
-public interface ResponseEntityFunction<F, T> extends ThrowingFunction<ResponseEntity<F>, T> {
+public final class Message {
+
+    private final String message;
+
+    // TODO @JsonProperty shouldn't be necessary here...
+    public Message(@JsonProperty("message") final String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 
 }

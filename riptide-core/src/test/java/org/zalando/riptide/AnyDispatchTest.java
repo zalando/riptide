@@ -29,6 +29,7 @@ import org.zalando.riptide.model.AccountBody;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -40,6 +41,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Routes.pass;
 
 public final class AnyDispatchTest {
 
@@ -61,13 +63,15 @@ public final class AnyDispatchTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ClientHttpResponse response = unit.get(url)
-                .dispatch(status(),
-                        on(CREATED).capture(AccountBody.class),
-                        anyStatus().capture())
-                .get()
-                .as(ClientHttpResponse.class).orElse(null);
+        final AtomicReference<ClientHttpResponse> capture = new AtomicReference<>();
 
+        unit.get(url)
+                .dispatch(status(),
+                        on(CREATED).call(pass()),
+                        anyStatus().call(ClientHttpResponse.class, capture::set))
+                .get();
+
+        final ClientHttpResponse response = capture.get();
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }

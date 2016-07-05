@@ -26,10 +26,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 
-import static org.springframework.http.HttpHeaders.CONTENT_LOCATION;
-
+// TODO move to PartialBinding?
 public final class Routes {
 
     Routes() {
@@ -51,7 +49,7 @@ public final class Routes {
                 response.getHeaders().getLocation();
     }
 
-    public static <X extends Exception> EntityConsumer<X> propagate() {
+    public static <X extends Exception> ThrowingConsumer<X> propagate() {
         return entity -> {
             if (entity instanceof IOException) {
                 throw (IOException) entity;
@@ -59,6 +57,18 @@ public final class Routes {
                 throw new IOException(entity);
             }
         };
+    }
+
+    public static <T> Adapter<ClientHttpResponse, T> to(final ThrowingFunction<ClientHttpResponse, T> function) {
+        return consumer ->
+                response -> consumer.accept(function.apply(response));
+    }
+
+    @FunctionalInterface
+    public interface Adapter<T, R> {
+
+        ThrowingConsumer<T> andThen(final ThrowingConsumer<R> consumer);
+
     }
 
 }

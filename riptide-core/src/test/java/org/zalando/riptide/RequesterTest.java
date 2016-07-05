@@ -32,6 +32,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.pass;
 
 public class RequesterTest {
 
@@ -55,7 +56,7 @@ public class RequesterTest {
 
         unit.get("/123")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -64,7 +65,7 @@ public class RequesterTest {
 
         unit.get("/{id}", 123)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -73,7 +74,7 @@ public class RequesterTest {
 
         unit.get("/{parent}/{child}", 123, "456")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -85,7 +86,7 @@ public class RequesterTest {
 
         unit.get("https://example.com/posts/{id}?filter={filter}", postId, filter)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -94,7 +95,7 @@ public class RequesterTest {
 
         unit.get("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -103,7 +104,7 @@ public class RequesterTest {
 
         unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -113,7 +114,7 @@ public class RequesterTest {
         unit.get("/123")
                 .headers(new HttpHeaders())
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test

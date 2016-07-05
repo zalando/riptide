@@ -42,11 +42,11 @@ public interface RoutingTree<A> extends Route {
     RoutingTree<A> merge(final List<Binding<A>> bindings);
 
     @SafeVarargs
-    static <A> RoutingTree<A> create(final Navigator<A> navigator, final Binding<A>... bindings) {
-        return create(navigator, asList(bindings));
+    static <A> RoutingTree<A> dispatch(final Navigator<A> navigator, final Binding<A>... bindings) {
+        return dispatch(navigator, asList(bindings));
     }
 
-    static <A> RoutingTree<A> create(final Navigator<A> navigator, final List<Binding<A>> bindings) {
+    static <A> RoutingTree<A> dispatch(final Navigator<A> navigator, final List<Binding<A>> bindings) {
         return new DefaultRoutingTree<>(navigator, bindings);
     }
 

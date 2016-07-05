@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.riptide.model.AccountBody;
@@ -69,30 +68,7 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ResponseEntityConsumer<AccountBody> verifier = mock(ResponseEntityConsumer.class);
-
-        unit.get("/accounts/123")
-                .dispatch(status(),
-                        on(OK).call(AccountBody.class, verifier),
-                        anyStatus().call(this::fail));
-
-        verify(verifier).accept(anyResponseEntityOf(AccountBody.class));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> anyResponseEntityOf(@SuppressWarnings("UnusedParameters") final Class<T> type) {
-        return any(ResponseEntity.class);
-    }
-
-    @Test
-    public void shouldCallResponseEntity() throws Exception {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        @SuppressWarnings("unchecked")
-        final EntityConsumer<AccountBody> verifier = mock(EntityConsumer.class);
+        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts/123")
                 .dispatch(status(),
@@ -137,27 +113,6 @@ public final class CallTest {
     }
 
     private void validateEntity(final AccountBody account) throws IOException {
-        throw new IOException();
-    }
-
-    @Test
-    public void shouldThrowCheckedExceptionOnResponseEntity() throws ExecutionException, InterruptedException, IOException {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account.json"))
-                        .contentType(APPLICATION_JSON));
-
-        exception.expect(ExecutionException.class);
-        exception.expectCause(instanceOf(IOException.class));
-
-        unit.get("/accounts/123")
-                .dispatch(status(),
-                        on(OK).call(AccountBody.class, this::validateResponse),
-                        anyStatus().call(this::fail))
-                .get();
-    }
-
-    private void validateResponse(final ResponseEntity<AccountBody> account) throws IOException {
         throw new IOException();
     }
 

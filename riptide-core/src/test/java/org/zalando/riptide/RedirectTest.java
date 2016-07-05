@@ -28,6 +28,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,6 +40,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.to;
 
 public final class RedirectTest {
 
@@ -70,11 +72,12 @@ public final class RedirectTest {
 
     @SneakyThrows // TODO find a good way to make Future and Throwing* work together
     private String send(final URI url) {
-        return unit.post(url).dispatch(series(),
-                on(SUCCESSFUL).capture(String.class),
-                on(REDIRECTION).capture(location().andThen(this::send)))
-                .get()
-                .to(String.class);
+        final AtomicReference<String> capture = new AtomicReference<>();
+        unit.post(url).dispatch(series(),
+                on(SUCCESSFUL).call(String.class, capture::set),
+                on(REDIRECTION).call(to(location().andThen(this::send)).andThen(capture::set)))
+                .get();
+        return capture.get();
     }
 
 }

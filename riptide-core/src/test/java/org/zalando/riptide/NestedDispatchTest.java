@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,12 +28,17 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.problem.ThrowableProblem;
+import org.zalando.riptide.model.Message;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -48,6 +54,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Bindings.anyContentType;
@@ -59,7 +66,8 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
-import static org.zalando.riptide.RoutingTree.create;
+import static org.zalando.riptide.PartialBinding.listOf;
+import static org.zalando.riptide.Routes.propagate;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -80,30 +88,36 @@ public final class NestedDispatchTest {
     }
 
     private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
-        return unit.get(url)
+        final AtomicReference<Object> capture = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(response -> response, create(status(),
-                                        on(CREATED).capture(Success.class),
-                                        on(ACCEPTED).capture(Success.class),
+                                .dispatch(response -> response, RoutingTree.dispatch(status(),
+                                        on(CREATED).dispatch(contentType(),
+                                                on(parseMediaType("application/messages+json")).call(listOf(Message.class), capture::set),
+                                                anyContentType().call(Success.class, capture::set)),
+                                        on(ACCEPTED).call(Success.class, capture::set),
                                         anyStatus().call(this::fail))),
                         on(CLIENT_ERROR)
                                 .dispatch(response -> response, status(),
-                                        on(UNAUTHORIZED).capture(),
-                                        anyStatus().bind(problemHandling())),
+                                        on(UNAUTHORIZED).call(capture::set),
+                                        anyStatus().call(problemHandling())),
                         on(SERVER_ERROR)
                                 .dispatch(statusCode(),
-                                        on(500).capture(),
-                                        on(503).capture(),
+                                        on(500).call(capture::set),
+                                        on(503).call(capture::set),
                                         anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
-                .get().as(type).orElse(null);
+                .get();
+
+        return type.cast(capture.get());
     }
 
     private Route problemHandling() {
-        return Route.dispatch(contentType(),
-                on(PROBLEM).capture(Problem.class),
-                on(ERROR).capture(Problem.class),
+        return RoutingTree.dispatch(contentType(),
+                on(PROBLEM).call(ThrowableProblem.class, propagate()),
+                on(ERROR).call(ThrowableProblem.class, propagate()),
                 anyContentType().call(this::fail));
     }
 
@@ -138,12 +152,14 @@ public final class NestedDispatchTest {
     public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
-                        .body(new ClassPathResource("success.json"))
-                        .contentType(APPLICATION_JSON));
+                        .body(new ClassPathResource("messages.json"))
+                        .contentType(parseMediaType("application/messages+json")));
 
-        final Success success = perform(Success.class);
+        @SuppressWarnings("unchecked")
+        final List<Message> messages = perform(List.class);
 
-        assertThat(success.isHappy(), is(true));
+        assertThat(messages.get(0).getMessage(), is("Foo"));
+        assertThat(messages.get(1).getMessage(), is("Bar"));
     }
 
     @Test
@@ -153,12 +169,18 @@ public final class NestedDispatchTest {
                         .body(new ClassPathResource("problem.json"))
                         .contentType(ERROR));
 
-        final Problem problem = perform(Problem.class);
-
-        assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
-        assertThat(problem.getTitle(), is("Unprocessable Entity"));
-        assertThat(problem.getStatus(), is(422));
-        assertThat(problem.getDetail(), is("A problem occurred."));
+        try {
+            perform(Problem.class);
+            Assert.fail("Expected exception");
+        } catch (final ExecutionException e) {
+            assertThat(e.getCause(), is(instanceOf(IOException.class)));
+            assertThat(e.getCause().getCause(), is(instanceOf(ThrowableProblem.class)));
+            final ThrowableProblem problem = (ThrowableProblem) e.getCause().getCause();
+            assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
+            assertThat(problem.getTitle(), is("Unprocessable Entity"));
+            assertThat(problem.getStatus().getStatusCode(), is(422));
+            assertThat(problem.getDetail(), is(Optional.of("A problem occurred.")));
+        }
     }
 
 }

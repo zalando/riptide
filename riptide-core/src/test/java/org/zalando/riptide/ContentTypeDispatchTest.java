@@ -31,6 +31,7 @@ import org.zalando.riptide.model.Success;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -45,6 +46,7 @@ import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -65,13 +67,17 @@ public final class ContentTypeDispatchTest {
     }
 
     private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
-        return unit.get(url)
+        final AtomicReference<Object> capture = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(contentType(),
-                        on(SUCCESS).capture(Success.class),
-                        on(PROBLEM).capture(Problem.class),
-                        on(ERROR).capture(Error.class),
+                        on(SUCCESS).call(Success.class, capture::set),
+                        on(PROBLEM).call(Problem.class, capture::set),
+                        on(ERROR).call(Error.class, capture::set),
                         anyContentType().call(this::fail))
-                .get().to(type);
+                .get();
+
+        return type.cast(capture.get());
     }
 
     @Test
@@ -121,13 +127,16 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(SUCCESS));
 
-        final Success success = unit.get(url)
+        final AtomicReference<Success> capture = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(contentType(),
                         on(parseMediaType("application/*+json")).call(this::fail),
-                        on(parseMediaType("application/success+json;version=2")).capture(Success.class),
+                        on(parseMediaType("application/success+json;version=2")).call(Success.class, capture::set),
                         anyContentType().call(this::fail))
-                .get().to(Success.class);
+                .get();
 
+        final Success success = capture.get();
         assertThat(success.isHappy(), is(true));
     }
 
@@ -141,8 +150,8 @@ public final class ContentTypeDispatchTest {
         unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(contentType(),
-                                on(SUCCESS).capture(Success.class)),
-                        anySeries().capture())
+                                on(SUCCESS).call(pass())),
+                        anySeries().call(pass()))
                 .get();
     }
 
@@ -153,13 +162,16 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("success.json"))
                         .contentType(SUCCESS_V2));
 
-        final Success success = unit.get(url)
+        final AtomicReference<Success> capture = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(contentType(),
                         on(SUCCESS_V1).call(this::fail),
-                        on(SUCCESS_V2).capture(Success.class),
+                        on(SUCCESS_V2).call(Success.class, capture::set),
                         anyContentType().call(this::fail))
-                .get().to(Success.class);
+                .get();
 
+        final Success success = capture.get();
         assertThat(success.isHappy(), is(true));
     }
 

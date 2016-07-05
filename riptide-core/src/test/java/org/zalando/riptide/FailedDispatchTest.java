@@ -30,19 +30,19 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.model.Error;
 import org.zalando.riptide.model.MediaTypes;
-import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -67,6 +67,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Routes.pass;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
@@ -102,9 +103,9 @@ public final class FailedDispatchTest {
         unit.options(url)
                 .dispatch(contentType(),
                         // note that we don't match on application/json explicitly
-                        on(SUCCESS).capture(Success.class),
-                        on(PROBLEM).capture(Problem.class),
-                        on(ERROR).capture(Error.class))
+                        on(SUCCESS).call(pass()),
+                        on(PROBLEM).call(pass()),
+                        on(ERROR).call(pass()))
                 .get();
     }
 
@@ -123,9 +124,9 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).capture(Success.class),
-                                        anySeries().capture()),
-                        on(HttpStatus.CREATED).capture(Success.class),
+                                        on(SUCCESSFUL).call(Success.class, success -> {}),
+                                        anySeries().call(pass())),
+                        on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
                 .get();
     }
@@ -145,9 +146,9 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).capture(Success.class),
-                                        anySeries().capture()),
-                        on(HttpStatus.CREATED).capture(Success.class),
+                                        on(SUCCESSFUL).call(Success.class, success -> {}),
+                                        anySeries().call(pass())),
+                        on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
                 .get();
     }
@@ -159,17 +160,19 @@ public final class FailedDispatchTest {
                         .body("")
                         .contentType(MediaTypes.SUCCESS));
 
-        final Capture capture = unit.get(url)
+        final AtomicReference<Success> success = new AtomicReference<>();
+
+        unit.get(url)
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(contentType(),
-                                        on(MediaTypes.SUCCESS).capture(Success.class),
+                                        on(MediaTypes.SUCCESS).call(Success.class, success::set),
                                         anyContentType().call(this::fail)),
-                        on(HttpStatus.CREATED).capture(Success.class),
+                        on(HttpStatus.CREATED).call(Success.class, success::set),
                         anyStatus().call(this::fail))
                 .get();
 
-        assertThat(capture.as(Success.class).isPresent(), is(false));
+        assertThat(success.get(), is(nullValue()));
     }
 
     private void fail(final ClientHttpResponse response) {
@@ -189,11 +192,11 @@ public final class FailedDispatchTest {
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(status(),
                                 on(OK).dispatch(contentType(),
-                                        on(APPLICATION_XML).capture(),
-                                        on(TEXT_PLAIN).capture()),
-                                on(ACCEPTED).capture(),
+                                        on(APPLICATION_XML).call(pass()),
+                                        on(TEXT_PLAIN).call(pass())),
+                                on(ACCEPTED).call(pass()),
                                 anyStatus().call(consumer)),
-                        on(CLIENT_ERROR).capture());
+                        on(CLIENT_ERROR).call(pass()));
 
         verify(consumer).accept(any());
     }
@@ -211,10 +214,10 @@ public final class FailedDispatchTest {
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(status(),
                                 on(OK).dispatch(contentType(),
-                                        on(APPLICATION_XML).capture(),
-                                        on(TEXT_PLAIN).capture()),
-                                on(ACCEPTED).capture()),
-                        on(CLIENT_ERROR).capture(),
+                                        on(APPLICATION_XML).call(pass()),
+                                        on(TEXT_PLAIN).call(pass())),
+                                on(ACCEPTED).call(pass())),
+                        on(CLIENT_ERROR).call(pass()),
                         anySeries().call(consumer));
 
         verify(consumer).accept(any());
@@ -236,12 +239,12 @@ public final class FailedDispatchTest {
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(contentType(),
                                 on(APPLICATION_JSON).dispatch(status(),
-                                        on(OK).capture(),
-                                        on(MOVED_PERMANENTLY).capture(),
-                                        on(NOT_FOUND).capture()),
-                                on(APPLICATION_XML).capture(),
-                                on(TEXT_PLAIN).capture()),
-                        on(CLIENT_ERROR).capture())
+                                        on(OK).call(pass()),
+                                        on(MOVED_PERMANENTLY).call(pass()),
+                                        on(NOT_FOUND).call(pass())),
+                                on(APPLICATION_XML).call(pass()),
+                                on(TEXT_PLAIN).call(pass())),
+                        on(CLIENT_ERROR).call(pass()))
                 .get();
     }
 

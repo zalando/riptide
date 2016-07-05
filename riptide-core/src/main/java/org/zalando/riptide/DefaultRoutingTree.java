@@ -73,7 +73,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
         final List<Binding<A>> present = new ArrayList<>(routes.size() + 1);
         routes.forEach((attribute, route) -> present.add(Binding.create(attribute, route)));
         wildcard.ifPresent(route -> present.add(Binding.create(null, route)));
-        return RoutingTree.create(navigator, navigator.merge(present, bindings));
+        return RoutingTree.dispatch(navigator, navigator.merge(present, bindings));
     }
 
     private static <A> Map<A, Route> map(final List<Binding<A>> bindings) {
@@ -84,28 +84,28 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     @Override
-    public Capture execute(final ClientHttpResponse response, final MessageReader reader) throws IOException {
+    public void execute(final ClientHttpResponse response, final MessageReader reader) throws IOException {
         final Optional<Route> route = navigator.navigate(response, this);
 
         if (route.isPresent()) {
             try {
-                return route.get().execute(response, reader);
+                route.get().execute(response, reader);
             } catch (final NoRouteException e) {
-                return executeWildcardOrThrow(response, reader, always(e));
+                executeWildcardOrThrow(response, reader, always(e));
             }
         } else {
-            return executeWildcardOrThrow(response, reader, () -> new NoRouteException(response));
+            executeWildcardOrThrow(response, reader, () -> new NoRouteException(response));
         }
     }
 
-    private Capture executeWildcardOrThrow(final ClientHttpResponse response,
+    private void executeWildcardOrThrow(final ClientHttpResponse response,
             final MessageReader reader, final ThrowingSupplier<NoRouteException> e) throws IOException {
 
         if (wildcard.isPresent()) {
-            return wildcard.get().execute(response, reader);
+            wildcard.get().execute(response, reader);
+        } else {
+            throw e.get();
         }
-
-        throw e.get();
     }
 
     @FunctionalInterface

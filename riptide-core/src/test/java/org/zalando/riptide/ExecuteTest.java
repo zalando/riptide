@@ -44,6 +44,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Routes.pass;
 
 public final class ExecuteTest {
 
@@ -76,7 +77,7 @@ public final class ExecuteTest {
 
         unit.trace(url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test
@@ -88,7 +89,7 @@ public final class ExecuteTest {
         unit.head(url)
                 .header("X-Foo", "bar")
                 .dispatch(series(),
-                        on(SUCCESSFUL).capture());
+                        on(SUCCESSFUL).call(pass()));
     }
 
     @Test

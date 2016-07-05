@@ -32,6 +32,7 @@ import org.zalando.problem.ThrowableProblem;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
@@ -48,6 +49,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Routes.to;
 import static org.zalando.riptide.Routes.headers;
 import static org.zalando.riptide.Routes.location;
 import static org.zalando.riptide.Routes.pass;
@@ -87,12 +89,15 @@ public final class RoutesTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final HttpHeaders headers = unit.head(url)
-                .dispatch(status(),
-                        on(OK).capture(headers()),
-                        anyStatus().call(this::fail))
-                .get().to(HttpHeaders.class);
+        final AtomicReference<HttpHeaders> capture = new AtomicReference<>();
 
+        unit.head(url)
+                .dispatch(status(),
+                        on(OK).call(to(headers()).andThen(capture::set)),
+                        anyStatus().call(this::fail))
+                .get();
+
+        final HttpHeaders headers = capture.get();
         assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }
 
@@ -105,12 +110,15 @@ public final class RoutesTest {
                 withSuccess()
                         .headers(headers));
 
-        final URI uri = unit.head(url)
-                .dispatch(status(),
-                        on(OK).capture(location()),
-                        anyStatus().call(this::fail))
-                .get().to(URI.class);
+        final AtomicReference<URI> capture = new AtomicReference<>();
 
+        unit.head(url)
+                .dispatch(status(),
+                        on(OK).call(to(location()).andThen(capture::set)),
+                        anyStatus().call(this::fail))
+                .get();
+
+        final URI uri = capture.get();
         assertThat(uri, hasToString("http://example.org"));
     }
 

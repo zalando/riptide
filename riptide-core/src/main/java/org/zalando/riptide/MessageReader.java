@@ -21,7 +21,6 @@ package org.zalando.riptide;
  */
 
 import com.google.common.reflect.TypeToken;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -29,9 +28,5 @@ import java.io.IOException;
 public interface MessageReader {
 
     <I> I readEntity(TypeToken<I> type, ClientHttpResponse response) throws IOException;
-
-    default <I> ResponseEntity<I> readResponseEntity(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
-        return new ResponseEntity<I>(readEntity(type, response), response.getHeaders(), response.getStatusCode());
-    }
 
 }

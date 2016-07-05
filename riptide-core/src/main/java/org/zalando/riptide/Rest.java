@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+// TODO implements closeable?
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
@@ -147,12 +148,13 @@ public final class Rest {
 
             return new Dispatcher() {
                 @Override
-                public <A> ListenableFuture<Capture> dispatch(final RoutingTree<A> tree) {
-                    final SettableListenableFuture<Capture> capture = new SettableListenableFuture<>();
+                public <A> ListenableFuture<?> dispatch(final RoutingTree<A> tree) {
+                    final SettableListenableFuture<?> capture = new SettableListenableFuture<>();
                     final FailureCallback failure = capture::setException;
                     final SuccessCallback<ClientHttpResponse> success = response -> {
                         try {
-                            capture.set(tree.execute(response, reader));
+                            tree.execute(response, reader);
+                            capture.set(null); // TODO make sure it works
                         } catch (final Throwable e) {
                             failure.onFailure(e);
                         }
