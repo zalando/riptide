@@ -22,15 +22,11 @@ package org.zalando.riptide;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import java.io.IOException;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static java.util.Collections.singletonList;
+import static java.lang.System.*;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
@@ -39,25 +35,20 @@ import static org.zalando.riptide.PartialBinding.listOf;
 public final class SampleService {
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
-    static class Contributor {
+    static class User {
         String login;
         int contributions;
     }
 
     public static void main(final String... args) throws IOException {
-        final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setTaskExecutor(new ConcurrentTaskExecutor());
-        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-        handler.setBaseUrl("https://api.github.com");
-        final Rest rest = Rest.create(factory,
-                singletonList(new MappingJackson2HttpMessageConverter()), handler);
-
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
-                .accept(MediaType.APPLICATION_JSON)
-                .dispatch(series(),
-                on(SUCCESSFUL).call(listOf(Contributor.class), contributors ->
-                        contributors.forEach(contributor ->
-                                System.out.println(contributor.login + " (" + contributor.contributions + ")"))));
+        try (Rest rest = Rest.create("https://api.github.com")) {
+            rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .dispatch(series(),
+                            on(SUCCESSFUL).call(listOf(User.class), users ->
+                                    users.forEach(user ->
+                                            out.println(user.login + " (" + user.contributions + ")"))));
+        }
     }
 
 }

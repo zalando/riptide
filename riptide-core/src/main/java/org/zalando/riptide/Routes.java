@@ -66,9 +66,7 @@ public final class Routes {
 
     @FunctionalInterface
     public interface Adapter<T, R> {
-
         ThrowingConsumer<T> andThen(final ThrowingConsumer<R> consumer);
-
     }
 
 }
