@@ -49,16 +49,4 @@ public interface Route {
                 consumer.accept(reader.read(type, response));
     }
 
-    @SafeVarargs
-    static <B> Route dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
-            final Navigator<B> navigator, final Binding<B>... bindings) {
-        return dispatch(function, RoutingTree.dispatch(navigator, bindings));
-    }
-
-    static <B> Route dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
-            final RoutingTree<B> tree) {
-        return (response, reader) ->
-                tree.execute(function.apply(response), reader);
-    }
-
 }

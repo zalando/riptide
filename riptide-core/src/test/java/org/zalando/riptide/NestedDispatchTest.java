@@ -68,6 +68,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
 import static org.zalando.riptide.PartialBinding.listOf;
 import static org.zalando.riptide.Routes.propagate;
+import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -93,14 +94,14 @@ public final class NestedDispatchTest {
         unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(response -> response, RoutingTree.dispatch(status(),
+                                .dispatch(status(),
                                         on(CREATED).dispatch(contentType(),
                                                 on(parseMediaType("application/messages+json")).call(listOf(Message.class), capture::set),
                                                 anyContentType().call(Success.class, capture::set)),
                                         on(ACCEPTED).call(Success.class, capture::set),
-                                        anyStatus().call(this::fail))),
+                                        anyStatus().call(this::fail)),
                         on(CLIENT_ERROR)
-                                .dispatch(response -> response, status(),
+                                .dispatch(status(),
                                         on(UNAUTHORIZED).call(capture::set),
                                         anyStatus().call(problemHandling())),
                         on(SERVER_ERROR)
@@ -115,7 +116,7 @@ public final class NestedDispatchTest {
     }
 
     private Route problemHandling() {
-        return RoutingTree.dispatch(contentType(),
+        return dispatch(contentType(),
                 on(PROBLEM).call(ThrowableProblem.class, propagate()),
                 on(ERROR).call(ThrowableProblem.class, propagate()),
                 anyContentType().call(this::fail));
