@@ -20,10 +20,15 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMessage;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.List;
 
 @FunctionalInterface
 public interface Route {
@@ -47,6 +52,55 @@ public interface Route {
     static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
         return (response, reader) ->
                 consumer.accept(reader.read(type, response));
+    }
+
+    static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
+        return listOf(TypeToken.of(entityType));
+    }
+
+    static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
+        final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
+        };
+
+        final TypeParameter<T> elementType = new TypeParameter<T>() {
+        };
+
+        return listType.where(elementType, entityType);
+    }
+
+    static ThrowingConsumer<ClientHttpResponse> pass() {
+        return response -> {
+
+        };
+    }
+
+    static ThrowingFunction<ClientHttpResponse, HttpHeaders> headers() {
+        return HttpMessage::getHeaders;
+    }
+
+    static ThrowingFunction<ClientHttpResponse, URI> location() {
+        return response ->
+                response.getHeaders().getLocation();
+    }
+
+    static <X extends Exception> ThrowingConsumer<X> propagate() {
+        return entity -> {
+            if (entity instanceof IOException) {
+                throw (IOException) entity;
+            } else {
+                throw new IOException(entity);
+            }
+        };
+    }
+
+    static <T> Adapter<ClientHttpResponse, T> to(final ThrowingFunction<ClientHttpResponse, T> function) {
+        return consumer ->
+                response -> consumer.accept(function.apply(response));
+    }
+
+    @FunctionalInterface
+    interface Adapter<T, R> {
+        ThrowingConsumer<T> andThen(final ThrowingConsumer<R> consumer);
     }
 
 }

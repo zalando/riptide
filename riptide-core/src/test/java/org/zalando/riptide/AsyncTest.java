@@ -51,7 +51,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Routes.pass;
+import static org.zalando.riptide.Route.pass;
 
 public final class AsyncTest {
 

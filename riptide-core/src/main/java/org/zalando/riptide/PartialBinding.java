@@ -60,18 +60,4 @@ public final class PartialBinding<A> {
         return Binding.create(attribute, route);
     }
 
-    public static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
-        return listOf(TypeToken.of(entityType));
-    }
-
-    public static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
-        final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
-        };
-
-        final TypeParameter<T> elementType = new TypeParameter<T>() {
-        };
-
-        return listType.where(elementType, entityType);
-    }
-
 }

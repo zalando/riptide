@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,7 +40,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Routes.pass;
+import static org.zalando.riptide.Route.pass;
 
 public final class AnyDispatchTest {
 

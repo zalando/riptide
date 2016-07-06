@@ -25,9 +25,6 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 
-/**
- * TODO javadoc
- */
 public final class NoRouteException extends RestClientException {
 
     private final ClientHttpResponse response;
