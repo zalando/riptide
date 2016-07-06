@@ -94,7 +94,7 @@ public final class CaptureTest {
     public void shouldAdapt() throws IOException, ExecutionException, InterruptedException {
         final Capture<ObjectNode> capture = Capture.empty();
 
-        final ListenableFuture<?> future = unit.get("/accounts/123")
+        final ListenableFuture<Void> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));

@@ -29,7 +29,7 @@ public interface Capture<T> extends ThrowingConsumer<T> {
 
     T retrieve() throws NoSuchElementException;
 
-    ListenableFuture<T> adapt(final ListenableFuture<?> future);
+    ListenableFuture<T> adapt(final ListenableFuture<Void> future);
 
     static <T> Capture<T> empty() {
         return new DefaultCapture<>();

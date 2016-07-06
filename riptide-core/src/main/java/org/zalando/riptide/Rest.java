@@ -154,8 +154,8 @@ public final class Rest implements Closeable {
 
             return new Dispatcher() {
                 @Override
-                public <A> ListenableFuture<?> dispatch(final RoutingTree<A> tree) {
-                    final SettableListenableFuture<?> capture = new SettableListenableFuture<>();
+                public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
+                    final SettableListenableFuture<Void> capture = new SettableListenableFuture<>();
                     final FailureCallback failure = capture::setException;
                     final SuccessCallback<ClientHttpResponse> success = response -> {
                         try {
