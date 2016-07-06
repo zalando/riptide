@@ -29,11 +29,6 @@ import org.junit.Test;
 public final class EnforceCoverageTest {
 
     @Test
-    public void shouldUseActionsConstructor() {
-        new Routes();
-    }
-    
-    @Test
     public void shouldUseBindingsConstructor() {
         new Bindings();
     }

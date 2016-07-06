@@ -46,7 +46,7 @@ import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Routes.pass;
+import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;

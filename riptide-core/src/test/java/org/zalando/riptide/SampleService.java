@@ -30,7 +30,7 @@ import static java.lang.System.*;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PartialBinding.listOf;
+import static org.zalando.riptide.Route.listOf;
 
 public final class SampleService {
 
@@ -45,7 +45,7 @@ public final class SampleService {
             rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                     .accept(MediaType.APPLICATION_JSON)
                     .dispatch(series(),
-                            on(SUCCESSFUL).call(listOf(User.class), users ->
+                            on(SUCCESSFUL).call(Route.listOf(User.class), users ->
                                     users.forEach(user ->
                                             out.println(user.login + " (" + user.contributions + ")"))));
         }

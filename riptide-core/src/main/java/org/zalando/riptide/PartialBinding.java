@@ -56,33 +56,8 @@ public final class PartialBinding<A> {
         return call(RoutingTree.dispatch(navigator, bindings));
     }
 
-    @SafeVarargs
-    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
-            final Navigator<B> navigator, final Binding<B>... bindings) {
-        return call(Route.dispatch(function, navigator, bindings));
-    }
-
-    public final <B> Binding<A> dispatch(final ThrowingFunction<ClientHttpResponse, ClientHttpResponse> function,
-            final RoutingTree<B> tree) {
-        return call(Route.dispatch(function, tree));
-    }
-
     public Binding<A> call(final Route route) {
         return Binding.create(attribute, route);
-    }
-
-    public static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
-        return listOf(TypeToken.of(entityType));
-    }
-
-    public static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
-        final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
-        };
-
-        final TypeParameter<T> elementType = new TypeParameter<T>() {
-        };
-
-        return listType.where(elementType, entityType);
     }
 
 }

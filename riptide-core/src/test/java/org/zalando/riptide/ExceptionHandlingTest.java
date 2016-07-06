@@ -90,7 +90,7 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldThrowInterruptedAndExecutionExceptionWhenBlocking() {
-        final ListenableFuture<?> future;
+        final ListenableFuture<Void> future;
 
         try {
             future = unit.get("/").dispatch(tree);
@@ -109,7 +109,7 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() {
-        final ListenableFuture<?> future;
+        final ListenableFuture<Void> future;
 
         try {
             future = unit.get("/").dispatch(tree);

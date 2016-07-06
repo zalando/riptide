@@ -47,7 +47,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Routes.pass;
+import static org.zalando.riptide.Route.pass;
 
 public final class ExecuteTest {
 

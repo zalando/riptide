@@ -57,7 +57,7 @@ public abstract class Requester extends Dispatcher {
     }
 
     @Override
-    public final <A> ListenableFuture<?> dispatch(final RoutingTree<A> tree) throws IOException {
+    public final <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException {
         return execute(headers, null).dispatch(tree);
     }
 

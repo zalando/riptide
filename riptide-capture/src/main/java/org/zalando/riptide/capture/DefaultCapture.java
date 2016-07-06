@@ -49,12 +49,10 @@ final class DefaultCapture<T> implements Capture<T> {
     }
 
     @Override
-    public ListenableFuture<T> adapt(final ListenableFuture<?> future) {
-        @SuppressWarnings("unchecked") // TODO fix
-        final ListenableFuture<Object> adaptee = (ListenableFuture<Object>) future;
-        return new ListenableFutureAdapter<T, Object>(adaptee) {
+    public ListenableFuture<T> adapt(final ListenableFuture<Void> future) {
+        return new ListenableFutureAdapter<T, Void>(future) {
             @Override
-            protected T adapt(final Object result) throws ExecutionException {
+            protected T adapt(final Void result) throws ExecutionException {
                 return retrieve();
             }
         };

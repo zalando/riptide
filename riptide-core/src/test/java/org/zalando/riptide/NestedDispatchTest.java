@@ -53,7 +53,6 @@ import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -66,8 +65,9 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
-import static org.zalando.riptide.PartialBinding.listOf;
-import static org.zalando.riptide.Routes.propagate;
+import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.Route.propagate;
+import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
@@ -93,14 +93,14 @@ public final class NestedDispatchTest {
         unit.get(url)
                 .dispatch(series(),
                         on(SUCCESSFUL)
-                                .dispatch(response -> response, RoutingTree.dispatch(status(),
+                                .dispatch(status(),
                                         on(CREATED).dispatch(contentType(),
-                                                on(parseMediaType("application/messages+json")).call(listOf(Message.class), capture::set),
+                                                on(parseMediaType("application/messages+json")).call(Route.listOf(Message.class), capture::set),
                                                 anyContentType().call(Success.class, capture::set)),
                                         on(ACCEPTED).call(Success.class, capture::set),
-                                        anyStatus().call(this::fail))),
+                                        anyStatus().call(this::fail)),
                         on(CLIENT_ERROR)
-                                .dispatch(response -> response, status(),
+                                .dispatch(status(),
                                         on(UNAUTHORIZED).call(capture::set),
                                         anyStatus().call(problemHandling())),
                         on(SERVER_ERROR)
@@ -115,7 +115,7 @@ public final class NestedDispatchTest {
     }
 
     private Route problemHandling() {
-        return RoutingTree.dispatch(contentType(),
+        return dispatch(contentType(),
                 on(PROBLEM).call(ThrowableProblem.class, propagate()),
                 on(ERROR).call(ThrowableProblem.class, propagate()),
                 anyContentType().call(this::fail));

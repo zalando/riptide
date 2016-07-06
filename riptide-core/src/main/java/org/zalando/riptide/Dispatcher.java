@@ -30,14 +30,14 @@ import static java.util.Arrays.asList;
 public abstract class Dispatcher {
 
     @SafeVarargs
-    public final <A> ListenableFuture<?> dispatch(final Navigator<A> selector, final Binding<A>... bindings) throws IOException {
+    public final <A> ListenableFuture<Void> dispatch(final Navigator<A> selector, final Binding<A>... bindings) throws IOException {
         return dispatch(selector, asList(bindings));
     }
 
-    public final <A> ListenableFuture<?> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) throws IOException {
+    public final <A> ListenableFuture<Void> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) throws IOException {
         return dispatch(RoutingTree.dispatch(selector, bindings));
     }
 
-    public abstract <A> ListenableFuture<?> dispatch(final RoutingTree<A> tree) throws IOException;
+    public abstract <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException;
 
 }
