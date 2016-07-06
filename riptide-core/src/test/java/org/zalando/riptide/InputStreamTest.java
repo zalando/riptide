@@ -29,6 +29,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -151,10 +152,13 @@ public final class InputStreamTest {
     private final MockRestServiceServer server;
 
     public InputStreamTest() {
-        final MockSetup setup = new MockSetup();
-        setup.getConverters().add(new InputStreamHttpMessageConverter());
-        this.unit = setup.getRest();
-        this.server = setup.getServer();
+        final AsyncRestTemplate template = new AsyncRestTemplate();
+        this.server = MockRestServiceServer.createServer(template);
+        this.unit = Rest.builder()
+                .requestFactory(template.getAsyncRequestFactory())
+                .converter(new InputStreamHttpMessageConverter())
+                .baseUrl("https://api.example.com")
+                .build();
     }
 
     @Test
@@ -174,7 +178,8 @@ public final class InputStreamTest {
         final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
         content.close();
         try {
-            final int ch = content.read();
+            //noinspection ResultOfMethodCallIgnored
+            content.read();
             fail("Should prevent read calls after close");
         } catch (final IOException e) {
             assertEquals("Stream is already closed", e.getMessage());

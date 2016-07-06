@@ -27,6 +27,6 @@ import java.io.IOException;
 
 public interface MessageReader {
 
-    <I> I readEntity(TypeToken<I> type, ClientHttpResponse response) throws IOException;
+    <I> I read(TypeToken<I> type, ClientHttpResponse response) throws IOException;
 
 }

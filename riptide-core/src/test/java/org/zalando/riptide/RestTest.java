@@ -25,7 +25,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.io.IOException;
 
-import static java.util.Collections.emptyList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -34,14 +33,17 @@ public final class RestTest {
 
     @Test
     public void shouldCreateAndClose() throws IOException {
-        try (Rest rest = Rest.create("https://www.example.com")) {
+        try (Rest rest = Rest.builder().baseUrl("https://www.example.com").build()) {
             assertThat(rest, is(notNullValue()));
         }
     }
 
     @Test
     public void shouldCloseEvenIfThereIsNothingToClose() throws IOException {
-        Rest.create(new SimpleClientHttpRequestFactory(), emptyList()).close();
+        Rest.builder()
+                .requestFactory(new SimpleClientHttpRequestFactory())
+                .build()
+                .close();
     }
 
 }

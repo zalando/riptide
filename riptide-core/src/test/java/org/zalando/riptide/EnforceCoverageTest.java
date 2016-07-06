@@ -39,6 +39,11 @@ public final class EnforceCoverageTest {
     }
 
     @Test
+    public void shouldUseRestBuilderConvertersConstructor() {
+        new RestBuilder.Converters();
+    }
+
+    @Test
     public void shouldUseSelectorsConstructor() {
         new Navigators();
     }

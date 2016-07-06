@@ -26,15 +26,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.util.concurrent.SuccessCallback;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.springframework.web.util.UriTemplateHandler;
 
 import javax.annotation.Nullable;
@@ -42,8 +38,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class Rest implements Closeable {
 
@@ -53,14 +47,14 @@ public final class Rest implements Closeable {
     private final MessageReader reader;
     private final MessageWriter writer;
 
-    private Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
+    Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
             final UriTemplateHandler uriTemplateHandler) {
         this(requestFactory, converters, uriTemplateHandler, () -> {
             // nothing to close
         });
     }
 
-    private Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
+    Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
             final UriTemplateHandler uriTemplateHandler, final Closeable closeable) {
         this.requestFactory = requestFactory;
         this.uriTemplateHandler = uriTemplateHandler;
@@ -191,22 +185,11 @@ public final class Rest implements Closeable {
         closeable.close();
     }
 
-    public static Rest create(final String baseUrl) {
-        final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
-        final List<HttpMessageConverter<?>> converters = new RestTemplate().getMessageConverters();
-        final DefaultUriTemplateHandler uriTemplateHandler = new DefaultUriTemplateHandler();
-        uriTemplateHandler.setBaseUrl(baseUrl);
-        return new Rest(factory, converters, uriTemplateHandler, executor::shutdown);
+    public static RestBuilder builder() {
+        return new RestBuilder();
     }
 
-    public static Rest create(final AsyncClientHttpRequestFactory factory,
-            final List<HttpMessageConverter<?>> converters) {
-        return create(factory, converters, new DefaultUriTemplateHandler());
-    }
-
-
+    // TODO package private?
     public static Rest create(final AsyncClientHttpRequestFactory factory,
             final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
         return new Rest(factory, converters, uriTemplateHandler);

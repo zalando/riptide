@@ -21,22 +21,17 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public final class MockSetup {
 
     private final MockRestServiceServer server;
     private final Rest rest;
-    private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
 
     public MockSetup() {
         this("https://api.example.com");
@@ -44,20 +39,15 @@ public final class MockSetup {
 
     public MockSetup(final String baseUrl) {
         final AsyncRestTemplate template = new AsyncRestTemplate();
-
         this.server = MockRestServiceServer.createServer(template);
-        final AsyncClientHttpRequestFactory factory = template.getAsyncRequestFactory();
-
-        this.converters.add(new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules()));
-        final StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
-        stringHttpMessageConverter.setWriteAcceptCharset(false);
-        this.converters.add(stringHttpMessageConverter);
-
-        final DefaultUriTemplateHandler templateHandler = new DefaultUriTemplateHandler();
-        templateHandler.setBaseUrl(baseUrl);
-
-        this.rest = Rest.create(factory, converters, templateHandler);
+        this.rest = Rest.builder()
+                .requestFactory(template.getAsyncRequestFactory())
+                .converters(Arrays.asList(
+                        new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()),
+                        new StringHttpMessageConverter()
+                ))
+                .baseUrl(baseUrl)
+                .build();
     }
 
     public MockRestServiceServer getServer() {
@@ -66,10 +56,6 @@ public final class MockSetup {
 
     public Rest getRest() {
         return rest;
-    }
-
-    public List<HttpMessageConverter<?>> getConverters() {
-        return converters;
     }
 
 }

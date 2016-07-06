@@ -24,6 +24,7 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
+import org.springframework.web.client.ResponseExtractor;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,20 +39,24 @@ final class DefaultMessageReader implements MessageReader {
     }
 
     @Override
-    public <I> I readEntity(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
+    public <I> I read(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
         if (type.isSubtypeOf(ClientHttpResponse.class)) {
             return cast(response);
         }
 
-        final I data = new HttpMessageConverterExtractor<I>(type.getType(), converters).extractData(response);
-        if (!(data instanceof Closeable)) {
-            response.close();
+        final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type.getType(), converters);
+        final I data = extractor.extractData(response);
+
+        if (data instanceof Closeable) {
+            return data;
         }
+
+        response.close();
         return data;
     }
 
     @SuppressWarnings("unchecked")
-    private <I> I cast(ClientHttpResponse response) {
+    private <I> I cast(final ClientHttpResponse response) {
         return (I) response;
     }
 

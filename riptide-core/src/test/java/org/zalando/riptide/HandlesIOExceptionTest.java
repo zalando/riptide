@@ -49,7 +49,7 @@ public final class HandlesIOExceptionTest {
             throw new IOException("Could not create request");
         };
 
-        Rest.create(factory, emptyList())
+        Rest.builder().requestFactory(factory).build()
                 .get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

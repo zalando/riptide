@@ -46,7 +46,7 @@ public interface Route {
 
     static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
         return (response, reader) ->
-                consumer.accept(reader.readEntity(type, response));
+                consumer.accept(reader.read(type, response));
     }
 
     @SafeVarargs

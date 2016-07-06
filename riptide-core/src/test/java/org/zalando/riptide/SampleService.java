@@ -41,7 +41,7 @@ public final class SampleService {
     }
 
     public static void main(final String... args) throws IOException {
-        try (Rest rest = Rest.create("https://api.github.com")) {
+        try (Rest rest = Rest.builder().baseUrl("https://api.github.com").build()) {
             rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                     .accept(MediaType.APPLICATION_JSON)
                     .dispatch(series(),
