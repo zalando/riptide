@@ -162,4 +162,27 @@ public final class ExecuteTest {
                 .body(new Success(true));
     }
 
+    @Test
+    public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() throws IOException {
+        final AsyncRestTemplate template = new AsyncRestTemplate();
+        final MockRestServiceServer server = MockRestServiceServer.createServer(template);
+        final Rest unit = Rest.builder()
+                .requestFactory(template.getAsyncRequestFactory())
+                .defaultConverters()
+                .baseUrl("https://api.example.com")
+                .build();
+
+        // we never actually make the request, but the mock server is doing some magic pre-actively
+        server.expect(requestTo(url))
+                .andRespond(withSuccess());
+
+        exception.expect(RestClientException.class);
+        exception.expectMessage("no suitable HttpMessageConverter found ");
+        exception.expectMessage("org.zalando.riptide.model.Success");
+
+        unit.delete(url)
+                .contentType(MediaType.parseMediaType("application/x-json-stream"))
+                .body(new Success(true));
+    }
+
 }
