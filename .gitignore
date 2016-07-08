@@ -1,8 +1,7 @@
-# Created by http://gitignore.io
-
 ### IntelliJ ###
-*.iml
-.idea/
+/*.iml
+/*/*.iml
+/.idea/
 
 ### Maven ###
-target/
+/*/target/
