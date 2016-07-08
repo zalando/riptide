@@ -23,7 +23,6 @@ package org.zalando.riptide.capture;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureAdapter;
 
-import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,7 +32,7 @@ final class DefaultCapture<T> implements Capture<T> {
     private final AtomicReference<T> reference = new AtomicReference<>();
 
     @Override
-    public void accept(final T input) throws IOException {
+    public void accept(final T input) throws Exception {
         reference.set(input);
     }
 

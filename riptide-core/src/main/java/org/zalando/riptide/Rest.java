@@ -161,7 +161,7 @@ public final class Rest implements Closeable {
                         try {
                             tree.execute(response, reader);
                             capture.set(null);
-                        } catch (final Throwable e) {
+                        } catch (final Exception e) {
                             failure.onFailure(e);
                         }
                     };

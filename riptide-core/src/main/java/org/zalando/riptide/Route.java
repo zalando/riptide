@@ -33,7 +33,7 @@ import java.util.List;
 @FunctionalInterface
 public interface Route {
 
-    void execute(final ClientHttpResponse response, final MessageReader reader) throws IOException;
+    void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
     static Route call(final ThrowingRunnable consumer) {
         return (response, reader) ->

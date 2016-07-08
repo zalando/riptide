@@ -84,7 +84,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     @Override
-    public void execute(final ClientHttpResponse response, final MessageReader reader) throws IOException {
+    public void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception {
         final Optional<Route> route = navigator.navigate(response, this);
 
         if (route.isPresent()) {
@@ -99,7 +99,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     private void executeWildcardOrThrow(final ClientHttpResponse response,
-            final MessageReader reader, final ThrowingSupplier<NoRouteException> e) throws IOException {
+            final MessageReader reader, final ThrowingSupplier<NoRouteException> e) throws Exception {
 
         if (wildcard.isPresent()) {
             wildcard.get().execute(response, reader);
