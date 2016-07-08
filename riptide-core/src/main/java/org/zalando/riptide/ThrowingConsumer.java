@@ -20,15 +20,12 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.client.ClientHttpResponse;
-
-import java.io.IOException;
 import java.util.Objects;
 
 @FunctionalInterface
 public interface ThrowingConsumer<T> {
 
-    void accept(T input) throws IOException;
+    void accept(T input) throws Exception;
 
     default ThrowingConsumer<T> andThen(final ThrowingConsumer<? super T> after) {
         Objects.requireNonNull(after);
