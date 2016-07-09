@@ -26,8 +26,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.Arrays;
-
 public final class MockSetup {
 
     private final MockRestServiceServer server;
@@ -42,10 +40,8 @@ public final class MockSetup {
         this.server = MockRestServiceServer.createServer(template);
         this.rest = Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
-                .converters(Arrays.asList(
-                        new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()),
-                        new StringHttpMessageConverter()
-                ))
+                .converter(new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()))
+                .converter(new StringHttpMessageConverter())
                 .baseUrl(baseUrl)
                 .build();
     }
