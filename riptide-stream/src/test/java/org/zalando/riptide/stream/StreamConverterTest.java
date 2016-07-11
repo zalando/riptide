@@ -25,9 +25,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
@@ -37,9 +37,10 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.zalando.riptide.model.AccountBody;
 
@@ -51,17 +52,16 @@ public class StreamConverterTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void shouldRead() throws Exception {
+    public void shouldReadAllJsons() throws Exception {
         final StreamConverter unit = new StreamConverter();
-        Assert.assertTrue(unit.canRead(List.class, null));
-        Assert.assertTrue(unit.canRead(List[].class, null));
-        Assert.assertTrue(unit.canRead(AccountBody.class, null));
-        Assert.assertTrue(unit.canRead(AccountBody[].class, null));
-    }
+        Assert.assertFalse(unit.canRead(Object.class, MediaType.APPLICATION_XML));
+        
+        Assert.assertTrue(unit.canRead(Object.class, MediaType.APPLICATION_JSON));
+        Assert.assertTrue(unit.canRead(List.class, MediaType.APPLICATION_JSON));
+        Assert.assertTrue(unit.canRead(List[].class, MediaType.APPLICATION_JSON));
+        Assert.assertTrue(unit.canRead(AccountBody.class, MediaType.APPLICATION_JSON));
+        Assert.assertTrue(unit.canRead(AccountBody[].class, MediaType.APPLICATION_JSON));
 
-    @Test
-    public void shouldReadStreams() throws Exception {
-        final StreamConverter unit = new StreamConverter();
         Assert.assertTrue(unit.canRead(Streams.streamOf(List.class).getType(), null, null));
         Assert.assertTrue(unit.canRead(Streams.streamOf(List[].class).getType(), null, null));
         Assert.assertTrue(unit.canRead(Streams.streamOf(AccountBody.class).getType(), null, null));
@@ -72,19 +72,9 @@ public class StreamConverterTest {
     public void shouldReadCreateStream() throws Exception {
         Type type = Streams.streamOf(AccountBody.class).getType();
         final StreamConverter unit = new StreamConverter(new ObjectMapper().findAndRegisterModules());
-        HttpInputMessage input = new HttpInputMessage() {
-
-            @Override
-            public HttpHeaders getHeaders() {
-                return null;
-            }
-
-            @Override
-            public InputStream getBody() throws IOException {
-                return new StreamFilter(new ClassPathResource("account-sequence.json").getInputStream());
-            }
-        };
-        input.getHeaders();
+        final StreamFilter filter = new StreamFilter(new ClassPathResource("account-sequence.json").getInputStream());
+        final HttpInputMessage input = mock(HttpInputMessage.class);
+        when(input.getBody()).thenReturn(filter);
 
         @SuppressWarnings("unchecked")
         Stream<Object> stream = (Stream<Object>) unit.read(type, null, input);
@@ -108,19 +98,9 @@ public class StreamConverterTest {
         exception.expectCause(instanceOf(IOException.class));
 
         final StreamConverter unit = new StreamConverter();
-        HttpInputMessage input = new HttpInputMessage() {
+        final HttpInputMessage input = mock(HttpInputMessage.class);
+        Mockito.doThrow(new IOException()).when(input).getBody();
 
-            @Override
-            public HttpHeaders getHeaders() {
-                return null;
-            }
-
-            @Override
-            public InputStream getBody() throws IOException {
-                throw new IOException();
-            }
-        };
-        input.getHeaders();
         unit.read(Streams.streamOf(Object.class).getType(), null, input);
     }
 }

@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.client.ClientHttpResponse;
@@ -47,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -81,15 +81,13 @@ public class StreamsTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void shouldCallConsumerWithList() throws Exception {
-        final InputStream stream = new ClassPathResource("account-list.json").getInputStream();
-    
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_JSON));
     
+        @SuppressWarnings("unchecked")
         final ThrowingConsumer<List<AccountBody>> verifier = mock(ThrowingConsumer.class);
     
         unit.get("/accounts").dispatch(status(),
@@ -101,16 +99,14 @@ public class StreamsTest {
                 new AccountBody("1234567891", "Acme Company"),
                 new AccountBody("1234567892", "Acme GmbH"),
                 new AccountBody("1234567893", "Acme SE")));
-        verify(verifier, times(1)).accept(any(List.class));
+        verify(verifier).accept(any());
     }
 
     @Test
     public void shouldCallConsumerWithArray() throws Exception {
-        final InputStream stream = new ClassPathResource("account-list.json").getInputStream();
-    
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_JSON));
     
         @SuppressWarnings("unchecked")
@@ -125,16 +121,14 @@ public class StreamsTest {
                 new AccountBody("1234567891", "Acme Company"),
                 new AccountBody("1234567892", "Acme GmbH"),
                 new AccountBody("1234567893", "Acme SE") });
-        verify(verifier, times(1)).accept(any(AccountBody[].class));
+        verify(verifier).accept(any());
     }
 
     @Test
     public void shouldCallConsumerWithJsonList() throws Exception {
-        final InputStream stream = new ClassPathResource("account-list.json").getInputStream();
-    
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_JSON));
     
         @SuppressWarnings("unchecked")
@@ -148,16 +142,14 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any(AccountBody.class));
+        verify(verifier, times(4)).accept(any());
     }
 
     @Test
     public void shouldCallConsumerWithXJsonStream() throws Exception {
-        final InputStream stream = new ClassPathResource("account-stream.json").getInputStream();
-
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-stream.json"))
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
@@ -171,16 +163,14 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any(AccountBody.class));
+        verify(verifier, times(4)).accept(any());
     }
 
     @Test
     public void shouldCallConsumerWithJsonSequence() throws Exception {
-        final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
-
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-sequence.json"))
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
@@ -194,17 +184,15 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any(AccountBody.class));
+        verify(verifier, times(4)).accept(any());
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void shouldCallConsumerWithoutStream() throws Exception {
-        final InputStream stream = new ClassPathResource("account-item.json").getInputStream();
-    
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-item.json"))
                         .contentType(APPLICATION_JSON));
     
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
@@ -215,7 +203,7 @@ public class StreamsTest {
     
         verify(verifier).accept(
                 new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any(AccountBody.class));
+        verify(verifier, times(1)).accept(any());
     }
 
     @Test
@@ -234,7 +222,7 @@ public class StreamsTest {
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail)).get();
 
-        verify(verifier, never()).accept(any(AccountBody.class));
+        verify(verifier, never()).accept(any());
         ;
     }
 
@@ -243,16 +231,14 @@ public class StreamsTest {
         exception.expect(java.util.concurrent.ExecutionException.class);
         exception.expectCause(instanceOf(IOException.class));
     
-        final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
-    
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-sequence.json"))
                         .contentType(APPLICATION_JSON));
     
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
-        Mockito.doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
+        doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
     
         Future<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -260,7 +246,7 @@ public class StreamsTest {
     
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
-        verify(verifier, times(3)).accept(any(AccountBody.class));
+        verify(verifier, times(3)).accept(any());
     
         future.get();
     }
@@ -270,11 +256,9 @@ public class StreamsTest {
         exception.expect(java.util.concurrent.ExecutionException.class);
         exception.expectCause(instanceOf(UncheckedIOException.class));
 
-        final InputStream stream = new ClassPathResource("account-fail.json").getInputStream();
-
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .body(new ClassPathResource("account-fail.json"))
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
@@ -285,7 +269,7 @@ public class StreamsTest {
                 anyStatus().call(this::fail));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any(AccountBody.class));
+        verify(verifier, times(1)).accept(any());
 
         future.get();
     }

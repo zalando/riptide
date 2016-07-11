@@ -33,9 +33,9 @@ import java.util.stream.Stream;
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
  * receive infinite streams using application/x-json-stream and application/json-seq format, as well as simple finite
- * streams from lists and arrays. Must be enable by registering the {@link StreamConverter} with Riptide (using
- * {@link Streams#streamConverter()}) and declare a route for your stream that is calling a the stream consumer as
- * follows:
+ * streams from lists and arrays. The feature must be enabled by registering the {@link StreamConverter} with Riptide
+ * (using {@link Streams#streamConverter()}) and declare a route for your stream that is calling a the stream consumer
+ * as follows:
  * 
  * <pre>
  * try (Rest rest = Rest.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
@@ -59,13 +59,13 @@ public final class Streams {
 
     @SuppressWarnings("serial")
     public static <T> TypeToken<Stream<T>> streamOf(final TypeToken<T> type) {
-        final TypeToken<Stream<T>> listType = new TypeToken<Stream<T>>() {
+        final TypeToken<Stream<T>> streamType = new TypeToken<Stream<T>>() {
         };
 
         final TypeParameter<T> elementType = new TypeParameter<T>() {
         };
 
-        return listType.where(elementType, type);
+        return streamType.where(elementType, type);
     }
 
     @SuppressWarnings("serial")
