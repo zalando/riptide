@@ -26,7 +26,6 @@ import org.springframework.http.MediaType;
 import java.io.IOException;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static java.lang.System.*;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
@@ -45,9 +44,8 @@ public final class SampleService {
             rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                     .accept(MediaType.APPLICATION_JSON)
                     .dispatch(series(),
-                            on(SUCCESSFUL).call(Route.listOf(User.class), users ->
-                                    users.forEach(user ->
-                                            out.println(user.login + " (" + user.contributions + ")"))));
+                            on(SUCCESSFUL).call(listOf(User.class), users -> users.forEach(
+                                    user -> System.out.println(user.login + " (" + user.contributions + ")"))));
         }
     }
 

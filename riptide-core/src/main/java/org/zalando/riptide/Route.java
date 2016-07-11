@@ -58,6 +58,7 @@ public interface Route {
         return listOf(TypeToken.of(entityType));
     }
 
+    @SuppressWarnings("serial")
     static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
         final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
         };

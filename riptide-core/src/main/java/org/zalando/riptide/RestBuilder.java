@@ -99,5 +99,4 @@ public final class RestBuilder {
     private UriTemplateHandler uriTemplateHandler() {
         return uriTemplateHandler == null ? new DefaultUriTemplateHandler() : uriTemplateHandler;
     }
-
 }

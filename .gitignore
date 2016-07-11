@@ -3,5 +3,10 @@
 /*/*.iml
 /.idea/
 
+### Eclipse ###
+.project
+.classpath
+.settings/
+
 ### Maven ###
 /*/target/

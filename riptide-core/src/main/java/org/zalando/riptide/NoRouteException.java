@@ -25,6 +25,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 
+@SuppressWarnings("serial")
 public final class NoRouteException extends RestClientException {
 
     private final ClientHttpResponse response;
