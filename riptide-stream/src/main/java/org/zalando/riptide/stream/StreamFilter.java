@@ -26,6 +26,8 @@ import java.io.InputStream;
 
 class StreamFilter extends FilterInputStream {
 
+    private static final int JSON_SEQUENCE_SEPARATOR = 30;
+
     final int size;
 
     protected StreamFilter(InputStream in) {
@@ -38,7 +40,7 @@ class StreamFilter extends FilterInputStream {
     }
 
     private boolean filtered(byte read) {
-        return read == 30;
+        return read == JSON_SEQUENCE_SEPARATOR;
     }
 
     @Override

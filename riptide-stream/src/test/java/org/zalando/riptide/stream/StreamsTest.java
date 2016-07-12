@@ -58,6 +58,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
+import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.forEach;
 import static org.zalando.riptide.stream.Streams.streamOf;
 import static org.zalando.riptide.Route.listOf;
@@ -150,7 +152,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-stream.json"))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
@@ -171,7 +173,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-sequence.json"))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_JSON_SEQ));
 
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
@@ -193,7 +195,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-item.json"))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_X_JSON_STREAM));
     
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
     
@@ -213,7 +215,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new InputStreamResource(stream))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
@@ -234,7 +236,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-sequence.json"))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_JSON_SEQ));
     
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
@@ -259,7 +261,7 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-fail.json"))
-                        .contentType(APPLICATION_JSON));
+                        .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);

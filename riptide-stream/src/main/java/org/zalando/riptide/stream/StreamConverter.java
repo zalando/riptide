@@ -20,29 +20,50 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
+import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
+import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
+import static org.zalando.riptide.stream.Streams.DEFAULT_CHARSET;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
-class StreamConverter extends MappingJackson2HttpMessageConverter {
+class StreamConverter<T> implements GenericHttpMessageConverter<T> {
 
-    protected StreamConverter() {
-        super();
+    private static final List<MediaType> SUPPORTED_MEDIA_TYPES =
+            Arrays.asList(APPLICATION_JSON_SEQ,
+                    APPLICATION_X_JSON_STREAM,
+                    MediaType.APPLICATION_JSON_UTF8,
+                    new MediaType("application", "*+json", DEFAULT_CHARSET));
+
+    private final ObjectMapper mapper;
+    private final List<MediaType> medias;
+
+    public StreamConverter() {
+        this(Jackson2ObjectMapperBuilder.json().build());
     }
 
-    protected StreamConverter(ObjectMapper objectMapper) {
-        super(objectMapper);
+    public StreamConverter(ObjectMapper mapper) {
+        this.mapper = mapper;
+        this.medias = SUPPORTED_MEDIA_TYPES;
     }
 
     @Override
@@ -50,30 +71,96 @@ class StreamConverter extends MappingJackson2HttpMessageConverter {
         return this.canRead(clazz, null, mediaType);
     }
 
-    @Override
-    public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
-        final JavaType javaType = getJavaType(type, contextClass);
-        if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
-            return super.canRead(javaType.containedType(0), contextClass, mediaType);
+    @SuppressWarnings("deprecation")
+    private JavaType getJavaType(Type type, Class<?> contextClass) {
+        TypeFactory tf = mapper.getTypeFactory();
+        // Conditional call because Jackson 2.7 does not support null contextClass anymore
+        // TypeVariable resolution will not work with Jackson 2.7, see SPR-13853 for more details
+        return (contextClass != null) ? tf.constructType(type, contextClass) : tf.constructType(type);
+    }
+
+    private boolean canRead(MediaType mediaType) {
+        if (mediaType == null) {
+            return true;
         }
-        return super.canRead(javaType, contextClass, mediaType);
+        for (MediaType medias : getSupportedMediaTypes()) {
+            if (medias.includes(mediaType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public Object read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
-            throws IOException, HttpMessageNotReadableException {
+    public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
+        final JavaType javaType = this.getJavaType(type, contextClass);
+        if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
+            JavaType containedType = javaType.containedType(0);
+            return (containedType != null) && mapper.canDeserialize(containedType) && canRead(mediaType);
+        }
+        return mapper.canDeserialize(javaType) && canRead(mediaType);
+    }
 
+    @Override
+    public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+        return false;
+    }
+
+    @Override
+    public boolean canWrite(Type type, Class<?> clazz, MediaType mediaType) {
+        return false;
+    }
+
+    @Override
+    public List<MediaType> getSupportedMediaTypes() {
+        return this.medias;
+    }
+
+    @Override
+    public T read(Class<? extends T> clazz, HttpInputMessage inputMessage)
+            throws IOException, HttpMessageNotReadableException {
+        JavaType javaType = getJavaType(clazz, null);
+        return read(javaType, inputMessage);
+    }
+
+    @Override
+    public T read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
+            throws IOException, HttpMessageNotReadableException {
         JavaType javaType = getJavaType(type, contextClass);
+        return read(javaType, inputMessage);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T read(JavaType javaType, HttpInputMessage inputMessage) {
         try {
             if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
-                final JavaType containedType = javaType.containedType(0);
-                final InputStream stream = new StreamFilter(inputMessage.getBody());
-                final JsonParser parser = objectMapper.getFactory().createParser(stream);
-                return StreamSupport.stream(new StreamSpliterator<>(containedType, parser, objectMapper), false);
+                return (T) StreamSupport.stream(split(javaType, inputMessage), false);
             }
-            return objectMapper.readValue(inputMessage.getBody(), javaType);
+            return mapper.readValue(inputMessage.getBody(), javaType);
         } catch (IOException ex) {
             throw new HttpMessageNotReadableException("Could not read document: " + ex.getMessage(), ex);
         }
+    }
+
+    private StreamSpliterator<Object> split(JavaType javaType, HttpInputMessage inputMessage)
+            throws IOException, JsonParseException {
+        final MediaType contentType = inputMessage.getHeaders().getContentType();
+        final boolean sequence = APPLICATION_JSON_SEQ.includes(contentType);
+        final InputStream stream = (sequence) ? new StreamFilter(inputMessage.getBody()) : inputMessage.getBody();
+        final JsonParser parser = mapper.getFactory().createParser(stream);
+        final JavaType containedType = javaType.containedType(0);
+        return new StreamSpliterator<>(containedType, parser, mapper);
+    }
+
+    @Override
+    public void write(T t, MediaType contentType, HttpOutputMessage outputMessage)
+            throws IOException, HttpMessageNotWritableException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void write(T t, Type type, MediaType contentType, HttpOutputMessage outputMessage)
+            throws IOException, HttpMessageNotWritableException {
+        throw new UnsupportedOperationException();
     }
 }

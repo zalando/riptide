@@ -58,6 +58,7 @@ class StreamSpliterator<T> implements Spliterator<T> {
                 case END_ARRAY:
                     parser.nextToken();
                     return false;
+
                 default:
                     // nothing to do.
                 }
