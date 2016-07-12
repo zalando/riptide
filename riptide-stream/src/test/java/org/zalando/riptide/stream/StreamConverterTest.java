@@ -50,7 +50,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.zalando.riptide.model.Account;
 import org.zalando.riptide.model.AccountBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,8 +77,8 @@ public class StreamConverterTest {
         assertTrue(unit.canRead(AccountBody.class, null));
         assertTrue(unit.canRead(AccountBody[].class, null));
 
-        when(mapper.canDeserialize(factory.constructType(Account.class))).thenReturn(false);
-        assertFalse(unit.canRead(Account.class, APPLICATION_JSON));
+        when(mapper.canDeserialize(factory.constructType(AccountBody.class))).thenReturn(false);
+        assertFalse(unit.canRead(AccountBody.class, APPLICATION_JSON));
     }
 
     @Test
@@ -97,8 +96,8 @@ public class StreamConverterTest {
         assertTrue(unit.canRead(Streams.streamOf(AccountBody.class).getType(), getClass(), null));
         assertTrue(unit.canRead(Streams.streamOf(AccountBody[].class).getType(), getClass(), null));
 
-        when(mapper.canDeserialize(factory.constructType(Account.class))).thenReturn(false);
-        assertFalse(unit.canRead(Streams.streamOf(Account.class).getType(), getClass(), APPLICATION_X_JSON_STREAM));
+        when(mapper.canDeserialize(factory.constructType(AccountBody.class))).thenReturn(false);
+        assertFalse(unit.canRead(Streams.streamOf(AccountBody.class).getType(), getClass(), APPLICATION_X_JSON_STREAM));
     }
 
     @Test
