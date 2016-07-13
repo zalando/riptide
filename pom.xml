@@ -60,6 +60,7 @@
     <modules>
         <module>riptide-core</module>
         <module>riptide-capture</module>
+        <module>riptide-stream</module>
     </modules>
 
     <properties>

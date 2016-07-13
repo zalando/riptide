@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.stream;
 
 /*
  * ⁣​
@@ -21,15 +21,17 @@ package org.zalando.riptide;
  */
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import org.springframework.http.MediaType;
 
-import java.io.IOException;
+import org.springframework.http.MediaType;
+import org.zalando.riptide.Rest;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.stream.Streams.forEach;
+import static org.zalando.riptide.stream.Streams.streamConverter;
+import static org.zalando.riptide.stream.Streams.streamOf;
 
 public final class SampleService {
 
@@ -39,14 +41,14 @@ public final class SampleService {
         int contributions;
     }
 
-    public static void main(final String... args) throws IOException {
-        try (Rest rest = Rest.builder().baseUrl("https://api.github.com").build()) {
+    public static void main(final String... args) throws Exception {
+        try (Rest rest = Rest.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
             rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                     .accept(MediaType.APPLICATION_JSON)
                     .dispatch(series(),
-                            on(SUCCESSFUL).call(listOf(User.class), users -> users.forEach(
-                                    user -> System.out.println(user.login + " (" + user.contributions + ")"))));
+                            on(SUCCESSFUL).call(streamOf(User.class),
+                                    forEach(user -> System.out.println(user.login + " (" + user.contributions + ")"))))
+                    .get();
         }
     }
-
 }

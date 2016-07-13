@@ -26,7 +26,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
@@ -47,7 +46,7 @@ final class DefaultMessageReader implements MessageReader {
         final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type.getType(), converters);
         final I data = extractor.extractData(response);
 
-        if (data instanceof Closeable) {
+        if (data instanceof AutoCloseable) {
             return data;
         }
 

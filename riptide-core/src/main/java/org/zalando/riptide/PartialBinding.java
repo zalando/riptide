@@ -20,12 +20,10 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public final class PartialBinding<A> {
 

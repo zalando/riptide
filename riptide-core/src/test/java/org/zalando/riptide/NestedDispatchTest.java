@@ -65,7 +65,6 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
-import static org.zalando.riptide.Route.listOf;
 import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
@@ -121,6 +120,7 @@ public final class NestedDispatchTest {
                 anyContentType().call(this::fail));
     }
 
+    @SuppressWarnings("serial")
     private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 

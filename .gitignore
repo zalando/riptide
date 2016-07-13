@@ -3,5 +3,14 @@
 /*/*.iml
 /.idea/
 
+### Eclipse ###
+/.project
+/.classpath
+/.settings/
+/*/.project
+/*/.classpath
+/*/.settings/
+/*/bin/
+
 ### Maven ###
 /*/target/
