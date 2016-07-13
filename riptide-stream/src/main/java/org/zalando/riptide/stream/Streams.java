@@ -1,7 +1,5 @@
 package org.zalando.riptide.stream;
 
-import org.springframework.http.MediaType;
-
 /*
  * ⁣​
  * Riptide: Stream
@@ -24,12 +22,14 @@ import org.springframework.http.MediaType;
 
 import org.springframework.http.converter.HttpMessageConverter;
 import org.zalando.riptide.ThrowingConsumer;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 public final class Streams {
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
     public static final MediaType APPLICATION_X_JSON_STREAM = //
             new MediaType("application", "x-json-stream", DEFAULT_CHARSET);
     public static final MediaType APPLICATION_JSON_SEQ = //
@@ -114,10 +115,14 @@ public final class Streams {
     }
 
     public static HttpMessageConverter<?> streamConverter() {
-        return new StreamConverter<>();
+        return new StreamConverter<>(null, null);
     }
 
     public static HttpMessageConverter<?> streamConverter(ObjectMapper mapper) {
-        return new StreamConverter<>(mapper);
+        return new StreamConverter<>(mapper, null);
+    }
+
+    public static HttpMessageConverter<?> streamConverter(ObjectMapper mapper, List<MediaType> medias) {
+        return new StreamConverter<>(mapper, medias);
     }
 }

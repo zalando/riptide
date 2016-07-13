@@ -38,6 +38,7 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -66,7 +67,7 @@ public class StreamConverterTest {
         final TypeFactory factory = new ObjectMapper().getTypeFactory();
         when(mapper.getTypeFactory()).thenReturn(factory);
         when(mapper.canDeserialize(any())).thenReturn(true);
-        final StreamConverter<?> unit = new StreamConverter<>(mapper);
+        final StreamConverter<?> unit = new StreamConverter<>(mapper, Arrays.asList(APPLICATION_JSON));
 
         assertFalse(unit.canRead(Object.class, APPLICATION_XML));
         assertFalse(unit.canRead(Stream.class, APPLICATION_JSON));
@@ -87,7 +88,7 @@ public class StreamConverterTest {
         final TypeFactory factory = new ObjectMapper().getTypeFactory();
         when(mapper.getTypeFactory()).thenReturn(factory);
         when(mapper.canDeserialize(any())).thenReturn(true);
-        final StreamConverter<?> unit = new StreamConverter<>(mapper);
+        final StreamConverter<?> unit = new StreamConverter<>(mapper, Arrays.asList(APPLICATION_X_JSON_STREAM));
 
         assertFalse(unit.canRead(Streams.streamOf(Object.class).getType(), getClass(), APPLICATION_XML));
 
@@ -123,7 +124,8 @@ public class StreamConverterTest {
     @Test
     public void shouldSupportReadItem() throws Exception {
         final StreamConverter<AccountBody> unit =
-                new StreamConverter<>(new ObjectMapper().findAndRegisterModules());
+                new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
+                        Arrays.asList(APPLICATION_JSON));
         final HttpInputMessage input = mockWithContentType(APPLICATION_JSON);
         when(input.getBody()).thenReturn(new ClassPathResource("account-item.json").getInputStream());
 
@@ -134,7 +136,8 @@ public class StreamConverterTest {
     public void shouldSupportReadStream() throws Exception {
         Type type = Streams.streamOf(AccountBody.class).getType();
         final StreamConverter<Stream<AccountBody>> unit =
-                new StreamConverter<>(new ObjectMapper().findAndRegisterModules());
+                new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
+                        Arrays.asList(APPLICATION_X_JSON_STREAM));
         final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
         when(input.getBody()).thenReturn(new ClassPathResource("account-stream.json").getInputStream());
 
@@ -156,7 +159,8 @@ public class StreamConverterTest {
     public void shouldSupportReadSequence() throws Exception {
         Type type = Streams.streamOf(AccountBody.class).getType();
         final StreamConverter<Stream<AccountBody>> unit =
-                new StreamConverter<>(new ObjectMapper().findAndRegisterModules());
+                new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
+                        Arrays.asList(APPLICATION_JSON_SEQ));
         final HttpInputMessage input = mockWithContentType(APPLICATION_JSON_SEQ);
         when(input.getBody()).thenReturn(new ClassPathResource("account-sequence.json").getInputStream());
 

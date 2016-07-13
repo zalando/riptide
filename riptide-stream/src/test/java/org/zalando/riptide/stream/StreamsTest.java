@@ -40,7 +40,6 @@ import org.zalando.riptide.MockSetup;
 import org.zalando.riptide.Rest;
 import org.zalando.riptide.ThrowingConsumer;
 import org.zalando.riptide.model.AccountBody;
-import org.zalando.riptide.stream.Streams;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.anyStatus;
@@ -61,6 +59,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.forEach;
+import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
 import static org.zalando.riptide.Route.listOf;
 
@@ -77,7 +76,7 @@ public class StreamsTest {
 
     public StreamsTest() {
         final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-        MockSetup setup = new MockSetup(baseUrl, Arrays.asList(Streams.streamConverter(mapper)));
+        MockSetup setup = new MockSetup(baseUrl, Arrays.asList(streamConverter(mapper)));
         this.server = setup.getServer();
         this.unit = setup.getRest();
     }
@@ -87,15 +86,15 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
-                        .contentType(APPLICATION_JSON));
-    
+                        .contentType(APPLICATION_X_JSON_STREAM));
+
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<List<AccountBody>> verifier = mock(ThrowingConsumer.class);
-    
+
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(listOf(AccountBody.class)), forEach(verifier)),
                 anyStatus().call(this::fail)).get();
-    
+
         verify(verifier).accept(Arrays.asList(
                 new AccountBody("1234567890", "Acme Corporation"),
                 new AccountBody("1234567891", "Acme Company"),
@@ -109,15 +108,15 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
-                        .contentType(APPLICATION_JSON));
-    
+                        .contentType(APPLICATION_X_JSON_STREAM));
+
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody[]> verifier = mock(ThrowingConsumer.class);
-    
+
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody[].class), forEach(verifier)),
                 anyStatus().call(this::fail)).get();
-    
+
         verify(verifier).accept(new AccountBody[] {
                 new AccountBody("1234567890", "Acme Corporation"),
                 new AccountBody("1234567891", "Acme Company"),
@@ -131,15 +130,15 @@ public class StreamsTest {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
-                        .contentType(APPLICATION_JSON));
-    
+                        .contentType(APPLICATION_X_JSON_STREAM));
+
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
-    
+
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail)).get();
-    
+
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
@@ -196,13 +195,13 @@ public class StreamsTest {
                 withSuccess()
                         .body(new ClassPathResource("account-item.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
-    
+
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
-    
+
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(AccountBody.class, verifier),
                 anyStatus().call(this::fail)).get();
-    
+
         verify(verifier).accept(
                 new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier, times(1)).accept(any());
@@ -232,24 +231,24 @@ public class StreamsTest {
     public void shouldFailOnCallWithConsumerException() throws Exception {
         exception.expect(java.util.concurrent.ExecutionException.class);
         exception.expectCause(instanceOf(IOException.class));
-    
+
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-sequence.json"))
                         .contentType(APPLICATION_JSON_SEQ));
-    
+
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
         doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
-    
+
         Future<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
-    
+
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier, times(3)).accept(any());
-    
+
         future.get();
     }
 

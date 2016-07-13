@@ -1,5 +1,7 @@
 package org.zalando.riptide.stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /*
  * ⁣​
  * Riptide: Stream
@@ -41,12 +43,15 @@ public final class EnforceCoverageTest {
     @Test
     public void shouldUseStreamConverterConstructor() {
         Streams.streamConverter();
+        Streams.streamConverter(null);
+        Streams.streamConverter(null, null);
     }
 
     @Test
     public void shouldUseStreamSpliteratorTrySplit() {
         assertNull(new StreamSpliterator<>(null, null, null).trySplit());
     }
+
     @Test
     public void shouldUseStreamSpliteratorEstimateSize() {
         assertThat(new StreamSpliterator<>(null, null, null).estimateSize(), is(Long.MAX_VALUE));

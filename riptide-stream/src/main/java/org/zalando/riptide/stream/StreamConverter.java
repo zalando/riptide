@@ -22,7 +22,6 @@ package org.zalando.riptide.stream;
 
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
-import static org.zalando.riptide.stream.Streams.DEFAULT_CHARSET;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,22 +47,20 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 class StreamConverter<T> implements GenericHttpMessageConverter<T> {
 
-    private static final List<MediaType> SUPPORTED_MEDIA_TYPES =
+    private static final List<MediaType> DEFAULT_MEDIA_TYPES =
             Arrays.asList(APPLICATION_JSON_SEQ,
-                    APPLICATION_X_JSON_STREAM,
-                    MediaType.APPLICATION_JSON_UTF8,
-                    new MediaType("application", "*+json", DEFAULT_CHARSET));
+                    APPLICATION_X_JSON_STREAM);
 
     private final ObjectMapper mapper;
     private final List<MediaType> medias;
 
     public StreamConverter() {
-        this(Jackson2ObjectMapperBuilder.json().build());
+        this(null, null);
     }
 
-    public StreamConverter(ObjectMapper mapper) {
-        this.mapper = mapper;
-        this.medias = SUPPORTED_MEDIA_TYPES;
+    public StreamConverter(ObjectMapper mapper, List<MediaType> medias) {
+        this.mapper = (mapper != null) ? mapper : Jackson2ObjectMapperBuilder.json().build();
+        this.medias = (medias != null) ? medias : DEFAULT_MEDIA_TYPES;
     }
 
     @Override
@@ -80,15 +77,7 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
     }
 
     private boolean canRead(MediaType mediaType) {
-        if (mediaType == null) {
-            return true;
-        }
-        for (MediaType medias : getSupportedMediaTypes()) {
-            if (medias.includes(mediaType)) {
-                return true;
-            }
-        }
-        return false;
+        return mediaType == null || getSupportedMediaTypes().stream().anyMatch(mediaType::isCompatibleWith);
     }
 
     @Override
