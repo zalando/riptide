@@ -224,7 +224,6 @@ public class StreamsTest {
                 anyStatus().call(this::fail)).get();
 
         verify(verifier, never()).accept(any());
-        ;
     }
 
     @Test

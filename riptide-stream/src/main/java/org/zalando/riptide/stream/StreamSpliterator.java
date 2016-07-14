@@ -30,7 +30,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-class StreamSpliterator<T> implements Spliterator<T> {
+final class StreamSpliterator<T> implements Spliterator<T> {
 
     private final JsonParser parser;
     private final ObjectMapper mapper;
@@ -47,6 +47,7 @@ class StreamSpliterator<T> implements Spliterator<T> {
         try {
             JsonToken token = parser.nextToken();
             if (token == null) {
+                parser.close();
                 return false;
             }
             if (!type.isArrayType() && !type.isCollectionLikeType()) {

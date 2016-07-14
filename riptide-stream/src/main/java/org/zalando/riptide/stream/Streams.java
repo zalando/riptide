@@ -56,23 +56,50 @@ import java.util.stream.Stream;
  */
 public final class Streams {
 
+    /** Default stream character encoding. */
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
+    /** Default singleton {@link media type} for application/x-json-stream. */
     public static final MediaType APPLICATION_X_JSON_STREAM = //
             new MediaType("application", "x-json-stream", DEFAULT_CHARSET);
+    /** Default singleton {@link media type} for application/json-seq. */
     public static final MediaType APPLICATION_JSON_SEQ = //
             new MediaType("application", "json-seq", DEFAULT_CHARSET);
 
+    /**
+     * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
+     * declare the expected stream response {@link TypeToken type token} in Riptide {@link Route route} as follows:
+     * 
+     * <pre>
+     *     on(...).call(streamOf(Result.class),...)
+     * </pre>
+     * 
+     * @param type element class type.
+     * @return stream token type.
+     */
     public static <T> TypeToken<Stream<T>> streamOf(final Class<T> type) {
         return streamOf(TypeToken.of(type));
     }
 
+    /**
+     * Creates specialized stream {@link TypeToken type token} for the given element {@link TypeToken type token}. Used
+     * to declare the expected stream response {@link TypeToken type token} in Riptide {@link Route route} as follows:
+     * 
+     * <pre>
+     *     on(...).call(streamOf(resultTypeToken),...)
+     * </pre>
+     * 
+     * @param type element token type.
+     * @return stream token type.
+     */
     @SuppressWarnings("serial")
     public static <T> TypeToken<Stream<T>> streamOf(final TypeToken<T> type) {
         final TypeToken<Stream<T>> streamType = new TypeToken<Stream<T>>() {
+            // no overriding needed.
         };
 
         final TypeParameter<T> elementType = new TypeParameter<T>() {
+            // no overriding needed.
         };
 
         return streamType.where(elementType, type);
@@ -81,16 +108,27 @@ public final class Streams {
     @SuppressWarnings("serial")
     private static class UncheckedConsumerException extends RuntimeException {
 
-        public UncheckedConsumerException(Exception cause) {
+        public UncheckedConsumerException(final Exception cause) {
             super(cause);
         }
 
         @Override
-        public Exception getCause() {
+        public synchronized Exception getCause() {
             return (Exception) super.getCause();
         }
     }
 
+    /**
+     * Creates {@link ThrowingConsumer stream consumer} for given {@link ThrowingConsumer element consumer}. Used to
+     * standardly wrap a single entity consumer function in a stream consumer function as follows:
+     * 
+     * <pre>
+     *     on(...).call(streamOf(...), forEach((element) -> { println(element); }))
+     * </pre>
+     * 
+     * @param consumer element consumer function.
+     * @return stream consumer function.
+     */
     public static <I> ThrowingConsumer<Stream<I>> forEach(final ThrowingConsumer<I> consumer) {
         return (input) -> {
             try {
@@ -114,15 +152,36 @@ public final class Streams {
         };
     }
 
+    /**
+     * Create default stream converter.
+     * 
+     * @return default stream converter.
+     */
     public static HttpMessageConverter<?> streamConverter() {
         return new StreamConverter<>(null, null);
     }
 
-    public static HttpMessageConverter<?> streamConverter(ObjectMapper mapper) {
+    /**
+     * Create stream converter with custom {@link ObjectMapper object mapper).
+     * 
+     * @param mapper custom {@link ObjectMapper object mapper}.
+     * 
+     * @return stream converter with customer object mapper.
+     */
+    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper) {
         return new StreamConverter<>(mapper, null);
     }
 
-    public static HttpMessageConverter<?> streamConverter(ObjectMapper mapper, List<MediaType> medias) {
+    /**
+     * Create stream converter with custom {@link ObjectMapper object mapper), and custom list of {@link MediaType media
+     * types}.
+     * 
+     * @param mapper custom {@link ObjectMapper object mapper}.
+     * @param medias custom list of {@link MediaType media types}.
+     * 
+     * @return stream converter with customer object mapper.
+     */
+    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper, final List<MediaType> medias) {
         return new StreamConverter<>(mapper, medias);
     }
 }

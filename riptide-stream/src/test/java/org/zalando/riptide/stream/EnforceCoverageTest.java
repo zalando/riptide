@@ -1,7 +1,5 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /*
  * ⁣​
  * Riptide: Stream
@@ -26,8 +24,10 @@ import com.google.gag.annotation.remark.Hack;
 import com.google.gag.annotation.remark.OhNoYouDidnt;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.zalando.riptide.stream.Streams.streamConverter;
 
 import org.junit.Test;
 
@@ -37,14 +37,14 @@ public final class EnforceCoverageTest {
 
     @Test
     public void shouldUseStreamsConstructor() {
-        new Streams();
+        assertNotNull(new Streams());
     }
 
     @Test
     public void shouldUseStreamConverterConstructor() {
-        Streams.streamConverter();
-        Streams.streamConverter(null);
-        Streams.streamConverter(null, null);
+        streamConverter();
+        streamConverter(null);
+        streamConverter(null, null);
     }
 
     @Test
