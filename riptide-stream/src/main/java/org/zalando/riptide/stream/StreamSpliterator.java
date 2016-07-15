@@ -30,7 +30,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-final class StreamSpliterator<T> implements Spliterator<T> {
+final class StreamSpliterator<T> implements Spliterator<T>, AutoCloseable {
 
     private final JsonParser parser;
     private final ObjectMapper mapper;
@@ -47,7 +47,6 @@ final class StreamSpliterator<T> implements Spliterator<T> {
         try {
             JsonToken token = parser.nextToken();
             if (token == null) {
-                parser.close();
                 return false;
             }
             if (!type.isArrayType() && !type.isCollectionLikeType()) {
@@ -86,5 +85,14 @@ final class StreamSpliterator<T> implements Spliterator<T> {
     @Override
     public int characteristics() {
         return ORDERED | IMMUTABLE;
+    }
+
+    @Override
+    public void close() throws UncheckedIOException {
+        try {
+            this.parser.close();
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 }

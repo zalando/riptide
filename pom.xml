@@ -282,8 +282,7 @@
                                 <goal>check</goal>
                             </goals>
                             <configuration>
-                                <failBuildInCaseOfDifferentContentConflict>true
-                                </failBuildInCaseOfDifferentContentConflict>
+                                <failBuildInCaseOfDifferentContentConflict>true</failBuildInCaseOfDifferentContentConflict>
                                 <failBuildInCaseOfEqualContentConflict>false</failBuildInCaseOfEqualContentConflict>
                                 <ignoredResources>
                                     <ignoredResource>.*</ignoredResource>

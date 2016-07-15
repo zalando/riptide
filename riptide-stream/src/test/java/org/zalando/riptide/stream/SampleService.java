@@ -20,11 +20,6 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-
-import org.springframework.http.MediaType;
-import org.zalando.riptide.Rest;
-
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
@@ -32,6 +27,11 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.stream.Streams.forEach;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
+
+import org.springframework.http.MediaType;
+import org.zalando.riptide.Rest;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
 public final class SampleService {
 

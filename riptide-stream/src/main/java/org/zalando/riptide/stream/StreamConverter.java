@@ -48,8 +48,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
 
     private static final List<MediaType> DEFAULT_MEDIA_TYPES =
-            Arrays.asList(APPLICATION_JSON_SEQ,
-                    APPLICATION_X_JSON_STREAM);
+            Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM);
 
     private final ObjectMapper mapper;
     private final List<MediaType> medias;
@@ -119,11 +118,10 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         return read(javaType, inputMessage);
     }
 
-    @SuppressWarnings("unchecked")
     private T read(final JavaType javaType, final HttpInputMessage inputMessage) {
         try {
             if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
-                return (T) StreamSupport.stream(split(javaType, inputMessage), false);
+                return stream(javaType.containedType(0), input(inputMessage));
             }
             return mapper.readValue(inputMessage.getBody(), javaType);
         } catch (IOException ex) {
@@ -131,14 +129,18 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         }
     }
 
-    private StreamSpliterator<Object> split(final JavaType javaType, final HttpInputMessage inputMessage)
+    @SuppressWarnings("unchecked")
+    private T stream(final JavaType javaType, final InputStream stream)
             throws IOException, JsonParseException {
+        final JsonParser parser = mapper.getFactory().createParser(stream);
+        final StreamSpliterator<Object> split = new StreamSpliterator<>(javaType, parser, mapper);
+        return (T) StreamSupport.stream(split, false).onClose(split::close);
+    }
+
+    private InputStream input(final HttpInputMessage inputMessage) throws IOException {
         final MediaType contentType = inputMessage.getHeaders().getContentType();
         final boolean sequence = APPLICATION_JSON_SEQ.includes(contentType);
-        final InputStream stream = (sequence) ? new StreamFilter(inputMessage.getBody()) : inputMessage.getBody();
-        final JsonParser parser = mapper.getFactory().createParser(stream);
-        final JavaType containedType = javaType.containedType(0);
-        return new StreamSpliterator<>(containedType, parser, mapper);
+        return (sequence) ? new StreamFilter(inputMessage.getBody()) : inputMessage.getBody();
     }
 
     @Override

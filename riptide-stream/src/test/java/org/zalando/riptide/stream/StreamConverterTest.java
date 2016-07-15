@@ -20,6 +20,7 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
@@ -33,8 +34,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
+import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -60,6 +61,13 @@ public class StreamConverterTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void shouldSupportMediaTypes() throws Exception {
+        List<MediaType> medias = new StreamConverter<>().getSupportedMediaTypes();
+        assertThat(medias, hasItem(APPLICATION_X_JSON_STREAM));
+        assertThat(medias, hasItem(APPLICATION_JSON_SEQ));
+    }
 
     @Test
     public void shouldSupportRead() throws Exception {

@@ -20,16 +20,12 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import com.google.gag.annotation.remark.Hack;
-import com.google.gag.annotation.remark.OhNoYouDidnt;
-
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.zalando.riptide.stream.Streams.streamConverter;
 
 import org.junit.Test;
+
+import com.google.gag.annotation.remark.Hack;
+import com.google.gag.annotation.remark.OhNoYouDidnt;
 
 @Hack
 @OhNoYouDidnt
@@ -38,22 +34,5 @@ public final class EnforceCoverageTest {
     @Test
     public void shouldUseStreamsConstructor() {
         assertNotNull(new Streams());
-    }
-
-    @Test
-    public void shouldUseStreamConverterConstructor() {
-        streamConverter();
-        streamConverter(null);
-        streamConverter(null, null);
-    }
-
-    @Test
-    public void shouldUseStreamSpliteratorTrySplit() {
-        assertNull(new StreamSpliterator<>(null, null, null).trySplit());
-    }
-
-    @Test
-    public void shouldUseStreamSpliteratorEstimateSize() {
-        assertThat(new StreamSpliterator<>(null, null, null).estimateSize(), is(Long.MAX_VALUE));
     }
 }

@@ -20,18 +20,19 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import org.springframework.http.converter.HttpMessageConverter;
-import org.zalando.riptide.ThrowingConsumer;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.zalando.riptide.Route;
+import org.zalando.riptide.ThrowingConsumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
-
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
@@ -56,15 +57,12 @@ import java.util.stream.Stream;
  */
 public final class Streams {
 
-    /** Default stream character encoding. */
-    public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
-
     /** Default singleton {@link media type} for application/x-json-stream. */
     public static final MediaType APPLICATION_X_JSON_STREAM = //
-            new MediaType("application", "x-json-stream", DEFAULT_CHARSET);
+            new MediaType("application", "x-json-stream", StandardCharsets.UTF_8);
     /** Default singleton {@link media type} for application/json-seq. */
     public static final MediaType APPLICATION_JSON_SEQ = //
-            new MediaType("application", "json-seq", DEFAULT_CHARSET);
+            new MediaType("application", "json-seq", StandardCharsets.UTF_8);
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
@@ -123,7 +121,7 @@ public final class Streams {
      * standardly wrap a single entity consumer function in a stream consumer function as follows:
      * 
      * <pre>
-     *     on(...).call(streamOf(...), forEach((element) -> { println(element); }))
+     *     on(...).call(streamOf(...), forEach(element -> { println(element); }))
      * </pre>
      * 
      * @param consumer element consumer function.
@@ -131,13 +129,15 @@ public final class Streams {
      */
     public static <I> ThrowingConsumer<Stream<I>> forEach(final ThrowingConsumer<I> consumer) {
         return (input) -> {
+            if (input == null) {
+                return;
+            }
             try {
-                if (input == null) {
-                    return;
-                }
                 input.forEach(wrap(consumer));
             } catch (UncheckedConsumerException ex) {
                 throw ex.getCause();
+            } finally {
+                input.close();
             }
         };
     }
