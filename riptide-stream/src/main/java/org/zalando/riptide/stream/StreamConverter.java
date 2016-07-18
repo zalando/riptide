@@ -25,8 +25,10 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -48,7 +50,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
 
     private static final List<MediaType> DEFAULT_MEDIA_TYPES =
-            Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM);
+            Collections.unmodifiableList(Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
 
     private final ObjectMapper mapper;
     private final List<MediaType> medias;
@@ -134,7 +136,13 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
             throws IOException, JsonParseException {
         final JsonParser parser = mapper.getFactory().createParser(stream);
         final StreamSpliterator<Object> split = new StreamSpliterator<>(javaType, parser, mapper);
-        return (T) StreamSupport.stream(split, false).onClose(split::close);
+        return (T) StreamSupport.stream(split, false).onClose(() -> {
+            try {
+                parser.close();
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        });
     }
 
     private InputStream input(final HttpInputMessage inputMessage) throws IOException {

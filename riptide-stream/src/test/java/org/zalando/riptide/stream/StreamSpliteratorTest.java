@@ -1,7 +1,5 @@
 package org.zalando.riptide.stream;
 
-import static org.hamcrest.Matchers.instanceOf;
-
 /*
  * ⁣​
  * Riptide: Stream
@@ -25,17 +23,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
-
-import com.fasterxml.jackson.core.JsonParser;
 
 public final class StreamSpliteratorTest {
 
@@ -44,29 +35,11 @@ public final class StreamSpliteratorTest {
 
     @Test
     public void shouldNotSupportParallelExecution() {
-        JsonParser parser = mock(JsonParser.class);
-        try (StreamSpliterator<Object> spliterator = new StreamSpliterator<>(null, parser, null)) {
-            assertNull(spliterator.trySplit());
-        }
+        assertNull( new StreamSpliterator<>(null, null, null).trySplit());
     }
 
     @Test
     public void shouldNotPredictEstimateSize() {
-        JsonParser parser = mock(JsonParser.class);
-        try (StreamSpliterator<?> spliterator = new StreamSpliterator<>(null, parser, null)) {
-            assertThat(spliterator.estimateSize(), is(Long.MAX_VALUE));
-        }
-    }
-
-    @Test
-    public void shouldWrapIOException() throws Exception {
-        exception.expect(UncheckedIOException.class);
-        exception.expectCause(instanceOf(IOException.class));
-
-        JsonParser parser = mock(JsonParser.class);
-        Mockito.doThrow(new IOException()).when(parser).close();
-        try (StreamSpliterator<?> spliterator = new StreamSpliterator<>(null, parser, null)) {
-            // nothing to do.
-        }
+        assertThat(new StreamSpliterator<>(null, null, null).estimateSize(), is(Long.MAX_VALUE));
     }
 }

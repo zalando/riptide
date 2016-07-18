@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,8 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +57,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.zalando.riptide.model.AccountBody;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
@@ -64,7 +69,7 @@ public class StreamConverterTest {
 
     @Test
     public void shouldSupportMediaTypes() throws Exception {
-        List<MediaType> medias = new StreamConverter<>().getSupportedMediaTypes();
+        final List<MediaType> medias = new StreamConverter<>().getSupportedMediaTypes();
         assertThat(medias, hasItem(APPLICATION_X_JSON_STREAM));
         assertThat(medias, hasItem(APPLICATION_JSON_SEQ));
     }
@@ -122,7 +127,7 @@ public class StreamConverterTest {
     }
 
     private HttpInputMessage mockWithContentType(final MediaType mediaType) {
-        HttpInputMessage input = mock(HttpInputMessage.class);
+        final HttpInputMessage input = mock(HttpInputMessage.class);
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
         when(input.getHeaders()).thenReturn(headers);
@@ -142,7 +147,7 @@ public class StreamConverterTest {
 
     @Test
     public void shouldSupportReadStream() throws Exception {
-        Type type = Streams.streamOf(AccountBody.class).getType();
+        final Type type = Streams.streamOf(AccountBody.class).getType();
         final StreamConverter<Stream<AccountBody>> unit =
                 new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
                         Arrays.asList(APPLICATION_X_JSON_STREAM));
@@ -165,7 +170,7 @@ public class StreamConverterTest {
 
     @Test
     public void shouldSupportReadSequence() throws Exception {
-        Type type = Streams.streamOf(AccountBody.class).getType();
+        final Type type = Streams.streamOf(AccountBody.class).getType();
         final StreamConverter<Stream<AccountBody>> unit =
                 new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
                         Arrays.asList(APPLICATION_JSON_SEQ));
@@ -184,6 +189,28 @@ public class StreamConverterTest {
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
         verify(verifier, times(4)).accept(any(AccountBody.class));
+    }
+
+    @Test
+    public void shouldWrapIOExceptionOnClose() throws Exception {
+        exception.expect(UncheckedIOException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
+        final ObjectMapper mapper = spy(new ObjectMapper().findAndRegisterModules());
+        final JsonFactory factory = spy(mapper.getFactory());
+        final JsonParser parser = mock(JsonParser.class);
+        when(mapper.getFactory()).thenReturn(factory);
+        when(factory.createParser(any(InputStream.class))).thenReturn(parser);
+        doThrow(new IOException()).when(parser).close();
+
+        final Type type = Streams.streamOf(AccountBody.class).getType();
+        final StreamConverter<Stream<AccountBody>> unit = new StreamConverter<>(mapper,null);
+        final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
+        when(input.getBody()).thenReturn(new ClassPathResource("account-stream.json").getInputStream());
+
+        try (Stream<AccountBody> stream = unit.read(type, null, input)) {
+            // nothing to do.
+        }
     }
 
     @Test
