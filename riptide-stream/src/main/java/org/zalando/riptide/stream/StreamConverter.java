@@ -25,8 +25,10 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -45,11 +47,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-class StreamConverter<T> implements GenericHttpMessageConverter<T> {
+final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
 
     private static final List<MediaType> DEFAULT_MEDIA_TYPES =
-            Arrays.asList(APPLICATION_JSON_SEQ,
-                    APPLICATION_X_JSON_STREAM);
+            Collections.unmodifiableList(Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
 
     private final ObjectMapper mapper;
     private final List<MediaType> medias;
@@ -58,7 +59,7 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         this(null, null);
     }
 
-    public StreamConverter(ObjectMapper mapper, List<MediaType> medias) {
+    public StreamConverter(final ObjectMapper mapper, final List<MediaType> medias) {
         this.mapper = (mapper != null) ? mapper : Jackson2ObjectMapperBuilder.json().build();
         this.medias = (medias != null) ? medias : DEFAULT_MEDIA_TYPES;
     }
@@ -69,19 +70,19 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
     }
 
     @SuppressWarnings("deprecation")
-    private JavaType getJavaType(Type type, Class<?> contextClass) {
+    private JavaType getJavaType(final Type type, final Class<?> contextClass) {
         TypeFactory tf = mapper.getTypeFactory();
         // Conditional call because Jackson 2.7 does not support null contextClass anymore
         // TypeVariable resolution will not work with Jackson 2.7, see SPR-13853 for more details
         return (contextClass != null) ? tf.constructType(type, contextClass) : tf.constructType(type);
     }
 
-    private boolean canRead(MediaType mediaType) {
+    private boolean canRead(final MediaType mediaType) {
         return mediaType == null || getSupportedMediaTypes().stream().anyMatch(mediaType::isCompatibleWith);
     }
 
     @Override
-    public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
+    public boolean canRead(final Type type, final Class<?> contextClass, final MediaType mediaType) {
         final JavaType javaType = this.getJavaType(type, contextClass);
         if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
             JavaType containedType = javaType.containedType(0);
@@ -91,12 +92,12 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
     }
 
     @Override
-    public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+    public boolean canWrite(final Class<?> clazz, final MediaType mediaType) {
         return false;
     }
 
     @Override
-    public boolean canWrite(Type type, Class<?> clazz, MediaType mediaType) {
+    public boolean canWrite(final Type type, final Class<?> clazz, final MediaType mediaType) {
         return false;
     }
 
@@ -106,24 +107,23 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
     }
 
     @Override
-    public T read(Class<? extends T> clazz, HttpInputMessage inputMessage)
+    public T read(final Class<? extends T> clazz, final HttpInputMessage inputMessage)
             throws IOException, HttpMessageNotReadableException {
-        JavaType javaType = getJavaType(clazz, null);
+        final JavaType javaType = getJavaType(clazz, null);
         return read(javaType, inputMessage);
     }
 
     @Override
-    public T read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
+    public T read(final Type type, final Class<?> contextClass, final HttpInputMessage inputMessage)
             throws IOException, HttpMessageNotReadableException {
-        JavaType javaType = getJavaType(type, contextClass);
+        final JavaType javaType = getJavaType(type, contextClass);
         return read(javaType, inputMessage);
     }
 
-    @SuppressWarnings("unchecked")
-    private T read(JavaType javaType, HttpInputMessage inputMessage) {
+    private T read(final JavaType javaType, final HttpInputMessage inputMessage) {
         try {
             if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
-                return (T) StreamSupport.stream(split(javaType, inputMessage), false);
+                return stream(javaType.containedType(0), input(inputMessage));
             }
             return mapper.readValue(inputMessage.getBody(), javaType);
         } catch (IOException ex) {
@@ -131,24 +131,34 @@ class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         }
     }
 
-    private StreamSpliterator<Object> split(JavaType javaType, HttpInputMessage inputMessage)
+    @SuppressWarnings("unchecked")
+    private T stream(final JavaType javaType, final InputStream stream)
             throws IOException, JsonParseException {
+        final JsonParser parser = mapper.getFactory().createParser(stream);
+        final StreamSpliterator<Object> split = new StreamSpliterator<>(javaType, parser, mapper);
+        return (T) StreamSupport.stream(split, false).onClose(() -> {
+            try {
+                parser.close();
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        });
+    }
+
+    private InputStream input(final HttpInputMessage inputMessage) throws IOException {
         final MediaType contentType = inputMessage.getHeaders().getContentType();
         final boolean sequence = APPLICATION_JSON_SEQ.includes(contentType);
-        final InputStream stream = (sequence) ? new StreamFilter(inputMessage.getBody()) : inputMessage.getBody();
-        final JsonParser parser = mapper.getFactory().createParser(stream);
-        final JavaType containedType = javaType.containedType(0);
-        return new StreamSpliterator<>(containedType, parser, mapper);
+        return (sequence) ? new StreamFilter(inputMessage.getBody()) : inputMessage.getBody();
     }
 
     @Override
-    public void write(T t, MediaType contentType, HttpOutputMessage outputMessage)
+    public void write(final T t, final MediaType contentType, final HttpOutputMessage outputMessage)
             throws IOException, HttpMessageNotWritableException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(T t, Type type, MediaType contentType, HttpOutputMessage outputMessage)
+    public void write(final T t, final Type type, final MediaType contentType, final HttpOutputMessage outputMessage)
             throws IOException, HttpMessageNotWritableException {
         throw new UnsupportedOperationException();
     }

@@ -1,5 +1,26 @@
 package org.zalando.riptide.stream;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Bindings.anyStatus;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
+import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
+import static org.zalando.riptide.stream.Streams.forEach;
+import static org.zalando.riptide.stream.Streams.streamConverter;
+import static org.zalando.riptide.stream.Streams.streamOf;
+
 /*
  * ⁣​
  * Riptide: Stream
@@ -27,6 +48,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.junit.Rule;
@@ -42,26 +64,6 @@ import org.zalando.riptide.ThrowingConsumer;
 import org.zalando.riptide.model.AccountBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static org.hamcrest.Matchers.instanceOf;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
-import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
-import static org.zalando.riptide.stream.Streams.forEach;
-import static org.zalando.riptide.stream.Streams.streamConverter;
-import static org.zalando.riptide.stream.Streams.streamOf;
-import static org.zalando.riptide.Route.listOf;
 
 public class StreamsTest {
 
@@ -79,6 +81,13 @@ public class StreamsTest {
         MockSetup setup = new MockSetup(baseUrl, Arrays.asList(streamConverter(mapper)));
         this.server = setup.getServer();
         this.unit = setup.getRest();
+    }
+
+    @Test
+    public void shouldCreateStreamConverter() {
+        assertNotNull(streamConverter());
+        assertNotNull(streamConverter(null));
+        assertNotNull(streamConverter(null, null));
     }
 
     @Test
@@ -224,12 +233,11 @@ public class StreamsTest {
                 anyStatus().call(this::fail)).get();
 
         verify(verifier, never()).accept(any());
-        ;
     }
 
     @Test
     public void shouldFailOnCallWithConsumerException() throws Exception {
-        exception.expect(java.util.concurrent.ExecutionException.class);
+        exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         server.expect(requestTo(url)).andRespond(
@@ -254,7 +262,7 @@ public class StreamsTest {
 
     @Test
     public void shouldFailOnCallWithInvalidStream() throws Exception {
-        exception.expect(java.util.concurrent.ExecutionException.class);
+        exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(UncheckedIOException.class));
 
         server.expect(requestTo(url)).andRespond(

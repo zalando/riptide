@@ -20,19 +20,26 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import com.google.gag.annotation.remark.Hack;
-import com.google.gag.annotation.remark.OhNoYouDidnt;
+public final class StreamSpliteratorTest {
 
-@Hack
-@OhNoYouDidnt
-public final class EnforceCoverageTest {
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void shouldUseStreamsConstructor() {
-        assertNotNull(new Streams());
+    public void shouldNotSupportParallelExecution() {
+        assertNull( new StreamSpliterator<>(null, null, null).trySplit());
+    }
+
+    @Test
+    public void shouldNotPredictEstimateSize() {
+        assertThat(new StreamSpliterator<>(null, null, null).estimateSize(), is(Long.MAX_VALUE));
     }
 }

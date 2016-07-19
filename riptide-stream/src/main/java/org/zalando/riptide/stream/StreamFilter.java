@@ -24,23 +24,23 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class StreamFilter extends FilterInputStream {
+final class StreamFilter extends FilterInputStream {
 
-    private static final int JSON_SEQUENCE_SEPARATOR = 30;
+    private static final int JSON_SEQUENCE_RECORD_SEPARATOR = 30;
 
     final int size;
 
-    protected StreamFilter(InputStream in) {
+    protected StreamFilter(final InputStream in) {
         this(in, 8192);
     }
 
-    protected StreamFilter(InputStream in, int size) {
+    protected StreamFilter(final InputStream in, final int size) {
         super(in);
         this.size = size;
     }
 
-    private boolean filtered(byte read) {
-        return read == JSON_SEQUENCE_SEPARATOR;
+    private boolean filtered(final byte read) {
+        return read == JSON_SEQUENCE_RECORD_SEPARATOR;
     }
 
     @Override
@@ -56,7 +56,7 @@ class StreamFilter extends FilterInputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         final int read = super.read(b, off, len);
         if (read == -1) {
             return -1;
@@ -78,7 +78,7 @@ class StreamFilter extends FilterInputStream {
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         long sum = 0;
         final byte[] b = new byte[size];
         while (sum < n) {
