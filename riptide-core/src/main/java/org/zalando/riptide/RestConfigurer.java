@@ -1,8 +1,8 @@
-package org.zalando.riptide.stream;
+package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide: Stream
+ * Riptide: Core
  * ⁣⁣
  * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
@@ -20,18 +20,9 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import com.google.gag.annotation.remark.Hack;
-import com.google.gag.annotation.remark.OhNoYouDidnt;
-import org.junit.Test;
+@FunctionalInterface
+public interface RestConfigurer {
 
-import static org.junit.Assert.assertNotNull;
+    void configure(final RestBuilder builder);
 
-@Hack
-@OhNoYouDidnt
-public final class EnforceCoverageTest {
-
-    @Test
-    public void shouldUseStreamsConstructor() {
-        assertNotNull(new Streams());
-    }
 }

@@ -80,16 +80,21 @@ public final class RestBuilder {
         return uriTemplateHandler(handler);
     }
 
-    public Rest build() {
-        if (requestFactory == null) {
-            final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            final ExecutorService executor = Executors.newSingleThreadExecutor();
-            factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
+    public RestBuilder configure(final RestConfigurer configurer) {
+        configurer.configure(this);
+        return this;
+    }
 
-            return new Rest(factory, converters(), uriTemplateHandler(), executor::shutdown);
-        } else {
-            return Rest.create(requestFactory, converters(), uriTemplateHandler());
-        }
+    public static RestConfigurer simpleRequestFactory(final ExecutorService executor) {
+        return builder -> {
+            final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
+            builder.requestFactory(factory);
+        };
+    }
+
+    public Rest build() {
+        return Rest.create(requestFactory, converters(), uriTemplateHandler());
     }
 
     private List<HttpMessageConverter<?>> converters() {

@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.stream;
 
 /*
  * ⁣​
@@ -23,6 +23,7 @@ package org.zalando.riptide;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.zalando.riptide.Rest;
 
 public final class MockSetup {
 

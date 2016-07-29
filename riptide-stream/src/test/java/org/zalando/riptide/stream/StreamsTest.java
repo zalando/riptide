@@ -1,5 +1,27 @@
 package org.zalando.riptide.stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.riptide.Rest;
+import org.zalando.riptide.ThrowingConsumer;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -41,30 +63,6 @@ import static org.zalando.riptide.stream.Streams.streamOf;
  * ​⁣
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.riptide.MockSetup;
-import org.zalando.riptide.Rest;
-import org.zalando.riptide.ThrowingConsumer;
-import org.zalando.riptide.model.AccountBody;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class StreamsTest {
 
     @Rule
@@ -78,7 +76,7 @@ public class StreamsTest {
 
     public StreamsTest() {
         final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-        MockSetup setup = new MockSetup(baseUrl, Arrays.asList(streamConverter(mapper)));
+        final MockSetup setup = new MockSetup(baseUrl, singletonList(streamConverter(mapper)));
         this.server = setup.getServer();
         this.unit = setup.getRest();
     }
@@ -249,7 +247,7 @@ public class StreamsTest {
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
         doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
 
-        Future<Void> future = unit.get("/accounts").dispatch(status(),
+        final Future<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
@@ -273,7 +271,7 @@ public class StreamsTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
 
-        Future<Void> future = unit.get("/accounts").dispatch(status(),
+        final Future<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 

@@ -28,7 +28,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.util.List;
 

@@ -60,6 +60,7 @@
     <modules>
         <module>riptide-core</module>
         <module>riptide-capture</module>
+        <module>riptide-httpclient</module>
         <module>riptide-stream</module>
     </modules>
 
@@ -101,7 +102,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.16.8</version>
+                <version>1.16.10</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -164,6 +165,28 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- http mock -->
+            <dependency>
+                <groupId>com.github.rest-driver</groupId>
+                <artifactId>rest-client-driver</artifactId>
+                <version>1.1.41</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>jcl-over-slf4j</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-library</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
             <!-- jackson -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -215,6 +238,10 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
         </dependency>
 
         <!-- testing: common -->

@@ -27,38 +27,29 @@ import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
-import org.springframework.util.concurrent.SuccessCallback;
 import org.springframework.web.util.UriTemplateHandler;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-public final class Rest implements Closeable {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final UriTemplateHandler uriTemplateHandler;
-    private final Closeable closeable;
     private final MessageReader reader;
     private final MessageWriter writer;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
             final UriTemplateHandler uriTemplateHandler) {
-        this(requestFactory, converters, uriTemplateHandler, () -> {
-            // nothing to close
-        });
-    }
-
-    Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final UriTemplateHandler uriTemplateHandler, final Closeable closeable) {
-        this.requestFactory = requestFactory;
-        this.uriTemplateHandler = uriTemplateHandler;
-        this.closeable = closeable;
+        this.requestFactory = checkNotNull(requestFactory, "request factory");
+        this.uriTemplateHandler = checkNotNull(uriTemplateHandler, "uri template handler");
+        checkNotNull(converters, "converters");
         this.reader = new DefaultMessageReader(converters);
         this.writer = new DefaultMessageWriter(converters);
     }
@@ -155,18 +146,21 @@ public final class Rest implements Closeable {
             return new Dispatcher() {
                 @Override
                 public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
-                    final SettableListenableFuture<Void> capture = new SettableListenableFuture<>();
-                    final FailureCallback failure = capture::setException;
-                    final SuccessCallback<ClientHttpResponse> success = response -> {
+                    final SettableListenableFuture<Void> capture = new SettableListenableFuture<Void>() {
+                        @Override
+                        protected void interruptTask() {
+                            future.cancel(true);
+                        }
+                    };
+
+                    future.addCallback(response -> {
                         try {
                             tree.execute(response, reader);
                             capture.set(null);
                         } catch (final Exception e) {
-                            failure.onFailure(e);
+                            capture.setException(e);
                         }
-                    };
-
-                    future.addCallback(success, failure);
+                    }, capture::setException);
                     return capture;
                 }
             };
@@ -178,11 +172,6 @@ public final class Rest implements Closeable {
             return request;
         }
 
-    }
-
-    @Override
-    public void close() throws IOException {
-        closeable.close();
     }
 
     public static RestBuilder builder() {

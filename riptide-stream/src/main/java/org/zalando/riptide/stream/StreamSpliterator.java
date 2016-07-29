@@ -20,55 +20,60 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.JavaType;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 final class StreamSpliterator<T> implements Spliterator<T> {
 
-    private final JsonParser parser;
-    private final ObjectMapper mapper;
     private final JavaType type;
+    private final JsonParser parser;
+    private boolean isNotStreamOfArrays;
 
-    StreamSpliterator(JavaType type, JsonParser parser, ObjectMapper mapper) {
+    StreamSpliterator(final JavaType type, final JsonParser parser) {
         this.type = type;
         this.parser = parser;
-        this.mapper = mapper;
+        this.isNotStreamOfArrays = !type.isArrayType() && !type.isCollectionLikeType();
     }
 
     @Override
-    public boolean tryAdvance(Consumer<? super T> action) {
+    public boolean tryAdvance(final Consumer<? super T> action) {
         try {
-            JsonToken token = parser.nextToken();
+            final JsonToken token = parser.nextToken();
+
             if (token == null) {
                 return false;
             }
-            if (!type.isArrayType() && !type.isCollectionLikeType()) {
-                switch (token) {
-                case START_ARRAY:
-                    parser.nextToken();
-                    break;
 
-                case END_ARRAY:
-                    parser.nextToken();
-                    return false;
-
-                default:
-                    // nothing to do.
-                }
+            if (isNotStreamOfArrays && skipArrayTokens(token)) {
+                return false;
             }
 
-            final T value = mapper.readValue(parser, type);
+            final T value = parser.getCodec().readValue(parser, type);
             action.accept(value);
             return true;
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private boolean skipArrayTokens(final JsonToken token) throws IOException {
+        switch (token) {
+            case START_ARRAY:
+                parser.nextToken();
+                return false;
+
+            case END_ARRAY:
+                parser.nextToken();
+                return true;
+
+            default:
+                return false;
         }
     }
 
@@ -86,4 +91,5 @@ final class StreamSpliterator<T> implements Spliterator<T> {
     public int characteristics() {
         return ORDERED | IMMUTABLE;
     }
+
 }
