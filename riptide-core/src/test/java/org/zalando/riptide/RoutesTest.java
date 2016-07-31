@@ -49,11 +49,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Route.to;
 import static org.zalando.riptide.Route.headers;
 import static org.zalando.riptide.Route.location;
 import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.Route.propagate;
+import static org.zalando.riptide.Route.to;
 
 public final class RoutesTest {
 

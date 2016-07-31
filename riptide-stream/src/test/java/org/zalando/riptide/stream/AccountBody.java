@@ -1,4 +1,4 @@
-package org.zalando.riptide.model;
+package org.zalando.riptide.stream;
 /*
  * ⁣​
  * Riptide

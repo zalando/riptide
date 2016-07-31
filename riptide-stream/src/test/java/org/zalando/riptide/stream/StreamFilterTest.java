@@ -20,15 +20,15 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
-import java.io.InputStream;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.InputStream;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class StreamFilterTest {
 
@@ -40,7 +40,8 @@ public class StreamFilterTest {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream)) {
-            int filtered = 3, available = stream.available();
+            final int filtered = 3;
+            final int available = stream.available();
             int read = 0;
             while (unit.read() != -1) {
                 read++;
@@ -54,9 +55,10 @@ public class StreamFilterTest {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream)) {
-            int filtered = 3, available = stream.available();
+            final int filtered = 3;
+            final int available = stream.available();
             int sum = 0, read = 0;
-            byte[] buffer = new byte[10];
+            final byte[] buffer = new byte[10];
             while ((read = unit.read(buffer, 0, buffer.length)) != -1) {
                 sum += read;
             }
@@ -69,7 +71,8 @@ public class StreamFilterTest {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream, 5)) {
-            long filtered = 3, available = stream.available();
+            final long filtered = 3;
+            final long available = stream.available();
             long sum = 0, skipped = 0;
             while ((skipped = unit.skip(10)) != 0) {
                 sum += skipped;

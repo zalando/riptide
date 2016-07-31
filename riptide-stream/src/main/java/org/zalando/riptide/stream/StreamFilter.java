@@ -92,4 +92,5 @@ final class StreamFilter extends FilterInputStream {
         }
         return sum;
     }
+
 }
