@@ -24,6 +24,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -50,8 +51,10 @@ public interface Route {
     }
 
     static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
-        return (response, reader) ->
-                consumer.accept(reader.read(type, response));
+        return (response, reader) -> {
+            final I body = reader.read(type, response);
+            consumer.accept(body);
+        };
     }
 
     static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
@@ -67,6 +70,20 @@ public interface Route {
         };
 
         return listType.where(elementType, entityType);
+    }
+
+    static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final Class<T> entityType) {
+        return responseEntityOf(TypeToken.of(entityType));
+    }
+
+    static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final TypeToken<T> entityType) {
+        final TypeToken<ResponseEntity<T>> responseEntityType = new TypeToken<ResponseEntity<T>>() {
+        };
+
+        final TypeParameter<T> elementType = new TypeParameter<T>() {
+        };
+
+        return responseEntityType.where(elementType, entityType);
     }
 
     static ThrowingConsumer<ClientHttpResponse> pass() {
