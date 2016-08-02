@@ -20,10 +20,13 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.reflect.TypeToken;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.riptide.model.AccountBody;
@@ -32,7 +35,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 
+import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -43,6 +50,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Route.responseEntityOf;
 
 public final class CallTest {
 
@@ -76,6 +84,31 @@ public final class CallTest {
                         anyStatus().call(this::fail));
 
         verify(verifier).accept(any(AccountBody.class));
+    }
+
+    @Test
+    public void shouldCallResponseEntity() throws Exception {
+        server.expect(requestTo(url)).andRespond(
+                withSuccess()
+                        .body(new ClassPathResource("account.json"))
+                        .contentType(APPLICATION_JSON));
+
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<ResponseEntity<AccountBody>> verifier = mock(ThrowingConsumer.class);
+
+        unit.get("/accounts/123")
+                .dispatch(status(),
+                        on(OK).call(responseEntityOf(AccountBody.class), verifier),
+                        anyStatus().call(this::fail));
+
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<ResponseEntity<AccountBody>> captor = ArgumentCaptor.forClass(ResponseEntity.class);
+        verify(verifier).accept(captor.capture());
+        final ResponseEntity<AccountBody> entity = captor.getValue();
+
+        assertThat(entity.getStatusCode(), is(OK));
+        assertThat(entity.getHeaders(), is(not(anEmptyMap())));
+        assertThat(entity.getBody().getName(), is("Acme Corporation"));
     }
 
     @Test
