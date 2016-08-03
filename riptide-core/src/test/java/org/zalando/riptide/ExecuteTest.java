@@ -89,6 +89,19 @@ public final class ExecuteTest {
     }
 
     @Test
+    public void shouldSendQueryParameters() throws IOException {
+        server.expect(requestTo(url + "?foo=bar&foo=baz&bar=null"))
+                .andRespond(withSuccess());
+
+        unit.head(url)
+                .query("foo", "bar")
+                .query("foo", "baz")
+                .query("bar", "null")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
     public void shouldSendHeaders() throws IOException {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))

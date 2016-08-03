@@ -20,7 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -30,7 +32,13 @@ import java.io.IOException;
 
 public abstract class Requester extends Dispatcher {
 
+    private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
+
+    public final Requester query(final String name, final String value) {
+        query.put(name, value);
+        return this;
+    }
 
     public final Requester header(final String name, final String value) {
         headers.add(name, value);
@@ -53,14 +61,15 @@ public abstract class Requester extends Dispatcher {
     }
 
     public final <T> Dispatcher body(final T body) throws IOException {
-        return execute(headers, body);
+        return execute(query, headers, body);
     }
 
     @Override
     public final <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException {
-        return execute(headers, null).dispatch(tree);
+        return execute(query, headers, null).dispatch(tree);
     }
 
-    protected abstract <T> Dispatcher execute(final HttpHeaders headers, final @Nullable T body) throws IOException;
+    protected abstract <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
+            final @Nullable T body) throws IOException;
 
 }
