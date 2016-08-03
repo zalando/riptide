@@ -21,20 +21,17 @@ package org.zalando.riptide.httpclient;
  */
 
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.Closeable;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 
 final class RestAsyncClientHttpResponse implements ClientHttpResponse {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RestAsyncClientHttpResponse.class);
 
     private final ClientHttpResponse response;
 
@@ -59,7 +56,15 @@ final class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
     @Override
     public InputStream getBody() throws IOException {
-        return response.getBody();
+        return new FilterInputStream(response.getBody()) {
+            @Override
+            public void close() throws IOException {
+                // intentionally left blank
+                // Some implementations (looking at you, org.apache.http.impl.io.ChunkedInputStream) actually try
+                // to completely consume the content upon close which of course doesn't work for endless streams.
+                // This will cause the connection to not be released back to the connection pool.
+            }
+        };
     }
 
     @Override
