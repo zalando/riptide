@@ -35,7 +35,7 @@ public abstract class Requester extends Dispatcher {
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
-    public final Requester query(final String name, final String value) {
+    public final Requester queryParam(final String name, final String value) {
         query.put(name, value);
         return this;
     }

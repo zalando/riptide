@@ -94,9 +94,9 @@ public final class ExecuteTest {
                 .andRespond(withSuccess());
 
         unit.head(url)
-                .query("foo", "bar")
-                .query("foo", "baz")
-                .query("bar", "null")
+                .queryParam("foo", "bar")
+                .queryParam("foo", "baz")
+                .queryParam("bar", "null")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
