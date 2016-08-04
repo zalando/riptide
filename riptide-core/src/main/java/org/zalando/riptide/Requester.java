@@ -40,6 +40,11 @@ public abstract class Requester extends Dispatcher {
         return this;
     }
 
+    public final Requester queryParams(final Multimap<String, String> params) {
+        query.putAll(params);
+        return this;
+    }
+
     public final Requester header(final String name, final String value) {
         headers.add(name, value);
         return this;

@@ -22,6 +22,7 @@ package org.zalando.riptide;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -95,8 +96,10 @@ public final class ExecuteTest {
 
         unit.head(url)
                 .queryParam("foo", "bar")
-                .queryParam("foo", "baz")
-                .queryParam("bar", "null")
+                .queryParams(ImmutableMultimap.of(
+                        "foo", "baz",
+                        "bar", "null"
+                ))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
