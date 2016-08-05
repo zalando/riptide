@@ -134,13 +134,13 @@ public final class Rest {
     private class ListenableFutureRequester extends Requester {
 
         private final HttpMethod method;
-        private final UriComponentsBuilder url;
+        private final UriComponentsBuilder urlBuilder;
         private final Object[] urlVariables;
 
-        public ListenableFutureRequester(final HttpMethod method, final UriComponentsBuilder url,
+        public ListenableFutureRequester(final HttpMethod method, final UriComponentsBuilder urlBuilder,
                 final Object... urlVariables) {
             this.method = method;
-            this.url = url;
+            this.urlBuilder = urlBuilder;
             this.urlVariables = urlVariables;
         }
 
@@ -181,23 +181,22 @@ public final class Rest {
         private <T> AsyncClientHttpRequest createRequest(final Multimap<String, String> query,
                 final HttpEntity<T> entity) throws IOException {
 
-            final URI requestUrl = render(query);
-            final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUrl, method);
+            final URI url = createUrl(query);
+            final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
             writer.write(request, entity);
             return request;
         }
 
-        private URI render(final Multimap<String, String> query) {
+        private URI createUrl(final Multimap<String, String> query) {
             query.entries().forEach(entry ->
-                    url.queryParam(entry.getKey(), entry.getValue()));
+                    urlBuilder.queryParam(entry.getKey(), entry.getValue()));
 
-            return prepend(baseUrl, url.build().expand(urlVariables).encode());
-        }
+            final UriComponents components = urlBuilder.build().expand(urlVariables).encode();
 
-        private URI prepend(@Nullable final String baseUrl, final UriComponents components) {
             if (baseUrl == null || components.getHost() != null) {
                 return components.toUri();
             }
+
             return URI.create(baseUrl + components.toUriString());
         }
 
