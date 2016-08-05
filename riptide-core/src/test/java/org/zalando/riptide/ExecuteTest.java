@@ -22,7 +22,6 @@ package org.zalando.riptide;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,21 +84,6 @@ public final class ExecuteTest {
                 .andRespond(withSuccess());
 
         unit.trace(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
-    }
-
-    @Test
-    public void shouldSendQueryParameters() throws IOException {
-        server.expect(requestTo(url + "?foo=bar&foo=baz&bar=null"))
-                .andRespond(withSuccess());
-
-        unit.head(url)
-                .queryParam("foo", "bar")
-                .queryParams(ImmutableMultimap.of(
-                        "foo", "baz",
-                        "bar", "null"
-                ))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }

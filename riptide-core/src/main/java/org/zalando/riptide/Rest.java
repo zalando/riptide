@@ -30,8 +30,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriTemplateHandler;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -39,18 +39,20 @@ import java.net.URI;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
-    private final UriTemplateHandler uriTemplateHandler;
     private final MessageReader reader;
     private final MessageWriter writer;
+    private final String baseUrl;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final UriTemplateHandler uriTemplateHandler) {
+            @Nullable final String baseUrl) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
-        this.uriTemplateHandler = checkNotNull(uriTemplateHandler, "uri template handler");
+        this.baseUrl = baseUrl;
         checkNotNull(converters, "converters");
         this.reader = new DefaultMessageReader(converters);
         this.writer = new DefaultMessageWriter(converters);
@@ -122,21 +124,24 @@ public final class Rest {
 
     private Requester execute(final HttpMethod method, final String uriTemplate,
             final Object... uriVariables) {
-        return execute(method, uriTemplateHandler.expand(uriTemplate, uriVariables));
+        return new ListenableFutureRequester(method, fromUriString(uriTemplate), uriVariables);
     }
 
-    private Requester execute(final HttpMethod method, final URI uri) {
-        return new ListenableFutureRequester(uri, method);
+    private Requester execute(final HttpMethod method, final URI url) {
+        return new ListenableFutureRequester(method, fromUri(url));
     }
 
     private class ListenableFutureRequester extends Requester {
 
-        private final URI url;
         private final HttpMethod method;
+        private final UriComponentsBuilder url;
+        private final Object[] urlVariables;
 
-        public ListenableFutureRequester(final URI url, final HttpMethod method) {
-            this.url = url;
+        public ListenableFutureRequester(final HttpMethod method, final UriComponentsBuilder url,
+                final Object... urlVariables) {
             this.method = method;
+            this.url = url;
+            this.urlVariables = urlVariables;
         }
 
         @Override
@@ -148,6 +153,7 @@ public final class Rest {
             final ListenableFuture<ClientHttpResponse> future = request.executeAsync();
 
             return new Dispatcher() {
+
                 @Override
                 public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
                     final SettableListenableFuture<Void> capture = new SettableListenableFuture<Void>() {
@@ -165,8 +171,10 @@ public final class Rest {
                             capture.setException(e);
                         }
                     }, capture::setException);
+
                     return capture;
                 }
+
             };
         }
 
@@ -180,24 +188,23 @@ public final class Rest {
         }
 
         private URI render(final Multimap<String, String> query) {
-            final UriComponentsBuilder builder = UriComponentsBuilder.fromUri(url);
-
             query.entries().forEach(entry ->
-                builder.queryParam(entry.getKey(), entry.getValue()));
+                    url.queryParam(entry.getKey(), entry.getValue()));
 
-            return builder.build(true).toUri();
+            return prepend(baseUrl, url.build().expand(urlVariables).encode());
+        }
+
+        private URI prepend(@Nullable final String baseUrl, final UriComponents components) {
+            if (baseUrl == null || components.getHost() != null) {
+                return components.toUri();
+            }
+            return URI.create(baseUrl + components.toUriString());
         }
 
     }
 
     public static RestBuilder builder() {
         return new RestBuilder();
-    }
-
-    // TODO package private?
-    public static Rest create(final AsyncClientHttpRequestFactory factory,
-            final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
-        return new Rest(factory, converters, uriTemplateHandler);
     }
 
 }

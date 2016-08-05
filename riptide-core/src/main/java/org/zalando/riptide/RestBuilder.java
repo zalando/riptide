@@ -26,13 +26,10 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
-import org.springframework.web.util.UriTemplateHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public final class RestBuilder {
 
@@ -44,7 +41,7 @@ public final class RestBuilder {
 
     private AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
-    private UriTemplateHandler uriTemplateHandler;
+    private String baseUrl;
 
     RestBuilder() {
 
@@ -69,15 +66,9 @@ public final class RestBuilder {
         return this;
     }
 
-    public RestBuilder uriTemplateHandler(final UriTemplateHandler uriTemplateHandler) {
-        this.uriTemplateHandler = uriTemplateHandler;
-        return this;
-    }
-
     public RestBuilder baseUrl(final String baseUrl) {
-        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-        handler.setBaseUrl(baseUrl);
-        return uriTemplateHandler(handler);
+        this.baseUrl = baseUrl;
+        return this;
     }
 
     public RestBuilder configure(final RestConfigurer configurer) {
@@ -94,14 +85,11 @@ public final class RestBuilder {
     }
 
     public Rest build() {
-        return Rest.create(requestFactory, converters(), uriTemplateHandler());
+        return new Rest(requestFactory, converters(), baseUrl);
     }
 
     private List<HttpMessageConverter<?>> converters() {
         return converters.isEmpty() ? Converters.DEFAULT : converters;
     }
 
-    private UriTemplateHandler uriTemplateHandler() {
-        return uriTemplateHandler == null ? new DefaultUriTemplateHandler() : uriTemplateHandler;
-    }
 }
