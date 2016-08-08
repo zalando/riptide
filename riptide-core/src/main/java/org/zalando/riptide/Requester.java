@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide Core
  * ⁣⁣
  * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
@@ -20,20 +20,45 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.io.IOException;
+import java.net.URI;
+
+import javax.annotation.Nullable;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.concurrent.ListenableFuture;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
+public final class Requester extends Dispatcher {
 
-public abstract class Requester extends Dispatcher {
+    private final AsyncClientHttpRequestFactory requestFactory;
+    private final MessageWorker worker;
+    private final HttpMethod method;
+    private final UriComponentsBuilder urlBuilder;
+    private final Object[] urlVariables;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
+
+    public Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
+            final HttpMethod method, final UriComponentsBuilder urlBuilder, final Object... urlVariables) {
+        this.requestFactory = requestFactory;
+        this.worker = worker;
+        this.method = method;
+        this.urlBuilder = urlBuilder;
+        this.urlVariables = urlVariables;
+    }
 
     public final Requester queryParam(final String name, final String value) {
         query.put(name, value);
@@ -74,7 +99,51 @@ public abstract class Requester extends Dispatcher {
         return execute(query, headers, null).dispatch(tree);
     }
 
-    protected abstract <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
-            final @Nullable T body) throws IOException;
+    protected <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
+            final @Nullable T body) throws IOException {
 
+        final HttpEntity<T> entity = new HttpEntity<>(body, headers);
+        final AsyncClientHttpRequest request = createRequest(query, entity);
+        final ListenableFuture<ClientHttpResponse> future = request.executeAsync();
+
+        return new Dispatcher() {
+
+            @Override
+            public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
+                final SettableListenableFuture<Void> capture = new SettableListenableFuture<Void>() {
+                    @Override
+                    protected void interruptTask() {
+                        future.cancel(true);
+                    }
+                };
+
+                future.addCallback(response -> {
+                    try {
+                        tree.execute(response, worker);
+                        capture.set(null);
+                    } catch (final Exception e) {
+                        capture.setException(e);
+                    }
+                }, capture::setException);
+
+                return capture;
+            }
+
+        };
+    }
+
+    private <T> AsyncClientHttpRequest createRequest(final Multimap<String, String> query,
+            final HttpEntity<T> entity) throws IOException {
+
+        final URI url = createUrl(query);
+        final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
+        worker.write(request, entity);
+        return request;
+    }
+
+    private URI createUrl(final Multimap<String, String> query) {
+        query.entries().forEach(entry -> urlBuilder.queryParam(entry.getKey(), entry.getValue()));
+
+        return urlBuilder.build().expand(urlVariables).encode().toUri().normalize();
+    }
 }

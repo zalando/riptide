@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide Core
  * ⁣⁣
  * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
@@ -20,23 +20,28 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class MockSetup {
+
+    private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
+            Arrays.asList(new StringHttpMessageConverter(),
+                    new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()));
 
     private final MockRestServiceServer server;
     private final Rest rest;
 
     public MockSetup() {
-        this("https://api.example.com", Arrays.asList(new StringHttpMessageConverter(),
-                new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules())));
+        this("https://api.example.com", null);
     }
 
     public MockSetup(final String baseUrl, final Iterable<HttpMessageConverter<?>> converters) {
@@ -44,7 +49,7 @@ public final class MockSetup {
         this.server = MockRestServiceServer.createServer(template);
         this.rest = Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
-                .converters(converters)
+                .converters(converters != null ? converters : DEFAULT_CONVERTERS)
                 .baseUrl(baseUrl)
                 .build();
     }
