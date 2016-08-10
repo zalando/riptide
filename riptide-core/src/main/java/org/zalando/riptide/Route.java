@@ -1,5 +1,14 @@
 package org.zalando.riptide;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMessage;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+
 /*
  * ⁣​
  * Riptide
@@ -22,14 +31,6 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMessage;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
 
 @FunctionalInterface
 public interface Route {
@@ -37,13 +38,17 @@ public interface Route {
     void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
     static Route call(final ThrowingRunnable consumer) {
-        return (response, reader) ->
+        return (response, reader) -> {
                 consumer.run();
+                response.close();
+        };
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
-        return (response, reader) ->
+        return (response, reader) -> {
                 consumer.accept(response);
+                response.close();
+        };
     }
 
     static <I> Route call(final Class<I> type, final ThrowingConsumer<I> consumer) {
@@ -64,9 +69,11 @@ public interface Route {
     @SuppressWarnings("serial")
     static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
         final TypeToken<List<T>> listType = new TypeToken<List<T>>() {
+            // nothing to implement!
         };
 
         final TypeParameter<T> elementType = new TypeParameter<T>() {
+            // nothing to implement!
         };
 
         return listType.where(elementType, entityType);
@@ -78,9 +85,11 @@ public interface Route {
 
     static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final TypeToken<T> entityType) {
         final TypeToken<ResponseEntity<T>> responseEntityType = new TypeToken<ResponseEntity<T>>() {
+            // nothing to implement!
         };
 
         final TypeParameter<T> elementType = new TypeParameter<T>() {
+            // nothing to implement!
         };
 
         return responseEntityType.where(elementType, entityType);
@@ -88,7 +97,7 @@ public interface Route {
 
     static ThrowingConsumer<ClientHttpResponse> pass() {
         return response -> {
-
+            // nothing to do!
         };
     }
 
