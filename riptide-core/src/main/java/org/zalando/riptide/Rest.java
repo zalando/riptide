@@ -2,9 +2,9 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide: Core
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,38 +20,31 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
-import org.springframework.web.util.UriTemplateHandler;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nullable;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
-    private final UriTemplateHandler uriTemplateHandler;
-    private final MessageReader reader;
-    private final MessageWriter writer;
+    private final MessageWorker worker;
+    private final String baseUrl;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final UriTemplateHandler uriTemplateHandler) {
+            @Nullable final String baseUrl) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
-        this.uriTemplateHandler = checkNotNull(uriTemplateHandler, "uri template handler");
-        checkNotNull(converters, "converters");
-        this.reader = new DefaultMessageReader(converters);
-        this.writer = new DefaultMessageWriter(converters);
+        this.worker = new MessageWorker(converters);
+        this.baseUrl = baseUrl;
     }
 
     public final Requester get(final String urlTemplate, final Object... urlVariables) {
@@ -120,68 +113,26 @@ public final class Rest {
 
     private Requester execute(final HttpMethod method, final String uriTemplate,
             final Object... uriVariables) {
-        return execute(method, uriTemplateHandler.expand(uriTemplate, uriVariables));
+        return new Requester(requestFactory, worker, method, mergeUrl(baseUrl, uriTemplate), uriVariables);
     }
 
-    private Requester execute(final HttpMethod method, final URI uri) {
-        return new ListenableFutureRequester(uri, method);
+    private Requester execute(final HttpMethod method, final URI url) {
+        return new Requester(requestFactory, worker, method, fromUri(url));
     }
 
-    private class ListenableFutureRequester extends Requester {
-
-        private final URI url;
-        private final HttpMethod method;
-
-        public ListenableFutureRequester(final URI url, final HttpMethod method) {
-            this.url = url;
-            this.method = method;
+    private static UriComponentsBuilder mergeUrl(String baseUrl, String uri) {
+        if (baseUrl != null && hasNoSchema(uri)) {
+            return fromUriString(baseUrl + uri);
         }
+        return fromUriString(uri);
+    }
 
-        @Override
-        protected <T> Dispatcher execute(final HttpHeaders headers, @Nullable final T body) throws IOException {
-            final HttpEntity<T> entity = new HttpEntity<>(body, headers);
-            final AsyncClientHttpRequest request = createRequest(entity);
-            final ListenableFuture<ClientHttpResponse> future = request.executeAsync();
-
-            return new Dispatcher() {
-                @Override
-                public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
-                    final SettableListenableFuture<Void> capture = new SettableListenableFuture<Void>() {
-                        @Override
-                        protected void interruptTask() {
-                            future.cancel(true);
-                        }
-                    };
-
-                    future.addCallback(response -> {
-                        try {
-                            tree.execute(response, reader);
-                            capture.set(null);
-                        } catch (final Exception e) {
-                            capture.setException(e);
-                        }
-                    }, capture::setException);
-                    return capture;
-                }
-            };
-        }
-
-        private <T> AsyncClientHttpRequest createRequest(final HttpEntity<T> entity) throws IOException {
-            final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
-            writer.write(request, entity);
-            return request;
-        }
-
+    private static boolean hasNoSchema(String uri) {
+        return uri.startsWith("/") || uri.startsWith(".");
     }
 
     public static RestBuilder builder() {
         return new RestBuilder();
-    }
-
-    // TODO package private?
-    public static Rest create(final AsyncClientHttpRequestFactory factory,
-            final List<HttpMessageConverter<?>> converters, final UriTemplateHandler uriTemplateHandler) {
-        return new Rest(factory, converters, uriTemplateHandler);
     }
 
 }

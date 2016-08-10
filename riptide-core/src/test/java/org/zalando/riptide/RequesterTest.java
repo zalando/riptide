@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.collect.ImmutableMultimap;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
@@ -78,7 +79,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandQueryparams() throws IOException {
+    public void shouldExpandInlinedQueryParams() throws IOException {
         expectRequestTo("https://example.com/posts/123?filter=new");
 
         final int postId = 123;
@@ -99,10 +100,37 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeQueraparams() throws IOException {
+    public void shouldEncodeInlinedQueryParams() throws IOException {
         expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
         unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldAppendQueryParams() throws IOException {
+        server.expect(requestTo("https://api.example.com?foo=bar&foo=baz&bar=null"))
+                .andRespond(withSuccess());
+
+        unit.head("https://api.example.com")
+                .queryParam("foo", "bar")
+                .queryParams(ImmutableMultimap.of(
+                        "foo", "baz",
+                        "bar", "null"
+                ))
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldEncodeAppendedQueryParams() throws IOException {
+        expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
+
+        unit.head("https://ru.wiktionary.org/w/index.php")
+                .queryParam("title", "Служебная:Коллекция_книг")
+                .queryParam("bookcmd", "book_creator")
+                .queryParam("referer", "Заглавная страница")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
