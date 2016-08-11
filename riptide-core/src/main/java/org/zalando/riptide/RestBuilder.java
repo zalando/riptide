@@ -1,5 +1,15 @@
 package org.zalando.riptide;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.web.client.RestTemplate;
+
 /*
  * ⁣​
  * Riptide: Core
@@ -21,17 +31,8 @@ package org.zalando.riptide;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
-public final class RestBuilder {
+public final class RestBuilder implements Cloneable {
 
     // package private so we can trick code coverage
     static class Converters {
@@ -82,6 +83,11 @@ public final class RestBuilder {
             factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
             builder.requestFactory(factory);
         };
+    }
+
+    @Override
+    public RestBuilder clone() {
+        return new RestBuilder().requestFactory(requestFactory).converters(converters).baseUrl(baseUrl);
     }
 
     public Rest build() {
