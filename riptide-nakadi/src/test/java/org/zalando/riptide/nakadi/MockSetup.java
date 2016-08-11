@@ -78,9 +78,9 @@ public final class MockSetup {
 
     public static RequestConfig defaultConfig() {
         return RequestConfig.custom()
-                .setConnectionRequestTimeout(500)
-                .setConnectTimeout(500)
-                .setSocketTimeout(500)
+                .setConnectionRequestTimeout(0)
+                .setConnectTimeout(0)
+                .setSocketTimeout(0)
                 .build();
     }
 
