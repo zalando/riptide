@@ -38,7 +38,7 @@ public final class MockSetup {
                     new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()));
 
     private final MockRestServiceServer server;
-    private final Rest rest;
+    private final RestBuilder builder;
 
     public MockSetup() {
         this("https://api.example.com", null);
@@ -47,19 +47,21 @@ public final class MockSetup {
     public MockSetup(final String baseUrl, final Iterable<HttpMessageConverter<?>> converters) {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
-        this.rest = Rest.builder()
+        this.builder = Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(converters != null ? converters : DEFAULT_CONVERTERS)
-                .baseUrl(baseUrl)
-                .build();
+                .baseUrl(baseUrl);
     }
 
     public MockRestServiceServer getServer() {
         return server;
     }
 
+    public RestBuilder getRestBuilder() {
+        return builder.clone();
+    }
     public Rest getRest() {
-        return rest;
+        return builder.build();
     }
 
 }
