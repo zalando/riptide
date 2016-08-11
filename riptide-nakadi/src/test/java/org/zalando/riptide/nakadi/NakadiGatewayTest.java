@@ -114,7 +114,7 @@ public class NakadiGatewayTest {
         }
 
         AtomicInteger counter = new AtomicInteger();
-
+        
         unit.stream("me", singletonList("event-type"), event -> counter.incrementAndGet());
 
         assertThat(counter.get(), is(equalTo(6)));
@@ -148,6 +148,10 @@ public class NakadiGatewayTest {
                 .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
                 giveResponse(cursors, APPLICATION_JSON.toString()).after(1, TimeUnit.SECONDS));
 
+        final RequestConfig config = RequestConfig.copy(defaultConfig()).setSocketTimeout(500).build();
+        final MockSetup setup = new MockSetup(driver, defaultConverters(), defaultFactory(defaultClient(config, 2)));
+        final NakadiGateway unit = setup.getNakadi();
+
         try {
             unit.stream("me", singletonList("event-type"), event -> LOG.info("consumed event: {}", event));
         } catch (ExecutionException ex) {
@@ -167,11 +171,7 @@ public class NakadiGatewayTest {
                             .after(500, TimeUnit.MILLISECONDS));
         }
 
-        final RequestConfig config = RequestConfig.copy(defaultConfig()).setSocketTimeout(0).build();
-        final MockSetup setup = new MockSetup(driver, defaultConverters(), defaultFactory(defaultClient(config, 2)));
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        final NakadiGateway unit = setup.getNakadi();
-
         try {
             unit.stream("me", singletonList("event-type"), event -> {
                 final Thread thread = Thread.currentThread();
