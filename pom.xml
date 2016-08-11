@@ -61,6 +61,7 @@
         <module>riptide-core</module>
         <module>riptide-capture</module>
         <module>riptide-httpclient</module>
+        <module>riptide-nakadi</module>
         <module>riptide-stream</module>
     </modules>
 
@@ -70,7 +71,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.21</slf4j.version>
         <spring.version>4.2.5.RELEASE</spring.version>
-        <jackson.version>2.7.3</jackson.version>
+        <jackson.version>2.7.4</jackson.version>
         <problem.version>0.5.0</problem.version>
     </properties>
 
@@ -80,6 +81,21 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-capture</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-stream</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-httpclient</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
