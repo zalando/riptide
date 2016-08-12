@@ -42,6 +42,7 @@ import static org.zalando.riptide.nakadi.MockSetup.defaultFactory;
 import static org.zalando.riptide.nakadi.NakadiGateway.PROBLEM;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
@@ -52,7 +53,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.client.config.RequestConfig;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -93,15 +96,18 @@ public class NakadiGatewayTest {
     }
 
     @Before
-    public void reset() throws IOException {
-        driver.reset();
-
+    public void before() throws IOException {
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
                 giveResponseAsBytes(getResource("subscription.json").openStream(),
                         APPLICATION_JSON.toString()));
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
                 giveResponseAsBytes(getResource("event-stream.json").openStream(),
                         APPLICATION_X_JSON_STREAM.toString()));
+    }
+
+    @After
+    public void after() {
+        driver.reset();
     }
 
     @Test
@@ -229,4 +235,42 @@ public class NakadiGatewayTest {
             throw ex.getCause();
         }
     }
+
+    @Test
+    @Ignore
+    public void shouldXX() throws Throwable {
+        driver.reset();
+        driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
+                giveResponseAsBytes(getResource("subscription.json").openStream(),
+                        APPLICATION_JSON.toString()));
+        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+              giveResponseAsBytes(new FilterInputStream(getResource("event-stream.json").openStream()) {
+
+                  @Override
+                  public int read(byte[] b, int off, int len) throws IOException {
+                      int read = super.read(b, off, len);
+                      return read < 0 ? 0 : read;
+                  }
+              }, APPLICATION_X_JSON_STREAM.toString()));
+        
+
+        for (String cursors : DEFAULT_CURSORS_LIST) {
+            driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
+                    .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
+                    giveResponse(cursors, APPLICATION_JSON.toString()));
+        }
+
+        AtomicInteger counter = new AtomicInteger();
+
+        try {
+            unit.stream("me", singletonList("event-type"), event -> {
+                if (counter.incrementAndGet() == 5) {
+                    throw new RuntimeException();
+                }
+            });
+        } catch (ExecutionException ex) {
+            throw ex.getCause();
+        }
+    }
+    
 }
