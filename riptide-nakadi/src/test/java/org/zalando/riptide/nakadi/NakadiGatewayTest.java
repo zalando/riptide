@@ -238,7 +238,7 @@ public class NakadiGatewayTest {
 
     @Test
     @Ignore
-    public void shouldXX() throws Throwable {
+    public void shouldAbortConnectionOnException() throws Throwable {
         driver.reset();
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
                 giveResponseAsBytes(getResource("subscription.json").openStream(),

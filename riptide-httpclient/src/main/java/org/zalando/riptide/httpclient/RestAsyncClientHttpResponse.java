@@ -20,16 +20,18 @@ package org.zalando.riptide.httpclient;
  * ​⁣
  */
 
-import lombok.SneakyThrows;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-
 import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+
+import org.apache.http.conn.EofSensorInputStream;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
+
+import lombok.SneakyThrows;
 
 final class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
@@ -59,10 +61,11 @@ final class RestAsyncClientHttpResponse implements ClientHttpResponse {
         return new FilterInputStream(response.getBody()) {
             @Override
             public void close() throws IOException {
-                // intentionally left blank
-                // Some implementations (looking at you, org.apache.http.impl.io.ChunkedInputStream) actually try
-                // to completely consume the content upon close which of course doesn't work for endless streams.
-                // This will cause the connection to not be released back to the connection pool.
+                if (in instanceof EofSensorInputStream) {
+                    ((EofSensorInputStream) in).abortConnection();
+                } else {
+                    in.close();
+                }
             }
         };
     }
