@@ -237,7 +237,8 @@ public class NakadiGatewayTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("does only work with com.github.rest-driver/rest-client-driver:2.0.1-SNAPSHOT"
+            + "build from https://github.com/tkrop/rest-driver/tree/feature/stream-and-lamda-support")
     public void shouldAbortConnectionOnException() throws Throwable {
         exception.expect(RuntimeException.class);
 

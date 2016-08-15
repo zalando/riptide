@@ -185,6 +185,9 @@
             <dependency>
                 <groupId>com.github.rest-driver</groupId>
                 <artifactId>rest-client-driver</artifactId>
+<!-- needed for stream test case in NakadiGatewayTest.java
+                <version>2.0.1-SNAPSHOT</version>
+-->
                 <version>1.1.41</version>
                 <scope>test</scope>
                 <exclusions>
