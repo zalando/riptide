@@ -120,7 +120,7 @@ public class NakadiGatewayTest {
         }
 
         AtomicInteger counter = new AtomicInteger();
-        
+
         unit.stream("me", singletonList("event-type"), event -> counter.incrementAndGet());
 
         assertThat(counter.get(), is(equalTo(6)));
@@ -149,7 +149,7 @@ public class NakadiGatewayTest {
         exception.expect(NakadiGateway.GatewayException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
 
-        String cursors = DEFAULT_CURSORS_LIST[0];
+        final String cursors = DEFAULT_CURSORS_LIST[0];
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
                 .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
                 giveResponse(cursors, APPLICATION_JSON.toString()).after(1, TimeUnit.SECONDS));
@@ -196,7 +196,7 @@ public class NakadiGatewayTest {
         exception.expect(NakadiGateway.GatewayException.class);
         exception.expectCause(instanceOf(IOException.class));
 
-        String cursors = DEFAULT_CURSORS_LIST[0];
+        final String cursors = DEFAULT_CURSORS_LIST[0];
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
                 .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
                 giveResponse(cursors, APPLICATION_JSON.toString()));
@@ -239,38 +239,51 @@ public class NakadiGatewayTest {
     @Test
     @Ignore
     public void shouldAbortConnectionOnException() throws Throwable {
+        exception.expect(RuntimeException.class);
+
         driver.reset();
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
                 giveResponseAsBytes(getResource("subscription.json").openStream(),
                         APPLICATION_JSON.toString()));
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
-              giveResponseAsBytes(new FilterInputStream(getResource("event-stream.json").openStream()) {
+        try (final FilterInputStream content =
+                new FilterInputStream(getResource("event-stream.json").openStream()) {
+                    public boolean closed = false;
 
-                  @Override
-                  public int read(byte[] b, int off, int len) throws IOException {
-                      int read = super.read(b, off, len);
-                      return read < 0 ? 0 : read;
-                  }
-              }, APPLICATION_X_JSON_STREAM.toString()));
-        
+                    @Override
+                    public int read(byte[] b, int off, int len) throws IOException {
+                        int read = super.read(b, off, len);
+                        return read < 0 && !closed ? 0 : read;
+                    }
 
-        for (String cursors : DEFAULT_CURSORS_LIST) {
-            driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
-                    .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
-                    giveResponse(cursors, APPLICATION_JSON.toString()));
-        }
+                    @Override
+                    public void close() throws IOException {
+                        if (!this.closed) {
+                            this.closed = true;
+                            super.close();
+                        }
+                    }
+                }) {
+            driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+                    giveResponseAsBytes(content, APPLICATION_X_JSON_STREAM.toString()));
 
-        AtomicInteger counter = new AtomicInteger();
+            for (String cursors : DEFAULT_CURSORS_LIST) {
+                driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
+                        .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
+                        giveResponse(cursors, APPLICATION_JSON.toString()));
+            }
 
-        try {
-            unit.stream("me", singletonList("event-type"), event -> {
-                if (counter.incrementAndGet() == 5) {
-                    throw new RuntimeException();
-                }
-            });
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
+            final AtomicInteger counter = new AtomicInteger();
+
+            try {
+                unit.stream("me", singletonList("event-type"), event -> {
+                    if (counter.incrementAndGet() == 5) {
+                        throw new RuntimeException();
+                    }
+                });
+            } catch (ExecutionException ex) {
+                throw ex.getCause();
+            }
         }
     }
-    
+
 }
