@@ -24,7 +24,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.conn.EofSensorInputStream;
+import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -59,11 +59,10 @@ class RestAsyncClientHttpResponse implements ClientHttpResponse {
         return new FilterInputStream(response.getBody()) {
             @Override
             public void close() throws IOException {
-                if (in instanceof EofSensorInputStream) {
-                    ((EofSensorInputStream) in).abortConnection();
-                } else {
-                    in.close();
+                if (in instanceof ConnectionReleaseTrigger) {
+                    ((ConnectionReleaseTrigger) in).abortConnection();
                 }
+                super.close();
             }
         };
     }

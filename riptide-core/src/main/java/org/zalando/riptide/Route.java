@@ -39,15 +39,21 @@ public interface Route {
 
     static Route call(final ThrowingRunnable consumer) {
         return (response, reader) -> {
+            try {
                 consumer.run();
+            } finally {
                 response.close();
+            }
         };
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
         return (response, reader) -> {
+            try {
                 consumer.accept(response);
+            } finally {
                 response.close();
+            }
         };
     }
 
@@ -106,8 +112,7 @@ public interface Route {
     }
 
     static ThrowingFunction<ClientHttpResponse, URI> location() {
-        return response ->
-                response.getHeaders().getLocation();
+        return response -> response.getHeaders().getLocation();
     }
 
     static <X extends Exception> ThrowingConsumer<X> propagate() {
@@ -121,8 +126,7 @@ public interface Route {
     }
 
     static <T> Adapter<ClientHttpResponse, T> to(final ThrowingFunction<ClientHttpResponse, T> function) {
-        return consumer ->
-                response -> consumer.accept(function.apply(response));
+        return consumer -> response -> consumer.accept(function.apply(response));
     }
 
     @FunctionalInterface
