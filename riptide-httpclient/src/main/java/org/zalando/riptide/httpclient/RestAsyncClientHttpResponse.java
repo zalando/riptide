@@ -20,11 +20,9 @@ package org.zalando.riptide.httpclient;
  * ​⁣
  */
 
-import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 
 import org.apache.http.conn.EofSensorInputStream;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +31,7 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import lombok.SneakyThrows;
 
-final class RestAsyncClientHttpResponse implements ClientHttpResponse {
+class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;
 
@@ -78,10 +76,7 @@ final class RestAsyncClientHttpResponse implements ClientHttpResponse {
     @Override
     @SneakyThrows
     public void close() {
-        final Class<? extends ClientHttpResponse> type = response.getClass();
-        final Field field = type.getDeclaredField("httpResponse");
-        field.setAccessible(true);
-        Closeable.class.cast(field.get(response)).close();
+        response.close();
     }
 
 }
