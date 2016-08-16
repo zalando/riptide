@@ -52,6 +52,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.apache.http.client.config.RequestConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -69,6 +71,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 
+@NotThreadSafe
 public class NakadiGatewayTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(NakadiGatewayTest.class);
