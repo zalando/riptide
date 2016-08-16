@@ -1,14 +1,5 @@
 package org.zalando.riptide;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMessage;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-
 /*
  * ⁣​
  * Riptide
@@ -29,6 +20,17 @@ import org.springframework.http.client.ClientHttpResponse;
  * ​⁣
  */
 
+import static org.zalando.riptide.TryWith.tryWith;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMessage;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 
@@ -38,23 +40,11 @@ public interface Route {
     void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
     static Route call(final ThrowingRunnable consumer) {
-        return (response, reader) -> {
-            try {
-                consumer.run();
-            } finally {
-                response.close();
-            }
-        };
+        return (response, reader) -> tryWith(response, consumer);
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
-        return (response, reader) -> {
-            try {
-                consumer.accept(response);
-            } finally {
-                response.close();
-            }
-        };
+        return (response, reader) -> tryWith(response, () -> consumer.accept(response));
     }
 
     static <I> Route call(final Class<I> type, final ThrowingConsumer<I> consumer) {

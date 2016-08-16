@@ -30,12 +30,12 @@ import static org.zalando.riptide.Route.responseEntityOf;
 import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.stream.Streams.streamOf;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -54,6 +54,8 @@ import org.zalando.riptide.Rest;
 import org.zalando.riptide.ThrowingConsumer;
 import org.zalando.riptide.capture.Capture;
 
+import com.google.common.io.ByteStreams;
+
 @Component
 public class NakadiGateway {
 
@@ -69,8 +71,10 @@ public class NakadiGateway {
 
     private static ThrowingConsumer<ClientHttpResponse> invalidContent() {
         return response -> {
-            InputStreamReader input = new InputStreamReader(response.getBody());
-            String body = new BufferedReader(input).lines().parallel().collect(Collectors.joining("\n"));
+            Charset charset = Optional.ofNullable(response.getHeaders().getContentType())
+                    .map(MediaType::getCharSet)
+                    .orElse((StandardCharsets.ISO_8859_1));
+            String body = new String(ByteStreams.toByteArray(response.getBody()), charset);
             throw new IOException("Unsupported content: " + response.getRawStatusCode() +
                     " - " + response.getStatusText() + "\n" + response.getHeaders() + "\n" + body);
         };

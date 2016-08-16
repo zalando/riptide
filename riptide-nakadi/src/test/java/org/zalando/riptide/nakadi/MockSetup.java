@@ -45,7 +45,9 @@ public final class MockSetup {
 
     public static final int DEFAULT_MAX_CONNECTIONS = 2;
 
-    private final RestBuilder builder;
+    private final ClientDriverRule driver;
+    private final Iterable<HttpMessageConverter<?>> converters;
+    private final AsyncClientHttpRequestFactory factory;
 
     public MockSetup(final ClientDriverRule driver) {
         this(driver, defaultConverters(), defaultFactory());
@@ -53,10 +55,9 @@ public final class MockSetup {
 
     public MockSetup(final ClientDriverRule driver, final Iterable<HttpMessageConverter<?>> converters,
             final AsyncClientHttpRequestFactory factory) {
-        builder = Rest.builder()
-                .converters(converters)
-                .baseUrl(driver.getBaseUrl())
-                .requestFactory(factory);
+        this.driver = driver;
+        this.converters = converters;
+        this.factory = factory;
     }
 
     public static AsyncClientHttpRequestFactory defaultFactory() {
@@ -95,10 +96,13 @@ public final class MockSetup {
     }
 
     public RestBuilder getRestBuilder() {
-        return builder.clone();
+        return Rest.builder()
+                .converters(converters)
+                .baseUrl(driver.getBaseUrl())
+                .requestFactory(factory);
     }
 
     public NakadiGateway getNakadi() {
-        return new NakadiGateway(builder.build());
+        return new NakadiGateway(getRestBuilder().build());
     }
 }

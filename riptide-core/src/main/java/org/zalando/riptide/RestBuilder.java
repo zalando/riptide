@@ -32,7 +32,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.ImmutableList;
 
-public final class RestBuilder implements Cloneable {
+public final class RestBuilder {
 
     // package private so we can trick code coverage
     static class Converters {
@@ -88,14 +88,6 @@ public final class RestBuilder implements Cloneable {
             factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
             builder.requestFactory(factory);
         };
-    }
-
-    @Override
-    public RestBuilder clone() {
-        return new RestBuilder()
-                .requestFactory(requestFactory)
-                .converters(converters)
-                .baseUrl(baseUrl);
     }
 
     public Rest build() {

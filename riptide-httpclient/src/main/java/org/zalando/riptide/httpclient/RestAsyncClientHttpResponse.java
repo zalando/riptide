@@ -73,7 +73,6 @@ class RestAsyncClientHttpResponse implements ClientHttpResponse {
     }
 
     @Override
-    @SneakyThrows
     public void close() {
         response.close();
     }
