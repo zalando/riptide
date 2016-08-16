@@ -1,5 +1,7 @@
 package org.zalando.riptide;
 
+import static org.zalando.riptide.TryWith.tryWith;
+
 /*
  * ⁣​
  * Riptide Core
