@@ -20,13 +20,20 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
-import java.io.IOException;
-
 @SuppressWarnings("serial")
 public final class NoRouteException extends RestClientException {
+
+    private static final int MAX_BODY_BYTES_TO_READ = 8192;
 
     private final ClientHttpResponse response;
 
@@ -36,8 +43,26 @@ public final class NoRouteException extends RestClientException {
     }
 
     private static String formatMessage(final ClientHttpResponse response) throws IOException {
-        return String.format("Unable to dispatch response (%d %s, Content-Type: %s)",
-                response.getRawStatusCode(), response.getStatusText(), response.getHeaders().getContentType());
+        return String.format("Unable to dispatch response: %d - %s\n%s\n%s",
+                response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
+                readStartOfBody(response, MAX_BODY_BYTES_TO_READ));
+    }
+
+    private static String readStartOfBody(final ClientHttpResponse response, final int length) throws IOException {
+        final InputStream stream = response.getBody();
+        if (stream != null) {
+            final byte[] buffer = new byte[length];
+            final int read = stream.read(buffer);
+            final Charset charset = extractCharset(response);
+            return new String(buffer, 0, read, charset);
+        }
+        return "";
+    }
+
+    private static Charset extractCharset(final ClientHttpResponse response) {
+        return Optional.ofNullable(response.getHeaders().getContentType())
+                .map(MediaType::getCharSet)
+                .orElse((StandardCharsets.ISO_8859_1));
     }
 
     public ClientHttpResponse getResponse() {
