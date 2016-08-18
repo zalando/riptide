@@ -44,14 +44,14 @@ public class TryWithTest {
     @Test
     public void shouldCloseAfterRunningWithoutException() throws Exception {
         Closeable closable = mock(Closeable.class);
-        ThrowingRunnable runnable = mock(ThrowingRunnable.class);
+        ThrowingRunnable consumer = mock(ThrowingRunnable.class);
 
-        Mockito.doNothing().when(runnable).run();
+        Mockito.doNothing().when(consumer).run();
         Mockito.doNothing().when(closable).close();
 
-        tryWith(closable, runnable);
+        tryWith(closable, consumer);
 
-        Mockito.verify(runnable, times(1)).run();
+        Mockito.verify(consumer, times(1)).run();
         Mockito.verify(closable, times(1)).close();
     }
 
@@ -60,15 +60,15 @@ public class TryWithTest {
         exception.expect(IllegalStateException.class);
 
         Closeable closable = mock(Closeable.class);
-        ThrowingRunnable runnable = mock(ThrowingRunnable.class);
+        ThrowingRunnable consumer = mock(ThrowingRunnable.class);
 
-        Mockito.doThrow(new IllegalStateException()).when(runnable).run();
+        Mockito.doThrow(new IllegalStateException()).when(consumer).run();
         Mockito.doNothing().when(closable).close();
 
         try {
-            tryWith(closable, runnable);
+            tryWith(closable, consumer);
         } finally {
-            Mockito.verify(runnable, times(1)).run();
+            Mockito.verify(consumer, times(1)).run();
             Mockito.verify(closable, times(1)).close();
         }
     }
@@ -78,15 +78,15 @@ public class TryWithTest {
         exception.expect(CharacterCodingException.class);
 
         Closeable closable = mock(Closeable.class);
-        ThrowingRunnable runnable = mock(ThrowingRunnable.class);
+        ThrowingRunnable consumer = mock(ThrowingRunnable.class);
 
-        Mockito.doNothing().when(runnable).run();
+        Mockito.doNothing().when(consumer).run();
         Mockito.doThrow(new CharacterCodingException()).when(closable).close();
 
         try {
-            tryWith(closable, runnable);
+            tryWith(closable, consumer);
         } finally {
-            Mockito.verify(runnable, times(1)).run();
+            Mockito.verify(consumer, times(1)).run();
             Mockito.verify(closable, times(1)).close();
         }
     }
@@ -96,19 +96,19 @@ public class TryWithTest {
         exception.expect(IllegalStateException.class);
 
         Closeable closable = mock(Closeable.class);
-        ThrowingRunnable runnable = mock(ThrowingRunnable.class);
+        ThrowingRunnable consumer = mock(ThrowingRunnable.class);
 
-        Mockito.doThrow(new IllegalStateException()).when(runnable).run();
+        Mockito.doThrow(new IllegalStateException()).when(consumer).run();
         Mockito.doThrow(new CharacterCodingException()).when(closable).close();
 
         try {
-            tryWith(closable, runnable);
+            tryWith(closable, consumer);
         } catch (Exception ex) {
             Assert.assertThat(ex.getSuppressed().length, is(equalTo(1)));
             Assert.assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
             throw ex;
         } finally {
-            Mockito.verify(runnable, times(1)).run();
+            Mockito.verify(consumer, times(1)).run();
             Mockito.verify(closable, times(1)).close();
         }
     }
