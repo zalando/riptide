@@ -48,7 +48,7 @@ public class RestAsyncClientHttpResponseBodyTest {
     }
 
     @Test
-    public void shouldCallCloseAndAbortOnConnectionReleaseTrigger() throws IOException {
+    public void shouldCallAbortAndCloseOnConnectionReleaseTrigger() throws IOException {
         EofSensorInputStream stream = mock(EofSensorInputStream.class);
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
@@ -58,5 +58,6 @@ public class RestAsyncClientHttpResponseBodyTest {
         }
 
         verify(stream, times(1)).abortConnection();
+        verify(stream, times(1)).close();
     }
 }

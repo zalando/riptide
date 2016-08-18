@@ -56,11 +56,6 @@ public final class RestBuilder {
         return converters(Converters.DEFAULT);
     }
 
-    public RestBuilder clearConverters() {
-        converters.clear();
-        return this;
-    }
-
     public RestBuilder converters(final Iterable<HttpMessageConverter<?>> converters) {
         converters.forEach(this::converter);
         return this;

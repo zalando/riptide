@@ -29,8 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
-import lombok.SneakyThrows;
-
 class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;

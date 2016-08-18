@@ -1,10 +1,5 @@
 package org.zalando.riptide.tryit;
 
-import org.zalando.riptide.ThrowingConsumer;
-import org.zalando.riptide.ThrowingFunction;
-import org.zalando.riptide.ThrowingRunnable;
-import org.zalando.riptide.ThrowingSupplier;
-
 /*
  * ⁣​
  * Riptide: Core
@@ -24,6 +19,11 @@ import org.zalando.riptide.ThrowingSupplier;
  * limitations under the License.
  * ​⁣
  */
+
+import org.zalando.riptide.ThrowingConsumer;
+import org.zalando.riptide.ThrowingFunction;
+import org.zalando.riptide.ThrowingRunnable;
+import org.zalando.riptide.ThrowingSupplier;
 
 public interface TryWith {
 

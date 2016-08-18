@@ -32,6 +32,7 @@ import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -130,9 +131,9 @@ public final class ExecuteTest {
 
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() throws IOException {
-        final MockSetup setup = new MockSetup();
+        final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
         final MockRestServiceServer server = setup.getServer();
-        final Rest unit = setup.getRestBuilder().clearConverters()
+        final Rest unit = setup.getRestBuilder()
                 .converter(new Jaxb2RootElementHttpMessageConverter()).build();
 
         // we never actually make the request, but the mock server is doing some magic pre-actively
