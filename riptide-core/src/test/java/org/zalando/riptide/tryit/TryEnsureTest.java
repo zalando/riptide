@@ -28,7 +28,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.zalando.riptide.tryit.TryEnsure.ensureIOException;
 
@@ -55,7 +54,7 @@ public class TryEnsureTest {
 
         ensureIOException(runnable);
 
-        verify(runnable, times(1)).run();
+        verify(runnable).run();
     }
 
     @Test
@@ -69,7 +68,7 @@ public class TryEnsureTest {
         try {
             ensureIOException(runnable);
         } finally {
-            verify(runnable, times(1)).run();
+            verify(runnable).run();
         }
     }
 
@@ -83,7 +82,7 @@ public class TryEnsureTest {
         try {
             ensureIOException(runnable);
         } finally {
-            verify(runnable, times(1)).run();
+            verify(runnable).run();
         }
     }
 
@@ -95,7 +94,7 @@ public class TryEnsureTest {
 
         assertThat(ensureIOException(supplier), is(equalTo(VALUE)));
 
-        verify(supplier, times(1)).get();
+        verify(supplier).get();
     }
 
     @Test
@@ -109,7 +108,7 @@ public class TryEnsureTest {
         try {
             ensureIOException(supplier);
         } finally {
-            verify(supplier, times(1)).get();
+            verify(supplier).get();
         }
     }
 
@@ -123,7 +122,7 @@ public class TryEnsureTest {
         try {
             ensureIOException(supplier);
         } finally {
-            verify(supplier, times(1)).get();
+            verify(supplier).get();
         }
     }
 }

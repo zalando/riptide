@@ -21,7 +21,6 @@ package org.zalando.riptide.httpclient;
  */
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +43,7 @@ public class RestAsyncClientHttpResponseBodyTest {
             unit.getBody().close();
         }
 
-        verify(stream, times(1)).close();
+        verify(stream).close();
     }
 
     @Test
@@ -57,7 +56,7 @@ public class RestAsyncClientHttpResponseBodyTest {
             unit.getBody().close();
         }
 
-        verify(stream, times(1)).abortConnection();
-        verify(stream, times(1)).close();
+        verify(stream).abortConnection();
+        verify(stream).close();
     }
 }

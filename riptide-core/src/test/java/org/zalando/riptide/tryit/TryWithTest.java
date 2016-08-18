@@ -28,7 +28,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.zalando.riptide.tryit.TryWith.tryWith;
 
@@ -62,8 +61,8 @@ public class TryWithTest {
 
         tryWith(closable, runnable);
 
-        verify(runnable, times(1)).run();
-        verify(closable, times(1)).close();
+        verify(runnable).run();
+        verify(closable).close();
     }
 
     @Test
@@ -79,8 +78,8 @@ public class TryWithTest {
         try {
             tryWith(closable, runnable);
         } finally {
-            verify(runnable, times(1)).run();
-            verify(closable, times(1)).close();
+            verify(runnable).run();
+            verify(closable).close();
         }
     }
 
@@ -97,8 +96,8 @@ public class TryWithTest {
         try {
             tryWith(closable, runnable);
         } finally {
-            verify(runnable, times(1)).run();
-            verify(closable, times(1)).close();
+            verify(runnable).run();
+            verify(closable).close();
         }
     }
 
@@ -119,8 +118,8 @@ public class TryWithTest {
             assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
             throw ex;
         } finally {
-            verify(runnable, times(1)).run();
-            verify(closable, times(1)).close();
+            verify(runnable).run();
+            verify(closable).close();
         }
     }
 
@@ -134,8 +133,8 @@ public class TryWithTest {
 
         tryWith(closable, consumer, null);
 
-        verify(consumer, times(1)).accept(null);
-        verify(closable, times(1)).close();
+        verify(consumer).accept(null);
+        verify(closable).close();
     }
 
     @Test
@@ -151,8 +150,8 @@ public class TryWithTest {
         try {
             tryWith(closable, consumer, null);
         } finally {
-            verify(consumer, times(1)).accept(null);
-            verify(closable, times(1)).close();
+            verify(consumer).accept(null);
+            verify(closable).close();
         }
     }
 
@@ -169,8 +168,8 @@ public class TryWithTest {
         try {
             tryWith(closable, consumer, null);
         } finally {
-            verify(consumer, times(1)).accept(null);
-            verify(closable, times(1)).close();
+            verify(consumer).accept(null);
+            verify(closable).close();
         }
     }
 
@@ -191,8 +190,8 @@ public class TryWithTest {
             assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
             throw ex;
         } finally {
-            verify(consumer, times(1)).accept(null);
-            verify(closable, times(1)).close();
+            verify(consumer).accept(null);
+            verify(closable).close();
         }
     }
 
@@ -207,8 +206,8 @@ public class TryWithTest {
 
         assertThat(tryWith(closable, supplier), is(equalTo(VALUE)));
 
-        verify(supplier, times(1)).get();
-        verify(closable, times(1)).close();
+        verify(supplier).get();
+        verify(closable).close();
     }
 
     @Test
@@ -224,8 +223,8 @@ public class TryWithTest {
         try {
             tryWith(closable, supplier);
         } finally {
-            verify(supplier, times(1)).get();
-            verify(closable, times(1)).close();
+            verify(supplier).get();
+            verify(closable).close();
         }
     }
 
@@ -242,8 +241,8 @@ public class TryWithTest {
         try {
             tryWith(closable, supplier);
         } finally {
-            verify(supplier, times(1)).get();
-            verify(closable, times(1)).close();
+            verify(supplier).get();
+            verify(closable).close();
         }
     }
 
@@ -264,8 +263,8 @@ public class TryWithTest {
             Assert.assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
             throw ex;
         } finally {
-            Mockito.verify(supplier, times(1)).get();
-            Mockito.verify(closable, times(1)).close();
+            Mockito.verify(supplier).get();
+            Mockito.verify(closable).close();
         }
     }
 
@@ -279,8 +278,8 @@ public class TryWithTest {
 
         assertThat(tryWith(closable, function, null), is(equalTo(VALUE)));
 
-        verify(function, times(1)).apply(null);
-        verify(closable, times(1)).close();
+        verify(function).apply(null);
+        verify(closable).close();
     }
 
     @Test
@@ -296,8 +295,8 @@ public class TryWithTest {
         try {
             tryWith(closable, function, null);
         } finally {
-            verify(function, times(1)).apply(null);
-            verify(closable, times(1)).close();
+            verify(function).apply(null);
+            verify(closable).close();
         }
     }
 
@@ -314,8 +313,8 @@ public class TryWithTest {
         try {
             tryWith(closable, function, null);
         } finally {
-            verify(function, times(1)).apply(null);
-            verify(closable, times(1)).close();
+            verify(function).apply(null);
+            verify(closable).close();
         }
     }
 
@@ -336,8 +335,8 @@ public class TryWithTest {
             assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
             throw ex;
         } finally {
-            verify(function, times(1)).apply(null);
-            verify(closable, times(1)).close();
+            verify(function).apply(null);
+            verify(closable).close();
         }
     }
 }
