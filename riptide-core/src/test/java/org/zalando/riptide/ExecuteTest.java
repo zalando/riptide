@@ -20,6 +20,7 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,8 +30,6 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
-
-import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 
