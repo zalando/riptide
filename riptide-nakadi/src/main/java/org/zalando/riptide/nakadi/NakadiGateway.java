@@ -27,10 +27,12 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Route.noRoute;
+import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.Route.responseEntityOf;
 import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.stream.Streams.streamOf;
+import static org.zalando.riptide.tryit.TryWith.tryWith;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +42,6 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
@@ -64,23 +65,19 @@ public final class NakadiGateway {
                     on(PROBLEM).call(ThrowableProblem.class, propagate()),
                     Bindings.anyContentType().call(noRoute())));
 
-    static class GatewayException extends RuntimeException {
-
-        public GatewayException(Throwable cause) {
-            super(cause);
-        }
-    }
-
     private final Rest rest;
 
-    @Autowired
     public NakadiGateway(final Rest rest) {
         this.rest = rest;
     }
 
     public Subscription subscribe(final Subscription subscription)
             throws InterruptedException, ExecutionException, IOException {
-        final Capture<Subscription> capture = Capture.empty();
+        return subscribe(subscription, Capture.empty());
+    }
+
+    private Subscription subscribe(final Subscription subscription, final Capture<Subscription> capture)
+            throws InterruptedException, ExecutionException, IOException {
         rest.post("/subscriptions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(subscription)
@@ -91,29 +88,42 @@ public final class NakadiGateway {
         return capture.retrieve();
     }
 
-    public void stream(final Subscription subscription, final EventConsumer consumer)
-            throws InterruptedException, ExecutionException, IOException {
-        rest.get("/subscriptions/{id}/events", subscription.getId())
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(responseEntityOf(streamOf(Batch.class)),
-                                process(subscription, consumer)),
-                        ON_FAILURE_BINDING)
-                .get();
+    public void stream(final Subscription subscription, final EventConsumer consumer) {
+        events(subscription, consumer);
+    }
+
+    private void events(final Subscription subscription, final EventConsumer consumer) {
+        Objects.requireNonNull(subscription.getId(), "subscription identifier must not be null!");
+        try {
+            rest.get("/subscriptions/{id}/events", subscription.getId())
+                    .dispatch(series(),
+                            on(SUCCESSFUL).call(responseEntityOf(streamOf(Batch.class)),
+                                    process(subscription, consumer)),
+                            ON_FAILURE_BINDING)
+                    .get();
+        } catch (final ExecutionException e) {
+            if (e.getCause() instanceof NakadiGatewayException) {
+                throw (NakadiGatewayException) e.getCause();
+            }
+            throw new NakadiGatewayException(e.getCause(), FailureHandling.IGNORE);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new NakadiGatewayException(e, FailureHandling.ABORT);
+        } catch (final IOException e) {
+            throw new NakadiGatewayException(e, FailureHandling.RETRY);
+        }
     }
 
     private ThrowingConsumer<ResponseEntity<Stream<Batch>>> process(final Subscription subscription,
             final EventConsumer consumer) {
         return entity -> {
-            @SuppressWarnings("resource")
             final Stream<Batch> stream = entity.getBody();
-            try {
-                final HttpHeaders headers = entity.getHeaders();
+            final HttpHeaders headers = entity.getHeaders();
+            tryWith(stream, () -> {
                 stream.map(batch -> consume(consumer, batch))
                         .filter(Objects::nonNull)
                         .forEach(cursor -> commit(subscription, headers, cursor));
-            } finally {
-                stream.close();
-            }
+            });
         };
     }
 
@@ -132,25 +142,23 @@ public final class NakadiGateway {
         return cursor;
     }
 
-    private Cursor[] commit(final Subscription subscription, final HttpHeaders headers, final Cursor... cursor) {
-        final Capture<Cursor[]> capture = Capture.empty();
+    private void commit(final Subscription subscription, final HttpHeaders headers, final Cursor... cursor) {
         try {
             rest.put("/subscriptions/{id}/cursors", subscription.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .header(SESSION_HEADER, headers.getFirst(SESSION_HEADER))
                     .body(cursor)
                     .dispatch(series(),
-                            on(SUCCESSFUL).call(Cursor[].class, capture),
+                            on(SUCCESSFUL).call(pass()),
                             ON_FAILURE_BINDING)
                     .get();
-        } catch (ExecutionException ex) {
-            throw new GatewayException(ex.getCause());
-        } catch (InterruptedException ex) {
+        } catch (final ExecutionException e) {
+            throw new NakadiGatewayException(e.getCause(), FailureHandling.IGNORE);
+        } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new GatewayException(ex);
-        } catch (IOException ex) {
-            throw new GatewayException(ex);
+            throw new NakadiGatewayException(e, FailureHandling.ABORT);
+        } catch (final IOException e) {
+            throw new NakadiGatewayException(e, FailureHandling.IGNORE);
         }
-        return capture.retrieve();
     }
 }

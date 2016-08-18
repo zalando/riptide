@@ -23,7 +23,6 @@ package org.zalando.riptide.httpclient;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRequest;
 import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -42,7 +41,6 @@ import org.zalando.riptide.Rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -62,7 +60,6 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -140,8 +137,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
         final InputStream stream = response.getBody();
         final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
-        final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() {
-        });
+        final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() { });
 
         final List<String> names = users.stream()
                 .map(User::getLogin)

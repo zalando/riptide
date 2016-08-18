@@ -1,5 +1,25 @@
 package org.zalando.riptide.stream;
 
+/*
+ * ⁣​
+ * Riptide: Stream
+ * ⁣⁣
+ * Copyright (C) 2015 - 2016 Zalando SE
+ * ⁣⁣
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ​⁣
+ */
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,26 +62,6 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.forEach;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
-
-/*
- * ⁣​
- * Riptide: Stream
- * ⁣⁣
- * Copyright (C) 2015 - 2016 Zalando SE
- * ⁣⁣
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * ​⁣
- */
 
 public class StreamsTest {
 
@@ -211,7 +211,7 @@ public class StreamsTest {
 
         verify(verifier).accept(
                 new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any());
+        verify(verifier).accept(any());
     }
 
     @Test
@@ -276,7 +276,7 @@ public class StreamsTest {
                 anyStatus().call(this::fail));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any());
+        verify(verifier).accept(any());
 
         future.get();
     }

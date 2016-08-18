@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.tryit;
 
 /*
  * ⁣​
@@ -20,34 +20,31 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-public interface TryWith {
+import java.io.IOException;
 
-    static void tryWith(final AutoCloseable closeable, final ThrowingRunnable consumer) throws Exception {
+import org.zalando.riptide.ThrowingRunnable;
+import org.zalando.riptide.ThrowingSupplier;
+
+public interface TryEnsure {
+
+    static void ensureIOException(final ThrowingRunnable runnable) throws IOException {
         try {
-            consumer.run();
-        } catch (Exception e) {
-            try {
-                closeable.close();
-            } catch (Exception ce) {
-                e.addSuppressed(ce);
-            }
+            runnable.run();
+        } catch (IOException e) {
             throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
-        closeable.close();
     }
 
-    static <T> void tryWith(final AutoCloseable closeable, final ThrowingConsumer<T> consumer, final T input)
-            throws Exception {
+    static <T> T ensureIOException(final ThrowingSupplier<T> supplier) throws IOException {
         try {
-            consumer.accept(input);
-        } catch (Exception e) {
-            try {
-                closeable.close();
-            } catch (Exception ce) {
-                e.addSuppressed(ce);
-            }
+            return supplier.get();
+        } catch (IOException e) {
             throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
-        closeable.close();
     }
+
 }

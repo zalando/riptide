@@ -20,19 +20,18 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.springframework.web.util.UriComponentsBuilder.fromUri;
-import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
-
-import java.net.URI;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.annotation.Nullable;
+import java.net.URI;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 public final class Rest {
 
@@ -120,15 +119,13 @@ public final class Rest {
         return new Requester(requestFactory, worker, method, fromUri(url));
     }
 
-    private static UriComponentsBuilder mergeUrl(String baseUrl, String uri) {
-        if (baseUrl != null && hasNoSchema(uri)) {
-            return fromUriString(baseUrl + uri);
-        }
-        return fromUriString(uri);
-    }
+    private static UriComponentsBuilder mergeUrl(@Nullable final String baseUrl, final String uriTemplate) {
+        final UriComponentsBuilder builder = fromUriString(uriTemplate);
 
-    private static boolean hasNoSchema(String uri) {
-        return uri.startsWith("/") || uri.startsWith(".");
+        if (baseUrl != null && builder.build().getHost() == null) {
+            return fromUriString(baseUrl + uriTemplate);
+        }
+        return builder;
     }
 
     public static RestBuilder builder() {
