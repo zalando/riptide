@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.google.common.reflect.TypeToken;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -63,7 +62,7 @@ public final class CallTest {
     private final MockRestServiceServer server;
 
     public CallTest() {
-        final MockSetup setup = new MockSetup();
+        final MockSetup setup = new MockSetup("https://api.example.com/");
         this.unit = setup.getRest();
         this.server = setup.getServer();
     }
@@ -78,7 +77,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
 
-        unit.get("/accounts/123")
+        unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
@@ -96,7 +95,7 @@ public final class CallTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<ResponseEntity<AccountBody>> verifier = mock(ThrowingConsumer.class);
 
-        unit.get("/accounts/123")
+        unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(responseEntityOf(AccountBody.class), verifier),
                         anyStatus().call(this::fail));
@@ -120,7 +119,7 @@ public final class CallTest {
 
         final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
-        unit.get("/accounts/123")
+        unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(verifier),
                         anyStatus().call(this::fail));
@@ -138,7 +137,7 @@ public final class CallTest {
         exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
-        unit.get("/accounts/123")
+        unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail))

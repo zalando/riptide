@@ -42,7 +42,7 @@ public final class StreamSpliteratorTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private JavaType type = SimpleType.constructUnsafe(List.class);
+    private final JavaType type = SimpleType.constructUnsafe(List.class);
 
     @Mock
     private JsonParser parser;

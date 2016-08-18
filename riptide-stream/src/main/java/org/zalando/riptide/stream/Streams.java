@@ -20,19 +20,18 @@ package org.zalando.riptide.stream;
  * ​⁣
  */
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.zalando.riptide.Route;
 import org.zalando.riptide.ThrowingConsumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
@@ -57,10 +56,10 @@ import com.google.common.reflect.TypeToken;
  */
 public final class Streams {
 
-    /** Default singleton {@link media type} for application/x-json-stream. */
+    /** Default singleton {@link MediaType media type} for application/x-json-stream. */
     public static final MediaType APPLICATION_X_JSON_STREAM = //
             new MediaType("application", "x-json-stream", StandardCharsets.UTF_8);
-    /** Default singleton {@link media type} for application/json-seq. */
+    /** Default singleton {@link MediaType media type} for application/json-seq. */
     public static final MediaType APPLICATION_JSON_SEQ = //
             new MediaType("application", "json-seq", StandardCharsets.UTF_8);
 
@@ -134,20 +133,20 @@ public final class Streams {
             }
             try {
                 input.forEach(wrap(consumer));
-            } catch (UncheckedConsumerException ex) {
-                throw ex.getCause();
+            } catch (final UncheckedConsumerException e) {
+                throw e.getCause();
             } finally {
                 input.close();
             }
         };
     }
 
-    private static <I> Consumer<? super I> wrap(final ThrowingConsumer<I> consumer) throws Exception {
+    private static <I> Consumer<? super I> wrap(final ThrowingConsumer<I> consumer) {
         return (i) -> {
             try {
                 consumer.accept(i);
-            } catch (Exception ex) {
-                throw new UncheckedConsumerException(ex);
+            } catch (final Exception e) {
+                throw new UncheckedConsumerException(e);
             }
         };
     }
