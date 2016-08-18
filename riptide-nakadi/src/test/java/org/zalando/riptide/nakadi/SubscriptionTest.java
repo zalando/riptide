@@ -34,25 +34,37 @@ public class SubscriptionTest extends ObjectTheory {
 
     private static final String ID = "id";
     private static final String OWNER = "owner";
+    private static final String GROUP = "group";
     private static final List<String> TYPES = Collections.emptyList();
+    private static final String FROM = "begin";
+    private static final String CREATED = "2016-12-24T18:59:30.123456";
 
     @DataPoints
     public static Subscription[] data = {
             null,
-            new Subscription(null, null, null),
-            new Subscription(ID, null, null),
-            new Subscription(ID, null, null),
-            new Subscription(null, OWNER, null),
-            new Subscription(null, OWNER, null),
-            new Subscription(null, null, TYPES),
-            new Subscription(null, null, TYPES)
+            new Subscription(null, null, null, null),
+            new Subscription(ID, null, null, null, null, null),
+            new Subscription(ID, null, null, null, null, null),
+            new Subscription(OWNER, null, null, null),
+            new Subscription(OWNER, null, null, null),
+            new Subscription(null, GROUP, null, null),
+            new Subscription(null, GROUP, null, null),
+            new Subscription(null, null, TYPES, null),
+            new Subscription(null, null, TYPES, null),
+            new Subscription(null, null, null, FROM),
+            new Subscription(null, null, null, FROM),
+            new Subscription(null, null, null, null, null, CREATED),
+            new Subscription(null, null, null, null, null, CREATED),
     };
 
     @Test
     public void getter() {
-        Subscription sub = new Subscription(ID, OWNER, TYPES);
+        Subscription sub = new Subscription(ID, OWNER, GROUP, TYPES, FROM, CREATED);
         assertThat(sub.getId(), is(equalTo(ID)));
         assertThat(sub.getOwningApplication(), is(equalTo(OWNER)));
+        assertThat(sub.getConsumerGroup(), is(equalTo(GROUP)));
         assertThat(sub.getEventTypes(), is(equalTo(TYPES)));
+        assertThat(sub.getReadFrom(), is(equalTo(FROM)));
+        assertThat(sub.getCreatedAt(), is(equalTo(CREATED)));
     }
 }

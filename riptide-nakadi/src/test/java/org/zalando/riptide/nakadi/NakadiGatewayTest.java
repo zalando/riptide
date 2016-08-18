@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -46,13 +47,12 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.http.client.config.RequestConfig;
 import org.junit.After;
@@ -65,20 +65,20 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zalando.problem.ThrowableProblem;
+import org.zalando.riptide.NoRouteException;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.net.MediaType;
 
-@NotThreadSafe
+@net.jcip.annotations.NotThreadSafe
 public class NakadiGatewayTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(NakadiGatewayTest.class);
 
     private static final String[] DEFAULT_CURSORS_LIST = {
-            "[{\"partition\":\"0\",\"offset\":\"0\"}]",
-            "[{\"partition\":\"0\",\"offset\":\"1\"}]",
             "[{\"partition\":\"0\",\"offset\":\"2\"}]",
             "[{\"partition\":\"0\",\"offset\":\"3\"}]",
             "[{\"partition\":\"0\",\"offset\":\"4\"}]",
@@ -86,12 +86,26 @@ public class NakadiGatewayTest {
             "[{\"partition\":\"0\",\"offset\":\"6\"}]"
     };
 
+    private static final String SUBSCRIPTION_RESPONSE = "{\"id\":\"my-stream\"," +
+            "\"owning_application\":\"owner\",\"consumer_group\":\"group\"," +
+            "\"event_types\":[\"event-type\"],\"read_from\":\"begin\"," +
+            "\"created_at\":\"2016-12-24T18:59:30.123456\"}";
+
+    private static final String PROBLEM_RESPONSE = "{\"type\":\"unknown\",\"title\":\"title\"," +
+            "\"status\":500,\"detail\":\"internal\",\"instance\":\"commit\"}";
+
+    private static final String INVALID_RESPONSE = "{\"unknown\":\"unknown\"}";
+
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
+    @Rule
+    public final TestLogger logger = new TestLogger();
+
+    private final Subscription subscription = new Subscription("owner", "group", singletonList("event-type"), "begin");
     private final NakadiGateway unit;
 
     public NakadiGatewayTest() {
@@ -101,11 +115,11 @@ public class NakadiGatewayTest {
     @Before
     public void before() throws IOException {
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
-                giveResponseAsBytes(getResource("subscription.json").openStream(),
-                        APPLICATION_JSON.toString()));
+                giveResponse(SUBSCRIPTION_RESPONSE, APPLICATION_JSON.toString()));
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
                 giveResponseAsBytes(getResource("event-stream.json").openStream(),
-                        APPLICATION_X_JSON_STREAM.toString()));
+                        APPLICATION_X_JSON_STREAM.toString())
+                                .withHeader(NakadiGateway.SESSION_HEADER, UUID.randomUUID().toString()));
     }
 
     @After
@@ -123,8 +137,7 @@ public class NakadiGatewayTest {
         }
 
         AtomicInteger counter = new AtomicInteger();
-
-        unit.stream("me", singletonList("event-type"), event -> counter.incrementAndGet());
+        unit.stream(unit.subscribe(subscription), event -> counter.incrementAndGet());
 
         assertThat(counter.get(), is(equalTo(6)));
     }
@@ -139,7 +152,7 @@ public class NakadiGatewayTest {
                 giveResponse(cursors, APPLICATION_JSON.toString()));
 
         try {
-            unit.stream("me", singletonList("event-type"), event -> {
+            unit.stream(unit.subscribe(subscription), event -> {
                 throw new RuntimeException();
             });
         } catch (ExecutionException ex) {
@@ -162,7 +175,7 @@ public class NakadiGatewayTest {
         final NakadiGateway unit = setup.getNakadi();
 
         try {
-            unit.stream("me", singletonList("event-type"), event -> LOG.info("consumed event: {}", event));
+            unit.stream(unit.subscribe(subscription), event -> LOG.info("consumed event: {}", event));
         } catch (ExecutionException ex) {
             throw ex.getCause();
         }
@@ -182,7 +195,7 @@ public class NakadiGatewayTest {
 
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         try {
-            unit.stream("me", singletonList("event-type"), event -> {
+            unit.stream(unit.subscribe(subscription), event -> {
                 final Thread thread = Thread.currentThread();
                 executor.schedule(thread::interrupt, 10, TimeUnit.MILLISECONDS);
                 LOG.info("consumed event: {}", event);
@@ -217,23 +230,53 @@ public class NakadiGatewayTest {
                         eq(JsonEncoding.UTF8));
 
         try {
-            unit.stream("me", singletonList("event-type"), event -> LOG.info("consumed event: {}", event));
+            unit.stream(unit.subscribe(subscription), event -> LOG.info("consumed event: {}", event));
         } catch (ExecutionException ex) {
             throw ex.getCause();
         }
     }
 
     @Test
-    public void shouldExposeFailedCommit() throws Throwable {
+    public void shouldExposeFailureInCommit() throws Throwable {
         exception.expect(NakadiGateway.GatewayException.class);
-        exception.expectCause(instanceOf(ThrowableProblem.class));
+        exception.expectCause(instanceOf(IOException.class));
+        exception.expectCause(hasFeature(Throwable::getCause,instanceOf(ThrowableProblem.class)));
 
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors").withMethod(PUT),
-                giveResponseAsBytes(getResource("problem.json").openStream(), PROBLEM.toString())
-                        .withStatus(500));
+                giveResponse(PROBLEM_RESPONSE, PROBLEM.toString()).withStatus(500));
 
         try {
-            unit.stream("me", singletonList("event-type"), event -> LOG.info("consumed event: {}", event));
+            unit.stream(unit.subscribe(subscription), event -> LOG.info("consumed event: {}", event));
+        } catch (ExecutionException ex) {
+            throw ex.getCause();
+        }
+    }
+
+    @Test
+    public void shouldExposeFailureOnUnexpectedResponse() throws Throwable {
+        exception.expect(NakadiGateway.GatewayException.class);
+        exception.expectCause(instanceOf(NoRouteException.class));
+
+        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors").withMethod(PUT),
+                giveResponse("failure text message", MediaType.ANY_TEXT_TYPE.toString()).withStatus(400));
+
+        try {
+            unit.stream(unit.subscribe(subscription), event -> LOG.info("consumed event: {}", event));
+        } catch (ExecutionException ex) {
+            throw ex.getCause();
+        }
+    }
+
+    @Test
+    public void shouldExposeInvalidResponse() throws Throwable {
+        exception.expect(NakadiGateway.GatewayException.class);
+        exception.expectCause(instanceOf(NoRouteException.class));
+
+        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors").withMethod(PUT),
+                giveResponse("failure text message", MediaType.ANY_TEXT_TYPE.toString()).withStatus(400));
+
+        try {
+            unit.stream(unit.subscribe(subscription), event -> LOG.info("consumed event: {}", event));
         } catch (ExecutionException ex) {
             throw ex.getCause();
         }
@@ -247,8 +290,7 @@ public class NakadiGatewayTest {
 
         driver.reset();
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
-                giveResponseAsBytes(getResource("subscription.json").openStream(),
-                        APPLICATION_JSON.toString()));
+                giveResponse(SUBSCRIPTION_RESPONSE, APPLICATION_JSON.toString()));
         try (final FilterInputStream content =
                 new FilterInputStream(getResource("event-stream.json").openStream()) {
                     public boolean closed = false;
@@ -268,7 +310,8 @@ public class NakadiGatewayTest {
                     }
                 }) {
             driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
-                    giveResponseAsBytes(content, APPLICATION_X_JSON_STREAM.toString()));
+                    giveResponseAsBytes(content, APPLICATION_X_JSON_STREAM.toString())
+                            .withHeader(NakadiGateway.SESSION_HEADER, UUID.randomUUID().toString()));
 
             for (String cursors : DEFAULT_CURSORS_LIST) {
                 driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
@@ -279,7 +322,7 @@ public class NakadiGatewayTest {
             final AtomicInteger counter = new AtomicInteger();
 
             try {
-                unit.stream("me", singletonList("event-type"), event -> {
+                unit.stream(unit.subscribe(subscription), event -> {
                     if (counter.incrementAndGet() == 5) {
                         throw new RuntimeException();
                     }
