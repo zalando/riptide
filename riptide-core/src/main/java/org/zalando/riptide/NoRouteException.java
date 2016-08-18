@@ -2,9 +2,9 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide: Core
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.zalando.riptide;
  * limitations under the License.
  * ​⁣
  */
+
+import static org.zalando.riptide.tryit.TryEnsure.ensureIOException;
+import static org.zalando.riptide.tryit.TryWith.tryWith;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,13 +53,16 @@ public final class NoRouteException extends RestClientException {
 
     private static String readStartOfBody(final ClientHttpResponse response, final int length) throws IOException {
         final InputStream stream = response.getBody();
-        if (stream != null) {
+        return (stream != null) ? ensureIOException(() -> tryWith(stream, read(response, length))) : "";
+    }
+
+    private static ThrowingSupplier<String> read(final ClientHttpResponse response, final int length) {
+        return () -> {
             final byte[] buffer = new byte[length];
-            final int read = stream.read(buffer);
+            final int read = response.getBody().read(buffer);
             final Charset charset = extractCharset(response);
             return new String(buffer, 0, read, charset);
-        }
-        return "";
+        };
     }
 
     private static Charset extractCharset(final ClientHttpResponse response) {

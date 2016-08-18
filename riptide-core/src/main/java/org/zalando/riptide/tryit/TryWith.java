@@ -1,4 +1,9 @@
-package org.zalando.riptide;
+package org.zalando.riptide.tryit;
+
+import org.zalando.riptide.ThrowingConsumer;
+import org.zalando.riptide.ThrowingFunction;
+import org.zalando.riptide.ThrowingRunnable;
+import org.zalando.riptide.ThrowingSupplier;
 
 /*
  * ⁣​
@@ -22,9 +27,9 @@ package org.zalando.riptide;
 
 public interface TryWith {
 
-    static void tryWith(final AutoCloseable closeable, final ThrowingRunnable consumer) throws Exception {
+    static void tryWith(final AutoCloseable closeable, final ThrowingRunnable runnable) throws Exception {
         try {
-            consumer.run();
+            runnable.run();
         } catch (Exception e) {
             try {
                 closeable.close();
@@ -49,5 +54,38 @@ public interface TryWith {
             throw e;
         }
         closeable.close();
+    }
+
+    static <T> T tryWith(final AutoCloseable closeable, final ThrowingSupplier<T> supplier) throws Exception {
+        T value = null;
+        try {
+            value = supplier.get();
+        } catch (Exception e) {
+            try {
+                closeable.close();
+            } catch (Exception ce) {
+                e.addSuppressed(ce);
+            }
+            throw e;
+        }
+        closeable.close();
+        return value;
+    }
+
+    static <R, T> T tryWith(final AutoCloseable closeable, final ThrowingFunction<R, T> function, final R input)
+            throws Exception {
+        T value = null;
+        try {
+            value = function.apply(input);
+        } catch (Exception e) {
+            try {
+                closeable.close();
+            } catch (Exception ce) {
+                e.addSuppressed(ce);
+            }
+            throw e;
+        }
+        closeable.close();
+        return value;
     }
 }

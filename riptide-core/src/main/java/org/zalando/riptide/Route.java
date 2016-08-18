@@ -20,18 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static org.zalando.riptide.TryWith.tryWith;
+import static org.zalando.riptide.tryit.TryWith.tryWith;
 
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
 
 @FunctionalInterface
 public interface Route {
