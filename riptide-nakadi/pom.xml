@@ -45,7 +45,7 @@
             <artifactId>jackson-datatype-problem</artifactId>
             <scope>compile</scope>
         </dependency>
-
+    
         <!-- spring -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -56,6 +56,14 @@
         <dependency>
             <groupId>com.github.rest-driver</groupId>
             <artifactId>rest-client-driver</artifactId>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -22,13 +22,23 @@ package org.zalando.riptide.nakadi;
 
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 @Value
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 class Subscription {
+
+    public Subscription(final String owningApplication, final String consumerGroup,
+            final List<String> eventTypes, final String readFrom) {
+        this(null, owningApplication, consumerGroup, eventTypes, readFrom, null);
+    }
 
     String id;
     String owningApplication;
+    String consumerGroup;
     List<String> eventTypes;
-
+    String readFrom;
+    String createdAt;
 }
