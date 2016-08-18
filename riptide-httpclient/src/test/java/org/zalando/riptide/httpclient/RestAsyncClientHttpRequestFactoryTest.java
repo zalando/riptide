@@ -138,7 +138,6 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         final InputStream stream = response.getBody();
         final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
         final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() { });
-
         final List<String> names = users.stream()
                 .map(User::getLogin)
                 .collect(toList());

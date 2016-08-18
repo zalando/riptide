@@ -21,7 +21,6 @@ package org.zalando.riptide.tryit;
  */
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doNothing;
@@ -43,6 +42,10 @@ import org.zalando.riptide.ThrowingSupplier;
 public class TryEnsureTest {
 
     private static final Object VALUE = new Object();
+    private static final Exception EXCEPTION = new Exception();
+    private static final IOException IOEXCEPTION = new IOException();
+
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
@@ -60,11 +63,11 @@ public class TryEnsureTest {
     @Test
     public void runnableShouldCastException() throws Exception {
         this.exception.expect(IOException.class);
-        this.exception.expectCause(instanceOf(Exception.class));
+        this.exception.expectCause(is(equalTo(EXCEPTION)));
 
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doThrow(new Exception()).when(runnable).run();
+        doThrow(EXCEPTION).when(runnable).run();
         try {
             ensureIOException(runnable);
         } finally {
@@ -74,11 +77,11 @@ public class TryEnsureTest {
 
     @Test
     public void runnableShouldNotCastIOException() throws Exception {
-        this.exception.expect(CharacterCodingException.class);
+        this.exception.expect(is(equalTo(IOEXCEPTION)));
 
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doThrow(new CharacterCodingException()).when(runnable).run();
+        doThrow(IOEXCEPTION).when(runnable).run();
         try {
             ensureIOException(runnable);
         } finally {
@@ -100,11 +103,11 @@ public class TryEnsureTest {
     @Test
     public void supplierShouldCastException() throws Exception {
         this.exception.expect(IOException.class);
-        this.exception.expectCause(instanceOf(Exception.class));
+        this.exception.expectCause(is(equalTo(EXCEPTION)));
 
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
-        doThrow(new Exception()).when(supplier).get();
+        doThrow(EXCEPTION).when(supplier).get();
         try {
             ensureIOException(supplier);
         } finally {
@@ -114,11 +117,11 @@ public class TryEnsureTest {
 
     @Test
     public void supplierShouldNotCastIOException() throws Exception {
-        this.exception.expect(CharacterCodingException.class);
+        this.exception.expect(is(equalTo(IOEXCEPTION)));
 
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
-        doThrow(new CharacterCodingException()).when(supplier).get();
+        doThrow(IOEXCEPTION).when(supplier).get();
         try {
             ensureIOException(supplier);
         } finally {

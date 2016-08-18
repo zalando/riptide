@@ -21,7 +21,6 @@ package org.zalando.riptide.tryit;
  */
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doNothing;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.zalando.riptide.tryit.TryWith.tryWith;
 
 import java.io.Closeable;
-import java.nio.charset.CharacterCodingException;
+import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -47,6 +46,9 @@ import org.zalando.riptide.ThrowingSupplier;
 public class TryWithTest {
 
     private static final Object VALUE = new Object();
+
+    private final Exception EXCEPTION = new Exception();
+    private final Exception IOEXCEPTION = new IOException();
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
@@ -67,12 +69,12 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterRunningWithException() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doThrow(new IllegalStateException()).when(runnable).run();
+        doThrow(EXCEPTION).when(runnable).run();
         doNothing().when(closable).close();
 
         try {
@@ -85,13 +87,13 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterRunningAndExposeExceptionWhenFailintToClose() throws Exception {
-        exception.expect(CharacterCodingException.class);
+        exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
         doNothing().when(runnable).run();
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, runnable);
@@ -103,19 +105,19 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterRunningAndSupressExceptionWhenFailintToClose() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doThrow(new IllegalStateException()).when(runnable).run();
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(EXCEPTION).when(runnable).run();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, runnable);
         } catch (Exception ex) {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
-            assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
+            assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
         } finally {
             verify(runnable).run();
@@ -139,12 +141,12 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterConsumingWithException() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
 
-        doThrow(new IllegalStateException()).when(consumer).accept(null);
+        doThrow(EXCEPTION).when(consumer).accept(null);
         doNothing().when(closable).close();
 
         try {
@@ -157,13 +159,13 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterConsumingAndExposeExceptionWhenFailintToClose() throws Exception {
-        exception.expect(CharacterCodingException.class);
+        exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
 
         doNothing().when(consumer).accept(null);
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, consumer, null);
@@ -175,19 +177,19 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterConsumingAndSupressExceptionWhenFailintToClose() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
 
-        doThrow(new IllegalStateException()).when(consumer).accept(null);
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(EXCEPTION).when(consumer).accept(null);
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, consumer, null);
         } catch (Exception ex) {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
-            assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
+            assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
         } finally {
             verify(consumer).accept(null);
@@ -212,12 +214,12 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterProvidingWithException() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
-        doThrow(new IllegalStateException()).when(supplier).get();
+        doThrow(EXCEPTION).when(supplier).get();
         doNothing().when(closable).close();
 
         try {
@@ -230,13 +232,13 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterProvidingAndExposeExceptionWhenFailintToClose() throws Exception {
-        exception.expect(CharacterCodingException.class);
+        exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
         doReturn(VALUE).when(supplier).get();
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, supplier);
@@ -248,19 +250,19 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterProvidingAndSupressExceptionWhenFailintToClose() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
-        doThrow(new IllegalStateException()).when(supplier).get();
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(EXCEPTION).when(supplier).get();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, supplier);
         } catch (Exception ex) {
             Assert.assertThat(ex.getSuppressed().length, is(equalTo(1)));
-            Assert.assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
+            Assert.assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
         } finally {
             Mockito.verify(supplier).get();
@@ -284,12 +286,12 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterApplyingWithException() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
-        doThrow(new IllegalStateException()).when(function).apply(null);
+        doThrow(EXCEPTION).when(function).apply(null);
         doNothing().when(closable).close();
 
         try {
@@ -302,13 +304,13 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterApplyingAndExposeExceptionWhenFailintToClose() throws Exception {
-        exception.expect(CharacterCodingException.class);
+        exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
         doReturn(null).when(function).apply(null);
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, function, null);
@@ -320,19 +322,19 @@ public class TryWithTest {
 
     @Test
     public void shouldCloseAfterApplyingAndSupressExceptionWhenFailintToClose() throws Exception {
-        exception.expect(IllegalStateException.class);
+        exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
-        doThrow(new IllegalStateException()).when(function).apply(null);
-        doThrow(new CharacterCodingException()).when(closable).close();
+        doThrow(EXCEPTION).when(function).apply(null);
+        doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, function, null);
         } catch (Exception ex) {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
-            assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
+            assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
         } finally {
             verify(function).apply(null);
