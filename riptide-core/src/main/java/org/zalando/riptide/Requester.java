@@ -20,11 +20,9 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.io.IOException;
-import java.net.URI;
-
-import javax.annotation.Nullable;
-
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -36,9 +34,9 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.net.URI;
 
 public final class Requester extends Dispatcher {
 
@@ -142,8 +140,8 @@ public final class Requester extends Dispatcher {
     }
 
     private URI createUrl(final Multimap<String, String> query) {
-        query.entries().forEach(entry -> urlBuilder.queryParam(entry.getKey(), entry.getValue()));
-
-        return urlBuilder.build().expand(urlVariables).encode().toUri().normalize();
+        query.entries().forEach(entry ->
+                urlBuilder.queryParam(entry.getKey(), entry.getValue()));
+        return urlBuilder.buildAndExpand(urlVariables).encode().toUri().normalize();
     }
 }

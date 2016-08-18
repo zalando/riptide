@@ -33,7 +33,7 @@ final class StreamSpliterator<T> implements Spliterator<T> {
 
     private final JavaType type;
     private final JsonParser parser;
-    private boolean isNotStreamOfArrays;
+    private final boolean isNotStreamOfArrays;
 
     StreamSpliterator(final JavaType type, final JsonParser parser) {
         this.type = type;
