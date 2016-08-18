@@ -1,2 +1,0 @@
-# Riptide: Nakadi Extension
-
