@@ -20,6 +20,21 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.problem.ThrowableProblem;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
@@ -44,21 +59,6 @@ import static org.zalando.riptide.Route.noRoute;
 import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.Route.to;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.problem.ThrowableProblem;
 
 public final class RoutesTest {
 

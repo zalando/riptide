@@ -22,17 +22,16 @@ package org.zalando.riptide;
 
 import static org.zalando.riptide.TryWith.tryWith;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
 
 @FunctionalInterface
 public interface Route {
@@ -102,7 +101,8 @@ public interface Route {
     }
 
     static ThrowingFunction<ClientHttpResponse, URI> location() {
-        return response -> response.getHeaders().getLocation();
+        return response ->
+                response.getHeaders().getLocation();
     }
 
     static ThrowingConsumer<ClientHttpResponse> noRoute() {
@@ -122,7 +122,8 @@ public interface Route {
     }
 
     static <T> Adapter<ClientHttpResponse, T> to(final ThrowingFunction<ClientHttpResponse, T> function) {
-        return consumer -> response -> consumer.accept(function.apply(response));
+        return consumer ->
+                response -> consumer.accept(function.apply(response));
     }
 
     @FunctionalInterface

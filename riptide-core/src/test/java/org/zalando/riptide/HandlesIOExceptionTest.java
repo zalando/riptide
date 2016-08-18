@@ -1,13 +1,5 @@
 package org.zalando.riptide;
 
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 /*
  * ⁣​
  * Riptide
@@ -27,6 +19,14 @@ import java.net.URISyntaxException;
  * limitations under the License.
  * ​⁣
  */
+
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Route.pass;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.junit.Rule;
 import org.junit.Test;

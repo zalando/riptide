@@ -20,19 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
-
-import java.io.IOException;
-
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +31,19 @@ import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
 import com.google.common.collect.ImmutableMap;
+
+import java.io.IOException;
+
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Route.pass;
 
 public final class ExecuteTest {
 

@@ -61,7 +61,6 @@
         <module>riptide-core</module>
         <module>riptide-capture</module>
         <module>riptide-httpclient</module>
-        <module>riptide-nakadi</module>
         <module>riptide-stream</module>
     </modules>
 
@@ -185,9 +184,6 @@
             <dependency>
                 <groupId>com.github.rest-driver</groupId>
                 <artifactId>rest-client-driver</artifactId>
-<!-- needed for stream test case in NakadiGatewayTest.java
-                <version>2.0.1-SNAPSHOT</version>
--->
                 <version>1.1.41</version>
                 <scope>test</scope>
                 <exclusions>

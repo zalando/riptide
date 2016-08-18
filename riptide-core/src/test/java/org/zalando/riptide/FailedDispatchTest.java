@@ -20,6 +20,24 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
+import org.zalando.riptide.model.MediaTypes;
+import org.zalando.riptide.model.Success;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -54,24 +72,6 @@ import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.model.MediaTypes;
-import org.zalando.riptide.model.Success;
 
 public final class FailedDispatchTest {
 
@@ -127,7 +127,7 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> { }),
+                                        on(SUCCESSFUL).call(Success.class, success -> {}),
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
@@ -150,7 +150,7 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> { }),
+                                        on(SUCCESSFUL).call(Success.class, success -> {}),
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
