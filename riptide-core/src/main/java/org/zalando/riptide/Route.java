@@ -101,6 +101,12 @@ public interface Route {
                 response.getHeaders().getLocation();
     }
 
+    static ThrowingConsumer<ClientHttpResponse> noRoute() {
+        return response -> {
+            throw new NoRouteException(response);
+        };
+    }
+
     static <X extends Exception> ThrowingConsumer<X> propagate() {
         return entity -> {
             if (entity instanceof IOException) {

@@ -20,25 +20,8 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.model.MediaTypes;
-import org.zalando.riptide.model.Success;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -72,6 +55,24 @@ import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
+import org.zalando.riptide.model.MediaTypes;
+import org.zalando.riptide.model.Success;
+
 public final class FailedDispatchTest {
 
     @Rule
@@ -97,7 +98,8 @@ public final class FailedDispatchTest {
 
         exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
-        exception.expectMessage("Unable to dispatch response (200 OK, Content-Type: application/json)");
+        exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
+        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
         exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
         unit.options(url)
@@ -110,7 +112,8 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType() throws ExecutionException, InterruptedException, IOException {
+    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType()
+            throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{}")
@@ -124,7 +127,7 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> {}),
+                                        on(SUCCESSFUL).call(Success.class, success -> { }),
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
@@ -132,7 +135,8 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfFaultyBody() throws ExecutionException, InterruptedException, IOException {
+    public void shouldThrowOnFailedConversionBecauseOfFaultyBody()
+            throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{")
@@ -146,7 +150,7 @@ public final class FailedDispatchTest {
                 .dispatch(status(),
                         on(HttpStatus.OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> {}),
+                                        on(SUCCESSFUL).call(Success.class, success -> { }),
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
@@ -224,7 +228,8 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPreserveExceptionIfPropagateFailed() throws ExecutionException, InterruptedException, IOException {
+    public void shouldPreserveExceptionIfPropagateFailed()
+            throws ExecutionException, InterruptedException, IOException {
         server.expect(requestTo(url))
                 .andRespond(withCreatedEntity(URI.create("about:blank"))
                         .body(new ClassPathResource("success.json"))
@@ -232,7 +237,8 @@ public final class FailedDispatchTest {
 
         exception.expect(ExecutionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
-        exception.expectMessage("Unable to dispatch response (201 Created, Content-Type: application/json)");
+        exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
+        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
         exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
         unit.post(url)
