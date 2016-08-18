@@ -74,7 +74,7 @@ public class TryWithTest {
     }
 
     @Test
-    public void shouldExposeExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterRunningAndExposeExceptionWhenFailintToClose() throws Exception {
         exception.expect(CharacterCodingException.class);
 
         Closeable closable = mock(Closeable.class);
@@ -92,7 +92,7 @@ public class TryWithTest {
     }
 
     @Test
-    public void shouldSupressExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterRunningAndSupressExceptionWhenFailintToClose() throws Exception {
         exception.expect(IllegalStateException.class);
 
         Closeable closable = mock(Closeable.class);
@@ -109,6 +109,78 @@ public class TryWithTest {
             throw ex;
         } finally {
             Mockito.verify(runnable, times(1)).run();
+            Mockito.verify(closable, times(1)).close();
+        }
+    }
+
+    @Test
+    public void shouldCloseAfterAcceptingWithoutException() throws Exception {
+        Closeable closable = mock(Closeable.class);
+        ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
+
+        Mockito.doNothing().when(consumer).accept(null);
+        Mockito.doNothing().when(closable).close();
+
+        tryWith(closable, consumer, null);
+
+        Mockito.verify(consumer, times(1)).accept(null);
+        Mockito.verify(closable, times(1)).close();
+    }
+
+    @Test
+    public void shouldCloseAfterAcceptingWithException() throws Exception {
+        exception.expect(IllegalStateException.class);
+
+        Closeable closable = mock(Closeable.class);
+        ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
+
+        Mockito.doThrow(new IllegalStateException()).when(consumer).accept(null);
+        Mockito.doNothing().when(closable).close();
+
+        try {
+            tryWith(closable, consumer, null);
+        } finally {
+            Mockito.verify(consumer, times(1)).accept(null);
+            Mockito.verify(closable, times(1)).close();
+        }
+    }
+
+    @Test
+    public void shouldCloseAfterAcceptingAndExposeExceptionWhenFailintToClose() throws Exception {
+        exception.expect(CharacterCodingException.class);
+
+        Closeable closable = mock(Closeable.class);
+        ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
+
+        Mockito.doNothing().when(consumer).accept(null);
+        Mockito.doThrow(new CharacterCodingException()).when(closable).close();
+
+        try {
+            tryWith(closable, consumer, null);
+        } finally {
+            Mockito.verify(consumer, times(1)).accept(null);
+            Mockito.verify(closable, times(1)).close();
+        }
+    }
+
+    @Test
+    public void shouldCloseAfterAcceptingAndSupressExceptionWhenFailintToClose() throws Exception {
+        exception.expect(IllegalStateException.class);
+
+        Closeable closable = mock(Closeable.class);
+        ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
+
+        Mockito.doThrow(new IllegalStateException()).when(consumer).accept(null);
+        Mockito.doThrow(new CharacterCodingException()).when(closable).close();
+
+        try {
+            tryWith(closable, consumer, null);
+        } catch (Exception ex) {
+            Assert.assertThat(ex.getSuppressed().length, is(equalTo(1)));
+            Assert.assertThat(ex.getSuppressed()[0], is(instanceOf(CharacterCodingException.class)));
+            throw ex;
+        } finally {
+            Mockito.verify(consumer, times(1)).accept(null);
             Mockito.verify(closable, times(1)).close();
         }
     }
