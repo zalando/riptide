@@ -31,6 +31,8 @@ import org.springframework.web.client.AsyncRestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.annotation.Nullable;
+
 public final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
@@ -41,10 +43,14 @@ public final class MockSetup {
     private final Rest rest;
 
     public MockSetup() {
-        this("https://api.example.com", null);
+        this("https://api.example.com");
     }
 
-    public MockSetup(final String baseUrl, final Iterable<HttpMessageConverter<?>> converters) {
+    public MockSetup(final String baseUrl) {
+        this(baseUrl, null);
+    }
+
+    public MockSetup(final String baseUrl, @Nullable final Iterable<HttpMessageConverter<?>> converters) {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.rest = Rest.builder()

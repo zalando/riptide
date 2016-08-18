@@ -27,8 +27,8 @@ import static org.junit.Assert.assertThat;
 
 public final class ThrowingFunctionTest {
 
-    private ThrowingFunction<String, String> appendA = s -> s + "A";
-    private ThrowingFunction<String, String> appendB = s -> s + "B";
+    private final ThrowingFunction<String, String> appendA = s -> s + "A";
+    private final ThrowingFunction<String, String> appendB = s -> s + "B";
 
     @Test
     public void shouldCompose() throws Exception {
