@@ -197,7 +197,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeStreamIOException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         setupDefaultStream();
@@ -220,7 +220,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeStreamFailureProblem() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
         exception.expectCause(hasFeature(Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
@@ -236,7 +236,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeStreamFailureNoRoute() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
         driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
@@ -251,7 +251,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeStreamTimeoutException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
 
         setupTimeoutStream();
@@ -270,7 +270,7 @@ public class NakadiGatewayTest {
     @Test
     @Ignore("does not work because client driver does not shut down cleanly")
     public void shouldExposeStreamInterruptException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(InterruptedException.class));
 
         setupTimeoutStream();
@@ -289,7 +289,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeStreamWithInvalidBatch() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(UncheckedIOException.class));
         exception.expectCause(hasCause(instanceOf(UnrecognizedPropertyException.class)));
 
@@ -308,7 +308,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeCommitIOException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         setupDefaultStream();
@@ -337,7 +337,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeCommitFailureProblem() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
         exception.expectCause(hasFeature(Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
@@ -354,7 +354,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeCommitFailureNoRoute() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
         setupDefaultStream();
@@ -370,7 +370,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeCommitTimeoutException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
 
         setupDefaultStream();
@@ -389,7 +389,7 @@ public class NakadiGatewayTest {
 
     @Test
     public void shouldExposeCommitInterruptException() throws Throwable {
-        exception.expect(NakadiGatewayException.class);
+        exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(InterruptedException.class));
 
         setupDefaultStream();

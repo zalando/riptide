@@ -20,11 +20,11 @@ package org.zalando.riptide.nakadi;
  * ​⁣
  */
 
-class NakadiGatewayException extends RuntimeException {
+class NakadiException extends RuntimeException {
 
     private final FailureHandling handling;
 
-    public NakadiGatewayException(Throwable cause, FailureHandling handling) {
+    public NakadiException(Throwable cause, FailureHandling handling) {
         super(cause);
         this.handling = handling;
     }

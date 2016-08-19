@@ -102,15 +102,15 @@ public final class NakadiGateway {
                             ON_FAILURE_BINDING)
                     .get();
         } catch (final ExecutionException e) {
-            if (e.getCause() instanceof NakadiGatewayException) {
-                throw (NakadiGatewayException) e.getCause();
+            if (e.getCause() instanceof NakadiException) {
+                throw (NakadiException) e.getCause();
             }
-            throw new NakadiGatewayException(e.getCause(), FailureHandling.IGNORE);
+            throw new NakadiException(e.getCause(), FailureHandling.IGNORE);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new NakadiGatewayException(e, FailureHandling.ABORT);
+            throw new NakadiException(e, FailureHandling.ABORT);
         } catch (final IOException e) {
-            throw new NakadiGatewayException(e, FailureHandling.RETRY);
+            throw new NakadiException(e, FailureHandling.RETRY);
         }
     }
 
@@ -153,12 +153,12 @@ public final class NakadiGateway {
                             ON_FAILURE_BINDING)
                     .get();
         } catch (final ExecutionException e) {
-            throw new NakadiGatewayException(e.getCause(), FailureHandling.IGNORE);
+            throw new NakadiException(e.getCause(), FailureHandling.IGNORE);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new NakadiGatewayException(e, FailureHandling.ABORT);
+            throw new NakadiException(e, FailureHandling.ABORT);
         } catch (final IOException e) {
-            throw new NakadiGatewayException(e, FailureHandling.IGNORE);
+            throw new NakadiException(e, FailureHandling.IGNORE);
         }
     }
 }
