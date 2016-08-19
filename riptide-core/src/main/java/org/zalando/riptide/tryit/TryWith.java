@@ -57,7 +57,7 @@ public interface TryWith {
     }
 
     static <T> T tryWith(final AutoCloseable closeable, final ThrowingSupplier<T> supplier) throws Exception {
-        T value = null;
+        final T value;
         try {
             value = supplier.get();
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public interface TryWith {
 
     static <R, T> T tryWith(final AutoCloseable closeable, final ThrowingFunction<R, T> function, final R input)
             throws Exception {
-        T value = null;
+        final T value;
         try {
             value = function.apply(input);
         } catch (Exception e) {
