@@ -70,7 +70,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.21</slf4j.version>
         <spring.version>4.2.5.RELEASE</spring.version>
-        <jackson.version>2.7.3</jackson.version>
+        <jackson.version>2.7.4</jackson.version>
         <problem.version>0.5.0</problem.version>
     </properties>
 
@@ -80,6 +80,21 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-capture</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-stream</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-httpclient</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -360,7 +375,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.16</version>
+                    <version>2.19.1</version>
                     <configuration>
                         <parallel>classesAndMethods</parallel>
                         <threadCount>1</threadCount>

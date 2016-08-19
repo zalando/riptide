@@ -48,7 +48,7 @@ public final class HandlesIOExceptionTest {
             throw new IOException("Could not create request");
         };
 
-        Rest.builder().requestFactory(factory).build()
+        Rest.builder().requestFactory(factory).defaultConverters().build()
                 .get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

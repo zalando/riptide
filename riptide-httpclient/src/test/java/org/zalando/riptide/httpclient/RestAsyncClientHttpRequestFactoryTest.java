@@ -22,6 +22,7 @@ package org.zalando.riptide.httpclient;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,8 +30,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Rest;
@@ -49,11 +52,13 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -123,10 +128,16 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         assertThat(request.getURI(), hasToString(endsWith("/repos/zalando/riptide/contributors")));
         assertThat(request.getHeaders().getAccept(), hasItem(APPLICATION_JSON));
 
-        final InputStream stream = request.executeAsync().get().getBody();
-        final List<User> users = Jackson2ObjectMapperBuilder.json().build().readValue(stream, new TypeReference<List<User>>() {
-        });
+        final ClientHttpResponse response = request.executeAsync().get();
 
+        assertThat(response.getStatusCode(), is(HttpStatus.OK));
+        assertThat(response.getRawStatusCode(), is(200));
+        assertThat(response.getStatusText(), is("OK"));
+        assertThat(response.getHeaders(), is(not(anEmptyMap())));
+
+        final InputStream stream = response.getBody();
+        final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+        final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() { });
         final List<String> names = users.stream()
                 .map(User::getLogin)
                 .collect(toList());

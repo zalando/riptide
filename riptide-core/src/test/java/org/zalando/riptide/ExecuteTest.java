@@ -2,9 +2,9 @@ package org.zalando.riptide;
 
 /*
  * ⁣​
- * Riptide
+ * Riptide: Core
  * ⁣⁣
- * Copyright (C) 2015 Zalando SE
+ * Copyright (C) 2015 - 2016 Zalando SE
  * ⁣⁣
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,19 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -60,16 +56,9 @@ public final class ExecuteTest {
     private final MockRestServiceServer server;
 
     public ExecuteTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.builder()
-                .requestFactory(template.getAsyncRequestFactory())
-                .converters(Arrays.asList(
-                        new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()),
-                        new StringHttpMessageConverter()
-                ))
-                .baseUrl("https://api.example.com")
-                .build();
+        final MockSetup setup =new MockSetup();
+        this.server = setup.getServer();
+        this.unit = setup.getRest();
     }
 
     @After
@@ -142,13 +131,10 @@ public final class ExecuteTest {
 
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() throws IOException {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final MockRestServiceServer server = MockRestServiceServer.createServer(template);
-        final Rest unit = Rest.builder()
-                .requestFactory(template.getAsyncRequestFactory())
-                .converter(new Jaxb2RootElementHttpMessageConverter())
-                .baseUrl("https://api.example.com")
-                .build();
+        final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
+        final MockRestServiceServer server = setup.getServer();
+        final Rest unit = setup.getRestBuilder()
+                .converter(new Jaxb2RootElementHttpMessageConverter()).build();
 
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
@@ -164,14 +150,6 @@ public final class ExecuteTest {
 
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() throws IOException {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
-        final MockRestServiceServer server = MockRestServiceServer.createServer(template);
-        final Rest unit = Rest.builder()
-                .requestFactory(template.getAsyncRequestFactory())
-                .defaultConverters()
-                .baseUrl("https://api.example.com")
-                .build();
-
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());

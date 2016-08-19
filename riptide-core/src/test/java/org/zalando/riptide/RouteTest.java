@@ -60,7 +60,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.problem.ThrowableProblem;
 
-public final class RoutesTest {
+public final class RouteTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
@@ -70,7 +70,7 @@ public final class RoutesTest {
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    public RoutesTest() {
+    public RouteTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getRest();
         this.server = setup.getServer();

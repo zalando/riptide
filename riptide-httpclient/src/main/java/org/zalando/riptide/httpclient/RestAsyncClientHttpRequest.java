@@ -44,7 +44,11 @@ final class RestAsyncClientHttpRequest implements AsyncClientHttpRequest {
 
     @Override
     public ListenableFuture<ClientHttpResponse> executeAsync() throws IOException {
-        return executor.submitListenable(request::execute);
+        return executor.submitListenable(this::execute);
+    }
+
+    private RestAsyncClientHttpResponse execute() throws IOException {
+        return new RestAsyncClientHttpResponse(request.execute());
     }
 
     @Override

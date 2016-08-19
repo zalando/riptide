@@ -1,5 +1,25 @@
 package org.zalando.riptide.stream;
 
+/*
+ * ⁣​
+ * Riptide: Stream
+ * ⁣⁣
+ * Copyright (C) 2015 - 2016 Zalando SE
+ * ⁣⁣
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ​⁣
+ */
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,12 +44,11 @@ import java.util.concurrent.Future;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -42,26 +61,6 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.forEach;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
-
-/*
- * ⁣​
- * Riptide: Stream
- * ⁣⁣
- * Copyright (C) 2015 - 2016 Zalando SE
- * ⁣⁣
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * ​⁣
- */
 
 public class StreamsTest {
 
@@ -107,7 +106,7 @@ public class StreamsTest {
                 new AccountBody("1234567891", "Acme Company"),
                 new AccountBody("1234567892", "Acme GmbH"),
                 new AccountBody("1234567893", "Acme SE")));
-        verify(verifier).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -129,7 +128,7 @@ public class StreamsTest {
                 new AccountBody("1234567891", "Acme Company"),
                 new AccountBody("1234567892", "Acme GmbH"),
                 new AccountBody("1234567893", "Acme SE") });
-        verify(verifier).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -150,7 +149,7 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -171,7 +170,7 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -192,7 +191,7 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verify(verifier, times(4)).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -211,7 +210,7 @@ public class StreamsTest {
 
         verify(verifier).accept(
                 new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any());
+        verifyNoMoreInteractions(verifier);
     }
 
     @Test
@@ -230,7 +229,7 @@ public class StreamsTest {
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail)).get();
 
-        verify(verifier, never()).accept(any());
+        verifyZeroInteractions(verifier);
     }
 
     @Test
@@ -253,7 +252,8 @@ public class StreamsTest {
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
-        verify(verifier, times(3)).accept(any());
+        verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
+        verifyNoMoreInteractions(verifier);
 
         future.get();
     }
@@ -276,7 +276,7 @@ public class StreamsTest {
                 anyStatus().call(this::fail));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
-        verify(verifier, times(1)).accept(any());
+        verifyNoMoreInteractions(verifier);
 
         future.get();
     }
