@@ -28,6 +28,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAs
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -35,6 +36,8 @@ import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.junit.internal.matchers.ThrowableCauseMatcher.hasCause;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.nakadi.MockSetup.defaultClient;
 import static org.zalando.riptide.nakadi.MockSetup.defaultConfig;
@@ -52,14 +55,15 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.client.config.RequestConfig;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -80,8 +84,15 @@ public class NakadiGatewayTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(NakadiGatewayTest.class);
 
+    private static final String STREAM_NAME = "stream-name";
+    private static final String EVENT_TYPE = "event-type";
+
+    private static final Event[] EVENTS = {
+            EventTest.randomEvent("type-0", "value-0")
+    };
+
     private static final Subscription SUBSCRIPTION =
-            new Subscription("owner", "group", singletonList("event-type"), "begin");
+            new Subscription("owner", "group", singletonList(EVENT_TYPE), "begin");
 
     private static final String[] DEFAULT_CURSORS_LIST = {
             "[{\"partition\":\"0\",\"offset\":\"0\"}]",
@@ -91,7 +102,7 @@ public class NakadiGatewayTest {
             "[{\"partition\":\"0\",\"offset\":\"4\"}]"
     };
 
-    private static final String SUBSCRIPTION_RESPONSE = "{\"id\":\"my-stream\"," +
+    private static final String SUBSCRIPTION_RESPONSE = "{\"id\":\"" + STREAM_NAME + "\"," +
             "\"owning_application\":\"owner\",\"consumer_group\":\"group\"," +
             "\"event_types\":[\"event-type\"],\"read_from\":\"begin\"," +
             "\"created_at\":\"2016-12-24T18:59:30.123456\"}";
@@ -101,21 +112,17 @@ public class NakadiGatewayTest {
 
     private static final String INVALID_BATCH_RESPONSE = "{\"unknown\":\"unknown\"}";
 
+    private static final String BATCH_RESPONSE = null;
+
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final NakadiGateway unit;
-
-    public NakadiGatewayTest() {
-        unit = new MockSetup(driver).getNakadi();
-    }
-
     @Before
     public void before() {
-        setupSubscribe();
+        driver.reset();
     }
 
     @After
@@ -133,66 +140,152 @@ public class NakadiGatewayTest {
         return event -> LOG.info("consumed event: {}", event);
     }
 
-    private void setupSubscribe() {
+    private NakadiGateway createGateway() {
+        return new MockSetup(driver).getNakadi();
+    }
+
+    private NakadiGateway createGatewayWithTimeOut(int sotimeout) {
+        final RequestConfig config = RequestConfig.copy(defaultConfig()).setSocketTimeout(sotimeout).build();
+        return new MockSetup(driver, defaultConverters(), defaultFactory(defaultClient(config, 2))).getNakadi();
+    }
+
+    private NakadiGateway createGatewayWithAsyncFactory(final AsyncClientHttpRequestFactory factory) {
+        return new MockSetup(driver, defaultConverters(), factory).getNakadi();
+    }
+
+    private void setupDefaultSubscribe() {
         driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
                 giveResponse(SUBSCRIPTION_RESPONSE, APPLICATION_JSON.toString()));
     }
 
+    private void setupTimeoutSubscribe() {
+        driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
+                giveResponse(SUBSCRIPTION_RESPONSE, APPLICATION_JSON.toString())
+                        .after(500, MILLISECONDS));
+    }
+
     private void setupDefaultStream() throws IOException {
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/events").withMethod(GET),
                 giveResponseAsBytes(getResource("event-stream.json").openStream(),
                         APPLICATION_X_JSON_STREAM.toString())
                                 .withHeader(NakadiGateway.SESSION_HEADER, UUID.randomUUID().toString()));
     }
 
     private void setupTimeoutStream() throws IOException {
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/events").withMethod(GET),
                 giveResponseAsBytes(getResource("event-stream.json").openStream(),
                         APPLICATION_X_JSON_STREAM.toString())
                                 .withHeader(NakadiGateway.SESSION_HEADER, UUID.randomUUID().toString())
-                                .after(1, TimeUnit.SECONDS));
+                                .after(500, MILLISECONDS));
     }
 
     private void setupDefaultCoursor() {
         for (String cursors : DEFAULT_CURSORS_LIST) {
-            driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
+            driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/cursors")
                     .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
                     giveResponse(cursors, APPLICATION_JSON.toString()));
         }
     }
 
     private void setupTimeoutCursor() {
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/cursors")
                 .withMethod(PUT).withBody(DEFAULT_CURSORS_LIST[0], APPLICATION_JSON.toString()),
                 giveResponse(DEFAULT_CURSORS_LIST[0], APPLICATION_JSON.toString())
-                        .after(1, TimeUnit.SECONDS));
+                        .after(500, MILLISECONDS));
     }
 
     @Test
-    public void shouldReadBatchesFromStream() throws Throwable {
+    public void shouldPublishEventBatches() throws Throwable {
+        driver.addExpectation(onRequestTo("/event-types/" + EVENT_TYPE + "/events").withMethod(POST),
+                giveResponse(BATCH_RESPONSE, APPLICATION_JSON.toString()));
+
+        createGateway().publish(EVENT_TYPE, EVENTS);
+    }
+
+    @Test
+    public void shouldExposeSubscribeIOException() throws Throwable {
+        exception.expect(NakadiException.class);
+        exception.expectCause(instanceOf(IOException.class));
+
+        final AsyncClientHttpRequestFactory factory = Mockito.spy(defaultFactory());
+
+        doThrow(new IOException()).when(factory)
+                .createAsyncRequest(any(URI.class), any(HttpMethod.class));
+
+        createGatewayWithAsyncFactory(factory).subscribe(SUBSCRIPTION);
+    }
+
+    @Test
+    public void shouldExposeSubscribeFailureProblem() throws Throwable {
+        exception.expect(NakadiException.class);
+        exception.expectCause(instanceOf(IOException.class));
+        exception.expectCause(hasFeature(Throwable::getCause, instanceOf(ThrowableProblem.class)));
+
+        driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
+                giveResponse(PROBLEM_RESPONSE, PROBLEM.toString()).withStatus(500));
+
+        createGateway().subscribe(SUBSCRIPTION);
+    }
+
+    @Test
+    public void shouldExposeSubscribeFailureNoRoute() throws Throwable {
+        exception.expect(NakadiException.class);
+        exception.expectCause(instanceOf(NoRouteException.class));
+
+        driver.addExpectation(onRequestTo("/subscriptions").withMethod(POST),
+                giveResponse("failure text message", MediaType.ANY_TEXT_TYPE.toString()).withStatus(400));
+
+        createGateway().subscribe(SUBSCRIPTION);
+    }
+
+    @Test
+    public void shouldExposeSubscribeTimeoutException() throws Throwable {
+        exception.expect(NakadiException.class);
+        exception.expectCause(instanceOf(SocketTimeoutException.class));
+
+        setupTimeoutSubscribe();
+
+        createGatewayWithTimeOut(250).subscribe(SUBSCRIPTION);
+    }
+
+    @Test
+    public void shouldExposeSubscribeInterruptedException() throws Throwable {
+        exception.expect(NakadiException.class);
+        exception.expectCause(instanceOf(InterruptedException.class));
+
+        setupTimeoutSubscribe();
+
+        final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+        final AtomicReference<Thread> thread = new AtomicReference<>();
+        try {
+            final NakadiGateway unit = createGateway();
+            ScheduledFuture<?> future = executor.schedule(() -> {
+                thread.set(Thread.currentThread());
+                unit.subscribe(SUBSCRIPTION);
+            }, 0, MILLISECONDS);
+            executor.schedule(() -> {
+                thread.get().interrupt();
+            }, 100, MILLISECONDS);
+            future.get();
+            Assert.fail();
+        } catch (ExecutionException e) {
+            throw e.getCause();
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void shouldStreamEventBatches() throws Throwable {
+        setupDefaultSubscribe();
         setupDefaultStream();
         setupDefaultCoursor();
 
-        AtomicInteger counter = new AtomicInteger();
+        final AtomicInteger counter = new AtomicInteger();
+        final NakadiGateway unit = createGateway();
         unit.stream(unit.subscribe(SUBSCRIPTION), event -> counter.incrementAndGet());
 
         assertThat(counter.get(), is(equalTo(6)));
-    }
-
-    @Test
-    public void shouldExposeConsumerException() throws Throwable {
-        exception.expect(RuntimeException.class);
-
-        setupDefaultStream();
-        setupDefaultCoursor();
-
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
-                throw new RuntimeException();
-            });
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
     }
 
     @Test
@@ -200,22 +293,17 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
 
-        AsyncClientHttpRequestFactory factory = Mockito.spy(defaultFactory());
-        final MockSetup setup = new MockSetup(driver, defaultConverters(), factory);
-        final NakadiGateway unit = setup.getNakadi();
+        final AsyncClientHttpRequestFactory factory = Mockito.spy(defaultFactory());
+        final NakadiGateway unit = createGatewayWithAsyncFactory(factory);
 
-        Mockito.doCallRealMethod()
-                .doThrow(new IOException())
+        doCallRealMethod().doThrow(new IOException())
                 .when(factory)
                 .createAsyncRequest(any(URI.class), any(HttpMethod.class));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), failure());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        unit.stream(unit.subscribe(SUBSCRIPTION), failure());
     }
 
     @Test
@@ -224,14 +312,12 @@ public class NakadiGatewayTest {
         exception.expectCause(instanceOf(IOException.class));
         exception.expectCause(hasFeature(Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+        setupDefaultSubscribe();
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/events").withMethod(GET),
                 giveResponse(PROBLEM_RESPONSE, PROBLEM.toString()).withStatus(500));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), failure());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), failure());
     }
 
     @Test
@@ -239,14 +325,12 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+        setupDefaultSubscribe();
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/events").withMethod(GET),
                 giveResponse("failure text message", MediaType.ANY_TEXT_TYPE.toString()).withStatus(400));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), failure());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), failure());
     }
 
     @Test
@@ -254,34 +338,37 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
 
+        setupDefaultSubscribe();
         setupTimeoutStream();
 
-        final RequestConfig config = RequestConfig.copy(defaultConfig()).setSocketTimeout(250).build();
-        final MockSetup setup = new MockSetup(driver, defaultConverters(), defaultFactory(defaultClient(config, 2)));
-        final NakadiGateway unit = setup.getNakadi();
-
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), consume());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGatewayWithTimeOut(250);
+        unit.stream(unit.subscribe(SUBSCRIPTION), consume());
     }
 
     @Test
-    @Ignore("does not work because client driver does not shut down cleanly")
-    public void shouldExposeStreamInterruptException() throws Throwable {
+    public void shouldExposeStreamInterruptedException() throws Throwable {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(InterruptedException.class));
 
+        setupDefaultSubscribe();
         setupTimeoutStream();
 
-        final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        final Thread thread = Thread.currentThread();
-        executor.schedule(thread::interrupt, 10, TimeUnit.MILLISECONDS);
+        final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+        final AtomicReference<Thread> thread = new AtomicReference<>();
         try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), failure());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
+            final NakadiGateway unit = createGateway();
+            final Subscription subscribe = unit.subscribe(SUBSCRIPTION);
+            ScheduledFuture<?> future = executor.schedule(() -> {
+                thread.set(Thread.currentThread());
+                unit.stream(subscribe, failure());
+            }, 0, MILLISECONDS);
+            executor.schedule(() -> {
+                thread.get().interrupt();
+            }, 100, MILLISECONDS);
+            future.get();
+            Assert.fail();
+        } catch (ExecutionException e) {
+            throw e.getCause();
         } finally {
             executor.shutdown();
         }
@@ -293,17 +380,29 @@ public class NakadiGatewayTest {
         exception.expectCause(instanceOf(UncheckedIOException.class));
         exception.expectCause(hasCause(instanceOf(UnrecognizedPropertyException.class)));
 
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/events").withMethod(GET),
+        setupDefaultSubscribe();
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/events").withMethod(GET),
                 giveResponse(INVALID_BATCH_RESPONSE, APPLICATION_X_JSON_STREAM.toString())
                         .withHeader(NakadiGateway.SESSION_HEADER, UUID.randomUUID().toString()));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
-                throw new UnsupportedOperationException();
-            });
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
+            throw new UnsupportedOperationException();
+        });
+    }
+
+    @Test
+    public void shouldExposeStreamConsumerException() throws Throwable {
+        exception.expect(RuntimeException.class);
+
+        setupDefaultSubscribe();
+        setupDefaultStream();
+        setupDefaultCoursor();
+
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
+            throw new RuntimeException();
+        });
     }
 
     @Test
@@ -311,28 +410,23 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(IOException.class));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
 
         final String cursors = DEFAULT_CURSORS_LIST[0];
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors")
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/cursors")
                 .withMethod(PUT).withBody(cursors, APPLICATION_JSON.toString()),
                 giveResponse(cursors, APPLICATION_JSON.toString()));
 
-        AsyncClientHttpRequestFactory factory = Mockito.spy(defaultFactory());
-        final MockSetup setup = new MockSetup(driver, defaultConverters(), factory);
-        final NakadiGateway unit = setup.getNakadi();
+        final AsyncClientHttpRequestFactory factory = Mockito.spy(defaultFactory());
+        final NakadiGateway unit = createGatewayWithAsyncFactory(factory);
 
-        Mockito.doCallRealMethod()
-                .doCallRealMethod()
+        doCallRealMethod().doCallRealMethod()
                 .doThrow(new IOException())
                 .when(factory)
                 .createAsyncRequest(any(URI.class), any(HttpMethod.class));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), consume());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        unit.stream(unit.subscribe(SUBSCRIPTION), consume());
     }
 
     @Test
@@ -341,15 +435,13 @@ public class NakadiGatewayTest {
         exception.expectCause(instanceOf(IOException.class));
         exception.expectCause(hasFeature(Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors").withMethod(PUT),
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/cursors").withMethod(PUT),
                 giveResponse(PROBLEM_RESPONSE, PROBLEM.toString()).withStatus(500));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), consume());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), consume());
     }
 
     @Test
@@ -357,15 +449,13 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
-        driver.addExpectation(onRequestTo("/subscriptions/my-stream/cursors").withMethod(PUT),
+        driver.addExpectation(onRequestTo("/subscriptions/" + STREAM_NAME + "/cursors").withMethod(PUT),
                 giveResponse("failure text message", MediaType.ANY_TEXT_TYPE.toString()).withStatus(400));
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), consume());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        final NakadiGateway unit = createGateway();
+        unit.stream(unit.subscribe(SUBSCRIPTION), consume());
     }
 
     @Test
@@ -373,6 +463,7 @@ public class NakadiGatewayTest {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
         setupTimeoutCursor();
 
@@ -380,38 +471,36 @@ public class NakadiGatewayTest {
         final MockSetup setup = new MockSetup(driver, defaultConverters(), defaultFactory(defaultClient(config, 2)));
         final NakadiGateway unit = setup.getNakadi();
 
-        try {
-            unit.stream(unit.subscribe(SUBSCRIPTION), consume());
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
-        }
+        unit.stream(unit.subscribe(SUBSCRIPTION), consume());
     }
 
     @Test
-    public void shouldExposeCommitInterruptException() throws Throwable {
+    public void shouldExposeCommitInterruptedException() throws Throwable {
         exception.expect(NakadiException.class);
         exception.expectCause(instanceOf(InterruptedException.class));
 
+        setupDefaultSubscribe();
         setupDefaultStream();
         setupTimeoutCursor();
 
         final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         try {
+            final NakadiGateway unit = createGateway();
             unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
                 final Thread thread = Thread.currentThread();
-                executor.schedule(thread::interrupt, 10, TimeUnit.MILLISECONDS);
+                executor.schedule(thread::interrupt, 0, TimeUnit.MILLISECONDS);
                 LOG.info("consumed event: {}", event);
             });
-        } catch (ExecutionException ex) {
-            throw ex.getCause();
         } finally {
             executor.shutdown();
         }
     }
 
     @Test
-    @Ignore("does only work with com.github.rest-driver/rest-client-driver:2.0.1-SNAPSHOT"
-            + "build from https://github.com/tkrop/rest-driver/tree/feature/stream-and-lamda-support")
+    // NOTE: does only validate problem of pending stream correctly when using
+    // com.github.rest-driver/rest-client-driver:2.0.1-SNAPSHOT build from
+    // https://github.com/tkrop/rest-driver/tree/feature/stream-and-lamda-support
+    // actual test should move to riptide-httpclient!
     public void shouldAbortConnectionOnException() throws Throwable {
         exception.expect(RuntimeException.class);
 
@@ -433,20 +522,17 @@ public class NakadiGatewayTest {
                         }
                     }
                 }) {
+            setupDefaultSubscribe();
             setupDefaultStream();
             setupDefaultCoursor();
 
             final AtomicInteger counter = new AtomicInteger();
-
-            try {
-                unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
-                    if (counter.incrementAndGet() == 5) {
-                        throw new RuntimeException();
-                    }
-                });
-            } catch (ExecutionException ex) {
-                throw ex.getCause();
-            }
+            final NakadiGateway unit = createGateway();
+            unit.stream(unit.subscribe(SUBSCRIPTION), event -> {
+                if (counter.incrementAndGet() == 5) {
+                    throw new RuntimeException();
+                }
+            });
         }
     }
 

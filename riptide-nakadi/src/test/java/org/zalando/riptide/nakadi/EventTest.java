@@ -24,6 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -37,12 +38,17 @@ import com.google.gag.annotation.remark.Hack;
 import com.google.gag.annotation.remark.OhNoYouDidnt;
 
 public class EventTest extends ObjectTheory {
-    
+
     private static final JsonNodeFactory FACTORY = new JsonNodeFactory(true);
     private static final Metadata METADATA = new Event.Metadata(UUID.randomUUID(), null, null);
     private static final String DATATYPE = "b";
     private static final DataOperation DATAOP = Event.DataOperation.CREATE;
     private static final ObjectNode DATA = new ObjectNode(FACTORY).put("a", "a");
+
+    public static Event randomEvent(final String type, final String value) {
+        return new Event(new Event.Metadata(UUID.randomUUID(), OffsetDateTime.now(), UUID.randomUUID().toString()),
+                type, Event.DataOperation.CREATE, new ObjectNode(FACTORY).put("key", value));
+    }
 
     @DataPoints
     public static Event[] data = {
