@@ -23,7 +23,6 @@ package org.zalando.riptide.tryit;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -31,7 +30,6 @@ import static org.mockito.Mockito.verify;
 import static org.zalando.riptide.tryit.TryEnsure.ensureIOException;
 
 import java.io.IOException;
-import java.nio.charset.CharacterCodingException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,8 +51,6 @@ public class TryEnsureTest {
     public void runnableShouldRun() throws Exception {
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doNothing().when(runnable).run();
-
         ensureIOException(runnable);
 
         verify(runnable).run();
@@ -68,11 +64,8 @@ public class TryEnsureTest {
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
         doThrow(EXCEPTION).when(runnable).run();
-        try {
-            ensureIOException(runnable);
-        } finally {
-            verify(runnable).run();
-        }
+        
+        ensureIOException(runnable);
     }
 
     @Test
@@ -82,11 +75,8 @@ public class TryEnsureTest {
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
         doThrow(IOEXCEPTION).when(runnable).run();
-        try {
-            ensureIOException(runnable);
-        } finally {
-            verify(runnable).run();
-        }
+
+        ensureIOException(runnable);
     }
 
     @Test
@@ -96,8 +86,6 @@ public class TryEnsureTest {
         doReturn(VALUE).when(supplier).get();
 
         assertThat(ensureIOException(supplier), is(equalTo(VALUE)));
-
-        verify(supplier).get();
     }
 
     @Test
@@ -108,11 +96,8 @@ public class TryEnsureTest {
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
         doThrow(EXCEPTION).when(supplier).get();
-        try {
-            ensureIOException(supplier);
-        } finally {
-            verify(supplier).get();
-        }
+
+        ensureIOException(supplier);
     }
 
     @Test
@@ -122,10 +107,7 @@ public class TryEnsureTest {
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
         doThrow(IOEXCEPTION).when(supplier).get();
-        try {
-            ensureIOException(supplier);
-        } finally {
-            verify(supplier).get();
-        }
+
+        ensureIOException(supplier);
     }
 }

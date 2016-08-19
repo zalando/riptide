@@ -23,7 +23,6 @@ package org.zalando.riptide.tryit;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -37,7 +36,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.zalando.riptide.ThrowingConsumer;
 import org.zalando.riptide.ThrowingFunction;
 import org.zalando.riptide.ThrowingRunnable;
@@ -58,9 +56,6 @@ public class TryWithTest {
         Closeable closable = mock(Closeable.class);
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doNothing().when(runnable).run();
-        doNothing().when(closable).close();
-
         tryWith(closable, runnable);
 
         verify(runnable).run();
@@ -75,36 +70,32 @@ public class TryWithTest {
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
         doThrow(EXCEPTION).when(runnable).run();
-        doNothing().when(closable).close();
 
         try {
             tryWith(closable, runnable);
         } finally {
-            verify(runnable).run();
             verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterRunningAndExposeExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterRunningAndExposeExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingRunnable runnable = mock(ThrowingRunnable.class);
 
-        doNothing().when(runnable).run();
         doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, runnable);
         } finally {
-            verify(runnable).run();
             verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterRunningAndSupressExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterRunningAndSupressExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
@@ -119,9 +110,6 @@ public class TryWithTest {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
             assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
-        } finally {
-            verify(runnable).run();
-            verify(closable).close();
         }
     }
 
@@ -129,9 +117,6 @@ public class TryWithTest {
     public void shouldCloseAfterConsumingWithoutException() throws Exception {
         Closeable closable = mock(Closeable.class);
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
-
-        doNothing().when(consumer).accept(null);
-        doNothing().when(closable).close();
 
         tryWith(closable, consumer, null);
 
@@ -147,36 +132,32 @@ public class TryWithTest {
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
 
         doThrow(EXCEPTION).when(consumer).accept(null);
-        doNothing().when(closable).close();
 
         try {
             tryWith(closable, consumer, null);
         } finally {
-            verify(consumer).accept(null);
             verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterConsumingAndExposeExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterConsumingAndExposeExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingConsumer<?> consumer = mock(ThrowingConsumer.class);
 
-        doNothing().when(consumer).accept(null);
         doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, consumer, null);
         } finally {
             verify(consumer).accept(null);
-            verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterConsumingAndSupressExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterConsumingAndSupressExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
@@ -191,9 +172,6 @@ public class TryWithTest {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
             assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
-        } finally {
-            verify(consumer).accept(null);
-            verify(closable).close();
         }
     }
 
@@ -204,11 +182,9 @@ public class TryWithTest {
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
         doReturn(VALUE).when(supplier).get();
-        doNothing().when(closable).close();
 
         assertThat(tryWith(closable, supplier), is(equalTo(VALUE)));
 
-        verify(supplier).get();
         verify(closable).close();
     }
 
@@ -220,18 +196,16 @@ public class TryWithTest {
         ThrowingSupplier<?> supplier = mock(ThrowingSupplier.class);
 
         doThrow(EXCEPTION).when(supplier).get();
-        doNothing().when(closable).close();
 
         try {
             tryWith(closable, supplier);
         } finally {
-            verify(supplier).get();
             verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterProvidingAndExposeExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterProvidingAndExposeExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
@@ -249,7 +223,7 @@ public class TryWithTest {
     }
 
     @Test
-    public void shouldCloseAfterProvidingAndSupressExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterProvidingAndSupressExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
@@ -264,9 +238,6 @@ public class TryWithTest {
             Assert.assertThat(ex.getSuppressed().length, is(equalTo(1)));
             Assert.assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
-        } finally {
-            Mockito.verify(supplier).get();
-            Mockito.verify(closable).close();
         }
     }
 
@@ -276,11 +247,9 @@ public class TryWithTest {
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
         doReturn(VALUE).when(function).apply(null);
-        doNothing().when(closable).close();
 
         assertThat(tryWith(closable, function, null), is(equalTo(VALUE)));
 
-        verify(function).apply(null);
         verify(closable).close();
     }
 
@@ -292,36 +261,32 @@ public class TryWithTest {
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
         doThrow(EXCEPTION).when(function).apply(null);
-        doNothing().when(closable).close();
 
         try {
             tryWith(closable, function, null);
         } finally {
-            verify(function).apply(null);
             verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterApplyingAndExposeExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterApplyingAndExposeExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(IOEXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
         ThrowingFunction<?, ?> function = mock(ThrowingFunction.class);
 
-        doReturn(null).when(function).apply(null);
         doThrow(IOEXCEPTION).when(closable).close();
 
         try {
             tryWith(closable, function, null);
         } finally {
             verify(function).apply(null);
-            verify(closable).close();
         }
     }
 
     @Test
-    public void shouldCloseAfterApplyingAndSupressExceptionWhenFailintToClose() throws Exception {
+    public void shouldCloseAfterApplyingAndSupressExceptionWhenFailingToClose() throws Exception {
         exception.expect(is(equalTo(EXCEPTION)));
 
         Closeable closable = mock(Closeable.class);
@@ -336,9 +301,6 @@ public class TryWithTest {
             assertThat(ex.getSuppressed().length, is(equalTo(1)));
             assertThat(ex.getSuppressed()[0], is(equalTo(IOEXCEPTION)));
             throw ex;
-        } finally {
-            verify(function).apply(null);
-            verify(closable).close();
         }
     }
 }
