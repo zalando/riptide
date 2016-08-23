@@ -20,24 +20,23 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import org.springframework.util.concurrent.ListenableFuture;
-
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
 
 public abstract class Dispatcher {
 
     @SafeVarargs
-    public final <A> ListenableFuture<Void> dispatch(final Navigator<A> selector, final Binding<A>... bindings) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final Binding<A>... bindings) throws IOException {
         return dispatch(selector, asList(bindings));
     }
 
-    public final <A> ListenableFuture<Void> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) throws IOException {
         return dispatch(RoutingTree.dispatch(selector, bindings));
     }
 
-    public abstract <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException;
+    public abstract <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException;
 
 }

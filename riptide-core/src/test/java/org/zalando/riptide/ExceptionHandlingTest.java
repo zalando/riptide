@@ -29,10 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -90,7 +90,7 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldThrowInterruptedAndExecutionExceptionWhenBlocking() {
-        final ListenableFuture<Void> future;
+        final Future<Void> future;
 
         try {
             future = unit.get("/").dispatch(tree);
@@ -109,7 +109,7 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() {
-        final ListenableFuture<Void> future;
+        final Future<Void> future;
 
         try {
             future = unit.get("/").dispatch(tree);
