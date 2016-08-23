@@ -28,7 +28,6 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 
@@ -89,7 +88,7 @@ public class UriTest {
     }
 
     @Test
-    public void shouldExpand() throws IOException {
+    public void shouldExpand() {
         executor.execute(unit, URI.create("https://api.example.org/pages/123"))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

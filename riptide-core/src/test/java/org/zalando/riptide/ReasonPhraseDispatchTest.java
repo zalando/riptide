@@ -64,7 +64,7 @@ public final class ReasonPhraseDispatchTest {
     }
 
     @Test
-    public void shouldDispatch() throws IOException {
+    public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatuses.supported()
                 .filter(s -> s.getReasonPhrase().equals(expected))
                 .findFirst().get()));

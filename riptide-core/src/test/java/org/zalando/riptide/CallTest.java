@@ -32,7 +32,7 @@ import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.instanceOf;
@@ -128,20 +128,20 @@ public final class CallTest {
     }
 
     @Test
-    public void shouldThrowCheckedExceptionOnEntity() throws ExecutionException, InterruptedException, IOException {
+    public void shouldThrowCheckedExceptionOnEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, this::validateEntity),
                         anyStatus().call(this::fail))
-                .get();
+                .join();
     }
 
     private void validateEntity(final AccountBody account) throws IOException {

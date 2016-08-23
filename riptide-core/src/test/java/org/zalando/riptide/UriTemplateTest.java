@@ -28,7 +28,6 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -88,7 +87,7 @@ public class UriTemplateTest {
     }
 
     @Test
-    public void shouldExpand() throws IOException {
+    public void shouldExpand() {
         executor.execute(unit, "/pages/{page}", 123)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

@@ -28,11 +28,15 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
+import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
@@ -74,7 +78,7 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldReadContributors() throws IOException, ExecutionException, InterruptedException {
+    public void shouldReadContributors() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
@@ -82,7 +86,7 @@ public final class IOTest {
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(listOf(User.class), reference::set)).get();
+                        on(SUCCESSFUL).call(listOf(User.class), reference::set)).join();
 
         final List<String> users = reference.get().stream()
                 .map(User::getLogin)
@@ -92,10 +96,23 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws IOException, ExecutionException, InterruptedException {
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+    public void shouldCancelRequest() throws ExecutionException, InterruptedException {
+        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
+                giveEmptyResponse().after(1, TimeUnit.SECONDS));
+
+        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass())).cancel(true);
+                        on(SUCCESSFUL).call(pass()));
+
+        future.cancel(true);
+
+        try {
+            future.join();
+        } catch (final CancellationException e) {
+            // expected
+        }
+
+        driver.reset();
     }
 
 }

@@ -37,7 +37,6 @@ import org.zalando.riptide.Rest;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -77,13 +76,13 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCapture() throws Exception {
+    public void shouldCapture() {
         final Capture<ObjectNode> capture = Capture.empty();
 
         unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
-                        anyStatus().call(this::fail)).get();
+                        anyStatus().call(this::fail)).join();
 
         final ObjectNode node = capture.retrieve();
 
@@ -91,7 +90,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldAdapt() throws IOException, ExecutionException, InterruptedException {
+    public void shouldAdapt() {
         final Capture<ObjectNode> capture = Capture.empty();
 
         final CompletableFuture<Void> future = unit.get("/accounts/123")
@@ -99,7 +98,7 @@ public final class CaptureTest {
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));
 
-        final ObjectNode node = capture.adapt(future).get();
+        final ObjectNode node = capture.adapt(future).join();
 
         assertThat(node.get("message").asText(), is("Hello World!"));
     }

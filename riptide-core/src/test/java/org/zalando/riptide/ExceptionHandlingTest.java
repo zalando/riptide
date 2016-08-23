@@ -30,7 +30,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -70,62 +70,26 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldThrowIOExceptionWhenSettingBody() {
-        try {
-            unit.get("/")
-                    .body("body");
-        } catch (final IOException e) {
-            throw new AssertionError(e);
-        }
+        unit.get("/")
+                .body("body");
     }
 
     @Test
     public void shouldThrowIOExceptionWhenDispatchingWithoutBody() {
-        try {
-            unit.get("/")
-                    .dispatch(tree);
-        } catch (final IOException e) {
-            throw new AssertionError(e);
-        }
+        unit.get("/")
+                .dispatch(tree);
     }
 
     @Test
     public void shouldThrowInterruptedAndExecutionExceptionWhenBlocking() {
-        final Future<Void> future;
-
-        try {
-            future = unit.get("/").dispatch(tree);
-        } catch (final IOException e) {
-            throw new AssertionError("Request failed", e);
-        }
-
-        try {
-            future.get();
-        } catch (final InterruptedException e) {
-            throw new AssertionError("Cancellation requested", e);
-        } catch (final ExecutionException e) {
-            throw new AssertionError("Response handling failed", e);
-        }
+        unit.get("/").dispatch(tree).join();
     }
 
     @Test
-    public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() {
-        final Future<Void> future;
+    public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() throws InterruptedException,
+            ExecutionException, TimeoutException {
 
-        try {
-            future = unit.get("/").dispatch(tree);
-        } catch (final IOException e) {
-            throw new AssertionError("Request failed", e);
-        }
-
-        try {
-            future.get(10, SECONDS);
-        } catch (final InterruptedException e) {
-            throw new AssertionError("Cancellation requested", e);
-        } catch (final ExecutionException e) {
-            throw new AssertionError("Response handling failed", e);
-        } catch (final TimeoutException e) {
-            throw new AssertionError("Response handling took too long", e);
-        }
+        unit.get("/").dispatch(tree).get(10, SECONDS);
     }
 
 }

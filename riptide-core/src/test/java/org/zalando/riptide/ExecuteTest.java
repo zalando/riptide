@@ -31,7 +31,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
-import java.io.IOException;
 import java.util.Collections;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -67,7 +66,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendNoBody() throws IOException {
+    public void shouldSendNoBody() {
         server.expect(requestTo(url))
                 .andExpect(content().string(""))
                 .andRespond(withSuccess());
@@ -78,7 +77,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeaders() throws IOException {
+    public void shouldSendHeaders() {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andRespond(withSuccess());
@@ -90,7 +89,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendBody() throws IOException {
+    public void shouldSendBody() {
         server.expect(requestTo(url))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
                 .andRespond(withSuccess());
@@ -100,7 +99,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeadersAndBody() throws IOException {
+    public void shouldSendHeadersAndBody() {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
@@ -112,7 +111,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBody() throws IOException {
+    public void shouldFailIfNoConverterFoundForBody() {
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andExpect(header("Accept", MediaType.APPLICATION_JSON_VALUE))
@@ -130,7 +129,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() throws IOException {
+    public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
         final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
         final MockRestServiceServer server = setup.getServer();
         final Rest unit = setup.getRestBuilder()
@@ -149,7 +148,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() throws IOException {
+    public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() {
         // we never actually make the request, but the mock server is doing some magic pre-actively
         server.expect(requestTo(url))
                 .andRespond(withSuccess());

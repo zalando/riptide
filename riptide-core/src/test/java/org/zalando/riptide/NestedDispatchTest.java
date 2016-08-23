@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -86,7 +86,7 @@ public final class NestedDispatchTest {
         this.server = setup.getServer();
     }
 
-    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
+    private <T> T perform(final Class<T> type) {
         final AtomicReference<Object> capture = new AtomicReference<>();
 
         unit.get(url)
@@ -108,7 +108,7 @@ public final class NestedDispatchTest {
                                         on(503).call(capture::set),
                                         anyStatusCode().call(this::fail)),
                         anySeries().call(this::fail))
-                .get();
+                .join();
 
         return type.cast(capture.get());
     }
@@ -138,10 +138,10 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelOne() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchLevelOne() {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(Failure.class));
         exception.expectCause(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
 
@@ -149,7 +149,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelTwo() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchLevelTwo() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("messages.json"))
@@ -163,7 +163,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchLevelThree() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -172,7 +172,7 @@ public final class NestedDispatchTest {
         try {
             perform(Problem.class);
             Assert.fail("Expected exception");
-        } catch (final ExecutionException e) {
+        } catch (final CompletionException e) {
             assertThat(e.getCause(), is(instanceOf(IOException.class)));
             assertThat(e.getCause().getCause(), is(instanceOf(ThrowableProblem.class)));
             final ThrowableProblem problem = (ThrowableProblem) e.getCause().getCause();
