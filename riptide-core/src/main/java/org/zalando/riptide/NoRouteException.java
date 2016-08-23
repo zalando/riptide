@@ -60,6 +60,9 @@ public final class NoRouteException extends RestClientException {
         return () -> {
             final byte[] buffer = new byte[length];
             final int read = response.getBody().read(buffer);
+            if (read == -1) {
+                return "";
+            }
             final Charset charset = extractCharset(response);
             return new String(buffer, 0, read, charset);
         };
