@@ -20,17 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
-
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +27,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
+
+import java.util.Arrays;
+
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Route.pass;
 
 @RunWith(Parameterized.class)
 public class UriTemplateArgTest {
@@ -91,7 +90,7 @@ public class UriTemplateArgTest {
     }
 
     @Test
-    public void shouldExpand() throws IOException {
+    public void shouldExpand() {
         this.unit.get(uriTemplate, uriVariables)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

@@ -26,8 +26,6 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
-
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -52,7 +50,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandWithoutVariables() throws IOException {
+    public void shouldExpandWithoutVariables() {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -61,7 +59,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOne() throws IOException {
+    public void shouldExpandOne() {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/{id}", 123)
@@ -70,7 +68,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandTwo() throws IOException {
+    public void shouldExpandTwo() {
         expectRequestTo("https://api.example.com/123/456");
 
         unit.get("/{parent}/{child}", 123, "456")
@@ -79,7 +77,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandInlinedQueryParams() throws IOException {
+    public void shouldExpandInlinedQueryParams() {
         expectRequestTo("https://example.com/posts/123?filter=new");
 
         final int postId = 123;
@@ -91,7 +89,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodePath() throws IOException {
+    public void shouldEncodePath() {
         expectRequestTo("https://ru.wikipedia.org/wiki/%D0%9E%D1%82%D0%B1%D0%BE%D0%B9%D0%BD%D0%BE%D0%B5_%D1%82%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5");
 
         unit.get("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
@@ -100,7 +98,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeInlinedQueryParams() throws IOException {
+    public void shouldEncodeInlinedQueryParams() {
         expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
         unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
@@ -109,7 +107,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldAppendQueryParams() throws IOException {
+    public void shouldAppendQueryParams() {
         server.expect(requestTo("https://api.example.com?foo=bar&foo=baz&bar=null"))
                 .andRespond(withSuccess());
 
@@ -124,7 +122,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeAppendedQueryParams() throws IOException {
+    public void shouldEncodeAppendedQueryParams() {
         expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
         unit.head("https://ru.wiktionary.org/w/index.php")
@@ -136,7 +134,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithHeaders() throws IOException {
+    public void shouldExpandOnGetWithHeaders() {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -146,7 +144,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithBody() throws IOException {
+    public void shouldExpandOnGetWithBody() {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
@@ -154,7 +152,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldExpandOnGetWithHeadersAndBody() throws IOException {
+    public void shouldExpandOnGetWithHeadersAndBody() {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")

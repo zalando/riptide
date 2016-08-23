@@ -187,7 +187,7 @@ public final class InputStreamTest {
     }
 
     @Test
-    public void shouldExtractOriginalBody() throws Exception {
+    public void shouldExtractOriginalBody() throws IOException {
         final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
 
         server.expect(requestTo(url)).andRespond(
@@ -200,7 +200,7 @@ public final class InputStreamTest {
         unit.get(url)
                 .dispatch(contentType(),
                         on(APPLICATION_OCTET_STREAM).call(InputStream.class, capture::set))
-                .get();
+                .join();
 
         final InputStream inputStream = capture.get();
 

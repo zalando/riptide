@@ -35,6 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,35 +89,32 @@ public final class Requester extends Dispatcher {
         return this;
     }
 
-    public final <T> Dispatcher body(final T body) throws IOException {
+    public final <T> Dispatcher body(final T body) {
         return execute(query, headers, body);
     }
 
     @Override
-    public final <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) {
         return execute(query, headers, null).dispatch(tree);
     }
 
     protected <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
-            final @Nullable T body) throws IOException {
+            final @Nullable T body) {
 
         final HttpEntity<T> entity = new HttpEntity<>(body, headers);
-        final AsyncClientHttpRequest request = createRequest(query, entity);
-        final ListenableFuture<ClientHttpResponse> future = request.executeAsync();
+        final ListenableFuture<ClientHttpResponse> future = createAndExecute(query, entity);
 
         return new Dispatcher() {
 
             @Override
             public <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) {
                 final CompletableFuture<Void> capture = new CompletableFuture<Void>() {
-
                     @Override
                     public boolean cancel(final boolean mayInterruptIfRunning) {
                         final boolean cancelled = future.cancel(mayInterruptIfRunning);
                         super.cancel(mayInterruptIfRunning);
                         return cancelled;
                     }
-
                 };
 
                 future.addCallback(response -> {
@@ -134,7 +132,17 @@ public final class Requester extends Dispatcher {
         };
     }
 
-    private <T> AsyncClientHttpRequest createRequest(final Multimap<String, String> query,
+    private <T> ListenableFuture<ClientHttpResponse> createAndExecute(final Multimap<String, String> query,
+            final HttpEntity<T> entity) {
+        try {
+            final AsyncClientHttpRequest request = create(query, entity);
+            return request.executeAsync();
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private <T> AsyncClientHttpRequest create(final Multimap<String, String> query,
             final HttpEntity<T> entity) throws IOException {
 
         final URI url = createUrl(query);
@@ -148,4 +156,5 @@ public final class Requester extends Dispatcher {
                 urlBuilder.queryParam(entry.getKey(), entry.getValue()));
         return urlBuilder.buildAndExpand(urlVariables).encode().toUri().normalize();
     }
+
 }

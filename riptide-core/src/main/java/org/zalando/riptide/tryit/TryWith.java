@@ -30,10 +30,10 @@ public interface TryWith {
     static void tryWith(final AutoCloseable closeable, final ThrowingRunnable runnable) throws Exception {
         try {
             runnable.run();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             try {
                 closeable.close();
-            } catch (Exception ce) {
+            } catch (final Exception ce) {
                 e.addSuppressed(ce);
             }
             throw e;
@@ -45,10 +45,10 @@ public interface TryWith {
             throws Exception {
         try {
             consumer.accept(input);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             try {
                 closeable.close();
-            } catch (Exception ce) {
+            } catch (final Exception ce) {
                 e.addSuppressed(ce);
             }
             throw e;
@@ -60,10 +60,10 @@ public interface TryWith {
         final T value;
         try {
             value = supplier.get();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             try {
                 closeable.close();
-            } catch (Exception ce) {
+            } catch (final Exception ce) {
                 e.addSuppressed(ce);
             }
             throw e;
@@ -77,10 +77,10 @@ public interface TryWith {
         final T value;
         try {
             value = function.apply(input);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             try {
                 closeable.close();
-            } catch (Exception ce) {
+            } catch (final Exception ce) {
                 e.addSuppressed(ce);
             }
             throw e;

@@ -27,7 +27,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
@@ -56,7 +55,7 @@ public final class AnyDispatchTest {
     }
 
     @Test
-    public void shouldDispatchAny() throws IOException, ExecutionException, InterruptedException {
+    public void shouldDispatchAny() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -68,7 +67,7 @@ public final class AnyDispatchTest {
                 .dispatch(status(),
                         on(CREATED).call(pass()),
                         anyStatus().call(ClientHttpResponse.class, capture::set))
-                .get();
+                .join();
 
         final ClientHttpResponse response = capture.get();
         assertThat(response.getStatusCode(), is(OK));

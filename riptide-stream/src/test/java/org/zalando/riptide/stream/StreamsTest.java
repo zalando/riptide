@@ -38,8 +38,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
@@ -99,7 +99,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(listOf(AccountBody.class)), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(Arrays.asList(
                 new AccountBody("1234567890", "Acme Corporation"),
@@ -121,7 +121,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody[].class), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(new AccountBody[] {
                 new AccountBody("1234567890", "Acme Corporation"),
@@ -143,7 +143,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -164,7 +164,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -185,7 +185,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -206,7 +206,7 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(AccountBody.class, verifier),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verify(verifier).accept(
                 new AccountBody("1234567890", "Acme Corporation"));
@@ -214,7 +214,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldNotCallConsumerForEmptyStream() throws Exception {
+    public void shouldNotCallConsumerForEmptyStream() {
         final InputStream stream = new ByteArrayInputStream(new byte[0]);
 
         server.expect(requestTo(url)).andRespond(
@@ -227,14 +227,14 @@ public class StreamsTest {
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                anyStatus().call(this::fail)).get();
+                anyStatus().call(this::fail)).join();
 
         verifyZeroInteractions(verifier);
     }
 
     @Test
     public void shouldFailOnCallWithConsumerException() throws Exception {
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         server.expect(requestTo(url)).andRespond(
@@ -246,7 +246,7 @@ public class StreamsTest {
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
         doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
 
-        final Future<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
@@ -255,12 +255,12 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verifyNoMoreInteractions(verifier);
 
-        future.get();
+        future.join();
     }
 
     @Test
     public void shouldFailOnCallWithInvalidStream() throws Exception {
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(UncheckedIOException.class));
 
         server.expect(requestTo(url)).andRespond(
@@ -271,14 +271,14 @@ public class StreamsTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
 
-        final Future<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verifyNoMoreInteractions(verifier);
 
-        future.get();
+        future.join();
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

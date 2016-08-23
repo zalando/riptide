@@ -96,7 +96,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     }
 
     @Test
-    public void shouldReadContributors() throws IOException, ExecutionException, InterruptedException {
+    public void shouldReadContributors() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
@@ -104,7 +104,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(listOf(User.class), reference::set)).get();
+                        on(SUCCESSFUL).call(listOf(User.class), reference::set)).join();
 
         final List<String> users = reference.get().stream()
                 .map(User::getLogin)

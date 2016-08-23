@@ -30,9 +30,9 @@ public interface TryEnsure {
     static void ensureIOException(final ThrowingRunnable runnable) throws IOException {
         try {
             runnable.run();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException(e);
         }
     }
@@ -40,9 +40,9 @@ public interface TryEnsure {
     static <T> T ensureIOException(final ThrowingSupplier<T> supplier) throws IOException {
         try {
             return supplier.get();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException(e);
         }
     }

@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
 import java.net.URI;
 
 import static java.util.stream.Collectors.toList;
@@ -64,7 +63,7 @@ public final class StatusCodeDispatchTest {
     }
 
     @Test
-    public void shouldDispatch() throws IOException {
+    public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(expected)));
 
         final ClientHttpResponseConsumer verifier = response ->

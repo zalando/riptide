@@ -20,6 +20,21 @@ package org.zalando.riptide;
  * ​⁣
  */
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.problem.ThrowableProblem;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
@@ -45,21 +60,6 @@ import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.Route.to;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.problem.ThrowableProblem;
-
 public final class RouteTest {
 
     @Rule
@@ -77,7 +77,7 @@ public final class RouteTest {
     }
 
     @Test
-    public void shouldPass() throws IOException {
+    public void shouldPass() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
@@ -88,7 +88,7 @@ public final class RouteTest {
     }
 
     @Test
-    public void shouldMapHeaders() throws ExecutionException, InterruptedException, IOException {
+    public void shouldMapHeaders() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -100,14 +100,14 @@ public final class RouteTest {
                 .dispatch(status(),
                         on(OK).call(to(headers()).andThen(capture::set)),
                         anyStatus().call(this::fail))
-                .get();
+                .join();
 
         final HttpHeaders headers = capture.get();
         assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }
 
     @Test
-    public void shouldMapLocation() throws ExecutionException, InterruptedException, IOException {
+    public void shouldMapLocation() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("http://example.org"));
 
@@ -121,20 +121,20 @@ public final class RouteTest {
                 .dispatch(status(),
                         on(OK).call(to(location()).andThen(capture::set)),
                         anyStatus().call(this::fail))
-                .get();
+                .join();
 
         final URI uri = capture.get();
         assertThat(uri, hasToString("http://example.org"));
     }
 
     @Test
-    public void shouldThrowNoRouteExceptionWithContent() throws ExecutionException, InterruptedException, IOException {
+    public void shouldThrowNoRouteExceptionWithContent() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CONFLICT)
                         .body("verbose body content")
                         .contentType(MediaType.TEXT_PLAIN));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectCause(
                 hasFeature(Throwable::getMessage, containsString("Content-Type=[" + MediaType.TEXT_PLAIN + "]")));
@@ -143,31 +143,30 @@ public final class RouteTest {
         unit.get(url)
                 .dispatch(status(),
                         anyStatus().call(noRoute()))
-                .get();
+                .join();
     }
 
     @Test
-    public void shouldThrowNoRouteExceptionWithoutContent()
-            throws ExecutionException, InterruptedException, IOException {
+    public void shouldThrowNoRouteExceptionWithoutContent() {
         server.expect(requestTo(url)).andRespond(withStatus(NO_CONTENT));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
         unit.get(url)
                 .dispatch(status(),
                         anyStatus().call(noRoute()))
-                .get();
+                .join();
     }
 
     @Test
-    public void shouldPropagateException() throws ExecutionException, InterruptedException, IOException {
+    public void shouldPropagateException() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
         exception.expectCause(hasFeature("cause", Throwable::getCause, instanceOf(ThrowableProblem.class)));
 
@@ -175,24 +174,24 @@ public final class RouteTest {
                 .dispatch(status(),
                         on(UNPROCESSABLE_ENTITY).call(ThrowableProblem.class, propagate()),
                         anyStatus().call(this::fail))
-                .get();
+                .join();
     }
 
     @Test
-    public void shouldPropagateIOExceptionAsIs() throws ExecutionException, InterruptedException, IOException {
+    public void shouldPropagateIOExceptionAsIs() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body("{}")
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         unit.get(url)
                 .dispatch(status(),
                         on(UNPROCESSABLE_ENTITY).call(IOException.class, propagate()),
                         anyStatus().call(this::fail))
-                .get();
+                .join();
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

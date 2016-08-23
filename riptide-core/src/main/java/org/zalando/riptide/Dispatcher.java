@@ -20,7 +20,6 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,14 +28,14 @@ import static java.util.Arrays.asList;
 public abstract class Dispatcher {
 
     @SafeVarargs
-    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final Binding<A>... bindings) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final Binding<A>... bindings) {
         return dispatch(selector, asList(bindings));
     }
 
-    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final Navigator<A> selector, final List<Binding<A>> bindings) {
         return dispatch(RoutingTree.dispatch(selector, bindings));
     }
 
-    public abstract <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException;
+    public abstract <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree);
 
 }

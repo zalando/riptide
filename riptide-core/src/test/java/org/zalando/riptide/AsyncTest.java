@@ -28,8 +28,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -80,7 +80,7 @@ public final class AsyncTest {
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).accept(any());
     }
@@ -94,7 +94,7 @@ public final class AsyncTest {
 
         unit.get("http://localhost/{id}", 123)
             .dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).accept(any());
     }
@@ -106,7 +106,7 @@ public final class AsyncTest {
         final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
 
         unit.get(url).dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).run();
     }
@@ -120,7 +120,7 @@ public final class AsyncTest {
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).headers(new HttpHeaders()).dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).accept(any());
     }
@@ -133,7 +133,7 @@ public final class AsyncTest {
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).body("test").dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).accept(any());
     }
@@ -146,13 +146,13 @@ public final class AsyncTest {
         final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).headers(new HttpHeaders()).body("test").dispatch(series(),
-                on(SUCCESSFUL).call(verifier)).get();
+                on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).accept(any());
     }
 
     @Test
-    public void shouldCapture() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    public void shouldCapture() throws InterruptedException, ExecutionException, TimeoutException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -168,7 +168,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldIgnoreException() throws ExecutionException, InterruptedException, IOException {
+    public void shouldIgnoreException() throws ExecutionException, InterruptedException {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         unit.get(url).dispatch(series(),
@@ -176,19 +176,19 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldHandleExceptionWithGet() throws InterruptedException, ExecutionException, IOException {
+    public void shouldHandleExceptionWithGet() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
 
         unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
-                .get();
+                .join();
     }
 
     @Test
-    public void shouldHandleNoRouteExceptionWithCallback() throws IOException {
+    public void shouldHandleNoRouteExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked") final BiConsumer<Void, Throwable> callback = mock(BiConsumer.class);
@@ -201,7 +201,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldIgnoreSuccessWhenHandlingExceptionWithCallback() throws IOException {
+    public void shouldIgnoreSuccessWhenHandlingExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked") final Consumer<Throwable> callback = mock(Consumer.class);

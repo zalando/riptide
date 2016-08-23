@@ -31,7 +31,7 @@ import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -89,7 +89,7 @@ public final class StreamIOTest {
 
 
     @Test
-    public void shouldReadContributors() throws IOException, ExecutionException, InterruptedException {
+    public void shouldReadContributors() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
@@ -97,7 +97,7 @@ public final class StreamIOTest {
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(streamOf(User.class), reference::set)).get();
+                        on(SUCCESSFUL).call(streamOf(User.class), reference::set)).join();
 
         final List<String> users = reference.get()
                 .map(User::getLogin)
@@ -107,34 +107,34 @@ public final class StreamIOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws IOException, ExecutionException, InterruptedException {
+    public void shouldCancelRequest() {
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass())).cancel(true);
     }
 
     @Test
-    public void shouldFailOnResponse() throws IOException, ExecutionException, InterruptedException {
+    public void shouldFailOnResponse() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json")
                         .after(1, TimeUnit.SECONDS));
 
-        exception.expect(ExecutionException.class);
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
-                        on("OK").call(ClientHttpResponse::close)).get();
+                        on("OK").call(ClientHttpResponse::close)).join();
     }
 
     @Test
-    public void shouldReadEmptyResponse() throws IOException, ExecutionException, InterruptedException {
+    public void shouldReadEmptyResponse() {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveEmptyResponse().withStatus(200));
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
-                        on("OK").call(ClientHttpResponse::close)).get();
+                        on("OK").call(ClientHttpResponse::close)).join();
     }
 
 }

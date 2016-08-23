@@ -66,7 +66,7 @@ public final class ContentTypeDispatchTest {
         this.server = setup.getServer();
     }
 
-    private <T> T perform(final Class<T> type) throws ExecutionException, InterruptedException, IOException {
+    private <T> T perform(final Class<T> type) {
         final AtomicReference<Object> capture = new AtomicReference<>();
 
         unit.get(url)
@@ -75,13 +75,13 @@ public final class ContentTypeDispatchTest {
                         on(PROBLEM).call(Problem.class, capture::set),
                         on(ERROR).call(Error.class, capture::set),
                         anyContentType().call(this::fail))
-                .get();
+                .join();
 
         return type.cast(capture.get());
     }
 
     @Test
-    public void shouldDispatchSuccess() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchSuccess() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -93,7 +93,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchProblem() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchProblem() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -108,7 +108,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchError() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchError() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("error.json"))
@@ -121,7 +121,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToMostSpecificContentType() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchToMostSpecificContentType() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -134,14 +134,14 @@ public final class ContentTypeDispatchTest {
                         on(parseMediaType("application/*+json")).call(this::fail),
                         on(parseMediaType("application/success+json;version=2")).call(Success.class, capture::set),
                         anyContentType().call(this::fail))
-                .get();
+                .join();
 
         final Success success = capture.get();
         assertThat(success.isHappy(), is(true));
     }
 
     @Test
-    public void shouldNotFailIfNoContentTypeSpecified() throws ExecutionException, InterruptedException, IOException {
+    public void shouldNotFailIfNoContentTypeSpecified() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -152,11 +152,11 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESSFUL).dispatch(contentType(),
                                 on(SUCCESS).call(pass())),
                         anySeries().call(pass()))
-                .get();
+                .join();
     }
 
     @Test
-    public void shouldDispatchToFullMatch() throws ExecutionException, InterruptedException, IOException {
+    public void shouldDispatchToFullMatch() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -169,7 +169,7 @@ public final class ContentTypeDispatchTest {
                         on(SUCCESS_V1).call(this::fail),
                         on(SUCCESS_V2).call(Success.class, capture::set),
                         anyContentType().call(this::fail))
-                .get();
+                .join();
 
         final Success success = capture.get();
         assertThat(success.isHappy(), is(true));

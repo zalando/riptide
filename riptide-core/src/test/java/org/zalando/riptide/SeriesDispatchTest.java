@@ -72,7 +72,7 @@ public final class SeriesDispatchTest {
     }
 
     @Test
-    public void shouldDispatch() throws IOException {
+    public void shouldDispatch() {
         server.expect(requestTo(url)).andRespond(withStatus(expected));
 
         final ClientHttpResponseConsumer verifier = response ->
