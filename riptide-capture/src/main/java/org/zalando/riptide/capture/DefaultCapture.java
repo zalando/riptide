@@ -20,11 +20,8 @@ package org.zalando.riptide.capture;
  * ​⁣
  */
 
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureAdapter;
-
 import java.util.NoSuchElementException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class DefaultCapture<T> implements Capture<T> {
@@ -48,13 +45,8 @@ final class DefaultCapture<T> implements Capture<T> {
     }
 
     @Override
-    public ListenableFuture<T> adapt(final ListenableFuture<Void> future) {
-        return new ListenableFutureAdapter<T, Void>(future) {
-            @Override
-            protected T adapt(final Void result) throws ExecutionException {
-                return retrieve();
-            }
-        };
+    public CompletableFuture<T> adapt(final CompletableFuture<Void> future) {
+        return future.thenApply(result -> retrieve());
     }
 
 }

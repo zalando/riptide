@@ -27,19 +27,22 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.util.concurrent.FailureCallback;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.OK;
@@ -188,22 +191,31 @@ public final class AsyncTest {
     public void shouldHandleNoRouteExceptionWithCallback() throws IOException {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        final FailureCallback callback = mock(FailureCallback.class);
+        @SuppressWarnings("unchecked") final BiConsumer<Void, Throwable> callback = mock(BiConsumer.class);
 
         unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
-                .addCallback(result -> {}, callback);
+                .whenComplete(callback);
 
-        verify(callback).onFailure(argThat(is(instanceOf(NoRouteException.class))));
+        verify(callback).accept(eq(null), argThat(is(instanceOf(NoRouteException.class))));
     }
 
     @Test
     public void shouldIgnoreSuccessWhenHandlingExceptionWithCallback() throws IOException {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
+        @SuppressWarnings("unchecked") final Consumer<Throwable> callback = mock(Consumer.class);
+
         unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(pass()))
-                .addCallback(result -> {}, (mock(FailureCallback.class)));
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        callback.accept(throwable);
+                    }
+                })
+                .join();
+
+        verify(callback, never()).accept(any());
     }
 
 }

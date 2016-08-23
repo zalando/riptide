@@ -31,12 +31,12 @@ import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 
 public final class Requester extends Dispatcher {
 
@@ -93,7 +93,7 @@ public final class Requester extends Dispatcher {
     }
 
     @Override
-    public final <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException {
+    public final <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) throws IOException {
         return execute(query, headers, null).dispatch(tree);
     }
 
@@ -107,22 +107,26 @@ public final class Requester extends Dispatcher {
         return new Dispatcher() {
 
             @Override
-            public <A> ListenableFuture<Void> dispatch(final RoutingTree<A> tree) {
-                final SettableListenableFuture<Void> capture = new SettableListenableFuture<Void>() {
+            public <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) {
+                final CompletableFuture<Void> capture = new CompletableFuture<Void>() {
+
                     @Override
-                    protected void interruptTask() {
-                        future.cancel(true);
+                    public boolean cancel(final boolean mayInterruptIfRunning) {
+                        final boolean cancelled = future.cancel(mayInterruptIfRunning);
+                        super.cancel(mayInterruptIfRunning);
+                        return cancelled;
                     }
+
                 };
 
                 future.addCallback(response -> {
                     try {
                         tree.execute(response, worker);
-                        capture.set(null);
+                        capture.complete(null);
                     } catch (final Exception e) {
-                        capture.setException(e);
+                        capture.completeExceptionally(e);
                     }
-                }, capture::setException);
+                }, capture::completeExceptionally);
 
                 return capture;
             }

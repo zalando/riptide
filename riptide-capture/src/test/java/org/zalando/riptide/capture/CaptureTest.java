@@ -31,12 +31,12 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.Matchers.is;
@@ -94,7 +94,7 @@ public final class CaptureTest {
     public void shouldAdapt() throws IOException, ExecutionException, InterruptedException {
         final Capture<ObjectNode> capture = Capture.empty();
 
-        final ListenableFuture<Void> future = unit.get("/accounts/123")
+        final CompletableFuture<Void> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));
