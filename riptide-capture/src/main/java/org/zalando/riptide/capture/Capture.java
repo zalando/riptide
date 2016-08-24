@@ -20,16 +20,16 @@ package org.zalando.riptide.capture;
  * ​⁣
  */
 
+import org.zalando.riptide.Completion;
 import org.zalando.riptide.ThrowingConsumer;
 
 import java.util.NoSuchElementException;
-import java.util.concurrent.CompletableFuture;
 
 public interface Capture<T> extends ThrowingConsumer<T> {
 
     T retrieve() throws NoSuchElementException;
 
-    CompletableFuture<T> adapt(final CompletableFuture<Void> future);
+    Completion<T> adapt(final Completion<Void> future);
 
     static <T> Capture<T> empty() {
         return new DefaultCapture<>();
