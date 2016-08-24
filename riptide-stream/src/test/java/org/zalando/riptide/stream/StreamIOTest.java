@@ -31,6 +31,8 @@ import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -107,10 +109,25 @@ public final class StreamIOTest {
     }
 
     @Test
-    public void shouldCancelRequest() {
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+    public void shouldCancelRequest() throws IOException {
+        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
+                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+
+        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass())).cancel(true);
+                        on(SUCCESSFUL).call(pass()));
+
+        future.cancel(true);
+
+        try {
+            future.join();
+        } catch (final CancellationException e) {
+            // expected
+        }
+
+        // we don't care whether the request was actually made or not, but by default the driver will verify
+        // all expectations after every tests
+        driver.reset();
     }
 
     @Test

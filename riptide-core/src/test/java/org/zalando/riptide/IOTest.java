@@ -112,6 +112,8 @@ public final class IOTest {
             // expected
         }
 
+        // we don't care whether the request was actually made or not, but by default the driver will verify
+        // all expectations after every tests
         driver.reset();
     }
 
