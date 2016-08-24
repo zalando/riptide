@@ -37,6 +37,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Rest;
+import org.zalando.riptide.capture.Capture;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +45,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
@@ -100,13 +100,13 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
-        final AtomicReference<List<User>> reference = new AtomicReference<>();
+        final Capture<List<User>> capture = Capture.empty();
 
         rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(listOf(User.class), reference::set)).join();
+                        on(SUCCESSFUL).call(listOf(User.class), capture)).join();
 
-        final List<String> users = reference.get().stream()
+        final List<String> users = capture.retrieve().stream()
                 .map(User::getLogin)
                 .collect(toList());
 

@@ -41,6 +41,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-capture</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
         </dependency>
