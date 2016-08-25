@@ -27,12 +27,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -113,7 +113,7 @@ public final class StreamIOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
-        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final Completion<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 

@@ -28,6 +28,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
 import org.zalando.riptide.ThrowingConsumer;
 
@@ -38,7 +39,6 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static java.util.Collections.singletonList;
@@ -246,7 +246,7 @@ public class StreamsTest {
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
         doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
 
-        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
+        final Completion<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
@@ -271,7 +271,7 @@ public class StreamsTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
 
-        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
+        final Completion<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 

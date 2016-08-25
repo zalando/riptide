@@ -32,6 +32,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
 
 import java.io.IOException;
@@ -93,7 +94,7 @@ public final class CaptureTest {
     public void shouldAdapt() {
         final Capture<ObjectNode> capture = Capture.empty();
 
-        final CompletableFuture<Void> future = unit.get("/accounts/123")
+        final Completion<Void> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));

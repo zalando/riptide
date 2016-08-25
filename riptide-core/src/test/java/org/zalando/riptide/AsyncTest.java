@@ -212,8 +212,7 @@ public final class AsyncTest {
                     if (throwable != null) {
                         callback.accept(throwable);
                     }
-                })
-                .join();
+                }).join();
 
         verify(callback, never()).accept(any());
     }

@@ -29,7 +29,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -100,7 +99,7 @@ public final class IOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveEmptyResponse().after(1, TimeUnit.SECONDS));
 
-        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final Completion<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 

@@ -94,7 +94,7 @@ public final class Requester extends Dispatcher {
     }
 
     @Override
-    public final <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) {
+    public final <A> Completion<Void> dispatch(final RoutingTree<A> tree) {
         return execute(query, headers, null).dispatch(tree);
     }
 
@@ -102,31 +102,31 @@ public final class Requester extends Dispatcher {
             final @Nullable T body) {
 
         final HttpEntity<T> entity = new HttpEntity<>(body, headers);
-        final ListenableFuture<ClientHttpResponse> future = createAndExecute(query, entity);
+        final ListenableFuture<ClientHttpResponse> listenable = createAndExecute(query, entity);
 
         return new Dispatcher() {
 
             @Override
-            public <A> CompletableFuture<Void> dispatch(final RoutingTree<A> tree) {
-                final CompletableFuture<Void> capture = new CompletableFuture<Void>() {
+            public <A> Completion<Void> dispatch(final RoutingTree<A> tree) {
+                final CompletableFuture<Void> future = new CompletableFuture<Void>() {
                     @Override
                     public boolean cancel(final boolean mayInterruptIfRunning) {
-                        final boolean cancelled = future.cancel(mayInterruptIfRunning);
+                        final boolean cancelled = listenable.cancel(mayInterruptIfRunning);
                         super.cancel(mayInterruptIfRunning);
                         return cancelled;
                     }
                 };
 
-                future.addCallback(response -> {
+                listenable.addCallback(response -> {
                     try {
                         tree.execute(response, worker);
-                        capture.complete(null);
+                        future.complete(null);
                     } catch (final Exception e) {
-                        capture.completeExceptionally(e);
+                        future.completeExceptionally(e);
                     }
-                }, capture::completeExceptionally);
+                }, future::completeExceptionally);
 
-                return capture;
+                return Completion.valueOf(future);
             }
 
         };

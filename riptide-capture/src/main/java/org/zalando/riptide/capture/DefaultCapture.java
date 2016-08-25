@@ -20,8 +20,9 @@ package org.zalando.riptide.capture;
  * ​⁣
  */
 
+import org.zalando.riptide.Completion;
+
 import java.util.NoSuchElementException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class DefaultCapture<T> implements Capture<T> {
@@ -45,7 +46,7 @@ final class DefaultCapture<T> implements Capture<T> {
     }
 
     @Override
-    public CompletableFuture<T> adapt(final CompletableFuture<Void> future) {
+    public Completion<T> adapt(final Completion<Void> future) {
         return future.thenApply(result -> retrieve());
     }
 
