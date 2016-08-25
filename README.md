@@ -10,10 +10,13 @@
 
 > **Riptide** (ˈrɪpˌtaɪd), noun: a strong usually narrow current of water that flows away from a shore
 
-*Riptide* is a library that implements ***client-side response routing***.  It tries to fill the gap between the HTTP protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch#Single_and_multiple_dispatch) language. Riptide allows users to leverage the power of HTTP with its unique API.
+*Riptide* is a library that implements ***client-side response routing***.  It tries to fill the gap between the HTTP
+protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch#Single_and_multiple_dispatch)
+language. Riptide allows users to leverage the power of HTTP with its unique API.
 
 - **Technology stack**: Based on `spring-web` and uses the same foundation as Spring's RestTemplate.
 - **Status**:  Version 1.x is used in production and 2.x is currently available as a release candidate.
+- Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
 
 ## Example
 
@@ -26,8 +29,9 @@ http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
             users.forEach(System.out::println)));
 ```
 
-
-We have an adaptation of the canonical Github sample, see [`SampleService`](riptide-core/src/test/java/org/zalando/riptide/SampleService.java). Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basics) or [Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
+We have an adaptation of the canonical Github sample, see [`SampleService`](riptide-core/src/test/java/org/zalando/riptide/SampleService.java).
+Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basics) or
+[Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
 
 ## Features
 
@@ -41,18 +45,17 @@ We have an adaptation of the canonical Github sample, see [`SampleService`](ript
 
 ## Concepts
 
-- HTTP vs. single-dispatch programming languages
+Most modern clients try to adapt HTTP to single-dispatch paradigm like shown in the following example. Even though this
+may be perfectly suitable for most applications it takes away a lot of the power that comes with HTTP. It's not easy to
+support multiple different return values, i.e. distinct happy cases. Access to response headers or manual content
+negotiation are also harder to do.
  
 ```java
 @GET
 @Path("/repos/{org}/{repo}/contributors")
 List<User> getContributors(@PathParam String org, @PathParam String repo);
 ```
-
-- Route
-- RoutingTree
-- Navigator
-
+Riptide tries to counter this by provided a different approach to make HTTP available in the JVM.
 It allows to dispatch HTTP responses very easily to different handler methods based on any characteristic of the
 response, including but not limited to status code, status family and content type. The way this works is intentionally
 very similar to server-side request routing where any request that reaches a web application is usually routed to the
@@ -100,24 +103,35 @@ This defaults to:
 
 ## Usage
 
-TODO
-- get/head/post/put/...
-- headers/contentType/accept
-- body
-- dispatch
-- binding/partial binding
-- future/blocking
-
-TODO actually implements the example shown in the [concepts section](#concepts)
+A full-blown request may contain any of the following aspects: HTTP method, request URI, query parameters,
+headers and a body:
 
 ```java
 http.post("/sales-order")
-    .contentType(MediaTypes.SALES_ORDER)
-    .accept(MediaTypes.SALES_ORDER)
+    .queryParam("async", "true")
+    .contentType(CART)
+    .accept(SALES_ORDER)
+    .header("Client-IP", "127.0.0.1")
+    .body(cart)
+    .dispatch(series(),
+        on(SUCCESSFUL).dispatch(contentType(),
+            on(SALES_ORDER).call(this::persistLocationHeader)),
+        anySeries().call(problemHandling())
+    .join()
+```
+Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
+respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
+once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
+addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
+
+```java
+http.post("/sales-order")
+    .contentType(SALES_ORDER)
+    .accept(SALES_ORDER)
     .body(order)
     .dispatch(series(),
         on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.SALES_ORDER).call(this::persistLocationHeader),
+            on(SALES_ORDER).call(this::persistLocationHeader),
         on(CLIENT_ERROR).dispatch(status(),
             on(CONFLICT).call(this::retry),
             on(PRECONDITION_FAILED).call(this::readAgainAndRetry),
@@ -126,6 +140,8 @@ http.post("/sales-order")
         on(SERVER_ERROR).dispatch(status(),
             on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))));
 ```
+
+The callbacks used can have the following signatures:
 
 ```java
 private void persistLocationHeader(ClientHttpResponse response)
@@ -200,6 +216,10 @@ public interface Navigator<A> {
 }
 ```
 
+### Futures and Completion
+
+- TODO future/blocking/chaining
+
 ### Exceptions
 
 *Riptide* propagates any exception as an `ExecutionException` upon calling `Future.get(..)`:
@@ -211,6 +231,13 @@ try {
     // TODO implement
 }
 ```
+
+```java
+try {
+    rest.execute(GET, url).dispatch(..).join;
+} catch (final CompletionException e) {
+    // TODO implement
+}
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
