@@ -63,7 +63,7 @@ correct handler based on any combination of the following criteria: URI includin
 `Accept` and `Content-Type` header. Instead of routing requests to handler methods on the server what *Riptide* does
 is the exact opposite: routing responses to handler methods on the client side.
 
-![Routing Tree](https://docs.google.com/drawings/d/1BRTXVtmwIMJti1l5cQMrZsfKnTfBElTB8pDSxVBQbIQ/pub?w=888&h=888)
+![Routing Tree](https://docs.google.com/drawings/d/1BRTXVtmwIMJti1l5cQMrZsfKnTfBElTB8pDSxVBQbIQ/pub?w=888&h=691)
 
 ## Installation
 
