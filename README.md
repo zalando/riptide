@@ -64,7 +64,6 @@ correct handler based on any combination of the following criteria: URI includin
 is the exact opposite: routing responses to handler methods on the client side.
 
 ![Routing Tree](https://docs.google.com/drawings/d/1BRTXVtmwIMJti1l5cQMrZsfKnTfBElTB8pDSxVBQbIQ/pub?w=888&h=888)
-![Routing Tree](docs/routing-tree.png)
 
 ## Installation
 
