@@ -238,6 +238,7 @@ try {
 } catch (final CompletionException e) {
     // TODO implement
 }
+```
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
