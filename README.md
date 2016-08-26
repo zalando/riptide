@@ -43,7 +43,7 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - elegant syntax
 - type-safe
 
-## Concepts
+## Origin
 
 Most modern clients try to adapt HTTP to single-dispatch paradigm like shown in the following example. Even though this
 may be perfectly suitable for most applications it takes away a lot of the power that comes with HTTP. It's not easy to
@@ -55,7 +55,10 @@ negotiation are also harder to do.
 @Path("/repos/{org}/{repo}/contributors")
 List<User> getContributors(@PathParam String org, @PathParam String repo);
 ```
-Riptide tries to counter this by provided a different approach to make HTTP available in the JVM.
+Riptide tries to counter this by providing a different approach to leverage the power of HTTP.
+
+## Concepts
+
 It allows to dispatch HTTP responses very easily to different handler methods based on any characteristic of the
 response, including but not limited to status code, status family and content type. The way this works is intentionally
 very similar to server-side request routing where any request that reaches a web application is usually routed to the
@@ -67,46 +70,39 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ### Route
 
-```java
-@FunctionalInterface
-public interface Route {
-
-    void execute(ClientHttpResponse response, MessageReader reader) throws Exception;
-    
-}
-```
+> A Route is either a callback or a [routing tree](#routing-tree).
 
 ### Routing Tree
 
-TODO
-- bind vs. alternatives
-- mutation/manipulation/reuse
-- code as data
+> A Routing Tree is the combination of a [navigator](#navigator) and a set of [bindings](#binding).
 
 ### Navigator
 
-Routing of responses is controlled by a `Navigator`, e.g. `status()` in the former example.
-A navigator decides how to travers a [routing tree](#routing-tree).
+> A Navigator chooses among the [bindings](#binding) of a [routing tree](#routing-tree).
 
-Riptide comes with the following navigators:
-
-- [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)
-- [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)
-- [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)
-- [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java)
-- [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)
-
-You are free to write your own, which requires you to implement the following interface:
+| Navigator                                                                                              | Aspect               |
+|--------------------------------------------------------------------------------------------------------|----------------------|
+| [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)             | Class of status code |
+| [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)             | Status               |
+| [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)     | Status code          |
+| [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java) | Reason Phrase        |
+| [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)   | Content-Type header  |
 
 ### Binding
 
-| Route                                  | Syntax                                        |
-|----------------------------------------|-----------------------------------------------|
-| `ThrowingRunnable`                     | `on(..).call(ThrowingRunnable)`               |
-| `ThrowingConsumer<ClientHttpResponse>` | `on(..).call(ThrowingConsumer)`               |
-| `ThrowingConsumer<T>`                  | `on(..).call(Class<T>, ThrowingConsumer)`     |
-| `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer)` |
-| Nested Routing                         | `on(..).dispatch(..)`                         |
+> A Binding binds an attribute to a specific [route](#route).
+
+| Route                                  | Syntax                                              |
+|----------------------------------------|-----------------------------------------------------|
+| `ThrowingRunnable`                     | `on(..).call(ThrowingRunnable)`                     |
+| `ThrowingConsumer<ClientHttpResponse>` | `on(..).call(ThrowingConsumer<ClientHttpResponse>)` |
+| `ThrowingConsumer<T>`                  | `on(..).call(Class<T>, ThrowingConsumer<T>)`        |
+| `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
+| `RoutingTree`                          | `on(..).dispatch(..)`                               |
+
+#### Nested Dispatch
+
+> A nested dispatch is the act of **traversing a [routing tree](#routing-tree)**.
 
 ## Installation
 
@@ -151,27 +147,11 @@ headers and a body:
 
 ```java
 http.post("/sales-order")
-    .queryParam("async", "true")
+    .queryParam("async", "false")
     .contentType(CART)
     .accept(SALES_ORDER)
     .header("Client-IP", "127.0.0.1")
     .body(cart)
-    .dispatch(series(),
-        on(SUCCESSFUL).dispatch(contentType(),
-            on(SALES_ORDER).call(this::persistLocationHeader)),
-        anySeries().call(problemHandling())
-    .join()
-```
-Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
-respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
-once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
-addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
-
-```java
-http.post("/sales-order")
-    .contentType(SALES_ORDER)
-    .accept(SALES_ORDER)
-    .body(order)
     .dispatch(series(),
         on(SUCCESSFUL).dispatch(contentType(),
             on(SALES_ORDER).call(this::persistLocationHeader),
@@ -181,8 +161,14 @@ http.post("/sales-order")
             anyStatus().dispatch(contentType(),
                 on(MediaTypes.PROBLEM_JSON).call(ThrowableProblem.class, propagate()))),
         on(SERVER_ERROR).dispatch(status(),
-            on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))));
+            on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))))
+    .join();
 ```
+
+Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
+respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
+once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
+addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
 
 The callbacks used can have the following signatures:
 
@@ -191,19 +177,6 @@ private void persistLocationHeader(ClientHttpResponse response)
 private void retry();
 private void propagate(ThrowableProblem problem);
 ```
-
-#### Nested Dispatch
-
-TODO reference other example (e.g. from concept)
-
-If a *no match* case happens in a nested routing scenario it will bubble up the levels until it finds a matching
-wildcard condition. In the example above, if the server responded with a plain `500 Internal Server Error` the
-router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to dispatch on status code, won't find a
-matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
-statement.
-
-TODO
-- table with examples
 
 ### Futures and Completion
 
@@ -220,6 +193,8 @@ try {
     // TODO implement
 }
 ```
+
+TODO Alternatively
 
 ```java
 try {
