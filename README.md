@@ -81,7 +81,8 @@ on(SUCCESSFUL).call(response -> {
 
 ### Routing Tree
 
-> A Routing Tree is the combination of a **[navigator](#navigator) and** a set of **[bindings](#binding)**.
+> A Routing Tree is a route that is represented as the combination of a **[navigator](#navigator) and** a set of 
+  **[bindings](#binding)**.
 
 ```java
 on(SUCCESSFUL).dispatch(contentType(),
@@ -91,7 +92,9 @@ on(SUCCESSFUL).dispatch(contentType(),
 
 ### Navigator
 
-> A Navigator **chooses among** the **[bindings](#binding)** of a [routing tree](#routing-tree).
+> A Navigator **chooses among** the **[bindings](#binding)** of a [routing tree](#routing-tree). 
+  The act of **traversing a [routing tree](#routing-tree)** by choosing a binding and follow its associated route is
+  called **nested dispatch**.
 
 | Navigator                                                                                              | Aspect               |
 |--------------------------------------------------------------------------------------------------------|----------------------|
@@ -103,7 +106,8 @@ on(SUCCESSFUL).dispatch(contentType(),
 
 ### Binding
 
-> A Binding **binds an attribute to a [route](#route)**.
+> A Binding **binds an attribute to a [route](#route)**. It represents a choice to the [navigator](#navigator) which
+  route to follow.
 
 | Route                                  | Syntax                                              |
 |----------------------------------------|-----------------------------------------------------|
@@ -113,10 +117,7 @@ on(SUCCESSFUL).dispatch(contentType(),
 | `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
 | `RoutingTree`                          | `on(..).dispatch(..)`                               |
 
-### Nested Dispatch
-
-> A nested dispatch is the act of **traversing a [routing tree](#routing-tree)** by letting the [navigator](#navigator)
-  choose a binding and follow its associated route.
+> 
 
 ## Installation
 
