@@ -25,7 +25,7 @@ Capture<Order> capture = Capture.empty();
 
 http.get("/sales-orders/{id}", id).dispatch(series(),
     on(SUCCESSFUL).dispatch(contentType(),
-        on(MediaTypes.ORDER).call(Order.class, capture))).get();
+        on(MediaTypes.ORDER).call(Order.class, capture))).join();
 
 return capture.retrieve();
 ```
@@ -61,7 +61,7 @@ public Order getOrder(final String id) {
     
     http.get("/sales-orders/{id}", id).dispatch(series(),
         on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.ORDER).call(Order.class, capture))).get();
+            on(MediaTypes.ORDER).call(Order.class, capture))).join();
     
     return capture.retrieve(); // may throw NoSuchElementException
 }
@@ -75,9 +75,9 @@ public Order getOrder(final String id) {
 public Future<Order> getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
     
-    Future<?> future = http.get("/sales-orders/{id}", id).dispatch(series(),
+    Completion<Void> future = http.get("/sales-orders/{id}", id).dispatch(series(),
         on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.ORDER).call(Order.class, capture)));
+            on(MediaTypes.ORDER).call(Order.class, capture))).join;
     
     return capture.adapt(future);
 }
