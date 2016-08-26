@@ -73,9 +73,21 @@ is the exact opposite: routing responses to handler methods on the client side.
 > A Route is either a user-supplied **callback or** a nested **[routing tree](#routing-tree)**. Following a route will
   execute the callback or traverse the routing tree respectively.
 
+```java
+on(SUCCESSFUL).call(response -> {
+    System.out.println(response.getHeaders().getLocation());
+}),
+```
+
 ### Routing Tree
 
 > A Routing Tree is the combination of a **[navigator](#navigator) and** a set of **[bindings](#binding)**.
+
+```java
+on(SUCCESSFUL).dispatch(contentType(),
+    on(APPLICATION_JSON).call(..),
+    on(APPLICATION_XML).call(..))
+```
 
 ### Navigator
 
