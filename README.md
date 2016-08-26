@@ -74,7 +74,7 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ### Routing Tree
 
-> A Routing Tree is the combination of a **[navigator](#navigator) and a set of [bindings](#binding)**.
+> A Routing Tree is the combination of a **[navigator](#navigator) and** a set of **[bindings](#binding)**.
 
 ### Navigator
 
