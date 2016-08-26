@@ -1,26 +1,69 @@
-# Riptide: Streams Extension
+# Riptide: Streams
 
+[![Waterfall](../docs/waterfall.jpg)](https://pixabay.com/en/waterfalls-river-stream-water-691917/)
 
-*Riptide Stream* extension allows to capture arbitrary infinite object streams via Spring's [Rest Template](https://spring.io/guides/gs/consuming-rest/). This includes infinite streaming format as application/x-json-stream and application/json-seq, but also streaming of simple finite lists/arrays of JSON objects. To enable streaming you only need to register the [stream converter](src/main/java/org/zalando/riptide/stream/StreamConverter.java) with Riptide and declare a route for your stream that is calling a the stream consumer as follows:
+[![Build Status](https://img.shields.io/travis/zalando/riptide.svg)](https://travis-ci.org/zalando/riptide)
+[![Coverage Status](https://img.shields.io/coveralls/zalando/riptide.svg)](https://coveralls.io/r/zalando/riptide)
+[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-stream/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-stream)
+[![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-capture.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-stream)
 
+*Riptide Stream* extension allows to capture arbitrary infinite object streams via Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/).
+This includes infinite streaming format as application/x-json-stream and application/json-seq, but also streaming of
+simple finite lists/arrays of JSON objects.
+
+- **Technology stack**: Indicate the technological nature of the software, including primary programming language(s) and
+whether the software is intended as standalone or as a module in a framework or other ecosystem.
+- **Status**:  Alpha, Beta, 1.1, etc. It's OK to write a sentence, too. The goal is to let interested people know where
+this project is at. This is also a good place to link to the [CHANGELOG](CHANGELOG.md).
+- **Links to production or demo instances**
+- Describe what sets this apart from related-projects. Linking to another doc or page is OK if this can't be expressed
+in a sentence or two.
+
+## Example
 
 ```java
-@JsonAutoDetect(fieldVisibility = NON_PRIVATE)
-static class Contributor {
-    String login;
-    int contributions;
-}
-
-public static void main(final String... args) {
-    try (Rest rest = Rest.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
-                .accept(MediaType.APPLICATION_JSON)
-                .dispatch(series(),
-                       on(SUCCESSFUL).call(streamOf(User.class),
-                               forEach(user -> println(user.login + " (" + user.contributions + ")"))))
-                .get();
-    }
-}
+http.get("/sales-orders")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(streamOf(Order.class), forEach(this::process)));
 ```
 
-The unique entry point for all specific methods is the [Streams](src/main/java/org/zalando/riptide/stream/Streams.java) class. *Note:* The stream converter is an replacement to the default spring JSON converter that does not support streaming, and thus should be not registered together with it.
+## Features
+
+-  **Important** things first
+
+## Dependencies
+
+- Java 8
+- Any build tool using Maven Central, or direct download
+
+## Installation
+
+Add the following dependency to your project:
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-stream</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+## Usage
+
+To enable streaming you only need to register the
+[stream converter](src/main/java/org/zalando/riptide/stream/StreamConverter.java) with Riptide and declare a route for
+your stream that is calling a the stream consumer.
+
+The unique entry point for all specific methods is the [Streams](src/main/java/org/zalando/riptide/stream/Streams.java)
+class. *Note:* The stream converter is an replacement to the default spring JSON converter that does not support
+streaming, and thus should be not registered together with it.
+
+## Getting Help
+
+If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../issues).
+
+## Getting Involved/Contributing
+
+To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change. For
+more details, check the [contribution guidelines](../CONTRIBUTING.md).

@@ -6,10 +6,58 @@
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-core/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-core)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-core)
 
-*Riptide* is an extension to Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/) that offers
-what we call ***client-side response routing***.
+> **Riptide** (ˈrɪpˌtaɪd), noun: a strong usually narrow current of water that flows away from a shore
+
+*Riptide* is a library that implements ***client-side response routing***.  It tries to fill the gap between the HTTP
+protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch#Single_and_multiple_dispatch)
+language. Riptide allows users to leverage the power of HTTP with its unique API.
+
+- **Technology stack**: Based on `spring-web` and uses the same foundation as Spring's RestTemplate.
+- **Status**:  Version 1.x is used in production and 2.x is currently available as a release candidate.
+- Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
+
+## Example
+
+Usage typically looks like this:
+
+```java
+http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(listOf(User.class), users -> 
+            users.forEach(System.out::println)));
+```
+
+We have an adaptation of the canonical Github sample, see [`SampleService`](riptide-core/src/test/java/org/zalando/riptide/SampleService.java).
+Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basics) or
+[Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
+
+## Features
+
+- full access to the underlying HTTP client
+- encourages to write more resilient clients, by forcing you to consider
+  - fallbacks
+  - content negotiation and versioning
+  - robust error handling
+- elegant syntax
+- type-safe
+
+## Origin
+
+Most modern clients try to adapt HTTP to single-dispatch paradigm like shown in the following example. Even though this
+may be perfectly suitable for most applications it takes away a lot of the power that comes with HTTP. It's not easy to
+support multiple different return values, i.e. distinct happy cases. Access to response headers or manual content
+negotiation are also harder to do.
+ 
+```java
+@GET
+@Path("/repos/{org}/{repo}/contributors")
+List<User> getContributors(@PathParam String org, @PathParam String repo);
+```
+Riptide tries to counter this by providing a different approach to leverage the power of HTTP.
+
+## Concepts
 
 It allows to dispatch HTTP responses very easily to different handler methods based on any characteristic of the
 response, including but not limited to status code, status family and content type. The way this works is intentionally
@@ -18,45 +66,58 @@ correct handler based on any combination of the following criteria: URI includin
 `Accept` and `Content-Type` header. Instead of routing requests to handler methods on the server what *Riptide* does
 is the exact opposite: routing responses to handler methods on the client side.
 
-Usage typically looks like this, an adaptation of the canonical Github sample. Compare this to 
-[Feign](https://github.com/Netflix/feign#basics) or
-[Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
+![Routing Tree](https://docs.google.com/drawings/d/1BRTXVtmwIMJti1l5cQMrZsfKnTfBElTB8pDSxVBQbIQ/pub?w=888&h=691)
+
+### Route
+
+> A Route is either a user-supplied **callback or** a nested **[routing tree](#routing-tree)**. Following a route will
+  execute the callback or traverse the routing tree respectively.
 
 ```java
-@JsonAutoDetect(fieldVisibility = NON_PRIVATE)
-static class Contributor {
-    String login;
-    int contributions;
-}
-
-public static void main(final String... args) {
-    final RestTemplate template = new RestTemplate();
-    final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-    handler.setBaseUrl("https://api.github.com");
-    template.setUriTemplateHandler(handler);
-    template.setErrorHandler(new PassThroughResponseErrorHandler());
-    final Rest rest = Rest.create(template);
-
-    rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide").dispatch(series(),
-        on(SUCCESSFUL).call(listOf(Contributor.class), (List<Contributor> contributors) ->
-            contributors.forEach(contributor ->
-                System.out.println(contributor.login + " (" + contributor.contributions + ")"))));
-}
+on(SUCCESSFUL).call(response -> {
+    System.out.println(response.getHeaders().getLocation());
+}),
 ```
 
-## Features
+### Routing Tree
 
-- thin wrapper around RestTemplate
-- full access to the underlying HTTP client
-- encourages to write more resilient clients, by forcing you to consider
-  - fallbacks
-  - content negotiation
-  - robust error handling
-- elegant syntax
-- type-safety
-- easy to implement repeating patterns, e.g.
-  - follow redirects
-  - create resource and retrieve location
+> A Routing Tree is a route that is represented as the combination of a **[navigator](#navigator) and** a set of 
+  **[bindings](#binding)**.
+
+```java
+on(SUCCESSFUL).dispatch(contentType(),
+    on(APPLICATION_JSON).call(..),
+    on(APPLICATION_XML).call(..))
+```
+
+### Navigator
+
+> A Navigator **chooses among** the **[bindings](#binding)** of a [routing tree](#routing-tree). 
+  The act of **traversing a [routing tree](#routing-tree)** by choosing a binding and following its associated route is
+  called **nested dispatch**.
+
+| Navigator                                                                                              | Aspect               |
+|--------------------------------------------------------------------------------------------------------|----------------------|
+| [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)             | Class of status code |
+| [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)             | Status               |
+| [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)     | Status code          |
+| [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java) | Reason Phrase        |
+| [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)   | Content-Type header  |
+
+### Binding
+
+> A Binding **binds an attribute to a [route](#route)**. It represents a choice to the [navigator](#navigator) which
+  route to follow.
+
+| Route                                  | Syntax                                              |
+|----------------------------------------|-----------------------------------------------------|
+| `ThrowingRunnable`                     | `on(..).call(ThrowingRunnable)`                     |
+| `ThrowingConsumer<ClientHttpResponse>` | `on(..).call(ThrowingConsumer<ClientHttpResponse>)` |
+| `ThrowingConsumer<T>`                  | `on(..).call(Class<T>, ThrowingConsumer<T>)`        |
+| `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
+| `RoutingTree`                          | `on(..).dispatch(..)`                               |
+
+> 
 
 ## Installation
 
@@ -65,446 +126,84 @@ Add the following dependency to your project:
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>riptide</artifactId>
+    <artifactId>riptide-core</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
 
+Additional modules/artifacts of Riptide always share the same version number.
+
 ## Configuration
 
-Create an instance based on an existing `RestTemplate`:
-
 ```java
-final RestTemplate template = new RestTemplate();
-template.setErrorHandler(new PassThroughResponseErrorHandler());
-final Rest rest = Rest.create(template);
+Rest.builder()
+    .baseUrl("https://api.github.com")
+    .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
+    .converter(new MappingJackson2HttpMessageConverter())
+    .converter(new Jaxb2RootElementHttpMessageConverter())
+    .build();
 ```
 
-Or alternatively an `AsyncRestTemplate`:
+Since all properties are optional the following code is the bare minimum:
 
 ```java
-final AsyncRestTemplate template = new AsyncRestTemplate();
-template.setErrorHandler(new PassThroughResponseErrorHandler());
-final AsyncRest rest = AsyncRest.create(template);
+Rest.builder().build();
 ```
 
-If you use Riptide to its full extent you probably don't want to have any [`ResponseErrorHandler`]
-(http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/ResponseErrorHandler.html)
-interfere with your dispatching. Therefore Riptide provides you with a *no-op* `ResponseErrorHandler`, which ensures
-that Riptide handles all success and error cases.
-
-**BEWARE** In case you're using the `OAuth2RestTemplate`: It uses the given `ResponseErrorHandler` in the wrong way,
-which may result in the response body being already consumed and/or closed. To workaround this issue use our special
-`OAuth2CompatibilityResponseErrorHandler` instead:
-
-```java
-final OAuth2RestTemplate template = new OAuth2RestTemplate();
-template.setErrorHandler(new OAuth2CompatibilityResponseErrorHandler());
-final Rest rest = Rest.create(template);
-```
+This defaults to:
+- no base URL
+- `SimpleClientHttpRequestFactory` (based on `java.net.HttpURLConnection`)
+- same list of converters as `new RestTemplate()`
 
 ## Usage
 
-Make a request and route the response to your specific handler methods/callbacks:
+A full-blown request may contain any of the following aspects: HTTP method, request URI, query parameters,
+headers and a body:
 
 ```java
-rest.execute(GET, url).dispatch(status(),
-        on(CREATED).call(Success.class, this::onSuccess),
-        on(ACCEPTED).call(Success.class, this::onSuccess),
-        on(BAD_REQUEST).call(this::onError),
-        anyStatus().call(this::fail));
+http.post("/sales-order")
+    .queryParam("async", "false")
+    .contentType(CART)
+    .accept(SALES_ORDER)
+    .header("Client-IP", "127.0.0.1")
+    .body(cart)
+    .dispatch(series(),
+        on(SUCCESSFUL).dispatch(contentType(),
+            on(SALES_ORDER).call(this::persistLocationHeader),
+        on(CLIENT_ERROR).dispatch(status(),
+            on(CONFLICT).call(this::retry),
+            on(PRECONDITION_FAILED).call(this::readAgainAndRetry),
+            anyStatus().dispatch(contentType(),
+                on(MediaTypes.PROBLEM_JSON).call(ThrowableProblem.class, propagate()))),
+        on(SERVER_ERROR).dispatch(status(),
+            on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))))
+    .join();
 ```
 
-Your `onSuccess` method is allowed to have one of the following signatures:
+Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
+respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
+once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
+addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
+
+The callbacks can have the following signatures:
 
 ```java
-void onSuccess(Success success) throws Exception;
-void onSuccess(ResponseEntity<Success> success) throws Exception;
+private void persistLocationHeader(ClientHttpResponse response)
+private void retry();
+private void propagate(ThrowableProblem problem);
 ```
 
-The later one is useful if you e.g. need access to one or more header values.
+### Futures and Completion
 
-Url template with variable expansion can be used in a same way as in `RestTemplate`, e.g.:
+Riptide will return a [`Completion<Void>`](riptide-core/src/main/java/org/zalando/riptide/Completion.java) that is
+a combination of 
+[`CompletionStage<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) and
+[`Future<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html). That means you can
+choose to chain transformations/callbacks or block on it.
 
-```java
-rest.withUrl("https://example.com/posts/{id}?filter={filter}", postId, filter)
-    .execute(GET)
-    ...
-```
+If you need synchronous return values take a look at [Riptide: Capture](riptide-capture).
 
-### Selectors
-
-Routing of responses is controlled by a `Selector`, e.g. `status()` in the former example.
-A selector selects the attribute(s) of a response you want to use to route it.
-
-Riptide comes with the following selectors:
-
-#### [Selectors.series()](src/main/java/org/zalando/riptide/SeriesSelector.java)
-
-[HttpStatus.Series](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html)
-
-```java
-rest.execute(..).dispatch(series(),
-    on(SUCCESSFUL).capture(),
-    on(REDIRECTION).capture(follow),
-    on(CLIENT_ERROR).call(fail),
-    on(SERVER_ERROR).call(retryLater));
-```
-
-#### [Selectors.status()](src/main/java/org/zalando/riptide/StatusSelector.java)
-
-[HttpStatus](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/HttpStatus.html)
-
-```java
-rest.execute(..).dispatch(status(),
-    on(OK).capture(),
-    on(CREATED).capture(),
-    on(ACCEPTED).call(poll),
-    on(NO_CONTENT).call(read));
-```
-
-#### [Selectors.statusCode()](src/main/java/org/zalando/riptide/StatusCodeSelector.java)
-
-```java
-rest.execute(..).dispatch(statusCode(),
-    on(200).capture(),
-    on(201).capture(),
-    on(202).call(poll),
-    on(204).call(read));
-```
-
-#### [Selectors.reasonPhrase()](src/main/java/org/zalando/riptide/ReasonPhraseSelector.java)
-
-```java
-rest.execute(..).dispatch(reasonPhrase(),
-    on("OK").capture(),
-    on("Created").capture(),
-    on("Accepted").call(poll),
-    on("No Content").call(read));
-```
-
-#### [Selectors.contentType()](src/main/java/org/zalando/riptide/ContentTypeSelector.java)
-
-[MediaType](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/MediaType.html)
-
-```java
-rest.execute(..).dispatch(contentType(),
-    on(APPLICATION_JSON).capture(Success.class),
-    on(APPLICATION_XML).capture(Success.class),
-    on(PROBLEM).call(Problem.class, propagate()),
-    anyContentType().capture(String.class));
-```
-
-#### Custom Selector
-
-You are free to write your own, which requires you to implement the following interface:
-
-```java
-public interface Selector<A> {
-
-    @Nullable
-    Binding<A> select(final ClientHttpResponse response, final Map<A, Binding<A>> bindings) throws IOException;
-
-}
-```
-
-Implementation note: Since selectors are very often stateless, it feels very natural to implement them as package-local
-enum singletons and expose them via static *factory* methods.
-
-##### `EqualitySelector`
-
-The most common type of selectors are actually *equality selectors*. The select an arbitrary attribute from the response
-and select the binding with the matching value. Think of them as close relative of the *switch* statement.
-
-```java
-enum StatusSelector implements EqualitySelector<HttpStatus> {
-
-    INSTANCE;
-
-    @Override
-    public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getStatusCode();
-    }
-
-}
-```
-
-An attribute can be a single scalar value but could be a complex type, based on your needs.
-
-##### `BinarySelector`
-
-A special version of the [`EqualitySelector`](#equalityselector) is a binary selector, i.e. only having two possible
-meaningful conditions:
-
-```java
-rest.execute(POST, ..).dispatch(isCurrentRepresentation(),
-    on(true).capture(),
-    on(false).capture(location().andThen(location ->
-        rest.execute(GET, location).dispatch(series(),
-            on(SUCCESSFUL).capture(),
-            anySeries().call(fail))
-    )));
-```
-
-Binary selectors should be used very rarely as they are naturally very limited in terms of usability. Having a lot
-of them also increases the size if your routing tree significantly. Compared to *equality selectors*, you can think
-of binary selectors as being nothing more than *if* statements.
-
-The only built-in binary selector checks whether the `Location` and `Content-Location` header are present and have the
-same value, i.e. whether a client can use the response body of a `POST` without the need for a second `GET` request:
-
-```java
-enum CurrentRepresentationSelector implements BinarySelector {
-
-    INSTANCE;
-
-    @Override
-    public Boolean attributeOf(final ClientHttpResponse response) throws IOException {
-        @Nullable final String location = response.getHeaders().getFirst("Location");
-        @Nullable final String contentLocation = response.getHeaders().getFirst("Content-Location");
-        return Objects.nonNull(location) &&
-                Objects.equals(location, contentLocation);
-    }
-
-}
-```
-
-### Conditions
-
-[Conditions](src/main/java/org/zalando/riptide/Conditions.java)
-describe which concrete attribute values you want to bind to which actions.
-
-```java
-on(SUCCESS).call(..),
-on(CLIENT_ERROR).call(..),
-anySeries().call(..)
-```
-
-Wildcard conditions are comparable to a `default` case in a switch. They take effect if no match was found. They are a
-very powerful tool in being a resilient client, i.e. you should consider to always have one wildcard condition to
-catch cases where the server introduced a new status code or content type. That way you can declare a meaningful
-handling of those cases upfront already.
-
-### Actions
-
-After the selector determined the attribute, the condition matched on a concrete attribute value the
-response will be routed to an action. An action can be one of the following types:
-
-| Action                            | Syntax                               |
-|-----------------------------------|--------------------------------------|
-| n/a                               | `on(..).capture()`                   |
-| `Function<ClientHttpResponse, ?>` | `on(..).capture(Function)`           |
-| `Runnable`                        | `on(..).call(Runnable)`              |
-| `Consumer<ClientHttpResponse>`    | `on(..).call(Consumer)`              |
-| n/a                               | `on(..).capture(Class<T>)`           |
-| `Function<T, ?>`                  | `on(..).capture(Class<T>, Function)` |
-| `Function<ResponseEntity<T>, ?>`  | `on(..).capture(Class<T>, Function)` |
-| `Consumer<T>`                     | `on(..).call(Class<T>, Consumer)`    |
-| `Consumer<ResponseEntity<T>>`     | `on(..).call(Class<T>, Consumer)`    |
-| Nested Routing                    | `on(..).dispatch(..)`                |
-
-Consumers can be used to trigger some dedicated function and they work well if no return value is required.
-
-Actions can operate on a low-level
-[`ClientHttpResponses`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpResponse.html)
-as well as on custom types or typed
-[`ResponseEntities`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html)
-directly.
-
-Functions on the other hand are used to apply a transformation and their result must be captured. Captured values can
-later be retrieved, e.g. to produce a return value.
-
-```java
-final Optional<Success> success = rest.execute(..)
-        .dispatch(..)
-        .as(Success.class);
-
-return success.orElse(..);
-```
-
-Alternatively, if your dispatching doesn't allow multiple happy cases, you can retrieve a value directly, without
-dealing with an `Optional`:
-
-```java
-return rest.execute(..)
-        .dispatch(..)
-        .to(Success.class);
-```
-
-Please be aware that when using `AsyncRest` captures are returned as `Future<Capture>`, since the result may
-not be available immediately:
-
-```java
-return rest.execute(..)
-        .dispatch(..)
-        .get(10, SECONDS)
-        .to(Success.class);
-```
-
-Also note: All consumer/function based actions are **not** `java.util.function.Consumer`, `java.lang.Runnable` and
-`java.util.function.Function` respectively, but custom version that support throwing checked exceptions. This should
-not have any negative impact since most of the time you won't pass in a custom implementation, but rather a lambda or
-a method reference.
-
-#### Nested Routing
-
-A special action is the *nested routing* which allows to have a very fine-grained control over how to route your
-responses:
-
-```java
-Success success = rest.execute(GET, url)
-        .dispatch(series(),
-                on(SUCCESSFUL).capture(Success.class),
-                on(CLIENT_ERROR)
-                    .dispatch(status(),
-                            on(UNAUTHORIZED).call(this::login),
-                            on(UNPROCESSABLE_ENTITY)
-                                    .dispatch(contentType(),
-                                            on(PROBLEM).call(ThrowableProblem.class, propagate()),
-                                            on(ERROR).call(Exception.class, propagate()))),
-                on(SERVER_ERROR)
-                    .dispatch(statusCode(),
-                            on(503).call(this::retryLater),
-                anySeries().call(this::fail))
-        .as(Success.class).orElse(null);
-```
-
-If a *no match* case happens in a nested routing scenario it will bubble up the levels until it finds a matching
-wildcard condition. In the example above, if the server responded with a plain `500 Internal Server Error` the
-router would dispatch on the series, entering `on(SERVER_ERROR)` (5xx), try to dispatch on status code, won't find a
-matching condition and neither a wildcard so it would bubble up and be *caught* by the `anySeries().call(..)`
-statement.
-
-Another feature of nested routing is to externalize and embed partial routing trees. Based on the previous example one
-could extract the problem handling into a method that can be re-used in different routing trees:
-
-```java
-Success success = rest.execute(GET, url)
-        .dispatch(series(),
-                on(SUCCESSFUL).capture(Success.class),
-                on(CLIENT_ERROR)
-                    .dispatch(status(),
-                            on(UNAUTHORIZED).call(this::login),
-                            on(UNPROCESSABLE_ENTITY).dispatch(this::problems)),
-                on(SERVER_ERROR)
-                    .dispatch(statusCode(),
-                            on(503).call(this::retryLater),
-                anySeries().call(this::fail))
-        .as(Success.class).orElse(null);
-
-private Binding<HttpStatus> problems(final Condition<HttpStatus> condition) {
-    return condition.dispatch(contentType(),
-            on(PROBLEM).capture(Problem.class),
-            on(ERROR).capture(Problem.class),
-            anyContentType().call(this::fail));
-}
-```
-
-#### Routing Templates
-
-Response handling is sometimes pretty similar for many types of requests, and can often be handled using the same
-routing logic. To enable reuse of routing logic, Riptide supports the creation of *routing templates*, that can be
-used for dispatching any number of responses. The following example defines a nested hierarchy of routing templates to support similar expected behaviors:
-
-```java
-static final Router<MediaType> CONTENT_ROUTER = Router.create(contentType(),
-        on(PERTNER).capture(Partner.class),
-        on(CONTRACT).capture(Contract.class),
-        on(PROBLEM).call(Problem.class, Example::propagate),
-        on(ERROR).call(Error.class, Example::propagate),
-        anyContentType().call(Example::failContent));
-
-static final Router<HttpStatus> STATUS_ROUTER = Router.create(status(),
-        on(OK).dispatch(CONTENT_ROUTER),
-        anyStatus().call(Example::failStatus));
-
-static final Router<HttpStatus.Series> SERIES_ROUTER = Router.create(series(),
-        on(SUCCESSFUL).dispatch(CONTENT_ROUTER),
-        on(CLIENT_ERROR).dispatch(CONTENT_ROUTER),
-        on(SERVER_ERROR).dispatch(STATUS_ROUTER),
-        anySeries().call(Example::failStatus));
-```
-
-These templates can be used and adapted as follows to support a retry mechanism on internal server errors:
-
-```java
-Rest rest = Rest.create(new RestTemplate());
-Router<HttpStatus> router = STATUS_ROUTER.add(on(INTERNAL_SERVER_ERROR).call(this::retryLater));
-Partner partner = rest.execute(HttpMethod.GET, URI.create("http://example.com/api"))
-           .dispatch(SERIES_ROUTER.add(on(SERVER_ERROR).dispatch(router)))
-           .as(Partner.class);
-
-```
-
-Warning: be careful that all methods and instances referenced by the routing template are thread safe.
-
-### Patterns and Examples
-
-This section contains some ready to be used patterns and examples on how to solve certain challenges using Riptide:
-
-#### Follow Redirects
-
-```java
-private void send(URI url, T body) {
-    rest.execute(POST, url, body).dispatch(series(),
-            on(SUCCESSFUL).call(pass()),
-            on(REDIRECTION).call(response ->
-                    send(response.getHeaders().getLocation(), body)),
-            anySeries().call(this::fail));
-}
-```
-
-#### Create resource and retrieve location
-
-```java
-private URI create(URI url, T body) {
-    return rest.execute(POST, url, body).dispatch(series(),
-            on(SUCCESSFUL).capture(location()),
-            anySeries().call(this::fail))
-            .to(URI.class);
-}
-```
-
-#### Create resource and retrieve its current state
-
-```java
-private String create(URI url, String body) {
-    return unit.execute(POST, url, body).dispatch(series(),
-            on(SUCCESSFUL).dispatch(resolveAgainst(url), isCurrentRepresentation(),
-                    on(true).capture(String.class),
-                    on(false).capture(location().andThen(location ->
-                            unit.execute(GET, location).dispatch(series(),
-                                    on(SUCCESSFUL).capture(String.class),
-                                    anySeries().call(this::fail))
-                                    .to(String.class)))),
-            anySeries().call(this::fail))
-            .to(String.class);
-}
-```
-
-### Exceptions
-
-*Riptide* propagates any exception thrown by the underlying `RestTemplate` or any of the custom callbacks passed to
-`call` or `capture` *as-is*, which means if you're interested in any of those, you can put the call to `Rest.execute(..)`
-in a `try-catch` and directly catch it. When using `AsyncRest` a traditional `try-catch` wouldn't work, since the
-exception will be thrown in another thread. You can either retrieve the exception upon calling `Future.get(..)`:
-
-```java
-try {
-    rest.execute(GET, url).dispatch(..).get(10, SECONDS);
-} catch (final ExecutionException e) {
-    // TODO implement
-}
-```
-
-or alternatively register a callback for handling the exception asynchronously:
-
-```java
-rest.execute(GET, url).dispatch(..)
-        .addCallback(handle(e -> {
-            // TODO implement
-        }));
-```
+#### Exceptions
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
