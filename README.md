@@ -65,6 +65,49 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ![Routing Tree](https://docs.google.com/drawings/d/1BRTXVtmwIMJti1l5cQMrZsfKnTfBElTB8pDSxVBQbIQ/pub?w=888&h=691)
 
+### Route
+
+```java
+@FunctionalInterface
+public interface Route {
+
+    void execute(ClientHttpResponse response, MessageReader reader) throws Exception;
+    
+}
+```
+
+### Routing Tree
+
+TODO
+- bind vs. alternatives
+- mutation/manipulation/reuse
+- code as data
+
+### Navigator
+
+Routing of responses is controlled by a `Navigator`, e.g. `status()` in the former example.
+A navigator decides how to travers a [routing tree](#routing-tree).
+
+Riptide comes with the following navigators:
+
+- [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)
+- [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)
+- [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)
+- [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java)
+- [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)
+
+You are free to write your own, which requires you to implement the following interface:
+
+### Binding
+
+| Route                                  | Syntax                                        |
+|----------------------------------------|-----------------------------------------------|
+| `ThrowingRunnable`                     | `on(..).call(ThrowingRunnable)`               |
+| `ThrowingConsumer<ClientHttpResponse>` | `on(..).call(ThrowingConsumer)`               |
+| `ThrowingConsumer<T>`                  | `on(..).call(Class<T>, ThrowingConsumer)`     |
+| `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer)` |
+| Nested Routing                         | `on(..).dispatch(..)`                         |
+
 ## Installation
 
 Add the following dependency to your project:
@@ -149,27 +192,6 @@ private void retry();
 private void propagate(ThrowableProblem problem);
 ```
 
-### Routes
-
-```java
-@FunctionalInterface
-public interface Route {
-
-    void execute(ClientHttpResponse response, MessageReader reader) throws Exception;
-    
-}
-```
-
-#### Bindings
-
-| Action                                    | Syntax                                |
-|-------------------------------------------|---------------------------------------|
-| `ThrowingRunnable`                        | `on(..).call(Runnable)`               |
-| `ThrowingConsumer<ClientHttpResponse>`    | `on(..).call(Consumer)`               |
-| `ThrowingConsumer<T>`                     | `on(..).call(Class<T>, Consumer)`     |
-| `ThrowingConsumer<T>`                     | `on(..).call(TypeToken<T>, Consumer)` |
-| Nested Routing                            | `on(..).dispatch(..)`                 |
-
 #### Nested Dispatch
 
 TODO reference other example (e.g. from concept)
@@ -182,39 +204,6 @@ statement.
 
 TODO
 - table with examples
-
-### Routing Trees
-
-TODO
-- bind vs. alternatives
-- mutation/manipulation/reuse
-- code as data
-
-### Navigators
-
-Routing of responses is controlled by a `Navigator`, e.g. `status()` in the former example.
-A navigator decides how to travers a [routing tree](#routing-tree).
-
-Riptide comes with the following navigators:
-
-- [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)
-- [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)
-- [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)
-- [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java)
-- [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)
-
-#### Custom Navigator
-
-You are free to write your own, which requires you to implement the following interface:
-
-```java
-@FunctionalInterface
-public interface Navigator<A> {
-
-    Optional<Route> navigate(ClientHttpResponse response, RoutingTree<A> tree) throws IOException;
-
-}
-```
 
 ### Futures and Completion
 
