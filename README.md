@@ -70,15 +70,15 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ### Route
 
-> A Route is either a callback or a [routing tree](#routing-tree).
+> A Route is **either a callback or a [routing tree](#routing-tree)**.
 
 ### Routing Tree
 
-> A Routing Tree is the combination of a [navigator](#navigator) and a set of [bindings](#binding).
+> A Routing Tree is the combination of a **[navigator](#navigator) and a set of [bindings](#binding)**.
 
 ### Navigator
 
-> A Navigator chooses among the [bindings](#binding) of a [routing tree](#routing-tree).
+> A Navigator **chooses among** the **[bindings](#binding)** of a [routing tree](#routing-tree).
 
 | Navigator                                                                                              | Aspect               |
 |--------------------------------------------------------------------------------------------------------|----------------------|
@@ -90,7 +90,7 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ### Binding
 
-> A Binding binds an attribute to a specific [route](#route).
+> A Binding **binds an attribute to a [route](#route)**.
 
 | Route                                  | Syntax                                              |
 |----------------------------------------|-----------------------------------------------------|
