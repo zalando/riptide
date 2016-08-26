@@ -70,7 +70,8 @@ is the exact opposite: routing responses to handler methods on the client side.
 
 ### Route
 
-> A Route is **either a callback or a [routing tree](#routing-tree)**.
+> A Route is either a user-supplied **callback or** a nested **[routing tree](#routing-tree)**. Following a route will
+  execute the callback or traverse the routing tree respectively.
 
 ### Routing Tree
 
@@ -100,9 +101,10 @@ is the exact opposite: routing responses to handler methods on the client side.
 | `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
 | `RoutingTree`                          | `on(..).dispatch(..)`                               |
 
-#### Nested Dispatch
+### Nested Dispatch
 
-> A nested dispatch is the act of **traversing a [routing tree](#routing-tree)**.
+> A nested dispatch is the act of **traversing a [routing tree](#routing-tree)** by letting the [navigator](#navigator)
+  choose a binding and follow its associated route.
 
 ## Installation
 
