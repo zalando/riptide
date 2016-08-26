@@ -93,7 +93,7 @@ on(SUCCESSFUL).dispatch(contentType(),
 ### Navigator
 
 > A Navigator **chooses among** the **[bindings](#binding)** of a [routing tree](#routing-tree). 
-  The act of **traversing a [routing tree](#routing-tree)** by choosing a binding and follow its associated route is
+  The act of **traversing a [routing tree](#routing-tree)** by choosing a binding and following its associated route is
   called **nested dispatch**.
 
 | Navigator                                                                                              | Aspect               |
@@ -185,7 +185,7 @@ respectively. Query parameters can either be provided individually using `queryP
 once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
 addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
 
-The callbacks used can have the following signatures:
+The callbacks can have the following signatures:
 
 ```java
 private void persistLocationHeader(ClientHttpResponse response)
@@ -195,29 +195,15 @@ private void propagate(ThrowableProblem problem);
 
 ### Futures and Completion
 
-- TODO future/blocking/chaining
+Riptide will return a [`Completion<Void>`](riptide-core/src/main/java/org/zalando/riptide/Completion.java) that is
+a combination of 
+[`CompletionStage<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) and
+[`Future<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html). That means you can
+choose to chain transformations/callbacks or block on it.
 
-### Exceptions
+If you need synchronous return values take a look at [Riptide: Capture](riptide-capture).
 
-*Riptide* propagates any exception as an `ExecutionException` upon calling `Future.get(..)`:
-
-```java
-try {
-    rest.execute(GET, url).dispatch(..).get(10, SECONDS);
-} catch (final ExecutionException e) {
-    // TODO implement
-}
-```
-
-TODO Alternatively
-
-```java
-try {
-    rest.execute(GET, url).dispatch(..).join;
-} catch (final CompletionException e) {
-    // TODO implement
-}
-```
+#### Exceptions
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
