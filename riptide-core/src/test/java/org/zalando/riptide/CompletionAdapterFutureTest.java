@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.zalando.fauxpas.ThrowingConsumer;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +48,7 @@ public final class CompletionAdapterFutureTest {
     }
 
     @FunctionalInterface
-    private interface Tester extends ThrowingConsumer<Future<Void>> {
+    private interface Tester extends ThrowingConsumer<Future<Void>, Exception> {
 
     }
 

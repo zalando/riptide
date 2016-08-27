@@ -22,27 +22,34 @@ package org.zalando.riptide.capture;
 
 import org.zalando.riptide.Completion;
 
+import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class DefaultCapture<T> implements Capture<T> {
 
     private final AtomicReference<T> reference = new AtomicReference<>();
+    private final AtomicBoolean present = new AtomicBoolean();
 
     @Override
-    public void accept(final T input) throws Exception {
+    public void tryAccept(@Nullable final T input) {
         reference.set(input);
+        present.set(true);
     }
 
     @Override
     public T retrieve() throws NoSuchElementException {
-        final T value = reference.get();
+        checkPresent();
+        return reference.get();
+    }
 
-        if (value == null) {
-            throw new NoSuchElementException("No value present");
+    private void checkPresent() {
+        if (present.get()) {
+            return;
         }
 
-        return value;
+        throw new NoSuchElementException("No value present");
     }
 
     @Override

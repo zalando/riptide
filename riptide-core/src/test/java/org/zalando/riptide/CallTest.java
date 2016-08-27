@@ -28,6 +28,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.fauxpas.ThrowingConsumer;
+import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.model.AccountBody;
 
 import java.io.IOException;
@@ -75,7 +77,7 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
@@ -93,7 +95,7 @@ public final class CallTest {
                         .contentType(APPLICATION_JSON));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ResponseEntity<AccountBody>> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ResponseEntity<AccountBody>, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
@@ -117,14 +119,15 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
+        @SuppressWarnings("unchecked")
+        final ThrowingRunnable<Exception> verifier = mock(ThrowingRunnable.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(verifier),
                         anyStatus().call(this::fail));
 
-        verify(verifier).run();
+        verify(verifier).tryRun();
     }
 
     @Test

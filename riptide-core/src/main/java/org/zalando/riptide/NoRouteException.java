@@ -20,18 +20,16 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static org.zalando.riptide.tryit.TryEnsure.ensureIOException;
-import static org.zalando.riptide.tryit.TryWith.tryWith;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Optional;
+
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static org.zalando.fauxpas.TryWith.tryWith;
 
 @SuppressWarnings("serial")
 public final class NoRouteException extends RestClientException {
@@ -48,27 +46,26 @@ public final class NoRouteException extends RestClientException {
     private static String formatMessage(final ClientHttpResponse response) throws IOException {
         return String.format("Unable to dispatch response: %d - %s\n%s\n%s",
                 response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
-                readStartOfBody(response, MAX_BODY_BYTES_TO_READ));
+                readStartOfBody(response));
     }
 
-    private static String readStartOfBody(final ClientHttpResponse response, final int length) throws IOException {
-        final InputStream stream = response.getBody();
-        return (stream != null) ? ensureIOException(() -> tryWith(stream, read(response, length))) : "";
-    }
+    private static String readStartOfBody(final ClientHttpResponse response) throws IOException {
+        return tryWith(response.getBody(), stream -> {
+            if (stream == null) {
+                return "";
+            }
 
-    private static ThrowingSupplier<String> read(final ClientHttpResponse response, final int length) {
-        return () -> {
-            final byte[] buffer = new byte[length];
-            final int read = response.getBody().read(buffer);
+            final byte[] buffer = new byte[MAX_BODY_BYTES_TO_READ];
+            final int read = stream.read(buffer);
             final Charset charset = extractCharset(response);
             return new String(buffer, 0, read, charset);
-        };
+        });
     }
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
                 .map(MediaType::getCharSet)
-                .orElse((StandardCharsets.ISO_8859_1));
+                .orElse(ISO_8859_1);
     }
 
     public ClientHttpResponse getResponse() {
