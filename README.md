@@ -138,7 +138,7 @@ Additional modules/artifacts of Riptide always share the same version number.
 ```java
 Rest.builder()
     .baseUrl("https://api.github.com")
-    .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
+    .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .converter(new MappingJackson2HttpMessageConverter())
     .converter(new Jaxb2RootElementHttpMessageConverter())
     .build();
