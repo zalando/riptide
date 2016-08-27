@@ -210,9 +210,9 @@ no wildcard condition either.
 
 ## Getting help
 
-If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
+If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../issues).
 
-## Getting involved
+## Getting involved/Contributing
 
 To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change.
 For more details check the [contribution guidelines](CONTRIBUTING.md).

@@ -12,14 +12,6 @@
 This includes infinite streaming format as application/x-json-stream and application/json-seq, but also streaming of
 simple finite lists/arrays of JSON objects.
 
-- **Technology stack**: Indicate the technological nature of the software, including primary programming language(s) and
-whether the software is intended as standalone or as a module in a framework or other ecosystem.
-- **Status**:  Alpha, Beta, 1.1, etc. It's OK to write a sentence, too. The goal is to let interested people know where
-this project is at. This is also a good place to link to the [CHANGELOG](CHANGELOG.md).
-- **Links to production or demo instances**
-- Describe what sets this apart from related-projects. Linking to another doc or page is OK if this can't be expressed
-in a sentence or two.
-
 ## Example
 
 ```java
@@ -30,12 +22,13 @@ http.get("/sales-orders")
 
 ## Features
 
--  **Important** things first
+- HTTP streaming
+- type-safe
 
 ## Dependencies
 
 - Java 8
-- Any build tool using Maven Central, or direct download
+- Riptide: Core
 
 ## Installation
 
@@ -61,7 +54,7 @@ streaming, and thus should be not registered together with it.
 
 ## Getting Help
 
-If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../issues).
+If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
 
 ## Getting Involved/Contributing
 
