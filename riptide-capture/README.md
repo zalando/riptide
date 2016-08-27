@@ -15,9 +15,10 @@
 ```java
 Capture<Order> capture = Capture.empty();
 
-http.get("/sales-orders/{id}", id).dispatch(series(),
-    on(SUCCESSFUL).dispatch(contentType(),
-        on(MediaTypes.ORDER).call(Order.class, capture))).join();
+http.get("/sales-orders/{id}", id)
+    .dispatch(series(),
+        on(SUCCESSFUL).dispatch(contentType(),
+            on(MediaTypes.ORDER).call(Order.class, capture))).join();
 
 return capture.retrieve();
 ```
@@ -51,9 +52,10 @@ Add the following dependency to your project:
 public Order getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
     
-    http.get("/sales-orders/{id}", id).dispatch(series(),
-        on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.ORDER).call(Order.class, capture))).join();
+    http.get("/sales-orders/{id}", id)
+        .dispatch(series(),
+            on(SUCCESSFUL).dispatch(contentType(),
+                on(MediaTypes.ORDER).call(Order.class, capture))).join();
     
     return capture.retrieve(); // may throw NoSuchElementException
 }
@@ -67,9 +69,10 @@ public Order getOrder(final String id) {
 public Completion<Order> getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
     
-    Completion<Void> future = http.get("/sales-orders/{id}", id).dispatch(series(),
-        on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.ORDER).call(Order.class, capture))).join;
+    Completion<Void> future = http.get("/sales-orders/{id}", id)
+        .dispatch(series(),
+            on(SUCCESSFUL).dispatch(contentType(),
+                on(MediaTypes.ORDER).call(Order.class, capture))).join;
     
     return capture.adapt(future);
 }
