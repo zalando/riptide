@@ -42,6 +42,7 @@ import org.zalando.riptide.capture.Capture;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -102,15 +103,16 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
         final Capture<List<User>> capture = Capture.empty();
 
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final List<User> users = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(listOf(User.class), capture)).join();
+                        on(SUCCESSFUL).call(listOf(User.class), capture))
+                .thenApply(capture).join();
 
-        final List<String> users = capture.retrieve().stream()
+        final List<String> logins = users.stream()
                 .map(User::getLogin)
                 .collect(toList());
 
-        assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        assertThat(logins, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
     }
 
     @Test

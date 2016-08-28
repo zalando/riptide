@@ -15,12 +15,11 @@
 ```java
 Capture<Order> capture = Capture.empty();
 
-http.get("/sales-orders/{id}", id)
+Order order = http.get("/sales-orders/{id}", id)
     .dispatch(series(),
         on(SUCCESSFUL).dispatch(contentType(),
-            on(MediaTypes.ORDER).call(Order.class, capture))).join();
-
-return capture.retrieve();
+            on(MediaTypes.ORDER).call(Order.class, capture)))
+    .thenApply(capture).join();
 ```
 
 ## Features
@@ -46,35 +45,15 @@ Add the following dependency to your project:
 
 ## Usage
 
-### Synchronous Captures
-
-```java
-public Order getOrder(final String id) {
-    Capture<Order> capture = Capture.empty();
-    
-    http.get("/sales-orders/{id}", id)
-        .dispatch(series(),
-            on(SUCCESSFUL).dispatch(contentType(),
-                on(MediaTypes.ORDER).call(Order.class, capture))).join();
-    
-    return capture.retrieve(); // may throw NoSuchElementException
-}
-```
-
-**Important**: Block on the future to make sure the capture actually ran.
-
-### Asynchronous Captures
-
 ```java
 public Completion<Order> getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
     
-    Completion<Void> future = http.get("/sales-orders/{id}", id)
+    return http.get("/sales-orders/{id}", id)
         .dispatch(series(),
             on(SUCCESSFUL).dispatch(contentType(),
-                on(MediaTypes.ORDER).call(Order.class, capture))).join;
-    
-    return capture.adapt(future);
+                on(MediaTypes.ORDER).call(Order.class, capture)))
+        .thenApply(capture);
 }
 ```
 

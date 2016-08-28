@@ -21,16 +21,10 @@ package org.zalando.riptide.capture;
  */
 
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Completion;
 
-import javax.annotation.Nullable;
-import java.util.NoSuchElementException;
+import java.util.function.Function;
 
-public interface Capture<T> extends ThrowingConsumer<T, RuntimeException> {
-
-    @Nullable T retrieve() throws NoSuchElementException;
-
-    Completion<T> adapt(final Completion<Void> future);
+public interface Capture<T> extends ThrowingConsumer<T, RuntimeException>, Function<Void, T> {
 
     static <T> Capture<T> empty() {
         return new DefaultCapture<>();

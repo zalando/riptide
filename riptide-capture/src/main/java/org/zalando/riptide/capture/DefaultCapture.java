@@ -20,8 +20,6 @@ package org.zalando.riptide.capture;
  * ​⁣
  */
 
-import org.zalando.riptide.Completion;
-
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,7 +37,7 @@ final class DefaultCapture<T> implements Capture<T> {
     }
 
     @Override
-    public T retrieve() throws NoSuchElementException {
+    public T apply(final Void result) {
         checkPresent();
         return reference.get();
     }
@@ -50,11 +48,6 @@ final class DefaultCapture<T> implements Capture<T> {
         }
 
         throw new NoSuchElementException("No value present");
-    }
-
-    @Override
-    public Completion<T> adapt(final Completion<Void> future) {
-        return future.thenApply(result -> retrieve());
     }
 
 }

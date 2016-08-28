@@ -76,12 +76,12 @@ public final class CaptureTest {
 
         final Capture<ObjectNode> capture = Capture.empty();
 
-        unit.get("/accounts/123")
+        final Completion<Void> completion = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
-                        anyStatus().call(this::fail)).join();
+                        anyStatus().call(this::fail));
 
-        final ObjectNode node = capture.retrieve();
+        final ObjectNode node = completion.thenApply(capture).join();
 
         assertThat(node.get("message").asText(), is("Hello World!"));
     }
@@ -92,38 +92,19 @@ public final class CaptureTest {
 
         final Capture<String> capture = Capture.empty();
 
-        unit.get("/null")
+        final Completion<Void> completion = unit.get("/null")
                 .dispatch(status(),
                         on(OK).call(String.class, capture),
-                        anyStatus().call(this::fail)).join();
+                        anyStatus().call(this::fail));
 
-        final String body = capture.retrieve();
+        final String body = completion.thenApply(capture).join();
 
         assertThat(body, is(nullValue()));
     }
 
-    @Test
-    public void shouldAdapt() {
-        server.expect(requestTo("https://api.example.com/accounts/123")).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("message.json"))
-                        .contentType(APPLICATION_JSON));
-
-        final Capture<ObjectNode> capture = Capture.empty();
-
-        final Completion<Void> future = unit.get("/accounts/123")
-                .dispatch(status(),
-                        on(OK).call(ObjectNode.class, capture),
-                        anyStatus().call(this::fail));
-
-        final ObjectNode node = capture.adapt(future).join();
-
-        assertThat(node.get("message").asText(), is("Hello World!"));
-    }
-
     @Test(expected = NoSuchElementException.class)
     public void shouldFail() {
-        Capture.empty().retrieve();
+        Capture.empty().apply(null);
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
