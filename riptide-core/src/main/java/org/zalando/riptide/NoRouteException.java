@@ -57,6 +57,9 @@ public final class NoRouteException extends RestClientException {
 
             final byte[] buffer = new byte[MAX_BODY_BYTES_TO_READ];
             final int read = stream.read(buffer);
+            if (read == -1) {
+                return "";
+            }
             final Charset charset = extractCharset(response);
             return new String(buffer, 0, read, charset);
         });

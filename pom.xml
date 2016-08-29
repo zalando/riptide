@@ -101,9 +101,9 @@
 
             <!-- common -->
             <dependency>
-	        <groupId>org.zalando</groupId>
-		<artifactId>faux-pas</artifactId>
-		<version>${fauxpas.version}</version>
+                <groupId>org.zalando</groupId>
+                <artifactId>faux-pas</artifactId>
+                <version>${fauxpas.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
