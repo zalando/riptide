@@ -92,7 +92,7 @@ public final class FailedDispatchTest {
     public void shouldThrowIfNoMatch() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
-                        .body(new ClassPathResource("success.json"))
+                        .body("")
                         .contentType(APPLICATION_JSON));
 
         exception.expect(CompletionException.class);
