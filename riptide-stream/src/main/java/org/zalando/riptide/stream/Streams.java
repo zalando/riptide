@@ -25,12 +25,11 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Route;
-import org.zalando.riptide.ThrowingConsumer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -102,19 +101,6 @@ public final class Streams {
         return streamType.where(elementType, type);
     }
 
-    @SuppressWarnings("serial")
-    private static class UncheckedConsumerException extends RuntimeException {
-
-        public UncheckedConsumerException(final Exception cause) {
-            super(cause);
-        }
-
-        @Override
-        public synchronized Exception getCause() {
-            return (Exception) super.getCause();
-        }
-    }
-
     /**
      * Creates {@link ThrowingConsumer stream consumer} for given {@link ThrowingConsumer element consumer}. Used to
      * standardly wrap a single entity consumer function in a stream consumer function as follows:
@@ -126,27 +112,16 @@ public final class Streams {
      * @param consumer element consumer function.
      * @return stream consumer function.
      */
-    public static <I> ThrowingConsumer<Stream<I>> forEach(final ThrowingConsumer<I> consumer) {
+    public static <I, X extends Throwable> ThrowingConsumer<Stream<I>, X> forEach(final ThrowingConsumer<I, X> consumer) {
         return (input) -> {
             if (input == null) {
                 return;
             }
+
             try {
-                input.forEach(wrap(consumer));
-            } catch (final UncheckedConsumerException e) {
-                throw e.getCause();
+                input.forEach(consumer);
             } finally {
                 input.close();
-            }
-        };
-    }
-
-    private static <I> Consumer<? super I> wrap(final ThrowingConsumer<I> consumer) {
-        return (i) -> {
-            try {
-                consumer.accept(i);
-            } catch (final Exception e) {
-                throw new UncheckedConsumerException(e);
             }
         };
     }

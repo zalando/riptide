@@ -21,6 +21,7 @@ package org.zalando.riptide.stream;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hobsoft.hamcrest.compose.ComposeMatchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -28,10 +29,11 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
-import org.zalando.riptide.ThrowingConsumer;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +45,13 @@ import java.util.concurrent.CompletionException;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -95,7 +101,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<List<AccountBody>> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<List<AccountBody>, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(listOf(AccountBody.class)), forEach(verifier)),
@@ -117,7 +123,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody[]> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody[], Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody[].class), forEach(verifier)),
@@ -139,7 +145,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -160,7 +166,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -181,7 +187,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_JSON_SEQ));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -202,7 +208,7 @@ public class StreamsTest {
                         .body(new ClassPathResource("account-item.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(AccountBody.class, verifier),
@@ -223,7 +229,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -235,7 +241,8 @@ public class StreamsTest {
     @Test
     public void shouldFailOnCallWithConsumerException() throws Exception {
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(IOException.class));
+        exception.expectCause(instanceOf(UncheckedIOException.class));
+        exception.expectCause(hasFeature(Throwable::getCause, instanceOf(IOException.class)));
 
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
@@ -243,8 +250,9 @@ public class StreamsTest {
                         .contentType(APPLICATION_JSON_SEQ));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
-        doThrow(new IOException()).when(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
+        doCallRealMethod().when(verifier).accept(any());
+        doThrow(new IOException()).when(verifier).tryAccept(new AccountBody("1234567892", "Acme GmbH"));
 
         final Completion<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
@@ -253,6 +261,7 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
+        verify(verifier, times(3)).tryAccept(any());
         verifyNoMoreInteractions(verifier);
 
         future.join();
@@ -269,7 +278,7 @@ public class StreamsTest {
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
         final Completion<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),

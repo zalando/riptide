@@ -20,37 +20,42 @@ package org.zalando.riptide;
  * ​⁣
  */
 
-import static org.zalando.riptide.tryit.TryWith.tryWith;
-
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.fauxpas.ThrowingConsumer;
+import org.zalando.fauxpas.ThrowingFunction;
+import org.zalando.fauxpas.ThrowingRunnable;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+
+import static org.zalando.fauxpas.TryWith.tryWith;
 
 @FunctionalInterface
 public interface Route {
 
     void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
-    static Route call(final ThrowingRunnable consumer) {
-        return (response, reader) -> tryWith(response, consumer);
+    static Route call(final ThrowingRunnable<? extends Exception> runnable) {
+        return (response, reader) ->
+                tryWith(response, (ClientHttpResponse ＿) -> runnable.tryRun());
     }
 
-    static Route call(final ThrowingConsumer<ClientHttpResponse> consumer) {
-        return (response, reader) -> tryWith(response, () -> consumer.accept(response));
+    static Route call(final ThrowingConsumer<ClientHttpResponse, ? extends Exception> consumer) {
+        return (response, reader) ->
+                tryWith(response, consumer);
     }
 
-    static <I> Route call(final Class<I> type, final ThrowingConsumer<I> consumer) {
+    static <I> Route call(final Class<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return call(TypeToken.of(type), consumer);
     }
 
-    static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
+    static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return (response, reader) -> {
             final I body = reader.read(type, response);
             consumer.accept(body);
@@ -90,28 +95,28 @@ public interface Route {
         return responseEntityType.where(elementType, entityType);
     }
 
-    static ThrowingConsumer<ClientHttpResponse> pass() {
+    static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
         return response -> {
             // nothing to do!
         };
     }
 
-    static ThrowingFunction<ClientHttpResponse, HttpHeaders> headers() {
+    static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
         return HttpMessage::getHeaders;
     }
 
-    static ThrowingFunction<ClientHttpResponse, URI> location() {
+    static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
         return response ->
                 response.getHeaders().getLocation();
     }
 
-    static ThrowingConsumer<ClientHttpResponse> noRoute() {
+    static ThrowingConsumer<ClientHttpResponse, IOException> noRoute() {
         return response -> {
             throw new NoRouteException(response);
         };
     }
 
-    static <X extends Exception> ThrowingConsumer<X> propagate() {
+    static <X extends Exception> ThrowingConsumer<X, IOException> propagate() {
         return entity -> {
             if (entity instanceof IOException) {
                 throw (IOException) entity;
@@ -121,14 +126,15 @@ public interface Route {
         };
     }
 
-    static <T> Adapter<ClientHttpResponse, T> to(final ThrowingFunction<ClientHttpResponse, T> function) {
+    static <T> Adapter<ClientHttpResponse, T> to(
+            final ThrowingFunction<ClientHttpResponse, T, ? extends Exception> function) {
         return consumer ->
                 response -> consumer.accept(function.apply(response));
     }
 
     @FunctionalInterface
     interface Adapter<T, R> {
-        ThrowingConsumer<T> andThen(final ThrowingConsumer<R> consumer);
+        ThrowingConsumer<T, Exception> andThen(final ThrowingConsumer<R, Exception> consumer);
     }
 
 }

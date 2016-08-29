@@ -22,6 +22,8 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.fauxpas.ThrowingConsumer;
+import org.zalando.fauxpas.ThrowingRunnable;
 
 import javax.annotation.Nullable;
 
@@ -33,19 +35,19 @@ public final class PartialBinding<A> {
         this.attribute = attribute;
     }
 
-    public Binding<A> call(final ThrowingRunnable consumer) {
+    public Binding<A> call(final ThrowingRunnable<? extends Exception> consumer) {
         return call(Route.call(consumer));
     }
 
-    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse> consumer) {
+    public Binding<A> call(final ThrowingConsumer<ClientHttpResponse, ? extends Exception> consumer) {
         return call(Route.call(consumer));
     }
 
-    public <I> Binding<A> call(final Class<I> type, final ThrowingConsumer<I> consumer) {
+    public <I> Binding<A> call(final Class<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return call(Route.call(type, consumer));
     }
 
-    public <I> Binding<A> call(final TypeToken<I> type, final ThrowingConsumer<I> consumer) {
+    public <I> Binding<A> call(final TypeToken<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return call(Route.call(type, consumer));
     }
 

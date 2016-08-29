@@ -27,6 +27,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.fauxpas.ThrowingConsumer;
+import org.zalando.fauxpas.ThrowingRunnable;
 
 import java.net.URI;
 import java.util.concurrent.CompletionException;
@@ -77,12 +79,12 @@ public final class AsyncTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).accept(any());
+        verify(verifier).tryAccept(any());
     }
 
     @Test
@@ -90,25 +92,26 @@ public final class AsyncTest {
         server.expect(requestTo(URI.create("http://localhost/123"))).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get("http://localhost/{id}", 123)
             .dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).accept(any());
+        verify(verifier).tryAccept(any());
     }
 
     @Test
     public void shouldCallWithoutParameters() throws Exception {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        final ThrowingRunnable verifier = mock(ThrowingRunnable.class);
+        @SuppressWarnings("unchecked")
+        final ThrowingRunnable<Exception> verifier = mock(ThrowingRunnable.class);
 
         unit.get(url).dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).run();
+        verify(verifier).tryRun();
     }
 
 
@@ -117,12 +120,12 @@ public final class AsyncTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).headers(new HttpHeaders()).dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).accept(any());
+        verify(verifier).tryAccept(any());
     }
 
     @Test
@@ -130,12 +133,12 @@ public final class AsyncTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).body("test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).accept(any());
+        verify(verifier).tryAccept(any());
     }
 
     @Test
@@ -143,12 +146,12 @@ public final class AsyncTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ClientHttpResponse> verifier = mock(ThrowingConsumer.class);
+        final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(ThrowingConsumer.class);
 
         unit.get(url).headers(new HttpHeaders()).body("test").dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
-        verify(verifier).accept(any());
+        verify(verifier).tryAccept(any());
     }
 
     @Test

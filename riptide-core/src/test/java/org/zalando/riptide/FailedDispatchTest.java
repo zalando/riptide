@@ -199,7 +199,7 @@ public final class FailedDispatchTest {
                                 anyStatus().call(consumer)),
                         on(CLIENT_ERROR).call(pass()));
 
-        verify(consumer).accept(any());
+        verify(consumer).tryAccept(any());
     }
 
     @Test
@@ -221,7 +221,7 @@ public final class FailedDispatchTest {
                         on(CLIENT_ERROR).call(pass()),
                         anySeries().call(consumer));
 
-        verify(consumer).accept(any());
+        verify(consumer).tryAccept(any());
     }
 
     @Test
