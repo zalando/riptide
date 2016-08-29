@@ -36,10 +36,13 @@ import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -47,6 +50,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Route.pass;
 
 public final class CaptureTest {
 
@@ -102,9 +106,23 @@ public final class CaptureTest {
         assertThat(body, is(nullValue()));
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void shouldFail() {
-        Capture.empty().apply(null);
+        server.expect(requestTo("https://api.example.com/accounts/123")).andRespond(withSuccess());
+
+        final Capture<String> capture = Capture.empty();
+
+        final Completion<String> completion = unit.get("/accounts/123")
+                .dispatch(status(),
+                        on(OK).call(pass()),
+                        on(BAD_REQUEST).call(String.class, capture),
+                        anyStatus().call(this::fail))
+                .thenApply(capture);
+
+        exception.expect(CompletionException.class);
+        exception.expectCause(instanceOf(NoSuchElementException.class));
+
+        completion.join();
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
