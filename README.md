@@ -9,7 +9,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-core)
 [![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-> **Riptide** (ˈrɪpˌtaɪd), noun: a strong usually narrow current of water that flows away from a shore
+> **Riptide** noun, /ˈrɪp.taɪd/: strong flow of water away from the shore
 
 *Riptide* is a library that implements ***client-side response routing***.  It tries to fill the gap between the HTTP
 protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch#Single_and_multiple_dispatch)
