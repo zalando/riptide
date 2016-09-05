@@ -8,6 +8,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.zalando.problem.MoreStatus;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.riptide.model.Message;
 import org.zalando.riptide.model.Problem;
@@ -158,8 +159,8 @@ public final class NestedDispatchTest {
             final ThrowableProblem problem = (ThrowableProblem) e.getCause().getCause();
             assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
             assertThat(problem.getTitle(), is("Unprocessable Entity"));
-            assertThat(problem.getStatus().getStatusCode(), is(422));
-            assertThat(problem.getDetail(), is(Optional.of("A problem occurred.")));
+            assertThat(problem.getStatus(), is(MoreStatus.UNPROCESSABLE_ENTITY));
+            assertThat(problem.getDetail(), is("A problem occurred."));
         }
     }
 

@@ -47,7 +47,7 @@ public final class NoRouteException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(MediaType::getCharSet)
+                .map(MediaType::getCharset)
                 .orElse(ISO_8859_1);
     }
 

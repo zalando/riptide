@@ -92,11 +92,6 @@ public final class ExecuteTest {
 
     @Test
     public void shouldFailIfNoConverterFoundForBody() {
-        // we never actually make the request, but the mock server is doing some magic pre-actively
-        server.expect(requestTo(url))
-                .andExpect(header("Accept", MediaType.APPLICATION_JSON_VALUE))
-                .andRespond(withSuccess());
-
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
@@ -129,10 +124,6 @@ public final class ExecuteTest {
 
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() {
-        // we never actually make the request, but the mock server is doing some magic pre-actively
-        server.expect(requestTo(url))
-                .andRespond(withSuccess());
-
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
