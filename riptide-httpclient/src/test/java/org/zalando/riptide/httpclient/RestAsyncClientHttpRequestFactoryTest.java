@@ -10,19 +10,21 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Rest;
 import org.zalando.riptide.capture.Capture;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -41,6 +43,7 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -64,7 +67,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final AsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Rest rest = Rest.builder()
             .baseUrl(driver.getBaseUrl())
@@ -81,6 +84,27 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
+        final RestTemplate template = new RestTemplate(factory);
+        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
+        handler.setBaseUrl(driver.getBaseUrl());
+        template.setUriTemplateHandler(handler);
+
+        final List<User> users = template.exchange("/repos/zalando/riptide/contributors", GET,
+                HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
+                }).getBody();
+
+        final List<String> names = users.stream()
+                .map(User::getLogin)
+                .collect(toList());
+
+        assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+    }
+
+    @Test
+    public void shouldReadContributorsAsync() throws IOException {
+        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
+                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+
         final Capture<List<User>> capture = Capture.empty();
 
         final List<User> users = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
@@ -88,11 +112,11 @@ public final class RestAsyncClientHttpRequestFactoryTest {
                         on(SUCCESSFUL).call(listOf(User.class), capture))
                 .thenApply(capture).join();
 
-        final List<String> logins = users.stream()
+        final List<String> names = users.stream()
                 .map(User::getLogin)
                 .collect(toList());
 
-        assertThat(logins, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
     }
 
     @Test
