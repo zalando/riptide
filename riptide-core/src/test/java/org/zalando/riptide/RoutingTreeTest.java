@@ -15,6 +15,8 @@ import java.io.IOException;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,7 +42,14 @@ public class RoutingTreeTest {
     private Route expected;
     
     private final MessageReader reader = mock(MessageReader.class);
-    
+
+    @Test
+    public void shouldExposeNavigator() {
+        final RoutingTree<HttpStatus> unit = RoutingTree.dispatch(status());
+
+        assertThat(unit.getNavigator(), is(status()));
+    }
+
     @Test
     public void shouldUsedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
