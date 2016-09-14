@@ -74,8 +74,8 @@ public final class Requester extends Dispatcher {
     }
 
     @Override
-    public final <A> Completion<Void> dispatch(final RoutingTree<A> tree) {
-        return execute(query, headers, null).dispatch(tree);
+    public Completion<Void> call(final Route route) {
+        return execute(query, headers, null).call(route);
     }
 
     private <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
@@ -87,7 +87,7 @@ public final class Requester extends Dispatcher {
         return new Dispatcher() {
 
             @Override
-            public <A> Completion<Void> dispatch(final RoutingTree<A> tree) {
+            public Completion<Void> call(final Route route) {
                 final CompletableFuture<Void> future = new CompletableFuture<Void>() {
                     @Override
                     public boolean cancel(final boolean mayInterruptIfRunning) {
@@ -100,7 +100,7 @@ public final class Requester extends Dispatcher {
                 listenable.addCallback(response -> {
                     try {
                         try {
-                            tree.execute(response, worker);
+                            route.execute(response, worker);
                             future.complete(null);
                         } catch (final NoWildcardException e) {
                             throw new NoRouteException(response);

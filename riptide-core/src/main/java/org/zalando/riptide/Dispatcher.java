@@ -15,6 +15,10 @@ public abstract class Dispatcher {
         return dispatch(RoutingTree.dispatch(selector, bindings));
     }
 
-    public abstract <A> Completion<Void> dispatch(final RoutingTree<A> tree);
+    public <A> Completion<Void> dispatch(final RoutingTree<A> tree) {
+        return call(tree);
+    }
+
+    public abstract Completion<Void> call(final Route route);
 
 }
