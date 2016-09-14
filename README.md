@@ -156,6 +156,10 @@ This defaults to:
 - `SimpleClientHttpRequestFactory` (based on `java.net.HttpURLConnection`)
 - same list of converters as `new RestTemplate()`
 
+Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and
+[Tracer](https://github.com/zalando/tracer) can be greatly simplified by using 
+[**Put it to REST!**](https://github.com/zalando-incubator/put-it-to-rest). Go check it out!
+
 ## Usage
 
 A full-blown request may contain any of the following aspects: HTTP method, request URI, query parameters,
