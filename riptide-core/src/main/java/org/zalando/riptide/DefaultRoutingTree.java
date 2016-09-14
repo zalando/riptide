@@ -40,6 +40,11 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     @Override
+    public Navigator<A> getNavigator() {
+        return navigator;
+    }
+
+    @Override
     public Set<A> keySet() {
         return routes.keySet();
     }

@@ -11,6 +11,8 @@ import static java.util.Arrays.asList;
 
 public interface RoutingTree<A> extends Route {
 
+    Navigator<A> getNavigator();
+
     Set<A> keySet();
 
     Optional<Route> get(final A attribute);
