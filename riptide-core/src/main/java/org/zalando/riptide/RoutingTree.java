@@ -1,5 +1,7 @@
 package org.zalando.riptide;
 
+import org.springframework.http.client.ClientHttpResponse;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +16,12 @@ public interface RoutingTree<A> extends Route {
     Optional<Route> get(final A attribute);
 
     Optional<Route> getWildcard();
+
+    /**
+     * @throws NoWildcardException if no route, not even a wildcard, exists for the given response
+     */
+    @Override
+    void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
     default RoutingTree<A> merge(final Binding<A> binding) {
         return merge(Collections.singletonList(binding));

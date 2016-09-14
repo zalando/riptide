@@ -1,8 +1,10 @@
 package org.zalando.riptide;
 
+import com.google.common.io.ByteStreams;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -201,7 +204,13 @@ public final class FailedDispatchTest {
                         on(CLIENT_ERROR).call(pass()),
                         anySeries().call(consumer));
 
-        verify(consumer).tryAccept(any());
+        final ArgumentCaptor<ClientHttpResponse> captor = ArgumentCaptor.forClass(ClientHttpResponse.class);
+        verify(consumer).tryAccept(captor.capture());
+        final ClientHttpResponse response = captor.getValue();
+
+        // to make sure the stream is still available
+        final byte[] bytes = ByteStreams.toByteArray(response.getBody());
+        assertThat(bytes.length, is(greaterThan(0)));
     }
 
     @Test

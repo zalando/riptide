@@ -78,7 +78,7 @@ public final class Requester extends Dispatcher {
         return execute(query, headers, null).dispatch(tree);
     }
 
-    protected <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
+    private <T> Dispatcher execute(final Multimap<String, String> query, final HttpHeaders headers,
             final @Nullable T body) {
 
         final HttpEntity<T> entity = new HttpEntity<>(body, headers);
@@ -99,8 +99,12 @@ public final class Requester extends Dispatcher {
 
                 listenable.addCallback(response -> {
                     try {
-                        tree.execute(response, worker);
-                        future.complete(null);
+                        try {
+                            tree.execute(response, worker);
+                            future.complete(null);
+                        } catch (final NoWildcardException e) {
+                            throw new NoRouteException(response);
+                        }
                     } catch (final Exception e) {
                         future.completeExceptionally(e);
                     }

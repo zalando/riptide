@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingSupplier;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +13,13 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toMap;
 
 final class DefaultRoutingTree<A> implements RoutingTree<A> {
+
+    /**
+     * We don't care for the stack trace, and since it's expensive to calculate we just use the same instance
+     * all the time. It's exclusively used to jump around the stack.
+     */
+    @SuppressWarnings("ThrowableInstanceNeverThrown")
+    private static final NoWildcardException INSTANCE = new NoWildcardException();
 
     private final Navigator<A> navigator;
     private final Map<A, Route> routes;
@@ -71,26 +76,20 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
         if (route.isPresent()) {
             try {
                 route.get().execute(response, reader);
-            } catch (final NoRouteException e) {
-                executeWildcardOrThrow(response, reader, always(e));
+            } catch (final NoWildcardException e) {
+                executeWildcard(response, reader);
             }
         } else {
-            executeWildcardOrThrow(response, reader, () -> new NoRouteException(response));
+            executeWildcard(response, reader);
         }
     }
 
-    private void executeWildcardOrThrow(final ClientHttpResponse response,
-            final MessageReader reader, final ThrowingSupplier<NoRouteException, IOException> e) throws Exception {
-
-        if (wildcard.isPresent()) {
-            wildcard.get().execute(response, reader);
-        } else {
-            throw e.get();
-        }
+    private void executeWildcard(final ClientHttpResponse response, final MessageReader reader) throws Exception {
+        wildcard.orElseThrow(this::noWildcard).execute(response, reader);
     }
 
-    private static <T> ThrowingSupplier<T, IOException> always(final T t) {
-        return () -> t;
+    private NoWildcardException noWildcard() {
+        return INSTANCE;
     }
 
 }
