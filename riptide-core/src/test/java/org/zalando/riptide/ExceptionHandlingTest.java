@@ -55,7 +55,7 @@ public final class ExceptionHandlingTest {
     @Test
     public void shouldThrowIOExceptionWhenDispatchingWithoutBody() {
         unit.get("/")
-                .dispatch(tree);
+                .call(tree);
     }
 
     @Test
@@ -67,7 +67,9 @@ public final class ExceptionHandlingTest {
     public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() throws InterruptedException,
             ExecutionException, TimeoutException {
 
-        unit.get("/").dispatch(tree).get(10, SECONDS);
+        unit.get("/")
+                .body("")
+                .call(tree).get(10, SECONDS);
     }
 
 }
