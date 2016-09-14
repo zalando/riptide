@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingSupplier;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,26 +69,16 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
         if (route.isPresent()) {
             try {
                 route.get().execute(response, reader);
-            } catch (final NoRouteException e) {
-                executeWildcardOrThrow(response, reader, always(e));
+            } catch (final NoWildcardException e) {
+                executeWildcard(response, reader);
             }
         } else {
-            executeWildcardOrThrow(response, reader, () -> new NoRouteException(response));
+            executeWildcard(response, reader);
         }
     }
 
-    private void executeWildcardOrThrow(final ClientHttpResponse response,
-            final MessageReader reader, final ThrowingSupplier<NoRouteException, IOException> e) throws Exception {
-
-        if (wildcard.isPresent()) {
-            wildcard.get().execute(response, reader);
-        } else {
-            throw e.get();
-        }
-    }
-
-    private static <T> ThrowingSupplier<T, IOException> always(final T t) {
-        return () -> t;
+    private void executeWildcard(final ClientHttpResponse response, final MessageReader reader) throws Exception {
+        wildcard.orElseThrow(NoWildcardException::getInstance).execute(response, reader);
     }
 
 }
