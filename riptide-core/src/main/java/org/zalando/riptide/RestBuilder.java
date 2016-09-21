@@ -49,11 +49,10 @@ public final class RestBuilder {
     }
 
     public RestBuilder baseUrl(@Nullable final String baseUrl) {
-        this.baseUrl = baseUrl == null ? null : URI.create(baseUrl);
-        return this;
+        return baseUrl(baseUrl == null ? null : URI.create(baseUrl));
     }
 
-    public RestBuilder baseUrl(final URI baseUrl) {
+    public RestBuilder baseUrl(@Nullable final URI baseUrl) {
         this.baseUrl = baseUrl;
         return this;
     }
