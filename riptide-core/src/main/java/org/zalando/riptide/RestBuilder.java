@@ -7,6 +7,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +23,7 @@ public final class RestBuilder {
 
     private AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
-    private String baseUrl;
+    private URI baseUrl;
 
     RestBuilder() {
 
@@ -46,7 +48,12 @@ public final class RestBuilder {
         return this;
     }
 
-    public RestBuilder baseUrl(final String baseUrl) {
+    public RestBuilder baseUrl(@Nullable final String baseUrl) {
+        this.baseUrl = baseUrl == null ? null : URI.create(baseUrl);
+        return this;
+    }
+
+    public RestBuilder baseUrl(final URI baseUrl) {
         this.baseUrl = baseUrl;
         return this;
     }

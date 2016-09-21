@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -24,44 +23,67 @@ public class UriTemplateArgTest {
     private final Rest unit;
     private final MockRestServiceServer server;
 
-    private final String requestUrl;
     private final String uriTemplate;
     private final Object[] uriVariables;
+    private final String requestUrl;
 
-    public UriTemplateArgTest(final String baseUrl, final String requestUrl,
-            final String uriTemplate, final Object... uriVariables) {
-        final MockSetup setup = new MockSetup(baseUrl, null);
+    public UriTemplateArgTest(final String baseUrl, final String uriTemplate, final Object[] uriVariables,
+            final String requestUrl) {
+        final MockSetup setup = new MockSetup(baseUrl);
         this.unit = setup.getRest();
         this.server = setup.getServer();
 
-        this.requestUrl = requestUrl;
         this.uriTemplate = uriTemplate;
         this.uriVariables = uriVariables;
+        this.requestUrl = requestUrl;
     }
 
     @Parameterized.Parameters(name = "{1}")
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                { null, "/pages/0", "/pages/{page}", new Object[] { 0 } },
-                { null, "../pages/1", "../pages/{page}", new Object[] { 1 } },
-                { null, "https://api.example.com/pages/2", "https://api.example.com/pages/{page}",
-                        new Object[] { 2 } },
-                { "https://api.example.org/", "https://api.example.org/pages/3", "/pages/{page}",
-                        new Object[] { 3 } },
-                { "https://api.example.org/", "https://api.example.com/pages/4", "https://api.example.com/pages/{page}",
-                        new Object[] { 4 } },
-                { "https://api.example.org/books/", "https://api.example.org/books/pages/5", "./pages/{page}",
-                        new Object[] { 5 } },
-                { "https://api.example.org/books/", "https://api.example.org/pages/6", "../pages/{page}",
-                        new Object[] { 6 } }
+        return Arrays.asList(new Object[][]{
+                {
+                        null,
+                        "/pages/{page}",
+                        new Object[]{0},
+                        "/pages/0",
+                },
+                {
+                        null,
+                        "../pages/{page}",
+                        new Object[]{1},
+                        "../pages/1",
+                },
+                {
+                        null,
+                        "https://api.example.com/pages/{page}",
+                        new Object[]{2},
+                        "https://api.example.com/pages/2",
+                },
+                {
+                        "https://api.example.org/",
+                        "/pages/{page}",
+                        new Object[]{3},
+                        "https://api.example.org/pages/3",
+                },
+                {
+                        "https://api.example.org/",
+                        "https://api.example.com/pages/{page}",
+                        new Object[]{4},
+                        "https://api.example.com/pages/4",
+                },
+                {
+                        "https://api.example.org/books/",
+                        "./pages/{page}",
+                        new Object[]{5},
+                        "https://api.example.org/books/pages/5",
+                },
+                {
+                        "https://api.example.org/books/",
+                        "../pages/{page}",
+                        new Object[]{6},
+                        "https://api.example.org/pages/6",
+                }
         });
-    }
-
-    @Before
-    public void setUp() {
-        server.expect(requestTo(requestUrl))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess());
     }
 
     @After
@@ -71,6 +93,10 @@ public class UriTemplateArgTest {
 
     @Test
     public void shouldExpand() {
+        server.expect(requestTo(requestUrl))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess());
+
         this.unit.get(uriTemplate, uriVariables)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

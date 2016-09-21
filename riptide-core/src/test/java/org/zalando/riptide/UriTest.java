@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -29,7 +28,7 @@ public class UriTest {
     private final Executor executor;
 
     public UriTest(final HttpMethod method, final Executor executor) {
-        final MockSetup setup = new MockSetup();
+        final MockSetup setup = new MockSetup("https://api.example.com/api/");
         this.unit = setup.getRest();
         this.server = setup.getServer();
 
@@ -55,21 +54,40 @@ public class UriTest {
         });
     }
 
-    @Before
-    public void setUp() {
-        server.expect(requestTo("https://api.example.org/pages/123"))
-                .andExpect(method(method))
-                .andRespond(withSuccess());
-    }
-
     @After
     public void tearDown() {
         server.verify();
     }
 
     @Test
-    public void shouldExpand() {
+    public void shouldNotResolveFullURIAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.org/pages/123"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
         executor.execute(unit, URI.create("https://api.example.org/pages/123"))
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldResolveAbsolutePathAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.com/pages"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
+        executor.execute(unit, URI.create("/pages"))
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldResolveRelativePathAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.com/api/pages"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
+        executor.execute(unit, URI.create("pages"))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }

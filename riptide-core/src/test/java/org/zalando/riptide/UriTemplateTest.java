@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -28,7 +27,7 @@ public class UriTemplateTest {
     private final Executor executor;
 
     public UriTemplateTest(final HttpMethod method, final Executor executor) {
-        final MockSetup setup = new MockSetup();
+        final MockSetup setup = new MockSetup("https://api.example.com/api/");
         this.unit = setup.getRest();
         this.server = setup.getServer();
 
@@ -54,13 +53,6 @@ public class UriTemplateTest {
         });
     }
 
-    @Before
-    public void setUp() {
-        server.expect(requestTo("https://api.example.com/pages/123"))
-                .andExpect(method(method))
-                .andRespond(withSuccess());
-    }
-
     @After
     public void tearDown() {
         server.verify();
@@ -68,7 +60,44 @@ public class UriTemplateTest {
 
     @Test
     public void shouldExpand() {
+        server.expect(requestTo("https://api.example.com/pages/123"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
         executor.execute(unit, "/pages/{page}", 123)
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldNotResolveFullURIAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.org/pages"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
+        executor.execute(unit, "https://api.example.org/pages")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldResolveAbsolutePathAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.com/pages"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
+        executor.execute(unit, "/pages")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldResolveRelativePathAgainstBaseURL() {
+        server.expect(requestTo("https://api.example.com/api/pages"))
+                .andExpect(method(method))
+                .andRespond(withSuccess());
+
+        executor.execute(unit, "pages")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
