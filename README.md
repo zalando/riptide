@@ -187,8 +187,37 @@ http.post("/sales-order")
 
 Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
 respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
-once with `queryParams(Multimap<String, String>)`. The `Content-Type`- and `Accept`-header have type-safe methods in
-addition to the generic support that is `header(String, String)` and `headers(HttpHeaders)`.
+once with `queryParams(Multimap<String, String>)`.
+
+The following operations are applied to URI Templates (`get(String, Object...)`) and URIs (`get(URI)`) respectively:
+
+
+**URI Template**
+- parameter expansion, e.g `/{id}` (see [`UriTemplate.expand`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriTemplate.html#expand-java.lang.Object...-))
+- encoding
+
+**URI**
+- none, used *as is*
+- expected to be already encoded
+
+**Both**
+- after respective transformation
+- resolved against Base URL (if present)
+- Query String (merged with existing)
+- Normalization
+
+The following table shows some examples how URIs are resolved against Base URLs:
+
+| Base URL                 | URI / URI Template      | Request URI                 |
+|--------------------------|-------------------------|-----------------------------|
+| https://example.com      | /foo                    | https://example.com/foo     |
+| https://example.com      | https://example.org/foo | https://example.org/foo     |
+| https://example.com/api  | /foo                    | https://example.com/foo     |
+| https://example.com/api  | foo                     | https://example.com/foo     |
+| https://example.com/api/ | foo                     | https://example.com/api/foo |
+
+The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
+`header(String, String)` and `headers(HttpHeaders)`.
 
 The callbacks can have the following signatures:
 

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -24,19 +25,17 @@ public final class Requester extends Dispatcher {
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final HttpMethod method;
-    private final UriComponentsBuilder urlBuilder;
-    private final Object[] urlVariables;
+    private final UriComponentsBuilder requestUri;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
     public Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final HttpMethod method, final UriComponentsBuilder urlBuilder, final Object... urlVariables) {
+            final HttpMethod method, final UriComponentsBuilder requestUri) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.method = method;
-        this.urlBuilder = urlBuilder;
-        this.urlVariables = urlVariables;
+        this.requestUri = requestUri;
     }
 
     public final Requester queryParam(final String name, final String value) {
@@ -119,26 +118,38 @@ public final class Requester extends Dispatcher {
     private <T> ListenableFuture<ClientHttpResponse> createAndExecute(final Multimap<String, String> query,
             final HttpEntity<T> entity) {
         try {
-            final AsyncClientHttpRequest request = create(query, entity);
+            final AsyncClientHttpRequest request = createRequest(query, entity);
             return request.executeAsync();
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private <T> AsyncClientHttpRequest create(final Multimap<String, String> query,
+    private <T> AsyncClientHttpRequest createRequest(final Multimap<String, String> query,
             final HttpEntity<T> entity) throws IOException {
 
-        final URI url = createUrl(query);
-        final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(url, method);
+        final URI requestUri = prepareRequestUri(query);
+        final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUri, method);
         worker.write(request, entity);
         return request;
     }
 
-    private URI createUrl(final Multimap<String, String> query) {
+    private URI prepareRequestUri(final Multimap<String, String> query) {
+        // we have to encode query params separately, because the rest of the URI is already encoded
+        requestUri.queryParams(encodeQueryParams(query));
+
+        return requestUri.build(true)
+                .normalize()
+                .toUri();
+    }
+
+    private MultiValueMap<String, String> encodeQueryParams(final Multimap<String, String> query) {
+        final UriComponentsBuilder components = UriComponentsBuilder.fromUriString("");
+
         query.entries().forEach(entry ->
-                urlBuilder.queryParam(entry.getKey(), entry.getValue()));
-        return urlBuilder.buildAndExpand(urlVariables).encode().toUri().normalize();
+                components.queryParam(entry.getKey(), entry.getValue()));
+
+        return components.build().encode().getQueryParams();
     }
 
 }

@@ -32,11 +32,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>faux-pas</artifactId>
-            <version>0.1.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
