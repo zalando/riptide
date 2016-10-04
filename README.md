@@ -191,7 +191,6 @@ once with `queryParams(Multimap<String, String>)`.
 
 The following operations are applied to URI Templates (`get(String, Object...)`) and URIs (`get(URI)`) respectively:
 
-
 **URI Template**
 - parameter expansion, e.g `/{id}` (see [`UriTemplate.expand`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriTemplate.html#expand-java.lang.Object...-))
 - encoding
