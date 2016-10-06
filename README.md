@@ -30,7 +30,6 @@ http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
             users.forEach(System.out::println)));
 ```
 
-We have an adaptation of the canonical Github sample, see [`SampleService`](riptide-core/src/test/java/org/zalando/riptide/SampleService.java).
 Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basics) or
 [Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
 
