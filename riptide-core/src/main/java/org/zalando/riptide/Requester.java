@@ -73,7 +73,7 @@ public final class Requester extends Dispatcher {
     }
 
     @Override
-    public Completion<Void> call(final Route route) {
+    public CompletableFuture<Void> call(final Route route) {
         return execute(query, headers, null).call(route);
     }
 
@@ -86,7 +86,7 @@ public final class Requester extends Dispatcher {
         return new Dispatcher() {
 
             @Override
-            public Completion<Void> call(final Route route) {
+            public CompletableFuture<Void> call(final Route route) {
                 final CompletableFuture<Void> future = new CompletableFuture<Void>() {
                     @Override
                     public boolean cancel(final boolean mayInterruptIfRunning) {
@@ -109,7 +109,7 @@ public final class Requester extends Dispatcher {
                     }
                 }, future::completeExceptionally);
 
-                return Completion.valueOf(future);
+                return future;
             }
 
         };

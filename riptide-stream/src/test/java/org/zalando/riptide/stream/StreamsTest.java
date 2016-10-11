@@ -1,7 +1,6 @@
 package org.zalando.riptide.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hobsoft.hamcrest.compose.ComposeMatchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -10,10 +9,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +18,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static java.util.Collections.singletonList;
@@ -234,7 +232,7 @@ public class StreamsTest {
         doCallRealMethod().when(verifier).accept(any());
         doThrow(new IOException()).when(verifier).tryAccept(new AccountBody("1234567892", "Acme GmbH"));
 
-        final Completion<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
@@ -260,7 +258,7 @@ public class StreamsTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
-        final Completion<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
