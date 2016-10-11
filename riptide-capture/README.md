@@ -46,7 +46,7 @@ Add the following dependency to your project:
 ## Usage
 
 ```java
-public Completion<Order> getOrder(final String id) {
+public CompletableFuture<Order> getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
     
     return http.get("/sales-orders/{id}", id)

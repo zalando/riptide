@@ -225,13 +225,10 @@ private void retry();
 private void propagate(ThrowableProblem problem);
 ```
 
-### Futures and Completion
+### Futures
 
-Riptide will return a [`Completion<Void>`](riptide-core/src/main/java/org/zalando/riptide/Completion.java) that is
-a combination of 
-[`CompletionStage<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html) and
-[`Future<Void>`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html). That means you can
-choose to chain transformations/callbacks or block on it.
+Riptide will return a `CompletableFuture<Void>`. That means you can choose to chain transformations/callbacks or block
+on it.
 
 If you need synchronous return values take a look at [Riptide: Capture](riptide-capture).
 

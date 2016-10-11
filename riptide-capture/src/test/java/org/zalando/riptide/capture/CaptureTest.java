@@ -11,11 +11,11 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.zalando.riptide.Completion;
 import org.zalando.riptide.Rest;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.Matchers.instanceOf;
@@ -60,12 +60,12 @@ public final class CaptureTest {
 
         final Capture<ObjectNode> capture = Capture.empty();
 
-        final Completion<Void> completion = unit.get("/accounts/123")
+        final CompletableFuture<Void> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));
 
-        final ObjectNode node = completion.thenApply(capture).join();
+        final ObjectNode node = future.thenApply(capture).join();
 
         assertThat(node.get("message").asText(), is("Hello World!"));
     }
@@ -76,12 +76,12 @@ public final class CaptureTest {
 
         final Capture<String> capture = Capture.empty();
 
-        final Completion<Void> completion = unit.get("/null")
+        final CompletableFuture<Void> future = unit.get("/null")
                 .dispatch(status(),
                         on(OK).call(String.class, capture),
                         anyStatus().call(this::fail));
 
-        final String body = completion.thenApply(capture).join();
+        final String body = future.thenApply(capture).join();
 
         assertThat(body, is(nullValue()));
     }
@@ -92,7 +92,7 @@ public final class CaptureTest {
 
         final Capture<String> capture = Capture.empty();
 
-        final Completion<String> completion = unit.get("/accounts/123")
+        final CompletableFuture<String> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(pass()),
                         on(BAD_REQUEST).call(String.class, capture),
@@ -102,7 +102,7 @@ public final class CaptureTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoSuchElementException.class));
 
-        completion.join();
+        future.join();
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
