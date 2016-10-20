@@ -192,7 +192,7 @@ public class StreamsTest {
                 on(OK).call(AccountBody.class, verifier),
                 anyStatus().call(this::fail)).join();
 
-        verify(verifier).accept(
+        verify(verifier).tryAccept(
                 new AccountBody("1234567890", "Acme Corporation"));
         verifyNoMoreInteractions(verifier);
     }

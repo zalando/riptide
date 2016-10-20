@@ -64,7 +64,7 @@ public final class CallTest {
                         on(OK).call(AccountBody.class, verifier),
                         anyStatus().call(this::fail));
 
-        verify(verifier).accept(any(AccountBody.class));
+        verify(verifier).tryAccept(any(AccountBody.class));
     }
 
     @Test
@@ -84,7 +84,7 @@ public final class CallTest {
 
         @SuppressWarnings("unchecked")
         final ArgumentCaptor<ResponseEntity<AccountBody>> captor = ArgumentCaptor.forClass(ResponseEntity.class);
-        verify(verifier).accept(captor.capture());
+        verify(verifier).tryAccept(captor.capture());
         final ResponseEntity<AccountBody> entity = captor.getValue();
 
         assertThat(entity.getStatusCode(), is(OK));

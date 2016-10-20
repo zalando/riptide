@@ -38,7 +38,7 @@ public interface Route {
     static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return (response, reader) -> {
             final I body = reader.read(type, response);
-            consumer.accept(body);
+            consumer.tryAccept(body);
         };
     }
 
@@ -109,7 +109,7 @@ public interface Route {
     static <T> Adapter<ClientHttpResponse, T> to(
             final ThrowingFunction<ClientHttpResponse, T, ? extends Exception> function) {
         return consumer ->
-                response -> consumer.accept(function.apply(response));
+                response -> consumer.tryAccept(function.tryApply(response));
     }
 
     @FunctionalInterface
