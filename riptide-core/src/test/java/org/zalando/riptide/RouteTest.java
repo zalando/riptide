@@ -12,6 +12,7 @@ import org.zalando.problem.ThrowableProblem;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -140,7 +141,15 @@ public final class RouteTest {
     }
 
     @Test
-    public void shouldPropagateException() {
+    public void shouldWrapAndPropagateException() throws IOException {
+        exception.expect(IOException.class);
+        exception.expectCause(instanceOf(URISyntaxException.class));
+
+        propagate().tryAccept(new URISyntaxException("foo", "bar"));
+    }
+
+    @Test
+    public void shouldPropagateRuntimeExceptionAsIs() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
