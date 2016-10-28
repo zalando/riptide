@@ -154,9 +154,8 @@ public final class NestedDispatchTest {
             perform(Problem.class);
             Assert.fail("Expected exception");
         } catch (final CompletionException e) {
-            assertThat(e.getCause(), is(instanceOf(IOException.class)));
-            assertThat(e.getCause().getCause(), is(instanceOf(ThrowableProblem.class)));
-            final ThrowableProblem problem = (ThrowableProblem) e.getCause().getCause();
+            assertThat(e.getCause(), is(instanceOf(ThrowableProblem.class)));
+            final ThrowableProblem problem = (ThrowableProblem) e.getCause();
             assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
             assertThat(problem.getTitle(), is("Unprocessable Entity"));
             assertThat(problem.getStatus(), is(MoreStatus.UNPROCESSABLE_ENTITY));

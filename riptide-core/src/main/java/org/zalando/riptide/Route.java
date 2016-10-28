@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+import static com.google.common.base.Throwables.propagateIfPossible;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
 @FunctionalInterface
@@ -98,11 +99,8 @@ public interface Route {
 
     static <X extends Exception> ThrowingConsumer<X, IOException> propagate() {
         return entity -> {
-            if (entity instanceof IOException) {
-                throw (IOException) entity;
-            } else {
-                throw new IOException(entity);
-            }
+            propagateIfPossible(entity, IOException.class);
+            throw new IOException(entity);
         };
     }
 

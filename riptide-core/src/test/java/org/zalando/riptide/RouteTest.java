@@ -147,8 +147,7 @@ public final class RouteTest {
                         .contentType(APPLICATION_JSON));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(IOException.class));
-        exception.expectCause(hasFeature("cause", Throwable::getCause, instanceOf(ThrowableProblem.class)));
+        exception.expectCause(instanceOf(ThrowableProblem.class));
 
         unit.get(url)
                 .dispatch(status(),
