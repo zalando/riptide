@@ -112,7 +112,7 @@ public interface Route {
 
     @FunctionalInterface
     interface Adapter<T, R> {
-        ThrowingConsumer<T, Exception> andThen(final ThrowingConsumer<R, Exception> consumer);
+        ThrowingConsumer<T, Exception> andThen(final ThrowingConsumer<R, ? extends Exception> consumer);
     }
 
 }
