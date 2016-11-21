@@ -6,7 +6,6 @@ import org.junit.runners.Parameterized;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.stream.Stream;
 

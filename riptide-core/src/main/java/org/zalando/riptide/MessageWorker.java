@@ -1,16 +1,6 @@
 package org.zalando.riptide;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import static java.lang.String.format;
-
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
+import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,7 +13,14 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 
-import com.google.common.reflect.TypeToken;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 final class MessageWorker implements MessageReader, MessageWriter {
 

@@ -10,7 +10,6 @@ import org.zalando.riptide.model.Success;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;

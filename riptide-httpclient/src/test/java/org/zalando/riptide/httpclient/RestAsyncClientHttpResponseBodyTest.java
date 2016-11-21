@@ -1,15 +1,15 @@
 package org.zalando.riptide.httpclient;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.http.conn.EofSensorInputStream;
+import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.conn.EofSensorInputStream;
-import org.junit.Test;
-import org.springframework.http.client.ClientHttpResponse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RestAsyncClientHttpResponseBodyTest {
 
