@@ -11,7 +11,9 @@ import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.concurrent.FailureCallback;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SuccessCallback;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
@@ -19,6 +21,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
+
+import static com.google.common.collect.ObjectArrays.concat;
 
 public final class Requester extends Dispatcher {
 
@@ -68,7 +72,7 @@ public final class Requester extends Dispatcher {
         return this;
     }
 
-    public final <T> Dispatcher body(final T body) {
+    public final <T> Dispatcher body(@Nullable final T body) {
         return execute(query, headers, body);
     }
 
@@ -83,36 +87,9 @@ public final class Requester extends Dispatcher {
         final HttpEntity<T> entity = new HttpEntity<>(body, headers);
         final ListenableFuture<ClientHttpResponse> listenable = createAndExecute(query, entity);
 
-        return new Dispatcher() {
+        final Exception exceptionWithOriginalStackTrace = new Exception();
 
-            @Override
-            public CompletableFuture<Void> call(final Route route) {
-                final CompletableFuture<Void> future = new CompletableFuture<Void>() {
-                    @Override
-                    public boolean cancel(final boolean mayInterruptIfRunning) {
-                        final boolean cancelled = listenable.cancel(mayInterruptIfRunning);
-                        super.cancel(mayInterruptIfRunning);
-                        return cancelled;
-                    }
-                };
-
-                listenable.addCallback(response -> {
-                    try {
-                        try {
-                            route.execute(response, worker);
-                            future.complete(null);
-                        } catch (final NoWildcardException e) {
-                            throw new NoRouteException(response);
-                        }
-                    } catch (final Exception e) {
-                        future.completeExceptionally(e);
-                    }
-                }, future::completeExceptionally);
-
-                return future;
-            }
-
-        };
+        return new ResponseDispatcher(worker, listenable, exceptionWithOriginalStackTrace);
     }
 
     private <T> ListenableFuture<ClientHttpResponse> createAndExecute(final Multimap<String, String> query,
@@ -137,10 +114,7 @@ public final class Requester extends Dispatcher {
     private URI prepareRequestUri(final Multimap<String, String> query) {
         // we have to encode query params separately, because the rest of the URI is already encoded
         requestUri.queryParams(encodeQueryParams(query));
-
-        return requestUri.build(true)
-                .normalize()
-                .toUri();
+        return requestUri.build(true).normalize().toUri();
     }
 
     private MultiValueMap<String, String> encodeQueryParams(final Multimap<String, String> query) {
@@ -150,6 +124,55 @@ public final class Requester extends Dispatcher {
                 components.queryParam(entry.getKey(), entry.getValue()));
 
         return components.build().encode().getQueryParams();
+    }
+
+    private static class ResponseDispatcher extends Dispatcher {
+
+        private final MessageWorker worker;
+        private final ListenableFuture<ClientHttpResponse> listenable;
+        private final Exception exceptionWithOriginalStackTrace;
+
+        public ResponseDispatcher(final MessageWorker worker, final ListenableFuture<ClientHttpResponse> listenable,
+                final Exception exceptionWithOriginalStackTrace) {
+            this.worker = worker;
+            this.listenable = listenable;
+            this.exceptionWithOriginalStackTrace = exceptionWithOriginalStackTrace;
+        }
+
+        @Override
+        public CompletableFuture<Void> call(final Route route) {
+            final CompletableFuture<Void> future = new ListenableCompletableFutureAdapter(listenable);
+
+            final SuccessCallback<ClientHttpResponse> onSuccess = response -> dispatch(response, route, future);
+            final FailureCallback onFailure = cause -> complete(future, cause);
+            listenable.addCallback(onSuccess, onFailure);
+
+            return future;
+        }
+
+        private void dispatch(final ClientHttpResponse response, final Route route, final CompletableFuture<Void> future) {
+            try {
+                try {
+                    route.execute(response, worker);
+                    future.complete(null);
+                } catch (final NoWildcardException e) {
+                    throw new NoRouteException(response);
+                }
+            } catch (final Exception cause) {
+                complete(future, cause);
+            }
+        }
+
+        private void complete(final CompletableFuture<Void> future, final Throwable cause) {
+            future.completeExceptionally(appendOriginalStackTrace(cause));
+        }
+
+        private Throwable appendOriginalStackTrace(final Throwable cause) {
+            final StackTraceElement[] originalStackTrace = exceptionWithOriginalStackTrace.getStackTrace();
+            cause.setStackTrace(concat(cause.getStackTrace(), originalStackTrace, StackTraceElement.class));
+            return cause;
+        }
+
     }
 
 }
