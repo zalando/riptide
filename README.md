@@ -74,9 +74,8 @@ is the exact opposite: routing responses to handler methods on the client side.
   execute the callback or traverse the routing tree respectively.
 
 ```java
-on(SUCCESSFUL).call(response -> {
-    System.out.println(response.getHeaders().getLocation());
-}),
+on(SUCCESSFUL).call(response ->
+    System.out.println(response.getHeaders().getLocation()))
 ```
 
 ### Routing Tree
