@@ -11,6 +11,8 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 public final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
@@ -45,7 +47,7 @@ public final class MockSetup {
     public RestBuilder getRestBuilder() {
         return Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
-                .converters(converters != null ? converters : DEFAULT_CONVERTERS)
+                .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
                 .baseUrl(baseUrl);
     }
     public Rest getRest() {
