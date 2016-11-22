@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import static com.google.common.collect.ObjectArrays.concat;
 
@@ -87,9 +88,16 @@ public final class Requester extends Dispatcher {
         final HttpEntity<T> entity = new HttpEntity<>(body, headers);
         final ListenableFuture<ClientHttpResponse> listenable = createAndExecute(query, entity);
 
-        final Exception exceptionWithOriginalStackTrace = new Exception();
+        /*
+         * A good way to store a stacktrace away efficiently is to simply construct an exception. Later, if you want to
+         * inspect the stacktrace call exception.getStackTrace() which will do the slow work of resolving the stack
+         * frames to methods.
+         *
+         * <a href="http://stackoverflow.com/a/4377609/232539>What is the proper way to keep track of the original stack trace in a newly created Thread?</a>
+         */
+        final Supplier<StackTraceElement[]> originalStackTrace = new Exception()::getStackTrace;
 
-        return new ResponseDispatcher(worker, listenable, exceptionWithOriginalStackTrace);
+        return new ResponseDispatcher(worker, listenable, originalStackTrace);
     }
 
     private <T> ListenableFuture<ClientHttpResponse> createAndExecute(final Multimap<String, String> query,
@@ -130,13 +138,13 @@ public final class Requester extends Dispatcher {
 
         private final MessageWorker worker;
         private final ListenableFuture<ClientHttpResponse> listenable;
-        private final Exception exceptionWithOriginalStackTrace;
+        private final Supplier<StackTraceElement[]> originalStackTrace;
 
         public ResponseDispatcher(final MessageWorker worker, final ListenableFuture<ClientHttpResponse> listenable,
-                final Exception exceptionWithOriginalStackTrace) {
+                final Supplier<StackTraceElement[]> originalStackTrace) {
             this.worker = worker;
             this.listenable = listenable;
-            this.exceptionWithOriginalStackTrace = exceptionWithOriginalStackTrace;
+            this.originalStackTrace = originalStackTrace;
         }
 
         @Override
@@ -168,8 +176,7 @@ public final class Requester extends Dispatcher {
         }
 
         private Throwable appendOriginalStackTrace(final Throwable cause) {
-            final StackTraceElement[] originalStackTrace = exceptionWithOriginalStackTrace.getStackTrace();
-            cause.setStackTrace(concat(cause.getStackTrace(), originalStackTrace, StackTraceElement.class));
+            cause.setStackTrace(concat(cause.getStackTrace(), originalStackTrace.get(), StackTraceElement.class));
             return cause;
         }
 
