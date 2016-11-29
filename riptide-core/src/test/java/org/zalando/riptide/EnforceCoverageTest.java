@@ -14,6 +14,11 @@ public final class EnforceCoverageTest {
     }
 
     @Test
+    public void shouldUseCompletionConstructor() {
+        new Completion();
+    }
+
+    @Test
     public void shouldUseRestBuilderConvertersConstructor() {
         new RestBuilder.Converters();
     }
