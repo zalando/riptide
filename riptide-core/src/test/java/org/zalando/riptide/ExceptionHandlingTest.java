@@ -2,9 +2,7 @@ package org.zalando.riptide;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -17,11 +15,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+// this test is just a compile time check for checked exceptions (throws clauses)
 @RunWith(MockitoJUnitRunner.class)
 public final class ExceptionHandlingTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     private final Rest unit;
     private final MockRestServiceServer server;
@@ -47,19 +43,19 @@ public final class ExceptionHandlingTest {
     }
 
     @Test
-    public void shouldThrowIOExceptionWhenSettingBody() {
+    public void shouldNotThrowIOExceptionWhenSettingBody() {
         unit.get("/")
                 .body("body");
     }
 
     @Test
-    public void shouldThrowIOExceptionWhenDispatchingWithoutBody() {
+    public void shouldNotThrowIOExceptionWhenDispatchingWithoutBody() {
         unit.get("/")
                 .call(tree);
     }
 
     @Test
-    public void shouldThrowInterruptedAndExecutionExceptionWhenBlocking() {
+    public void shouldNotThrowInterruptedAndExecutionExceptionWhenBlocking() {
         unit.get("/").dispatch(tree).join();
     }
 

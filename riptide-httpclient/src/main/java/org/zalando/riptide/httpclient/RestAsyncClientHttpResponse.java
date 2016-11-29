@@ -1,13 +1,13 @@
 package org.zalando.riptide.httpclient;
 
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 class RestAsyncClientHttpResponse implements ClientHttpResponse {
 

@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

@@ -14,13 +14,6 @@ import static java.util.stream.Collectors.toMap;
 
 final class DefaultRoutingTree<A> implements RoutingTree<A> {
 
-    /**
-     * We don't care for the stack trace, and since it's expensive to calculate we just use the same instance
-     * all the time. It's exclusively used to jump around the stack.
-     */
-    @SuppressWarnings("ThrowableInstanceNeverThrown")
-    private static final NoWildcardException INSTANCE = new NoWildcardException();
-
     private final Navigator<A> navigator;
     private final Map<A, Route> routes;
     private final Optional<Route> wildcard;
@@ -90,11 +83,7 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     private void executeWildcard(final ClientHttpResponse response, final MessageReader reader) throws Exception {
-        wildcard.orElseThrow(this::noWildcard).execute(response, reader);
-    }
-
-    private NoWildcardException noWildcard() {
-        return INSTANCE;
+        wildcard.orElseThrow(NoWildcardException::new).execute(response, reader);
     }
 
 }
