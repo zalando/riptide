@@ -21,9 +21,15 @@ public final class RestBuilder {
                 ImmutableList.copyOf(new RestTemplate().getMessageConverters());
     }
 
+    static class Plugins {
+        private static final ImmutableList<Plugin> DEFAULT =
+                ImmutableList.of(new OriginalStackTracePlugin());
+    }
+
     private AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
     private URI baseUrl;
+    private final List<Plugin> plugins = new ArrayList<>();
 
     RestBuilder() {
 
@@ -57,6 +63,20 @@ public final class RestBuilder {
         return this;
     }
 
+    public RestBuilder defaultPlugins() {
+        return plugins(Plugins.DEFAULT);
+    }
+
+    public RestBuilder plugins(final Iterable<Plugin> plugins) {
+        plugins.forEach(this::plugin);
+        return this;
+    }
+
+    public RestBuilder plugin(final Plugin plugin) {
+        this.plugins.add(plugin);
+        return this;
+    }
+
     public RestBuilder configure(final RestConfigurer configurer) {
         configurer.configure(this);
         return this;
@@ -71,11 +91,19 @@ public final class RestBuilder {
     }
 
     public Rest build() {
-        return new Rest(requestFactory, converters(), baseUrl);
+        return new Rest(requestFactory, converters(), baseUrl, plugin());
     }
 
     private List<HttpMessageConverter<?>> converters() {
         return converters.isEmpty() ? Converters.DEFAULT : converters;
+    }
+
+    private Plugin plugin() {
+        return plugins().stream().reduce(Plugin::merge).orElse(Plugin.NOOP);
+    }
+
+    private List<Plugin> plugins() {
+        return plugins.isEmpty() ? Plugins.DEFAULT : plugins;
     }
 
 }

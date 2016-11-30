@@ -49,7 +49,7 @@ To enable streaming you only need to register the
 your stream that is calling a the stream consumer.
 
 The unique entry point for all specific methods is the [Streams](src/main/java/org/zalando/riptide/stream/Streams.java)
-class. *Note:* The stream converter is an replacement to the default spring JSON converter that does not support
+class. *Note:* The stream converter is a replacement to the default spring JSON converter that does not support
 streaming, and thus should be not registered together with it.
 
 ## Getting Help

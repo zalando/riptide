@@ -7,6 +7,7 @@
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-capture/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-capture)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-capture.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-capture)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
 *Riptide: Capture* adds the possibility to produce synchronous return values with *Riptide*.
 

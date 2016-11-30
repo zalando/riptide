@@ -44,14 +44,12 @@ public final class ExceptionHandlingTest {
 
     @Test
     public void shouldNotThrowIOExceptionWhenSettingBody() {
-        unit.get("/")
-                .body("body");
+        unit.get("/").body("body").call(tree);
     }
 
     @Test
     public void shouldNotThrowIOExceptionWhenDispatchingWithoutBody() {
-        unit.get("/")
-                .call(tree);
+        unit.get("/").call(tree);
     }
 
     @Test

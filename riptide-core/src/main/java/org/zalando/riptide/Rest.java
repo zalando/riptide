@@ -1,29 +1,29 @@
 package org.zalando.riptide;
 
+import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.springframework.web.util.UriComponentsBuilder.fromUri;
-import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
-    private final URI baseUrl;
+    private final RequestArguments arguments;
+    private final Plugin plugin;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            @Nullable final URI baseUrl) {
+            @Nullable final URI baseUrl, final Plugin plugin) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
-        this.baseUrl = baseUrl;
+        this.arguments = RequestArguments.create().withBaseUrl(baseUrl);
+        this.plugin = plugin;
     }
 
     public final Requester get(final String uriTemplate, final Object... urlVariables) {
@@ -90,27 +90,21 @@ public final class Rest {
         return execute(HttpMethod.TRACE, uri);
     }
 
-    private Requester execute(final HttpMethod method, final String uriTemplate,
-            final Object... uriVariables) {
-
-        final URI uri = fromUriString(uriTemplate)
-                .buildAndExpand(uriVariables) // only supported for URI templates
-                .encode() // URIs on the other hand are expected to be encoded already
-                .toUri();
-
-        return execute(method, uri);
-    }
-
     private Requester execute(final HttpMethod method, final URI uri) {
-        return new Requester(requestFactory, worker, method, resolveAgainstBaseUrl(uri));
+        return execute(arguments
+                .withMethod(method)
+                .withUri(uri));
     }
 
-    private UriComponentsBuilder resolveAgainstBaseUrl(final URI uri) {
-        if (baseUrl == null) {
-            return fromUri(uri);
-        }
+    private Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
+        return execute(arguments
+                .withMethod(method)
+                .withUriTemplate(uriTemplate)
+                .withUriVariables(ImmutableList.copyOf(uriVariables)));
+    }
 
-        return fromUri(baseUrl.resolve(uri));
+    private Requester execute(final RequestArguments arguments) {
+        return new Requester(requestFactory, worker, arguments, plugin);
     }
 
     public static RestBuilder builder() {

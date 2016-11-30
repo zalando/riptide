@@ -3,6 +3,7 @@ package org.zalando.riptide;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
@@ -26,7 +27,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -180,7 +180,12 @@ public final class AsyncTest {
                 on(CLIENT_ERROR).call(pass()))
                 .whenComplete(callback);
 
-        verify(callback).accept(eq(null), argThat(is(instanceOf(NoRouteException.class))));
+        final ArgumentCaptor<Exception> captor = ArgumentCaptor.forClass(Exception.class);
+        verify(callback).accept(eq(null), captor.capture());
+        final Exception exception = captor.getValue();
+
+        assertThat(exception, is(instanceOf(CompletionException.class)));
+        assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
     }
 
     @Test
