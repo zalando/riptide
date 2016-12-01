@@ -43,7 +43,8 @@ Add the following dependency to your project:
 
 ## Configuration
 
-By default, Hystrix group keys match the host name. Hystrix command keys are the same a
+By default, Hystrix group keys match the host name. Hystrix command keys are composed of the HTTP method and the
+URI template or path.
 
 For the canonical GitHub example...
 
@@ -57,9 +58,7 @@ You can use `HystrixPlugin#HystrixPlugin(SetterFactory)` to customize it:
 ```java
 new HystrixModule(request ->
       withGroupKey(HystrixCommandGroupKey.Factory.asKey("github"))
-      .andCommandKey(HystrixCommandKey.Factory.asKey(request.getMethod()))
-      .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-              .withExecutionIsolationStrategy(SEMAPHORE)))
+      .andCommandKey(HystrixCommandKey.Factory.asKey(request.getMethod())))
 ```
 
 ## Getting Help
