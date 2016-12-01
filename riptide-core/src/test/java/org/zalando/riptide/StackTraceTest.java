@@ -15,10 +15,11 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.RestBuilder.simpleRequestFactory;
 
@@ -50,8 +51,21 @@ public final class StackTraceTest {
         assertThat(exception, is(instanceOf(CompletionException.class)));
         assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
 
-        assertThat(getStackTraceAsString(exception), containsString("Requester$ResponseDispatcher.dispatch("));
+        assertThat(getStackTraceAsString(exception), containsString("Requester$ResponseDispatcher.call("));
         assertThat(getStackTraceAsString(exception), containsString("StackTraceTest.execute("));
+    }
+
+    @Test
+    public void shouldNotKeepOriginalStackTrace() throws Exception {
+        final Rest unit = configureRest().plugin(Plugin.NOOP).build();
+        final CompletableFuture<Void> future = execute(unit.get("/"));
+        final Exception exception = perform(future);
+
+        assertThat(exception, is(instanceOf(CompletionException.class)));
+        assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
+
+        assertThat(getStackTraceAsString(exception), not(containsString("Requester$ResponseDispatcher.call(")));
+        assertThat(getStackTraceAsString(exception), not(containsString("StackTraceTest.execute(")));
     }
 
     private RestBuilder configureRest() {

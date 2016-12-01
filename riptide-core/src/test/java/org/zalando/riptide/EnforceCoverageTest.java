@@ -24,6 +24,11 @@ public final class EnforceCoverageTest {
     }
 
     @Test
+    public void shouldUseRestBuilderPluginsConstructor() {
+        new RestBuilder.Plugins();
+    }
+
+    @Test
     public void shouldUseSelectorsConstructor() {
         new Navigators();
     }

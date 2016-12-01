@@ -6,7 +6,7 @@
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-core/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-core)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-core)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-core.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-core)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
 > **Riptide** noun, /ˈrɪp.taɪd/: strong flow of water away from the shore
@@ -140,6 +140,7 @@ Rest.builder()
     .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .converter(new MappingJackson2HttpMessageConverter())
     .converter(new Jaxb2RootElementHttpMessageConverter())
+    .plugin(new OriginalStackTracePlugin())
     .build();
 ```
 
@@ -153,6 +154,7 @@ This defaults to:
 - no base URL
 - `SimpleClientHttpRequestFactory` (based on `java.net.HttpURLConnection`)
 - same list of converters as `new RestTemplate()`
+- `OriginalStackTracePlugin` which preserves stack traces when executing requests asynchronously
 
 Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and
 [Tracer](https://github.com/zalando/tracer) can be greatly simplified by using 

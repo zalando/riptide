@@ -61,6 +61,7 @@
         <module>riptide-core</module>
         <module>riptide-capture</module>
         <module>riptide-httpclient</module>
+        <module>riptide-hystrix</module>
         <module>riptide-stream</module>
     </modules>
 
@@ -90,12 +91,17 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-stream</artifactId>
+                <artifactId>riptide-httpclient</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-httpclient</artifactId>
+                <artifactId>riptide-hystrix</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-stream</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

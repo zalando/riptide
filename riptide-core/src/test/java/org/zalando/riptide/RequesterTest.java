@@ -10,6 +10,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Route.pass;
 
@@ -128,7 +129,8 @@ public class RequesterTest {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
-                .body("deadbody");
+                .body("deadbody")
+                .dispatch(contentType());
     }
 
     @Test
@@ -137,7 +139,8 @@ public class RequesterTest {
 
         unit.get("/123")
                 .headers(new HttpHeaders())
-                .body("deadbody");
+                .body("deadbody")
+                .dispatch(contentType());
     }
 
     private void expectRequestTo(final String url) {

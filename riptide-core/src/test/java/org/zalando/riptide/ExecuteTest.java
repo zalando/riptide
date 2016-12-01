@@ -21,6 +21,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Route.pass;
 
@@ -75,7 +76,8 @@ public final class ExecuteTest {
                 .andRespond(withSuccess());
 
         unit.post(url)
-                .body(ImmutableMap.of("foo", "bar"));
+                .body(ImmutableMap.of("foo", "bar"))
+                .dispatch(contentType());
     }
 
     @Test
@@ -87,7 +89,8 @@ public final class ExecuteTest {
 
         unit.put(url)
                 .header("X-Foo", "bar")
-                .body(ImmutableMap.of("foo", "bar"));
+                .body(ImmutableMap.of("foo", "bar"))
+                .dispatch(contentType());
     }
 
     @Test
@@ -100,7 +103,8 @@ public final class ExecuteTest {
         unit.patch(url)
                 .accept(APPLICATION_JSON)
                 .contentType(APPLICATION_XML)
-                .body(new Success(true));
+                .body(new Success(true))
+                .dispatch(contentType());
     }
 
     @Test
@@ -119,7 +123,8 @@ public final class ExecuteTest {
         exception.expectMessage("org.zalando.riptide.model.Success");
 
         unit.delete(url)
-                .body(new Success(true));
+                .body(new Success(true))
+                .dispatch(contentType());
     }
 
     @Test
@@ -130,7 +135,8 @@ public final class ExecuteTest {
 
         unit.delete(url)
                 .contentType(MediaType.parseMediaType("application/x-json-stream"))
-                .body(new Success(true));
+                .body(new Success(true))
+                .dispatch(contentType());
     }
 
 }

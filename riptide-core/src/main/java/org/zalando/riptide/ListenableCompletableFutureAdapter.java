@@ -1,16 +1,16 @@
 package org.zalando.riptide;
 
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.CompletableFuture;
 
-final class ListenableCompletableFutureAdapter extends CompletableFuture<Void> {
+final class ListenableCompletableFutureAdapter<T> extends CompletableFuture<T> {
 
-    private ListenableFuture<ClientHttpResponse> future;
+    private ListenableFuture<T> future;
 
-    public ListenableCompletableFutureAdapter(final ListenableFuture<ClientHttpResponse> future) {
+    public ListenableCompletableFutureAdapter(final ListenableFuture<T> future) {
         this.future = future;
+        future.addCallback(this::complete, this::completeExceptionally);
     }
 
     @Override
