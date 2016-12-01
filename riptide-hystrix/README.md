@@ -9,7 +9,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-hystrix.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-hystrix)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Hystrix* adds 
+*Riptide: Hystrix* adds Hystrix support to *Riptide*.
 
 ## Example
 
