@@ -26,6 +26,7 @@ Rest.builder()
 ## Dependencies
 
 - Java 8
+- Riptide Core
 - Hystrix
 
 ## Installation
