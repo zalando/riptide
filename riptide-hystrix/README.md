@@ -53,7 +53,7 @@ For the canonical GitHub example...
   - if the request is not using a URI template it will fallback to the URI path:
     `GET /contributors/zalando/riptide/contributors`
 
-You can use `HystrixPlugin#HystrixPlugin(SetterFactory)` to customize it:
+You can use `HystrixPlugin(SetterFactory)` to customize it:
 
 ```java
 new HystrixModule(request ->
