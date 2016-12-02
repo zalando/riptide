@@ -58,10 +58,12 @@
     </developers>
 
     <modules>
-        <module>riptide-core</module>
         <module>riptide-capture</module>
+        <module>riptide-core</module>
+        <module>riptide-exceptions</module>
         <module>riptide-httpclient</module>
         <module>riptide-hystrix</module>
+        <module>riptide-problem</module>
         <module>riptide-stream</module>
     </modules>
 
@@ -72,7 +74,7 @@
         <slf4j.version>1.7.21</slf4j.version>
         <spring.version>4.3.2.RELEASE</spring.version>
         <jackson.version>2.8.2</jackson.version>
-        <problem.version>0.10.0</problem.version>
+        <problem.version>0.11.0</problem.version>
         <fauxpas.version>0.2.0</fauxpas.version>
     </properties>
 
@@ -81,12 +83,17 @@
             <!-- riptide -->
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-capture</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-capture</artifactId>
+                <artifactId>riptide-exceptions</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -97,6 +104,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-hystrix</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-problem</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

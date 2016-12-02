@@ -1,4 +1,4 @@
-package org.zalando.riptide;
+package org.zalando.riptide.exceptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -6,6 +6,8 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.zalando.riptide.Rest;
+import org.zalando.riptide.RestBuilder;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -48,9 +50,7 @@ public final class MockSetup {
         return Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
-                .baseUrl(baseUrl)
-                .defaultPlugins()
-                .plugin(NoopPlugin.INSTANCE);
+                .baseUrl(baseUrl);
     }
     public Rest getRest() {
         return getRestBuilder().build();

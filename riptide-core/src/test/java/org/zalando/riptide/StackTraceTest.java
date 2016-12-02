@@ -57,7 +57,7 @@ public final class StackTraceTest {
 
     @Test
     public void shouldNotKeepOriginalStackTrace() throws Exception {
-        final Rest unit = configureRest().plugin(Plugin.NOOP).build();
+        final Rest unit = configureRest().plugin(NoopPlugin.INSTANCE).build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 

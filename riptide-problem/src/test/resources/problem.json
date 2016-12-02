@@ -1,0 +1,6 @@
+{
+  "type": "http://httpstatus.es/422",
+  "title": "Unprocessable Entity",
+  "status": 422,
+  "detail": "A problem occurred."
+}

@@ -99,7 +99,7 @@ public final class RestBuilder {
     }
 
     private Plugin plugin() {
-        return plugins().stream().reduce(Plugin::merge).orElse(Plugin.NOOP);
+        return plugins().stream().reduce(Plugin::merge).orElse(NoopPlugin.INSTANCE);
     }
 
     private List<Plugin> plugins() {
