@@ -32,6 +32,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.exceptions.ExceptionClassifier.create;
 
 public final class TemporaryExceptionPluginTest {
 
@@ -72,7 +73,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldNotClassifyAsTemporaryIfNotMatching() {
-        final Rest unit = newUnit(new TemporaryExceptionPlugin(emptyList()));
+        final Rest unit = newUnit(new TemporaryExceptionPlugin(create()));
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(1000, TimeUnit.MILLISECONDS));
@@ -89,7 +90,7 @@ public final class TemporaryExceptionPluginTest {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
                     return future;
-                }, new TemporaryExceptionPlugin(IllegalArgumentException.class::isInstance));
+                }, new TemporaryExceptionPlugin(create(IllegalArgumentException.class::isInstance)));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(TemporaryException.class));

@@ -6,36 +6,20 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
-import javax.net.ssl.SSLHandshakeException;
-import java.io.InterruptedIOException;
-import java.net.SocketException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.CompletionException;
-import java.util.function.Predicate;
 
-import static org.zalando.fauxpas.FauxPas.rethrow;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public final class TemporaryExceptionPlugin implements Plugin {
 
-    private final Predicate<Throwable> temporary;
+    private final ExceptionClassifier classifier;
 
     public TemporaryExceptionPlugin() {
-        this(InterruptedIOException.class::isInstance,
-                SocketException.class::isInstance,
-                SSLHandshakeException.class::isInstance);
+        this(ExceptionClassifier.createDefault());
     }
 
-    @SafeVarargs
-    public TemporaryExceptionPlugin(final Predicate<Throwable>... predicates) {
-        this(Arrays.asList(predicates));
-    }
-
-    public TemporaryExceptionPlugin(final Collection<Predicate<Throwable>> predicates) {
-        this.temporary = predicates.stream()
-                .reduce(Predicate::or)
-                .orElse(throwable -> false);
+    public TemporaryExceptionPlugin(final ExceptionClassifier classifier) {
+        this.classifier = classifier;
     }
 
     @Override
@@ -47,11 +31,15 @@ public final class TemporaryExceptionPlugin implements Plugin {
     private ClientHttpResponse classify(final Throwable throwable) throws Throwable {
         final Throwable root = Throwables.getRootCause(throwable);
 
-        if (temporary.test(root)) {
+        if (isTemporary(root)) {
             throw new TemporaryException(skipCompletionException(throwable));
         }
 
         throw throwable;
+    }
+
+    private boolean isTemporary(final Throwable throwable) {
+        return classifier.classify(throwable) == Classification.TEMPORARY;
     }
 
     /**
