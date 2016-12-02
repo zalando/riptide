@@ -9,15 +9,13 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-exceptions.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-exceptions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Exceptions* adds 
-
-## Example
-
-```java
-```
+*Riptide: Exceptions* helps to classify exceptions into *permant* and *temporary* errors.
 
 ## Features
 
+- exception classification
+- easier exception handling, e.g. retries
+- reusable
 
 ## Dependencies
 
@@ -36,10 +34,43 @@ Add the following dependency to your project:
 </dependency>
 ```
 
+## Configuration
+
+```java
+Rest.builder()
+    .plugin(new TemporaryExceptionPlugin())
+    .build();
+```
+
+By default the following exception types are classified as temporary:
+
+- [`InterruptedIOException`](https://docs.oracle.com/javase/8/docs/api/java/io/InterruptedIOException.html)
+- [`SocketException`](https://docs.oracle.com/javase/8/docs/api/java/net/SocketException.html)
+- [`SSLHandshakeException`](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLHandshakeException.html)
+
+In order to change this you can pass in a custom `Classifier`:
+
+```java
+Classifier classifier = Classifier.create(IOException.class::isInstance);
+
+new TemporaryExceptionPlugin(classifier);
+```
+
 ## Usage
 
 ```java
+CompletableFuture<Void> future = http.post("/").dispatch(series(),
+    on(SUCCESSFUL).call(pass()));
+    
+try {
+    Completion.join(future);
+} catch (TemporaryException e) {
+    // TODO retry later
+}
 ```
+
+Note: `Completion.join` is a convenience function that get's rid of the outermost `CompletionException` and rethrows
+its cause.
 
 ## Getting Help
 
