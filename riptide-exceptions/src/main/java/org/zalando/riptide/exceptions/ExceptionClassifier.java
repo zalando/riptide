@@ -6,11 +6,8 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public interface ExceptionClassifier {
 
@@ -37,7 +34,8 @@ public interface ExceptionClassifier {
     static ExceptionClassifier createDefault() {
         return create(InterruptedIOException.class::isInstance,
                 SocketException.class::isInstance,
-                SSLHandshakeException.class::isInstance);
+                throwable -> throwable instanceof SSLHandshakeException
+                        && "Remote host closed connection during handshake".equals(throwable.getMessage()));
     }
 
     @SafeVarargs

@@ -47,6 +47,7 @@ By default the following exception types are classified as temporary:
 - [`InterruptedIOException`](https://docs.oracle.com/javase/8/docs/api/java/io/InterruptedIOException.html)
 - [`SocketException`](https://docs.oracle.com/javase/8/docs/api/java/net/SocketException.html)
 - [`SSLHandshakeException`](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLHandshakeException.html)
+  - if the message indicates a connection issue
 
 In order to change this you can pass in a custom `Classifier`:
 
