@@ -15,7 +15,15 @@ import static org.zalando.riptide.RoutingTree.dispatch;
 public final class ProblemRoute {
 
     private static final MediaType PROBLEM = parseMediaType("application/problem+json");
+
+    /**
+     * @see <a href="http://zalando.github.io/restful-api-guidelines/common-data-objects/CommonDataObjects.html#must-use-problem-json">Zalando RESTful API Guidelines</a>
+     */
     private static final MediaType X_DOT_PROBLEM = parseMediaType("application/x.problem+json");
+
+    /**
+     * Alternative spelling for {@link #X_DOT_PROBLEM}.
+     */
     private static final MediaType X_DASH_PROBLEM = parseMediaType("application/x-problem+json");
 
     private static final Route PROPAGATE = problemHandling(Exceptional::propagate);
