@@ -90,17 +90,17 @@ public final class Rest {
         return execute(HttpMethod.TRACE, uri);
     }
 
-    private Requester execute(final HttpMethod method, final URI uri) {
-        return execute(arguments
-                .withMethod(method)
-                .withUri(uri));
-    }
-
-    private Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
+    public Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
                 .withMethod(method)
                 .withUriTemplate(uriTemplate)
                 .withUriVariables(ImmutableList.copyOf(uriVariables)));
+    }
+
+    public Requester execute(final HttpMethod method, final URI uri) {
+        return execute(arguments
+                .withMethod(method)
+                .withUri(uri));
     }
 
     private Requester execute(final RequestArguments arguments) {
