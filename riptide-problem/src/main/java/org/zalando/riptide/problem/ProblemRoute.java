@@ -55,10 +55,12 @@ public final class ProblemRoute {
      * @return a route for handling problems dynamically
      */
     public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer) {
+        final Route route = Route.call(Exceptional.class, consumer);
+        
         return dispatch(contentType(),
-                on(PROBLEM).call(Exceptional.class, consumer),
-                on(X_DOT_PROBLEM).call(Exceptional.class, consumer),
-                on(X_DASH_PROBLEM).call(Exceptional.class, consumer));
+                on(PROBLEM).call(route),
+                on(X_DOT_PROBLEM).call(route),
+                on(X_DASH_PROBLEM).call(route));
     }
 
 }

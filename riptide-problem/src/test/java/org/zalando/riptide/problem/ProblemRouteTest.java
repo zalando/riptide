@@ -82,7 +82,7 @@ public final class ProblemRouteTest {
     }
 
     @Test
-    public void shouldLogProblem() {
+    public void shouldDelegateProblemHandling() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(BAD_REQUEST)
                         .body(new ClassPathResource("problem.json"))
