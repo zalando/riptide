@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import com.google.gag.annotation.remark.Hack;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
@@ -47,8 +48,14 @@ public final class NoRouteException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(MediaType::getCharset)
+                .map(NoRouteException::extractCharset)
                 .orElse(ISO_8859_1);
+    }
+
+    @Hack("MediaType#getCharset is not available prior to Spring 4.3")
+    @SuppressWarnings("deprecation")
+    private static Charset extractCharset(final MediaType mediaType) {
+        return mediaType.getCharSet();
     }
 
     public ClientHttpResponse getResponse() {
