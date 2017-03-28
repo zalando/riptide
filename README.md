@@ -118,7 +118,7 @@ on(SUCCESSFUL).dispatch(contentType(),
 
 ## Dependencies
 
-- Spring 4.1 or higher
+- Spring 4.1.0 or higher
 
 ## Installation
 
