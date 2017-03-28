@@ -25,7 +25,6 @@ import org.zalando.riptide.capture.Capture;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

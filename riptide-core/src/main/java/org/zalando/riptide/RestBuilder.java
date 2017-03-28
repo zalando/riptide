@@ -1,24 +1,17 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
-import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureTask;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 
 public final class RestBuilder {
 

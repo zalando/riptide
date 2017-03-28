@@ -10,11 +10,8 @@ import org.zalando.riptide.Route;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
