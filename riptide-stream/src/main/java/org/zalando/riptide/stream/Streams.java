@@ -9,6 +9,7 @@ import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Route;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -38,6 +39,7 @@ public final class Streams {
     /** Default singleton {@link MediaType media type} for application/x-json-stream. */
     public static final MediaType APPLICATION_X_JSON_STREAM = //
             new MediaType("application", "x-json-stream", StandardCharsets.UTF_8);
+
     /** Default singleton {@link MediaType media type} for application/json-seq. */
     public static final MediaType APPLICATION_JSON_SEQ = //
             new MediaType("application", "json-seq", StandardCharsets.UTF_8);
@@ -93,7 +95,7 @@ public final class Streams {
      * @return stream consumer function.
      */
     public static <I, X extends Throwable> ThrowingConsumer<Stream<I>, X> forEach(final ThrowingConsumer<I, X> consumer) {
-        return (input) -> {
+        return input -> {
             if (input == null) {
                 return;
             }
@@ -108,11 +110,13 @@ public final class Streams {
 
     /**
      * Create default stream converter.
-     * 
+     *
+     * @deprecated use {@link #streamConverter(ObjectMapper)} or {@link #streamConverter(ObjectMapper, List)}
      * @return default stream converter.
      */
+    @Deprecated
     public static HttpMessageConverter<?> streamConverter() {
-        return new StreamConverter<>(null, null);
+        return streamConverter(new ObjectMapper());
     }
 
     /**
@@ -123,19 +127,20 @@ public final class Streams {
      * @return stream converter with customer object mapper.
      */
     public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper) {
-        return new StreamConverter<>(mapper, null);
+        return streamConverter(mapper, Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
     }
 
     /**
-     * Create stream converter with custom {@link ObjectMapper object mapper), and custom list of {@link MediaType media
-     * types}.
+     * Create stream converter with custom {@link ObjectMapper object mapper), and custom list of
+     * {@link MediaType supported media types}.
      * 
      * @param mapper custom {@link ObjectMapper object mapper}.
-     * @param medias custom list of {@link MediaType media types}.
+     * @param supportedMediaTypes custom list of {@link MediaType media types}.
      * 
      * @return stream converter with customer object mapper.
      */
-    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper, final List<MediaType> medias) {
-        return new StreamConverter<>(mapper, medias);
+    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper,
+            final List<MediaType> supportedMediaTypes) {
+        return new StreamConverter<>(mapper, supportedMediaTypes);
     }
 }

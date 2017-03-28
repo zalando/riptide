@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
@@ -13,7 +14,6 @@ import org.zalando.riptide.Rest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -65,6 +65,7 @@ public class StreamsTest {
     }
 
     @Test
+    @Deprecated
     public void shouldCreateStreamConverter() {
         assertNotNull(streamConverter());
         assertNotNull(streamConverter(null));
@@ -199,11 +200,13 @@ public class StreamsTest {
 
     @Test
     public void shouldNotCallConsumerForEmptyStream() {
-        final InputStream stream = new ByteArrayInputStream(new byte[0]);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(0);
 
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(stream))
+                        .headers(headers)
+                        .body(new InputStreamResource(new ByteArrayInputStream(new byte[0])))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
         @SuppressWarnings("unchecked")

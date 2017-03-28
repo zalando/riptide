@@ -1,10 +1,13 @@
 package org.zalando.riptide;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.io.IOException;
 import java.util.List;
@@ -50,7 +53,15 @@ public final class IOTest {
     private final Rest rest = Rest.builder()
             .baseUrl(driver.getBaseUrl())
             .configure(simpleRequestFactory(executor))
+            .converter(createJsonConverter())
             .build();
+
+    private MappingJackson2HttpMessageConverter createJsonConverter() {
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES));
+        return converter;
+    }
 
     @After
     public void tearDown() {

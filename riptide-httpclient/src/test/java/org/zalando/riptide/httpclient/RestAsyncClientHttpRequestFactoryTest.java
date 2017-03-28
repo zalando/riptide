@@ -2,6 +2,7 @@ package org.zalando.riptide.httpclient;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
 import com.github.restdriver.clientdriver.ClientDriverRule;
@@ -15,17 +16,15 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Rest;
 import org.zalando.riptide.capture.Capture;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -34,6 +33,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAs
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.endsWith;
@@ -72,7 +72,19 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     private final Rest rest = Rest.builder()
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .converter(createJsonConverter())
             .build();
+
+    private static MappingJackson2HttpMessageConverter createJsonConverter() {
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(createObjectMapper());
+        return converter;
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        return new ObjectMapper().findAndRegisterModules()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
     @After
     public void tearDown() throws IOException {
@@ -85,11 +97,9 @@ public final class RestAsyncClientHttpRequestFactoryTest {
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final RestTemplate template = new RestTemplate(factory);
-        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-        handler.setBaseUrl(driver.getBaseUrl());
-        template.setUriTemplateHandler(handler);
+        template.setMessageConverters(singletonList(createJsonConverter()));
 
-        final List<User> users = template.exchange("/repos/zalando/riptide/contributors", GET,
+        final List<User> users = template.exchange(driver.getBaseUrl() + "/repos/zalando/riptide/contributors", GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
                 }).getBody();
 
@@ -127,7 +137,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         final URI uri = URI.create(driver.getBaseUrl()).resolve("/repos/zalando/riptide/contributors");
         final AsyncClientHttpRequest request = factory.createAsyncRequest(uri, POST);
 
-        request.getHeaders().setAccept(Collections.singletonList(APPLICATION_JSON));
+        request.getHeaders().setAccept(singletonList(APPLICATION_JSON));
         request.getBody().write("{}".getBytes(UTF_8));
 
         assertThat(request.getMethod(), is(POST));
@@ -142,7 +152,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         assertThat(response.getHeaders(), is(not(anEmptyMap())));
 
         final InputStream stream = response.getBody();
-        final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+        final ObjectMapper mapper = createObjectMapper();
         final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() { });
         final List<String> names = users.stream()
                 .map(User::getLogin)

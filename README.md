@@ -116,7 +116,9 @@ on(SUCCESSFUL).dispatch(contentType(),
 | `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
 | `RoutingTree`                          | `on(..).dispatch(..)`                               |
 
-> 
+## Dependencies
+
+- Spring 4.1.0 or higher
 
 ## Installation
 

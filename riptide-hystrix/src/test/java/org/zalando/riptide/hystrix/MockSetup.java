@@ -19,7 +19,13 @@ public final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
             Arrays.asList(new StringHttpMessageConverter(),
-                    new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()));
+                    createJsonConverter());
+
+    private static MappingJackson2HttpMessageConverter createJsonConverter() {
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
+        return converter;
+    }
 
 
     private final String baseUrl;

@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -19,6 +18,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
@@ -36,14 +36,9 @@ public final class ExecuteTest {
     private final MockRestServiceServer server;
 
     public ExecuteTest() {
-        final MockSetup setup =new MockSetup();
+        final MockSetup setup = new MockSetup();
         this.server = setup.getServer();
         this.unit = setup.getRest();
-    }
-
-    @After
-    public void after() {
-        server.verify();
     }
 
     @Test
@@ -55,6 +50,8 @@ public final class ExecuteTest {
         unit.trace(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
+
+        server.verify();
     }
 
     @Test
@@ -67,6 +64,8 @@ public final class ExecuteTest {
                 .header("X-Foo", "bar")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
+
+        server.verify();
     }
 
     @Test
@@ -78,6 +77,8 @@ public final class ExecuteTest {
         unit.post(url)
                 .body(ImmutableMap.of("foo", "bar"))
                 .dispatch(contentType());
+
+        server.verify();
     }
 
     @Test
@@ -91,6 +92,8 @@ public final class ExecuteTest {
                 .header("X-Foo", "bar")
                 .body(ImmutableMap.of("foo", "bar"))
                 .dispatch(contentType());
+
+        server.verify();
     }
 
     @Test
@@ -99,6 +102,10 @@ public final class ExecuteTest {
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
         exception.expectMessage("application/xml");
+
+        server.expect(requestTo(url))
+                // actually we don't expect anything
+                .andRespond(withServerError());
 
         unit.patch(url)
                 .accept(APPLICATION_JSON)
@@ -125,6 +132,8 @@ public final class ExecuteTest {
         unit.delete(url)
                 .body(new Success(true))
                 .dispatch(contentType());
+
+        server.verify();
     }
 
     @Test
@@ -132,6 +141,10 @@ public final class ExecuteTest {
         exception.expect(RestClientException.class);
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
+
+        server.expect(requestTo(url))
+                // actually we don't expect anything
+                .andRespond(withServerError());
 
         unit.delete(url)
                 .contentType(MediaType.parseMediaType("application/x-json-stream"))

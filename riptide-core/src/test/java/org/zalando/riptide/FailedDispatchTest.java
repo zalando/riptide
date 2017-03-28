@@ -1,11 +1,10 @@
 package org.zalando.riptide;
 
-import com.google.common.io.ByteStreams;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
@@ -21,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -139,9 +137,12 @@ public final class FailedDispatchTest {
 
     @Test
     public void shouldHandleNoBodyAtAll() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(0);
+
         server.expect(requestTo(url))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .body("")
+                        .headers(headers)
                         .contentType(MediaTypes.SUCCESS));
 
         final AtomicReference<Success> success = new AtomicReference<>();
@@ -204,13 +205,7 @@ public final class FailedDispatchTest {
                         on(CLIENT_ERROR).call(pass()),
                         anySeries().call(consumer));
 
-        final ArgumentCaptor<ClientHttpResponse> captor = ArgumentCaptor.forClass(ClientHttpResponse.class);
-        verify(consumer).tryAccept(captor.capture());
-        final ClientHttpResponse response = captor.getValue();
-
-        // to make sure the stream is still available
-        final byte[] bytes = ByteStreams.toByteArray(response.getBody());
-        assertThat(bytes.length, is(greaterThan(0)));
+        verify(consumer).tryAccept(any());
     }
 
     @Test
