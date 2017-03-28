@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -45,10 +46,16 @@ public final class CaptureTest {
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Rest.builder()
                 .requestFactory(template.getAsyncRequestFactory())
-                .converter(new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()))
+                .converter(createJsonConverter())
                 .converter(new StringHttpMessageConverter())
                 .baseUrl("https://api.example.com")
                 .build();
+    }
+
+    private MappingJackson2HttpMessageConverter createJsonConverter() {
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
+        return converter;
     }
 
     @Test
@@ -72,7 +79,11 @@ public final class CaptureTest {
 
     @Test
     public void shouldCaptureNull() {
-        server.expect(requestTo("https://api.example.com/null")).andRespond(withSuccess());
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(0);
+
+        server.expect(requestTo("https://api.example.com/null"))
+                .andRespond(withSuccess().headers(headers));
 
         final Capture<String> capture = Capture.empty();
 

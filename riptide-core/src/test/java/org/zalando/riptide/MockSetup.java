@@ -16,14 +16,18 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 public final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
-            Arrays.asList(new StringHttpMessageConverter(),
-                    new MappingJackson2HttpMessageConverter(new ObjectMapper().findAndRegisterModules()));
-
+            Arrays.asList(new StringHttpMessageConverter(), defaultJsonConverter());
 
     private final String baseUrl;
     private final Iterable<HttpMessageConverter<?>> converters;
     private final AsyncRestTemplate template;
     private final MockRestServiceServer server;
+
+    private static MappingJackson2HttpMessageConverter defaultJsonConverter() {
+        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
+        return converter;
+    }
 
     public MockSetup() {
         this("https://api.example.com", null);

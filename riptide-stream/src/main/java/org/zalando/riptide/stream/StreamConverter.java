@@ -9,7 +9,6 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -32,15 +31,26 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
             Collections.unmodifiableList(Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
 
     private final ObjectMapper mapper;
-    private final List<MediaType> medias;
+    private final List<MediaType> supportedMediaTypes;
 
+    /**
+     * @deprecated Use {@link Streams#streamConverter(ObjectMapper)}
+     */
+    @Deprecated
     public StreamConverter() {
         this(null, null);
     }
 
-    public StreamConverter(@Nullable final ObjectMapper mapper, @Nullable final List<MediaType> medias) {
-        this.mapper = (mapper != null) ? mapper : Jackson2ObjectMapperBuilder.json().build();
-        this.medias = (medias != null) ? medias : DEFAULT_MEDIA_TYPES;
+    /**
+     * @deprecated Use {@link Streams#streamConverter(ObjectMapper, List)}
+     * @param mapper
+     * @param supportedMediaTypes
+     */
+    @Deprecated
+    public StreamConverter(@Nullable final ObjectMapper mapper, @Nullable final List<MediaType> supportedMediaTypes) {
+        // TODO should not be public and should not have nullable parameters
+        this.mapper = mapper != null ? mapper : new ObjectMapper();
+        this.supportedMediaTypes = supportedMediaTypes != null ? supportedMediaTypes : DEFAULT_MEDIA_TYPES;
     }
 
     @Override
@@ -75,14 +85,14 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         return false;
     }
 
-    @Override
+    // @Override since 4.2
     public boolean canWrite(final Type type, final Class<?> clazz, final MediaType mediaType) {
         return false;
     }
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
-        return this.medias;
+        return Collections.unmodifiableList(supportedMediaTypes);
     }
 
     @Override
@@ -134,7 +144,7 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<T> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
+    // @Override since 4.2
     public void write(final T t, final Type type, final MediaType mediaType, final HttpOutputMessage message)  {
         throw new UnsupportedOperationException();
     }

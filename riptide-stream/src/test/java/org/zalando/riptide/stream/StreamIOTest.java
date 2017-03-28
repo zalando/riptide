@@ -1,6 +1,8 @@
 package org.zalando.riptide.stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.junit.After;
 import org.junit.Rule;
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
@@ -61,7 +64,7 @@ public final class StreamIOTest {
     private final Rest rest = Rest.builder()
             .baseUrl(driver.getBaseUrl())
             .configure(simpleRequestFactory(newSingleThreadExecutor()))
-            .converter(streamConverter(null, singletonList(APPLICATION_JSON)))
+            .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
             .build();
 
     @After

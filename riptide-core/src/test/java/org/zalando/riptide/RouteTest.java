@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import com.google.common.io.ByteStreams;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -11,15 +12,18 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.problem.ThrowableProblem;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -180,6 +184,24 @@ public final class RouteTest {
                         on(UNPROCESSABLE_ENTITY).call(IOException.class, propagate()),
                         anyStatus().call(this::fail))
                 .join();
+    }
+
+    @Test
+    public void shouldAllowToCaptureBody() throws Exception {
+        server.expect(requestTo(url))
+                .andRespond(withSuccess()
+                        .body("{}")
+                        .contentType(APPLICATION_JSON));
+
+        final AtomicReference<InputStream> body = new AtomicReference<>();
+
+        unit.get(url).call(((response, reader) ->
+                body.set(response.getBody())));
+
+        // read response outside of consumer/callback
+        // to make sure the stream is still available
+        final byte[] bytes = ByteStreams.toByteArray(body.get());
+        assertThat(bytes.length, is(greaterThan(0)));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

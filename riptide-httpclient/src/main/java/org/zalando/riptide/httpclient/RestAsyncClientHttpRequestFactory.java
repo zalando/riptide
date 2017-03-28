@@ -1,6 +1,10 @@
 package org.zalando.riptide.httpclient;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.Configurable;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequest;
@@ -18,7 +22,14 @@ public class RestAsyncClientHttpRequestFactory implements ClientHttpRequestFacto
     private final AsyncListenableTaskExecutor executor;
 
     public RestAsyncClientHttpRequestFactory(final HttpClient client, final AsyncListenableTaskExecutor executor) {
-        this.factory = new HttpComponentsClientHttpRequestFactory(client);
+        this.factory = new HttpComponentsClientHttpRequestFactory(client) {
+            @Override
+            protected void postProcessHttpRequest(final HttpUriRequest request) {
+                // TODO find a cleaner way to do this
+                final RequestConfig config = Configurable.class.cast(client).getConfig();
+                HttpRequestBase.class.cast(request).setConfig(config);
+            }
+        };
         this.executor = executor;
     }
 
