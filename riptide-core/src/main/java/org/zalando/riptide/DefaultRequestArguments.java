@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +27,7 @@ public final class DefaultRequestArguments implements RequestArguments {
     HttpMethod method;
 
     @Wither
-    URI baseUrl;
+    Supplier<URI> baseUrlProvider;
 
     @Wither
     String uriTemplate;
@@ -80,6 +81,11 @@ public final class DefaultRequestArguments implements RequestArguments {
                 .build(true).normalize().toUri();
 
         return withRequestUri(requestUri);
+    }
+
+    @Override
+    public URI getBaseUrl() {
+        return baseUrlProvider == null ? null : baseUrlProvider.get();
     }
 
 }

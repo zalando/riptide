@@ -17,6 +17,7 @@ import java.util.function.Function;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
@@ -30,6 +31,7 @@ public final class DefaultRequestArgumentsTest<T> {
 
     @Value
     public static final class Assertion<T> {
+
         BiFunction<DefaultRequestArguments, T, DefaultRequestArguments> wither;
         T argument;
         Function<DefaultRequestArguments, T> getter;
@@ -38,7 +40,7 @@ public final class DefaultRequestArgumentsTest<T> {
     @Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {new Assertion<>(DefaultRequestArguments::withBaseUrl, URI.create("https://api.example.com"), DefaultRequestArguments::getBaseUrl)},
+                {new Assertion<>(DefaultRequestArguments::withBaseUrlProvider, () -> URI.create("https://api.example.com"), DefaultRequestArguments::getBaseUrlProvider)},
                 {new Assertion<>(DefaultRequestArguments::withMethod, HttpMethod.GET, DefaultRequestArguments::getMethod)},
                 {new Assertion<>(DefaultRequestArguments::withUriTemplate, "/{id}", DefaultRequestArguments::getUriTemplate)},
                 {new Assertion<>(DefaultRequestArguments::withUriVariables, ImmutableList.of(123), DefaultRequestArguments::getUriVariables)},
@@ -64,6 +66,28 @@ public final class DefaultRequestArgumentsTest<T> {
 
         assertThat(applied, is(not(sameInstance(unit))));
         assertThat(assertion.getter.apply(applied), is(sameInstance(assertion.argument)));
+    }
+
+    @Test
+    public void shouldGetBaseUrl() {
+        final URI uri = URI.create("https://example.com");
+        final DefaultRequestArguments applied = unit.withBaseUrlProvider(() -> uri);
+
+        assertThat(applied.getBaseUrl(), is(sameInstance(uri)));
+    }
+
+    @Test
+    public void shouldSupportNullBaseUrlProvider() {
+        final DefaultRequestArguments applied = unit.withBaseUrlProvider(null);
+
+        assertThat(applied.getBaseUrl(), is(nullValue()));
+    }
+
+    @Test
+    public void shouldSupportBaseUrlProviderReturningNull() {
+        final DefaultRequestArguments applied = unit.withBaseUrlProvider(() -> null);
+
+        assertThat(applied.getBaseUrl(), is(nullValue()));
     }
 
 }
