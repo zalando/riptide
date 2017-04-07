@@ -26,41 +26,41 @@ public final class DefaultRequestArgumentsTest<T> {
     @Parameter
     public Assertion<T> assertion;
 
-    private final RequestArguments unit = RequestArguments.create();
+    private final DefaultRequestArguments unit = new DefaultRequestArguments();
 
     @Value
     public static final class Assertion<T> {
-        BiFunction<RequestArguments, T, RequestArguments> wither;
+        BiFunction<DefaultRequestArguments, T, DefaultRequestArguments> wither;
         T argument;
-        Function<RequestArguments, T> getter;
+        Function<DefaultRequestArguments, T> getter;
     }
 
     @Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {new Assertion<>(RequestArguments::withBaseUrl, URI.create("https://api.example.com"), RequestArguments::getBaseUrl)},
-                {new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod)},
-                {new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate)},
-                {new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables)},
-                {new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri)},
-                {new Assertion<>(RequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), RequestArguments::getQueryParams)},
-                {new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri)},
-                {new Assertion<>(RequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), RequestArguments::getHeaders)},
-                {new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody)},
+                {new Assertion<>(DefaultRequestArguments::withBaseUrl, URI.create("https://api.example.com"), DefaultRequestArguments::getBaseUrl)},
+                {new Assertion<>(DefaultRequestArguments::withMethod, HttpMethod.GET, DefaultRequestArguments::getMethod)},
+                {new Assertion<>(DefaultRequestArguments::withUriTemplate, "/{id}", DefaultRequestArguments::getUriTemplate)},
+                {new Assertion<>(DefaultRequestArguments::withUriVariables, ImmutableList.of(123), DefaultRequestArguments::getUriVariables)},
+                {new Assertion<>(DefaultRequestArguments::withUri, URI.create("/123"), DefaultRequestArguments::getUri)},
+                {new Assertion<>(DefaultRequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), DefaultRequestArguments::getQueryParams)},
+                {new Assertion<>(DefaultRequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), DefaultRequestArguments::getRequestUri)},
+                {new Assertion<>(DefaultRequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), DefaultRequestArguments::getHeaders)},
+                {new Assertion<>(DefaultRequestArguments::withBody, new Object(), DefaultRequestArguments::getBody)},
         });
     }
 
     @Test
     public void shouldOptimizeForReapplyingSameValue() {
-        final RequestArguments applied = assertion.wither.apply(unit, assertion.argument);
-        final RequestArguments appliedAgain = assertion.wither.apply(applied, assertion.argument);
+        final DefaultRequestArguments applied = assertion.wither.apply(unit, assertion.argument);
+        final DefaultRequestArguments appliedAgain = assertion.wither.apply(applied, assertion.argument);
 
         assertThat(appliedAgain, is(sameInstance(applied)));
     }
 
     @Test
     public void shouldModifyValue() {
-        final RequestArguments applied = assertion.wither.apply(unit, assertion.argument);
+        final DefaultRequestArguments applied = assertion.wither.apply(unit, assertion.argument);
 
         assertThat(applied, is(not(sameInstance(unit))));
         assertThat(assertion.getter.apply(applied), is(sameInstance(assertion.argument)));

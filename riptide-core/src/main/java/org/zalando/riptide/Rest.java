@@ -15,14 +15,14 @@ public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
-    private final RequestArguments arguments;
+    private final DefaultRequestArguments arguments;
     private final Plugin plugin;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
             @Nullable final URI baseUrl, final Plugin plugin) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
-        this.arguments = RequestArguments.create().withBaseUrl(baseUrl);
+        this.arguments = new DefaultRequestArguments().withBaseUrl(baseUrl);
         this.plugin = plugin;
     }
 
@@ -103,7 +103,7 @@ public final class Rest {
                 .withUri(uri));
     }
 
-    private Requester execute(final RequestArguments arguments) {
+    private Requester execute(final DefaultRequestArguments arguments) {
         return new Requester(requestFactory, worker, arguments, plugin);
     }
 

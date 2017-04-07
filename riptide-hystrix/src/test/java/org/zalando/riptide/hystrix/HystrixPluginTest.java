@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.DefaultRequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public final class HystrixPluginTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final RequestArguments arguments = RequestArguments.create()
+    private final DefaultRequestArguments arguments = new DefaultRequestArguments()
             .withMethod(HttpMethod.GET)
             .withRequestUri(URI.create("https://api.example.com/"));
 
