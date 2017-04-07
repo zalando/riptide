@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 public final class RestBuilder {
 
@@ -28,7 +29,7 @@ public final class RestBuilder {
 
     private AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
-    private URI baseUrl;
+    private Supplier<URI> baseUrlProvider = () -> null;
     private final List<Plugin> plugins = new ArrayList<>();
 
     RestBuilder() {
@@ -59,7 +60,11 @@ public final class RestBuilder {
     }
 
     public RestBuilder baseUrl(@Nullable final URI baseUrl) {
-        this.baseUrl = baseUrl;
+        return baseUrlProvider(() -> baseUrl);
+    }
+
+    public RestBuilder baseUrlProvider(final Supplier<URI> baseUrlProvider) {
+        this.baseUrlProvider = baseUrlProvider;
         return this;
     }
 
@@ -91,7 +96,7 @@ public final class RestBuilder {
     }
 
     public Rest build() {
-        return new Rest(requestFactory, converters(), baseUrl, plugin());
+        return new Rest(requestFactory, converters(), baseUrlProvider, plugin());
     }
 
     private List<HttpMessageConverter<?>> converters() {
