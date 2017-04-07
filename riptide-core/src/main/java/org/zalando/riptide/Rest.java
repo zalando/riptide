@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -15,14 +16,14 @@ public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
-    private final RequestArguments arguments;
+    private final DefaultRequestArguments arguments;
     private final Plugin plugin;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            @Nullable final URI baseUrl, final Plugin plugin) {
+            @Nullable final Supplier<URI> baseUrlProvider, final Plugin plugin) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
-        this.arguments = RequestArguments.create().withBaseUrl(baseUrl);
+        this.arguments = new DefaultRequestArguments().withBaseUrlProvider(baseUrlProvider);
         this.plugin = plugin;
     }
 
@@ -103,7 +104,7 @@ public final class Rest {
                 .withUri(uri));
     }
 
-    private Requester execute(final RequestArguments arguments) {
+    private Requester execute(final DefaultRequestArguments arguments) {
         return new Requester(requestFactory, worker, arguments, plugin);
     }
 

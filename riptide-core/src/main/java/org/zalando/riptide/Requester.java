@@ -23,14 +23,14 @@ public final class Requester extends Dispatcher {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
-    private final RequestArguments arguments;
+    private final DefaultRequestArguments arguments;
     private final Plugin plugin;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
     public Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final Plugin plugin) {
+            final DefaultRequestArguments arguments, final Plugin plugin) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;

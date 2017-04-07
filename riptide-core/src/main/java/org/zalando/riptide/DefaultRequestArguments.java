@@ -2,6 +2,9 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import java.net.URI;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +12,11 @@ import lombok.Singular;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.Wither;
 import org.springframework.http.HttpMethod;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 @Getter
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -21,7 +27,7 @@ public final class DefaultRequestArguments implements RequestArguments {
     HttpMethod method;
 
     @Wither
-    URI baseUrl;
+    Supplier<URI> baseUrlProvider;
 
     @Wither
     String uriTemplate;
@@ -44,5 +50,42 @@ public final class DefaultRequestArguments implements RequestArguments {
 
     @Wither
     Object body;
+
+    public DefaultRequestArguments() {
+        this(null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(), null, ImmutableMultimap.of(), null);
+    }
+
+    public DefaultRequestArguments withRequestUri() {
+        // expand uri template
+        final URI uri = Optional.ofNullable(getUri())
+                .orElseGet(() -> fromUriString(getUriTemplate())
+                        .buildAndExpand(getUriVariables().toArray())
+                        .encode()
+                        .toUri());
+
+        // resolve uri against base url
+        final URI resolved = getBaseUrl() == null ? uri : getBaseUrl().resolve(uri);
+
+        // encode query params
+        final MultiValueMap<String, String> queryParams;
+        {
+            final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
+            getQueryParams().entries().forEach(entry
+                    -> components.queryParam(entry.getKey(), entry.getValue()));
+            queryParams = components.build().encode().getQueryParams();
+        }
+
+        // build request uri
+        final URI requestUri = fromUri(resolved)
+                .queryParams(queryParams)
+                .build(true).normalize().toUri();
+
+        return withRequestUri(requestUri);
+    }
+
+    @Override
+    public URI getBaseUrl() {
+        return baseUrlProvider == null ? null : baseUrlProvider.get();
+    }
 
 }
