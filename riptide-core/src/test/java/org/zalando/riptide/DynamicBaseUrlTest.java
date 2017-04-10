@@ -2,13 +2,10 @@ package org.zalando.riptide;
 
 import java.net.URI;
 import java.util.function.Supplier;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,21 +31,12 @@ public class DynamicBaseUrlTest {
         this.server = setup.getServer();
     }
 
-    @Before
-    @SuppressWarnings("unchecked")
-    public void before() {
-        reset(baseUrlProviderMock);
-    }
-
-    @After
-    public void after() {
-        server.verify();
-    }
-
     @Test
     public void shouldUseDynamicBaseUrl() {
-        expectRequestTo("https://host1.example.com/123");
-        expectRequestTo("https://host2.example.com/123");
+        server.expect(requestTo("https://host1.example.com/123"))
+                .andRespond(withSuccess());
+        server.expect(requestTo("https://host2.example.com/123"))
+                .andRespond(withSuccess());
 
         when(baseUrlProviderMock.get())
                 .thenReturn(URI.create("https://host1.example.com"), URI.create("https://host2.example.com"));
@@ -61,12 +49,7 @@ public class DynamicBaseUrlTest {
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 
+        server.verify();
         verify(baseUrlProviderMock, times(2)).get();
     }
-
-    private void expectRequestTo(final String url) {
-        server.expect(requestTo(url))
-                .andRespond(withSuccess());
-    }
-
 }
