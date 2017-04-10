@@ -23,7 +23,7 @@ public final class Rest {
             final Supplier<URI> baseUrlProvider, final Plugin plugin) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
-        this.baseUrlProvider = checkNotNull(baseUrlProvider, "baseUrl provider");
+        this.baseUrlProvider = checkNotNull(baseUrlProvider, "base url provider");
         this.arguments = RequestArguments.create();
         this.plugin = plugin;
     }
