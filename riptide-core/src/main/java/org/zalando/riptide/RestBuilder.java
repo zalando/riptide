@@ -60,10 +60,10 @@ public final class RestBuilder {
     }
 
     public RestBuilder baseUrl(@Nullable final URI baseUrl) {
-        return baseUrlProvider(() -> baseUrl);
+        return baseUrl(() -> baseUrl);
     }
 
-    public RestBuilder baseUrlProvider(final Supplier<URI> baseUrlProvider) {
+    public RestBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
         this.baseUrlProvider = baseUrlProvider;
         return this;
     }

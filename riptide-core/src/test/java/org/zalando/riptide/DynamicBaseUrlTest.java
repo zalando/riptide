@@ -30,7 +30,7 @@ public class DynamicBaseUrlTest {
     public DynamicBaseUrlTest() {
         final MockSetup setup = new MockSetup();
 
-        this.unit = setup.getRestBuilder().baseUrlProvider(baseUrlProviderMock).build();
+        this.unit = setup.getRestBuilder().baseUrl(baseUrlProviderMock).build();
         this.server = setup.getServer();
     }
 
