@@ -8,13 +8,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
 public interface RequestArguments {
-    
+
     URI getBaseUrl();
 
     HttpMethod getMethod();
@@ -52,15 +52,34 @@ public interface RequestArguments {
     RequestArguments withBody(@Nullable Object body);
 
     default RequestArguments withRequestUri() {
-        // expand uri template
-        final URI uri = Optional.ofNullable(getUri())
-                .orElseGet(() -> fromUriString(getUriTemplate())
+        final URI uri = getUri();
+
+        final URI toResolve;
+        if (uri != null) {
+            toResolve = uri;
+        } else {
+            final String uriTemplate = getUriTemplate();
+            if (uriTemplate != null) {
+                // expand uri template
+                toResolve = fromUriString(uriTemplate)
                         .buildAndExpand(getUriVariables().toArray())
                         .encode()
-                        .toUri());
+                        .toUri();
+            } else {
+                toResolve = null;
+            }
+        }
 
-        // resolve uri against base url
-        final URI resolved = getBaseUrl() == null ? uri : getBaseUrl().resolve(uri);
+        final URI baseUrl = getBaseUrl();
+
+        final URI resolved;
+        if (toResolve == null) {
+            resolved = checkNotNull(baseUrl, "base url required");
+        } else if (baseUrl == null) {
+            resolved = toResolve;
+        } else {
+            resolved = baseUrl.resolve(toResolve);
+        }
 
         // encode query params
         final MultiValueMap<String, String> queryParams;

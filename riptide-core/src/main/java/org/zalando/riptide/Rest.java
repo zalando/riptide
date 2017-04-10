@@ -36,12 +36,20 @@ public final class Rest {
         return execute(HttpMethod.GET, uri);
     }
 
+    public final Requester get() {
+        return execute(HttpMethod.GET);
+    }
+
     public final Requester head(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.HEAD, uriTemplate, urlVariables);
     }
 
     public final Requester head(final URI uri) {
         return execute(HttpMethod.HEAD, uri);
+    }
+
+    public final Requester head() {
+        return execute(HttpMethod.HEAD);
     }
 
     public final Requester post(final String uriTemplate, final Object... urlVariables) {
@@ -52,12 +60,20 @@ public final class Rest {
         return execute(HttpMethod.POST, uri);
     }
 
+    public final Requester post() {
+        return execute(HttpMethod.POST);
+    }
+
     public final Requester put(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PUT, uriTemplate, urlVariables);
     }
 
     public final Requester put(final URI uri) {
         return execute(HttpMethod.PUT, uri);
+    }
+
+    public final Requester put() {
+        return execute(HttpMethod.PUT);
     }
 
     public final Requester patch(final String uriTemplate, final Object... urlVariables) {
@@ -68,12 +84,20 @@ public final class Rest {
         return execute(HttpMethod.PATCH, uri);
     }
 
+    public final Requester patch() {
+        return execute(HttpMethod.PATCH);
+    }
+
     public final Requester delete(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.DELETE, uriTemplate, urlVariables);
     }
 
     public final Requester delete(final URI uri) {
         return execute(HttpMethod.DELETE, uri);
+    }
+
+    public final Requester delete() {
+        return execute(HttpMethod.DELETE);
     }
 
     public final Requester options(final String uriTemplate, final Object... urlVariables) {
@@ -84,6 +108,10 @@ public final class Rest {
         return execute(HttpMethod.OPTIONS, uri);
     }
 
+    public final Requester options() {
+        return execute(HttpMethod.OPTIONS);
+    }
+
     public final Requester trace(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.TRACE, uriTemplate, urlVariables);
     }
@@ -92,19 +120,29 @@ public final class Rest {
         return execute(HttpMethod.TRACE, uri);
     }
 
+    public final Requester trace() {
+        return execute(HttpMethod.TRACE);
+    }
+
     public Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
-                .withBaseUrl(baseUrlProvider.get())
                 .withMethod(method)
+                .withBaseUrl(baseUrlProvider.get())
                 .withUriTemplate(uriTemplate)
                 .withUriVariables(ImmutableList.copyOf(uriVariables)));
     }
 
     public Requester execute(final HttpMethod method, final URI uri) {
         return execute(arguments
-                .withBaseUrl(baseUrlProvider.get())
                 .withMethod(method)
+                .withBaseUrl(baseUrlProvider.get())
                 .withUri(uri));
+    }
+
+    public Requester execute(final HttpMethod method) {
+        return execute(arguments
+                .withMethod(method)
+                .withBaseUrl(baseUrlProvider.get()));
     }
 
     private Requester execute(final RequestArguments arguments) {
