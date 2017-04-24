@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 
@@ -52,33 +53,33 @@ public interface RequestArguments {
     RequestArguments withBody(@Nullable Object body);
 
     default RequestArguments withRequestUri() {
-        final URI uri = getUri();
+        @Nullable final URI uri = getUri();
+        @Nullable final URI unresolvedUri;
 
-        final URI toResolve;
-        if (uri != null) {
-            toResolve = uri;
-        } else {
+        if (uri == null) {
             final String uriTemplate = getUriTemplate();
-            if (uriTemplate != null) {
+            if (uriTemplate == null) {
+                unresolvedUri = null;
+            } else {
                 // expand uri template
-                toResolve = fromUriString(uriTemplate)
+                unresolvedUri = fromUriString(uriTemplate)
                         .buildAndExpand(getUriVariables().toArray())
                         .encode()
                         .toUri();
-            } else {
-                toResolve = null;
             }
+        } else {
+            unresolvedUri = uri;
         }
 
-        final URI baseUrl = getBaseUrl();
+        @Nullable final URI baseUrl = getBaseUrl();
+        @Nonnull final URI resolvedUri;
 
-        final URI resolved;
-        if (toResolve == null) {
-            resolved = checkNotNull(baseUrl, "base url required");
+        if (unresolvedUri == null) {
+            resolvedUri = checkNotNull(baseUrl, "base url required");
         } else if (baseUrl == null) {
-            resolved = toResolve;
+            resolvedUri = unresolvedUri;
         } else {
-            resolved = baseUrl.resolve(toResolve);
+            resolvedUri = baseUrl.resolve(unresolvedUri);
         }
 
         // encode query params
@@ -91,7 +92,7 @@ public interface RequestArguments {
         }
 
         // build request uri
-        final URI requestUri = fromUri(resolved)
+        final URI requestUri = fromUri(resolvedUri)
                 .queryParams(queryParams)
                 .build(true).normalize().toUri();
 
