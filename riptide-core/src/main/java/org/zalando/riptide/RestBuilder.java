@@ -1,5 +1,7 @@
 package org.zalando.riptide;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -11,8 +13,11 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public final class RestBuilder {
 
@@ -60,12 +65,18 @@ public final class RestBuilder {
     }
 
     public RestBuilder baseUrl(@Nullable final URI baseUrl) {
+        checkAbsoluteBaseUrl(baseUrl);
         return baseUrl(() -> baseUrl);
     }
 
     public RestBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
-        this.baseUrlProvider = baseUrlProvider;
+        this.baseUrlProvider = () -> checkAbsoluteBaseUrl(baseUrlProvider.get());
         return this;
+    }
+
+    private URI checkAbsoluteBaseUrl(@Nullable final URI baseUrl) {
+        checkArgument(baseUrl == null || baseUrl.isAbsolute(), "Base URL is not absolute");
+        return baseUrl;
     }
 
     public RestBuilder defaultPlugins() {

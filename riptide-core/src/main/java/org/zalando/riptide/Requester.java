@@ -19,6 +19,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public final class Requester extends Dispatcher {
 
     private final AsyncClientHttpRequestFactory requestFactory;
@@ -93,7 +95,7 @@ public final class Requester extends Dispatcher {
         private final HttpEntity<?> entity;
         private final RequestArguments arguments;
 
-        public ResponseDispatcher(final HttpEntity<?> entity, final RequestArguments arguments) {
+        ResponseDispatcher(final HttpEntity<?> entity, final RequestArguments arguments) {
             this.entity = entity;
             this.arguments = arguments;
         }
@@ -115,6 +117,7 @@ public final class Requester extends Dispatcher {
 
         private <T> CompletableFuture<ClientHttpResponse> execute(final HttpEntity<T> entity) throws IOException {
             final URI requestUri = arguments.getRequestUri();
+            checkArgument(requestUri.isAbsolute(), "Request URI is not absolute");
             final HttpMethod method = arguments.getMethod();
             final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUri, method);
             worker.write(request, entity);

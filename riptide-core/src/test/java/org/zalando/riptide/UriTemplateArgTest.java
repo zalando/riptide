@@ -43,18 +43,6 @@ public class UriTemplateArgTest {
         return Arrays.asList(new Object[][]{
                 {
                         null,
-                        "/pages/{page}",
-                        new Object[]{0},
-                        "/pages/0",
-                },
-                {
-                        null,
-                        "../pages/{page}",
-                        new Object[]{1},
-                        "../pages/1",
-                },
-                {
-                        null,
                         "https://api.example.com/pages/{page}",
                         new Object[]{2},
                         "https://api.example.com/pages/2",

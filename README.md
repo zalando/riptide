@@ -209,13 +209,20 @@ The following operations are applied to URI Templates (`get(String, Object...)`)
 
 The following table shows some examples how URIs are resolved against Base URLs:
 
-| Base URL                 | URI / URI Template      | Request URI                 |
+| Base URL                 | URI / URI Template      | Result                      |
 |--------------------------|-------------------------|-----------------------------|
 | https://example.com      | /foo                    | https://example.com/foo     |
+| https://example.com      | foo                     | https://example.com/foo     |
 | https://example.com      | https://example.org/foo | https://example.org/foo     |
 | https://example.com/api  | /foo                    | https://example.com/foo     |
 | https://example.com/api  | foo                     | https://example.com/foo     |
+| https://example.com/api/ | /foo                    | https://example.com/foo     |
 | https://example.com/api/ | foo                     | https://example.com/api/foo |
+| (empty)                  | /foo                    | Exception                   |
+| (empty)                  | https://example.com/foo | https://example.com/foo     |
+| (empty)                  | foo                     | Exception                   |
+
+Relative Base URLs are **not supported**.
 
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.
