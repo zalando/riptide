@@ -35,6 +35,9 @@ import static org.zalando.riptide.exceptions.ExceptionClassifier.create;
 
 public final class TemporaryExceptionPluginTest {
 
+    private static final int SOCKET_TIMEOUT = 1000;
+    private static final int DELAY = 2000;
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
@@ -43,7 +46,7 @@ public final class TemporaryExceptionPluginTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
-                .setSocketTimeout(500)
+                .setSocketTimeout(SOCKET_TIMEOUT)
                 .build())
             .build();
 
@@ -60,7 +63,7 @@ public final class TemporaryExceptionPluginTest {
         final Rest unit = newUnit(new TemporaryExceptionPlugin());
 
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().after(1000, TimeUnit.MILLISECONDS));
+                giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(TemporaryException.class));
@@ -75,7 +78,7 @@ public final class TemporaryExceptionPluginTest {
         final Rest unit = newUnit(new TemporaryExceptionPlugin(create()));
 
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().after(1000, TimeUnit.MILLISECONDS));
+                giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(SocketTimeoutException.class));
