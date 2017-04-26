@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 final class ListenableCompletableFutureAdapter<T> extends CompletableFuture<T> {
 
-    private ListenableFuture<T> future;
+    private final ListenableFuture<T> future;
 
     ListenableCompletableFutureAdapter(final ListenableFuture<T> future) {
         this.future = future;
