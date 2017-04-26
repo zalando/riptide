@@ -20,11 +20,11 @@ public final class Rest {
     private final Plugin plugin;
 
     Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final Supplier<URI> baseUrlProvider, final Plugin plugin) {
+            final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
         this.baseUrlProvider = checkNotNull(baseUrlProvider, "base url provider");
-        this.arguments = RequestArguments.create();
+        this.arguments = RequestArguments.create().withUrlResolution(resolution);
         this.plugin = plugin;
     }
 

@@ -18,6 +18,8 @@ public interface RequestArguments {
 
     URI getBaseUrl();
 
+    UrlResolution getUrlResolution();
+
     HttpMethod getMethod();
 
     String getUriTemplate();
@@ -35,6 +37,8 @@ public interface RequestArguments {
     Object getBody();
 
     RequestArguments withBaseUrl(@Nullable URI baseUrl);
+
+    RequestArguments withUrlResolution(@Nullable UrlResolution resolution);
 
     RequestArguments withMethod(@Nullable HttpMethod method);
 
@@ -79,7 +83,7 @@ public interface RequestArguments {
         } else if (baseUrl == null) {
             resolvedUri = unresolvedUri;
         } else {
-            resolvedUri = baseUrl.resolve(unresolvedUri);
+            resolvedUri = getUrlResolution().resolve(baseUrl, unresolvedUri);
         }
 
         // encode query params
@@ -100,8 +104,8 @@ public interface RequestArguments {
     }
 
     static RequestArguments create() {
-        return new DefaultRequestArguments(null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(), null,
-                ImmutableMultimap.of(), null);
+        return new DefaultRequestArguments(null, null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(),
+                null, ImmutableMultimap.of(), null);
     }
 
 }
