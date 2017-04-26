@@ -33,7 +33,7 @@ public final class MockSetup {
         this("https://api.example.com", null);
     }
 
-    public MockSetup(final String baseUrl) {
+    public MockSetup(@Nullable final String baseUrl) {
         this(baseUrl, null);
     }
 
