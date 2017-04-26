@@ -222,6 +222,8 @@ The following table shows some examples how URIs are resolved against Base URLs:
 | (empty)                  | https://example.com/foo | https://example.com/foo     |
 | (empty)                  | foo                     | Exception                   |
 
+Relative Base URLs are **not supported**.
+
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.
 
