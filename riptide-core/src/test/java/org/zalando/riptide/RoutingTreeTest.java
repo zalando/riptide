@@ -12,6 +12,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -186,6 +187,24 @@ public class RoutingTreeTest {
 
     private MockClientHttpResponse response(final HttpStatus status) {
         return new MockClientHttpResponse((byte[]) null, status);
+    }
+
+    @Test
+    public void shouldUseNavigatorsToString() {
+        final RoutingTree<String> unit = RoutingTree.dispatch(new Navigator<String>() {
+            @Override
+            public Optional<Route> navigate(final ClientHttpResponse response,
+                    final RoutingTree<String> tree) throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public String toString() {
+                return "test";
+            }
+        });
+
+        assertThat(unit.toString(), is("test"));
     }
 
 }

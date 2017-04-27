@@ -61,6 +61,7 @@
         <module>riptide-capture</module>
         <module>riptide-core</module>
         <module>riptide-exceptions</module>
+        <module>riptide-graphviz</module>
         <module>riptide-httpclient</module>
         <module>riptide-hystrix</module>
         <module>riptide-problem</module>
@@ -94,6 +95,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-exceptions</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-graphviz</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -136,7 +142,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>19.0</version>
+                <version>21.0</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>

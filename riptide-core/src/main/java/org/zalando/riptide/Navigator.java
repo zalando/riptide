@@ -28,4 +28,8 @@ public interface Navigator<A> {
         return new ArrayList<>(bindings.values());
     }
 
+    default String toString(final A attribute) {
+        return attribute.toString();
+    }
+
 }

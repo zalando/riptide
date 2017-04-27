@@ -17,4 +17,14 @@ enum SeriesNavigator implements EqualityNavigator<Series> {
         return response.getStatusCode().series();
     }
 
+    @Override
+    public String toString(final Series attribute) {
+        return attribute.value() + "xx";
+    }
+
+    @Override
+    public String toString() {
+        return "Series";
+    }
+
 }

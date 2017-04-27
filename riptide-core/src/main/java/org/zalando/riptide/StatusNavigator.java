@@ -17,4 +17,9 @@ enum StatusNavigator implements EqualityNavigator<HttpStatus> {
         return response.getStatusCode();
     }
 
+    @Override
+    public String toString() {
+        return "Status";
+    }
+
 }

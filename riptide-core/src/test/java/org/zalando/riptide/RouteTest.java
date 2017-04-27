@@ -38,6 +38,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.Route.headers;
 import static org.zalando.riptide.Route.location;
 import static org.zalando.riptide.Route.noRoute;
@@ -206,6 +207,16 @@ public final class RouteTest {
 
     private void fail(final ClientHttpResponse response) throws IOException {
         throw new AssertionError(response.getRawStatusCode());
+    }
+
+    @Test
+    public void shouldNameConsumers() {
+        assertThat(call(pass()), hasToString("Pass"));
+    }
+
+    @Test
+    public void shouldNameRandomRoutes() {
+        assertThat(call(() -> {}), hasToString("<code>"));
     }
 
 }
