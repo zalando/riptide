@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
@@ -79,8 +80,9 @@ public interface RequestArguments {
         @Nonnull final URI resolvedUri;
 
         if (unresolvedUri == null) {
-            resolvedUri = checkNotNull(baseUrl, "base url required");
-        } else if (baseUrl == null) {
+            checkArgument(baseUrl != null, "Either Base URL or absolute Request URI is required");
+            resolvedUri = baseUrl;
+        } else if (baseUrl == null || unresolvedUri.isAbsolute()) {
             resolvedUri = unresolvedUri;
         } else {
             resolvedUri = getUrlResolution().resolve(baseUrl, unresolvedUri);
@@ -99,6 +101,8 @@ public interface RequestArguments {
         final URI requestUri = fromUri(resolvedUri)
                 .queryParams(queryParams)
                 .build(true).normalize().toUri();
+
+        checkArgument(requestUri.isAbsolute(), "Request URI is not absolute");
 
         return withRequestUri(requestUri);
     }
