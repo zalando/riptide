@@ -8,7 +8,10 @@ import java.net.URI;
 public enum UrlResolution {
 
     /**
-     * TODO document
+     * Resolves a given relativce URI by following the rules defined in RFC 3986.
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc3986">RFC 3986</a>
+     * @see URI#resolve(URI)
      */
     RFC {
         @Override
@@ -18,7 +21,9 @@ public enum UrlResolution {
     },
 
     /**
-     * TODO document
+     * Resolves a given relative URI by appending its path to and merging its query parameters with the given base URL.
+     *
+     * @see UriComponentsBuilder#pathSegment(String...)
      */
     APPEND {
         @Override
