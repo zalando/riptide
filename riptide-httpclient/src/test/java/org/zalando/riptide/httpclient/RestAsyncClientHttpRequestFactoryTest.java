@@ -12,9 +12,11 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -66,7 +68,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     }
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
-    private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
+    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Rest rest = Rest.builder()

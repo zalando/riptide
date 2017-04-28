@@ -9,7 +9,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class RestAsyncClientHttpResponse implements ClientHttpResponse {
+final class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;
 
@@ -34,11 +34,13 @@ class RestAsyncClientHttpResponse implements ClientHttpResponse {
 
     @Override
     public InputStream getBody() throws IOException {
-        return new FilterInputStream(response.getBody()) {
+        final InputStream body = response.getBody();
+        return new FilterInputStream(body) {
             @Override
             public void close() throws IOException {
-                if (in instanceof ConnectionReleaseTrigger) {
-                    ((ConnectionReleaseTrigger) in).abortConnection();
+                if (body instanceof ConnectionReleaseTrigger) {
+                    // effectively releasing the connection back to the pool in order to prevent starvation
+                    ConnectionReleaseTrigger.class.cast(body).abortConnection();
                 }
                 super.close();
             }

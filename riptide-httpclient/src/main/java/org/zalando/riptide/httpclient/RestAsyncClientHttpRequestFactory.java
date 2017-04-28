@@ -22,11 +22,12 @@ public class RestAsyncClientHttpRequestFactory implements ClientHttpRequestFacto
     private final AsyncListenableTaskExecutor executor;
 
     public RestAsyncClientHttpRequestFactory(final HttpClient client, final AsyncListenableTaskExecutor executor) {
+        final RequestConfig config = Configurable.class.cast(client).getConfig();
+
         this.factory = new HttpComponentsClientHttpRequestFactory(client) {
             @Override
             protected void postProcessHttpRequest(final HttpUriRequest request) {
-                // TODO find a cleaner way to do this
-                final RequestConfig config = Configurable.class.cast(client).getConfig();
+                // restore the client's request settings that are incorrectly handled by spring
                 HttpRequestBase.class.cast(request).setConfig(config);
             }
         };
