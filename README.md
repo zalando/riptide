@@ -212,34 +212,38 @@ based on the chosen resolution strategy:
 
 | Base URL                   | Resolution | URI / URI Template        | Result                        |
 |----------------------------|------------|---------------------------|-------------------------------|
-|`https://example.com`|`RFC`| |`https://example.com`|
-|`https://example.com/`|`RFC`| |`https://example.com/`|
+|`https://example.com`|`RFC`|`null`|`https://example.com`|
+|`https://example.com/`|`RFC`|`null`|`https://example.com/`|
+|`https://example.com`|`RFC`|(empty)|`https://example.com`|
+|`https://example.com/`|`RFC`|(empty)|`https://example.com/`|
 |`https://example.com`|`RFC`|`https://example.org/foo`|`https://example.org/foo`|
-|`https://example.com`|`RFC`|`/foo`|`https://example.com/foo`|
-|`https://example.com`|`RFC`|`foo`|`https://example.com/foo`|
-|`https://example.com/api`|`RFC`|`/foo`|`https://example.com/foo`|
-|`https://example.com/api`|`RFC`|`foo`|`https://example.com/foo`|
-|`https://example.com/api/`|`RFC`|`/foo`|`https://example.com/foo`|
-|`https://example.com/api/`|`RFC`|`foo`|`https://example.com/api/foo`|
-| |`RFC`|`https://example.com/foo`|`https://example.com/foo`|
+|`https://example.com`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com`|`RFC`|`foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com/api`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com/api`|`RFC`|`foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com/api/`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com/api/`|`RFC`|`foo/bar`|`https://example.com/api/foo/bar`|
+|`null`|`RFC`|`https://example.com/foo`|`https://example.com/foo`|
 |`/foo`|`RFC`|`/`|Exception|
-| |`RFC`| |Exception|
-| |`RFC`|`/foo`|Exception|
-| |`RFC`|`foo`|Exception|
-|`https://example.com`|`APPEND`| |`https://example.com`|
-|`https://example.com/`|`APPEND`| |`https://example.com/`|
+|`null`|`RFC`|`null`|Exception|
+|`null`|`RFC`|`/foo`|Exception|
+|`null`|`RFC`|`foo`|Exception|
+|`https://example.com`|`APPEND`|`null`|`https://example.com`|
+|`https://example.com/`|`APPEND`|`null`|`https://example.com/`|
+|`https://example.com`|`APPEND`|(empty)|`https://example.com`|
+|`https://example.com/`|`APPEND`|(empty)|`https://example.com/`|
 |`https://example.com`|`APPEND`|`https://example.org/foo`|`https://example.org/foo`|
-|`https://example.com`|`APPEND`|`/foo`|`https://example.com/foo`|
-|`https://example.com`|`APPEND`|`foo`|`https://example.com/foo`|
-|`https://example.com/api`|`APPEND`|`/foo`|`https://example.com/api/foo`|
-|`https://example.com/api`|`APPEND`|`foo`|`https://example.com/api/foo`|
-|`https://example.com/api/`|`APPEND`|`/foo`|`https://example.com/api/foo`|
-|`https://example.com/api/`|`APPEND`|`foo`|`https://example.com/api/foo`|
-| |`APPEND`|`https://example.com/foo`|`https://example.com/foo`|
+|`https://example.com`|`APPEND`|`/foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com`|`APPEND`|`foo/bar`|`https://example.com/foo/bar`|
+|`https://example.com/api`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
+|`https://example.com/api`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
+|`https://example.com/api/`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
+|`https://example.com/api/`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
+|`null`|`APPEND`|`https://example.com/foo`|`https://example.com/foo`|
 |`/foo`|`APPEND`|`/`|Exception|
-| |`APPEND`| |Exception|
-| |`APPEND`|`/foo`|Exception|
-| |`APPEND`|`foo`|Exception|
+|`null`|`APPEND`|`null`|Exception|
+|`null`|`APPEND`|`/foo`|Exception|
+|`null`|`APPEND`|`foo`|Exception|
 
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.

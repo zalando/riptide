@@ -1,8 +1,12 @@
 package org.zalando.riptide;
 
+import com.google.common.base.Strings;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.Nullable;
 import java.net.URI;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 // TODO introduce UrlResolutionStrategy interface in the future, if needed
 public enum UrlResolution {
@@ -28,9 +32,16 @@ public enum UrlResolution {
     APPEND {
         @Override
         URI resolve(final URI baseUrl, final URI uri) {
-            return UriComponentsBuilder.fromUri(baseUrl)
-                    .pathSegment(uri.getRawPath())
-                    .query(uri.getRawQuery())
+            final UriComponentsBuilder builder = UriComponentsBuilder.fromUri(baseUrl);
+
+            @Nullable final String path = uri.getRawPath();
+
+            if (!nullToEmpty(path).isEmpty()) {
+                builder.path("/").path(path);
+            }
+
+            return builder
+                    .replaceQuery(uri.getRawQuery())
                     .build()
                     .toUri();
         }

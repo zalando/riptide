@@ -63,7 +63,7 @@ public interface RequestArguments {
 
         if (uri == null) {
             final String uriTemplate = getUriTemplate();
-            if (uriTemplate == null) {
+            if (uriTemplate == null || uriTemplate.isEmpty()) {
                 unresolvedUri = null;
             } else {
                 // expand uri template

@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import lombok.Value;
@@ -15,6 +14,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -65,13 +65,15 @@ public class RequestUriTest {
         return ImmutableSet.of(
                 new TestCase("https://example.com", RFC, null, uri("https://example.com")),
                 new TestCase("https://example.com/", RFC, null, uri("https://example.com/")),
+                new TestCase("https://example.com", RFC, "", uri("https://example.com")),
+                new TestCase("https://example.com/", RFC, "", uri("https://example.com/")),
                 new TestCase("https://example.com", RFC, "https://example.org/foo", uri("https://example.org/foo")),
-                new TestCase("https://example.com", RFC, "/foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com", RFC, "foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com/api", RFC, "/foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com/api", RFC, "foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com/api/", RFC, "/foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com/api/", RFC, "foo", uri("https://example.com/api/foo")),
+                new TestCase("https://example.com", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com", RFC, "foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com/api", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com/api", RFC, "foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com/api/", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com/api/", RFC, "foo/bar", uri("https://example.com/api/foo/bar")),
                 new TestCase(null, RFC, "https://example.com/foo", uri("https://example.com/foo")),
                 new TestCase("/foo", RFC, "/", error("Base URL is not absolute")),
                 new TestCase(null, RFC, null, error("Either Base URL or absolute Request URI is required")),
@@ -79,13 +81,15 @@ public class RequestUriTest {
                 new TestCase(null, RFC, "foo", error("Request URI is not absolute")),
                 new TestCase("https://example.com", APPEND, null, uri("https://example.com")),
                 new TestCase("https://example.com/", APPEND, null, uri("https://example.com/")),
+                new TestCase("https://example.com", APPEND, "", uri("https://example.com")),
+                new TestCase("https://example.com/", APPEND, "", uri("https://example.com/")),
                 new TestCase("https://example.com", APPEND, "https://example.org/foo", uri("https://example.org/foo")),
-                new TestCase("https://example.com", APPEND, "/foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com", APPEND, "foo", uri("https://example.com/foo")),
-                new TestCase("https://example.com/api", APPEND, "/foo", uri("https://example.com/api/foo")),
-                new TestCase("https://example.com/api", APPEND, "foo", uri("https://example.com/api/foo")),
-                new TestCase("https://example.com/api/", APPEND, "/foo", uri("https://example.com/api/foo")),
-                new TestCase("https://example.com/api/", APPEND, "foo", uri("https://example.com/api/foo")),
+                new TestCase("https://example.com", APPEND, "/foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com", APPEND, "foo/bar", uri("https://example.com/foo/bar")),
+                new TestCase("https://example.com/api", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
+                new TestCase("https://example.com/api", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
+                new TestCase("https://example.com/api/", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
+                new TestCase("https://example.com/api/", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
                 new TestCase(null, APPEND, "https://example.com/foo", uri("https://example.com/foo")),
                 new TestCase("/foo", APPEND, "/", error("Base URL is not absolute")),
                 new TestCase(null, APPEND, null, error("Either Base URL or absolute Request URI is required")),
@@ -222,11 +226,11 @@ public class RequestUriTest {
                             test.getResult().toString());
 
                     return row
-                            .map(Strings::nullToEmpty)
+                            .map(Objects::toString)
                             .map(cell -> {
                                 switch (cell) {
                                     case "":
-                                        return " ";
+                                        return "(empty)";
                                     case "Exception":
                                         return cell;
                                     default:
