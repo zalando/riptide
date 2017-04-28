@@ -216,6 +216,8 @@ based on the chosen resolution strategy:
 |`https://example.com/`|`RFC`|`null`|`https://example.com/`|
 |`https://example.com`|`RFC`|(empty)|`https://example.com`|
 |`https://example.com/`|`RFC`|(empty)|`https://example.com/`|
+|`https://example.com`|`RFC`|`/`|`https://example.com/`|
+|`https://example.com/`|`RFC`|`/`|`https://example.com/`|
 |`https://example.com`|`RFC`|`https://example.org/foo`|`https://example.org/foo`|
 |`https://example.com`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
 |`https://example.com`|`RFC`|`foo/bar`|`https://example.com/foo/bar`|
@@ -232,6 +234,8 @@ based on the chosen resolution strategy:
 |`https://example.com/`|`APPEND`|`null`|`https://example.com/`|
 |`https://example.com`|`APPEND`|(empty)|`https://example.com`|
 |`https://example.com/`|`APPEND`|(empty)|`https://example.com/`|
+|`https://example.com`|`APPEND`|`/`|`https://example.com/`|
+|`https://example.com/`|`APPEND`|`/`|`https://example.com/`|
 |`https://example.com`|`APPEND`|`https://example.org/foo`|`https://example.org/foo`|
 |`https://example.com`|`APPEND`|`/foo/bar`|`https://example.com/foo/bar`|
 |`https://example.com`|`APPEND`|`foo/bar`|`https://example.com/foo/bar`|
