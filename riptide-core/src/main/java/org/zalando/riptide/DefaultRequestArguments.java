@@ -24,6 +24,9 @@ public final class DefaultRequestArguments implements RequestArguments {
     URI baseUrl;
 
     @Wither
+    UrlResolution urlResolution;
+
+    @Wither
     String uriTemplate;
 
     @Wither

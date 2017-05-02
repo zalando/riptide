@@ -39,6 +39,7 @@ public final class DefaultRequestArgumentsTest<T> {
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] {
                 {new Assertion<>(RequestArguments::withBaseUrl, URI.create("https://api.example.com"), RequestArguments::getBaseUrl)},
+                {new Assertion<>(RequestArguments::withUrlResolution, UrlResolution.APPEND, RequestArguments::getUrlResolution)},
                 {new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod)},
                 {new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate)},
                 {new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables)},

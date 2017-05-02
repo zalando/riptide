@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
@@ -17,6 +18,8 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 public interface RequestArguments {
 
     URI getBaseUrl();
+
+    UrlResolution getUrlResolution();
 
     HttpMethod getMethod();
 
@@ -35,6 +38,8 @@ public interface RequestArguments {
     Object getBody();
 
     RequestArguments withBaseUrl(@Nullable URI baseUrl);
+
+    RequestArguments withUrlResolution(@Nullable UrlResolution resolution);
 
     RequestArguments withMethod(@Nullable HttpMethod method);
 
@@ -58,7 +63,7 @@ public interface RequestArguments {
 
         if (uri == null) {
             final String uriTemplate = getUriTemplate();
-            if (uriTemplate == null) {
+            if (uriTemplate == null || uriTemplate.isEmpty()) {
                 unresolvedUri = null;
             } else {
                 // expand uri template
@@ -75,11 +80,12 @@ public interface RequestArguments {
         @Nonnull final URI resolvedUri;
 
         if (unresolvedUri == null) {
-            resolvedUri = checkNotNull(baseUrl, "base url required");
-        } else if (baseUrl == null) {
+            checkArgument(baseUrl != null, "Either Base URL or absolute Request URI is required");
+            resolvedUri = baseUrl;
+        } else if (baseUrl == null || unresolvedUri.isAbsolute()) {
             resolvedUri = unresolvedUri;
         } else {
-            resolvedUri = baseUrl.resolve(unresolvedUri);
+            resolvedUri = getUrlResolution().resolve(baseUrl, unresolvedUri);
         }
 
         // encode query params
@@ -96,12 +102,14 @@ public interface RequestArguments {
                 .queryParams(queryParams)
                 .build(true).normalize().toUri();
 
+        checkArgument(requestUri.isAbsolute(), "Request URI is not absolute");
+
         return withRequestUri(requestUri);
     }
 
     static RequestArguments create() {
-        return new DefaultRequestArguments(null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(), null,
-                ImmutableMultimap.of(), null);
+        return new DefaultRequestArguments(null, null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(),
+                null, ImmutableMultimap.of(), null);
     }
 
 }

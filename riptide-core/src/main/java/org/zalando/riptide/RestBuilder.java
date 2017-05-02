@@ -1,7 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -13,10 +11,10 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public final class RestBuilder {
@@ -32,9 +30,12 @@ public final class RestBuilder {
                 ImmutableList.of(new OriginalStackTracePlugin());
     }
 
+    private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;
+
     private AsyncClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
     private Supplier<URI> baseUrlProvider = () -> null;
+    private UrlResolution resolution = DEFAULT_RESOLUTION;
     private final List<Plugin> plugins = new ArrayList<>();
 
     RestBuilder() {
@@ -79,6 +80,11 @@ public final class RestBuilder {
         return baseUrl;
     }
 
+    public RestBuilder urlResolution(@Nullable final UrlResolution resolution) {
+        this.resolution = firstNonNull(resolution, DEFAULT_RESOLUTION);
+        return this;
+    }
+
     public RestBuilder defaultPlugins() {
         return plugins(Plugins.DEFAULT);
     }
@@ -107,7 +113,7 @@ public final class RestBuilder {
     }
 
     public Rest build() {
-        return new Rest(requestFactory, converters(), baseUrlProvider, plugin());
+        return new Rest(requestFactory, converters(), baseUrlProvider, resolution, plugin());
     }
 
     private List<HttpMessageConverter<?>> converters() {
