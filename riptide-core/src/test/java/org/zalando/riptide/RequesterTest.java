@@ -89,14 +89,15 @@ public class RequesterTest {
 
     @Test
     public void shouldAppendQueryParams() {
-        server.expect(requestTo("https://api.example.com?foo=bar&foo=baz&bar=null"))
+        server.expect(requestTo("https://api.example.com?foo=true&foo=null&foo=bar&bar=123"))
                 .andRespond(withSuccess());
 
         unit.head("https://api.example.com")
-                .queryParam("foo", "bar")
+                .queryParam("foo", true)
+                .queryParam("foo", null)
                 .queryParams(ImmutableMultimap.of(
-                        "foo", "baz",
-                        "bar", "null"
+                        "foo", "bar",
+                        "bar", 123
                 ))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

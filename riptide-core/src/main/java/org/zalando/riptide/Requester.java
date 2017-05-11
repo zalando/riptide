@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,7 +18,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+
+import static com.google.common.collect.Multimaps.transformValues;
 
 public final class Requester extends Dispatcher {
 
@@ -37,13 +41,13 @@ public final class Requester extends Dispatcher {
         this.plugin = plugin;
     }
 
-    public final Requester queryParam(final String name, final String value) {
-        query.put(name, value);
+    public final Requester queryParam(final String name, @Nullable final Object value) {
+        query.put(name, Objects.toString(value));
         return this;
     }
 
-    public final Requester queryParams(final Multimap<String, String> params) {
-        query.putAll(params);
+    public final Requester queryParams(final Multimap<String, Object> params) {
+        query.putAll(transformValues(params, Objects::toString));
         return this;
     }
 
