@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Route;
 
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
  * receive infinite streams using application/x-json-stream and application/json-seq format, as well as simple finite
  * streams from lists and arrays. The feature must be enabled by registering the {@link StreamConverter} with Riptide
- * (using {@link Streams#streamConverter()}) and declare a route for your stream that is calling a the stream consumer
+ * (using {@link Streams#streamConverter(ObjectMapper)} and declare a route for your stream that is calling a the stream consumer
  * as follows:
  * 
  * <pre>
@@ -111,11 +111,9 @@ public final class Streams {
     /**
      * Create default stream converter.
      *
-     * @deprecated use {@link #streamConverter(ObjectMapper)} or {@link #streamConverter(ObjectMapper, List)}
      * @return default stream converter.
      */
-    @Deprecated
-    public static HttpMessageConverter<?> streamConverter() {
+    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter() {
         return streamConverter(new ObjectMapper());
     }
 
@@ -126,7 +124,7 @@ public final class Streams {
      * 
      * @return stream converter with customer object mapper.
      */
-    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper) {
+    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter(final ObjectMapper mapper) {
         return streamConverter(mapper, Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
     }
 
@@ -139,8 +137,9 @@ public final class Streams {
      * 
      * @return stream converter with customer object mapper.
      */
-    public static HttpMessageConverter<?> streamConverter(final ObjectMapper mapper,
+    @SuppressWarnings("unchecked")
+    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter(final ObjectMapper mapper,
             final List<MediaType> supportedMediaTypes) {
-        return new StreamConverter<>(mapper, supportedMediaTypes);
+        return new StreamConverter(mapper, supportedMediaTypes);
     }
 }
