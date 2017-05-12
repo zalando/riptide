@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Route;
 
@@ -113,7 +112,7 @@ public final class Streams {
      *
      * @return default stream converter.
      */
-    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter() {
+    public static <T> StreamConverter<T> streamConverter() {
         return streamConverter(new ObjectMapper());
     }
 
@@ -124,7 +123,7 @@ public final class Streams {
      * 
      * @return stream converter with customer object mapper.
      */
-    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter(final ObjectMapper mapper) {
+    public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper) {
         return streamConverter(mapper, Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
     }
 
@@ -138,7 +137,7 @@ public final class Streams {
      * @return stream converter with customer object mapper.
      */
     @SuppressWarnings("unchecked")
-    public static <T> GenericHttpMessageConverter<Stream<T>> streamConverter(final ObjectMapper mapper,
+    public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper,
             final List<MediaType> supportedMediaTypes) {
         return new StreamConverter(mapper, supportedMediaTypes);
     }
