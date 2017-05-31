@@ -6,7 +6,6 @@ public final class Message {
 
     private final String message;
 
-    // TODO @JsonProperty shouldn't be necessary here...
     public Message(@JsonProperty("message") final String message) {
         this.message = message;
     }

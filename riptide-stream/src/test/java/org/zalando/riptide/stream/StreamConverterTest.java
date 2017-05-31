@@ -11,6 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -39,6 +39,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
+import static org.zalando.riptide.stream.Streams.streamConverter;
 
 public class StreamConverterTest {
 
@@ -47,30 +48,22 @@ public class StreamConverterTest {
 
     @Test
     public void shouldSupportMediaTypes() throws Exception {
-        final List<MediaType> medias = new StreamConverter<>().getSupportedMediaTypes();
+        final List<MediaType> medias = streamConverter().getSupportedMediaTypes();
         assertThat(medias, hasItem(APPLICATION_X_JSON_STREAM));
         assertThat(medias, hasItem(APPLICATION_JSON_SEQ));
     }
 
     @Test
     public void shouldSupportRead() throws Exception {
-        final ObjectMapper mapper = mock(ObjectMapper.class);
-        final TypeFactory factory = new ObjectMapper().getTypeFactory();
-        when(mapper.getTypeFactory()).thenReturn(factory);
-        when(mapper.canDeserialize(any())).thenReturn(true);
-        final StreamConverter<?> unit = new StreamConverter<>(mapper, singletonList(APPLICATION_JSON));
+        final HttpMessageConverter<Stream<Object>> unit = streamConverter(new ObjectMapper(), singletonList(APPLICATION_JSON));
 
         assertFalse(unit.canRead(Object.class, APPLICATION_XML));
         assertFalse(unit.canRead(Stream.class, APPLICATION_JSON));
-
-        assertTrue(unit.canRead(Object.class, APPLICATION_JSON));
-        assertTrue(unit.canRead(List.class, APPLICATION_JSON));
-        assertTrue(unit.canRead(List[].class, APPLICATION_JSON));
-        assertTrue(unit.canRead(AccountBody.class, null));
-        assertTrue(unit.canRead(AccountBody[].class, null));
-
-        when(mapper.canDeserialize(factory.constructType(AccountBody.class))).thenReturn(false);
-        assertFalse(unit.canRead(AccountBody.class, APPLICATION_JSON));
+        assertFalse(unit.canRead(Object.class, APPLICATION_JSON));
+        assertFalse(unit.canRead(List.class, APPLICATION_JSON));
+        assertFalse(unit.canRead(List[].class, APPLICATION_JSON));
+        assertFalse(unit.canRead(AccountBody.class, null));
+        assertFalse(unit.canRead(AccountBody[].class, null));
     }
 
     @Test
@@ -79,8 +72,9 @@ public class StreamConverterTest {
         final TypeFactory factory = new ObjectMapper().getTypeFactory();
         when(mapper.getTypeFactory()).thenReturn(factory);
         when(mapper.canDeserialize(any())).thenReturn(true);
-        final StreamConverter<?> unit = new StreamConverter<>(mapper, singletonList(APPLICATION_X_JSON_STREAM));
+        final StreamConverter<Object> unit = streamConverter(mapper, singletonList(APPLICATION_X_JSON_STREAM));
 
+        assertFalse(unit.canRead(Object.class, getClass(), APPLICATION_X_JSON_STREAM));
         assertFalse(unit.canRead(Streams.streamOf(Object.class).getType(), getClass(), APPLICATION_XML));
 
         assertTrue(unit.canRead(Streams.streamOf(List.class).getType(), getClass(), APPLICATION_X_JSON_STREAM));
@@ -94,13 +88,13 @@ public class StreamConverterTest {
 
     @Test
     public void shouldNotSupportWrite() throws Exception {
-        final StreamConverter<?> unit = new StreamConverter<>();
+        final HttpMessageConverter<Stream<AccountBody>> unit = streamConverter();
         assertFalse(unit.canWrite(AccountBody.class, APPLICATION_X_JSON_STREAM));
     }
 
     @Test
     public void shouldNotSupportWriteGeneric() throws Exception {
-        final StreamConverter<?> unit = new StreamConverter<>();
+        final StreamConverter<AccountBody> unit = streamConverter();
         assertFalse(unit.canWrite(Streams.streamOf(AccountBody.class).getType(), null, APPLICATION_X_JSON_STREAM));
     }
 
@@ -112,21 +106,22 @@ public class StreamConverterTest {
         return input;
     }
 
-    @Test
-    public void shouldSupportReadItem() throws Exception {
-        final StreamConverter<AccountBody> unit =
+    @SuppressWarnings("unchecked")
+    @Test(expected = UnsupportedOperationException.class)
+    public void shouldNotSupportReadStream() throws Exception {
+        final StreamConverter unit =
                 new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
-                        singletonList(APPLICATION_JSON));
-        final HttpInputMessage input = mockWithContentType(APPLICATION_JSON);
-        when(input.getBody()).thenReturn(new ClassPathResource("account-item.json").getInputStream());
+                        singletonList(APPLICATION_X_JSON_STREAM));
+        final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
+        when(input.getBody()).thenReturn(new ClassPathResource("account-stream.json").getInputStream());
 
-        assertThat(unit.read(AccountBody.class, input), is(new AccountBody("1234567890", "Acme Corporation")));
+        unit.read(Stream.class, input);
     }
 
     @Test
-    public void shouldSupportReadStream() throws Exception {
+    public void shouldSupportGenericReadStream() throws Exception {
         final Type type = Streams.streamOf(AccountBody.class).getType();
-        final StreamConverter<Stream<AccountBody>> unit =
+        final StreamConverter<AccountBody> unit =
                 new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
                         singletonList(APPLICATION_X_JSON_STREAM));
         final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
@@ -149,7 +144,7 @@ public class StreamConverterTest {
     @Test
     public void shouldSupportReadSequence() throws Exception {
         final Type type = Streams.streamOf(AccountBody.class).getType();
-        final StreamConverter<Stream<AccountBody>> unit =
+        final StreamConverter<AccountBody> unit =
                 new StreamConverter<>(new ObjectMapper().findAndRegisterModules(),
                         singletonList(APPLICATION_JSON_SEQ));
         final HttpInputMessage input = mockWithContentType(APPLICATION_JSON_SEQ);
@@ -182,7 +177,7 @@ public class StreamConverterTest {
         doThrow(new IOException()).when(parser).close();
 
         final Type type = Streams.streamOf(AccountBody.class).getType();
-        final StreamConverter<Stream<AccountBody>> unit = new StreamConverter<>(mapper,null);
+        final StreamConverter<AccountBody> unit = streamConverter(mapper);
         final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
         when(input.getBody()).thenReturn(new ClassPathResource("account-stream.json").getInputStream());
 
@@ -197,7 +192,7 @@ public class StreamConverterTest {
         exception.expect(HttpMessageNotReadableException.class);
         exception.expectCause(instanceOf(IOException.class));
 
-        final StreamConverter<?> unit = new StreamConverter<>();
+        final StreamConverter<Object> unit = streamConverter();
         final HttpInputMessage input = mockWithContentType(APPLICATION_X_JSON_STREAM);
 
         doThrow(new IOException()).when(input).getBody();
@@ -209,7 +204,7 @@ public class StreamConverterTest {
     public void writeNotSupported() throws Exception {
         exception.expect(UnsupportedOperationException.class);
 
-        final StreamConverter<?> unit = new StreamConverter<>();
+        final HttpMessageConverter<Stream<Object>> unit = streamConverter();
         unit.write(null, APPLICATION_X_JSON_STREAM, null);
     }
 
@@ -217,7 +212,7 @@ public class StreamConverterTest {
     public void writeGenericNotSupported() throws Exception {
         exception.expect(UnsupportedOperationException.class);
 
-        final StreamConverter<?> unit = new StreamConverter<>();
+        final StreamConverter<AccountBody> unit = streamConverter();
         unit.write(null, Streams.streamOf(AccountBody.class).getType(), APPLICATION_X_JSON_STREAM, null);
     }
 }

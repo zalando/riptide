@@ -8,7 +8,6 @@ import java.net.URI;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
-// TODO introduce UrlResolutionStrategy interface in the future, if needed
 public enum UrlResolution {
 
     /**

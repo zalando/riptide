@@ -24,7 +24,6 @@ import java.util.concurrent.CompletionException;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
@@ -62,14 +61,6 @@ public class StreamsTest {
         final MockSetup setup = new MockSetup(baseUrl, singletonList(streamConverter(mapper)));
         this.server = setup.getServer();
         this.unit = setup.getRest();
-    }
-
-    @Test
-    @Deprecated
-    public void shouldCreateStreamConverter() {
-        assertNotNull(streamConverter());
-        assertNotNull(streamConverter(null));
-        assertNotNull(streamConverter(null, null));
     }
 
     @Test
@@ -176,25 +167,6 @@ public class StreamsTest {
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
         verify(verifier).accept(new AccountBody("1234567892", "Acme GmbH"));
         verify(verifier).accept(new AccountBody("1234567893", "Acme SE"));
-        verifyNoMoreInteractions(verifier);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void shouldCallConsumerWithoutStream() throws Exception {
-        server.expect(requestTo(url)).andRespond(
-                withSuccess()
-                        .body(new ClassPathResource("account-item.json"))
-                        .contentType(APPLICATION_X_JSON_STREAM));
-
-        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
-
-        unit.get("/accounts").dispatch(status(),
-                on(OK).call(AccountBody.class, verifier),
-                anyStatus().call(this::fail)).join();
-
-        verify(verifier).tryAccept(
-                new AccountBody("1234567890", "Acme Corporation"));
         verifyNoMoreInteractions(verifier);
     }
 
