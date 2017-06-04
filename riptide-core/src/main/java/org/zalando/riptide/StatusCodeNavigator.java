@@ -16,4 +16,9 @@ enum StatusCodeNavigator implements EqualityNavigator<Integer> {
         return response.getRawStatusCode();
     }
 
+    @Override
+    public String toString() {
+        return "Status Code";
+    }
+
 }

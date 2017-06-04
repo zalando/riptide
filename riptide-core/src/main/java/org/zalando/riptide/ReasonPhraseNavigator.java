@@ -15,4 +15,9 @@ enum ReasonPhraseNavigator implements EqualityNavigator<String> {
         return response.getStatusText();
     }
 
+    @Override
+    public String toString() {
+        return "Reason Phrase";
+    }
+
 }

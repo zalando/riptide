@@ -2,6 +2,7 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,20 +17,14 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
 
     private final Navigator<A> navigator;
     private final Map<A, Route> routes;
-    private final Optional<Route> wildcard;
+    @Nullable
+    private final Route wildcard;
 
     DefaultRoutingTree(final Navigator<A> navigator, final List<Binding<A>> bindings) {
-        this(navigator, map(bindings));
-    }
-
-    private DefaultRoutingTree(final Navigator<A> navigator, final Map<A, Route> routes) {
-        this(navigator, unmodifiableMap(routes), Optional.ofNullable(routes.remove(null)));
-    }
-
-    private DefaultRoutingTree(final Navigator<A> navigator, final Map<A, Route> routes, final Optional<Route> wildcard) {
         this.navigator = navigator;
-        this.routes = routes;
-        this.wildcard = wildcard;
+        final Map<A, Route> routes = map(bindings);
+        this.routes = unmodifiableMap(routes);
+        this.wildcard = routes.remove(null);
     }
 
     @Override
@@ -49,14 +44,18 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
 
     @Override
     public Optional<Route> getWildcard() {
-        return wildcard;
+        return Optional.ofNullable(wildcard);
     }
 
     @Override
     public RoutingTree<A> merge(final List<Binding<A>> bindings) {
         final List<Binding<A>> present = new ArrayList<>(routes.size() + 1);
         routes.forEach((attribute, route) -> present.add(Binding.create(attribute, route)));
-        wildcard.ifPresent(route -> present.add(Binding.create(null, route)));
+
+        if (wildcard != null) {
+            present.add(Binding.create(null, wildcard));
+        }
+
         return RoutingTree.dispatch(navigator, navigator.merge(present, bindings));
     }
 
@@ -83,7 +82,16 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     }
 
     private void executeWildcard(final ClientHttpResponse response, final MessageReader reader) throws Exception {
-        wildcard.orElseThrow(NoWildcardException::new).execute(response, reader);
+        if (wildcard == null) {
+            throw new NoWildcardException();
+        }
+
+        wildcard.execute(response, reader);
+    }
+
+    @Override
+    public String toString() {
+        return navigator.toString();
     }
 
 }

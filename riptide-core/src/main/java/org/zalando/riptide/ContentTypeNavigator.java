@@ -55,4 +55,10 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
                 .findFirst()
                 .flatMap(tree::get);
     }
+
+    @Override
+    public String toString() {
+        return "Content Type";
+    }
+
 }

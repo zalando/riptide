@@ -10,6 +10,7 @@ import org.zalando.riptide.Route;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.Route.named;
 import static org.zalando.riptide.RoutingTree.dispatch;
 
 public final class ProblemRoute {
@@ -26,7 +27,7 @@ public final class ProblemRoute {
      */
     private static final MediaType X_DASH_PROBLEM = parseMediaType("application/x-problem+json");
 
-    private static final Route PROPAGATE = problemHandling(Exceptional::propagate);
+    private static final Route PROPAGATE = problemHandling(named("Propagate", Exceptional::propagate));
 
     ProblemRoute() {
         // package private so we can trick code coverage
