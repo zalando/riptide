@@ -13,6 +13,7 @@ import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.problem.Exceptional;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.riptide.Rest;
+import org.zalando.riptide.Route;
 
 import java.net.URI;
 import java.util.concurrent.CompletionException;
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletionException;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -43,6 +45,9 @@ public final class ProblemRouteTest {
 
     @Mock
     private ThrowingConsumer<Exceptional, RuntimeException> consumer;
+
+    @Mock
+    private Route fallback;
 
     public ProblemRouteTest() {
         final MockSetup setup = new MockSetup();
@@ -95,6 +100,54 @@ public final class ProblemRouteTest {
                 .join();
 
         verify(consumer).tryAccept(any());
+    }
+
+    @Test
+    public void shouldUseFallback() throws Exception {
+        server.expect(requestTo(url))
+                .andRespond(withStatus(BAD_REQUEST)
+                        .body("Error!"));
+
+        unit.get(url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().call(problemHandling(fallback)))
+                .join();
+
+        verify(fallback).execute(any(), any());
+    }
+
+    @Test
+    public void shouldNotDelegateProblemHandlingAndUseFallback() throws Exception {
+        server.expect(requestTo(url))
+                .andRespond(withStatus(BAD_REQUEST)
+                        .body("Error!"));
+
+        unit.get(url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().call(problemHandling(consumer, fallback)))
+                .join();
+
+        verifyZeroInteractions(consumer);
+        verify(fallback).execute(any(), any());
+    }
+
+    @Test
+    public void shouldDelegateProblemHandlingAndNotUseFallback() throws Exception {
+        server.expect(requestTo(url))
+                .andRespond(withStatus(BAD_REQUEST)
+                        .body(new ClassPathResource("problem.json"))
+                        .contentType(MediaType.parseMediaType("application/problem+json")));
+
+        unit.get(url)
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().call(problemHandling(consumer, fallback)))
+                .join();
+
+        verify(consumer).tryAccept(any());
+        verifyZeroInteractions(fallback);
     }
 
 }
