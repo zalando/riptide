@@ -80,6 +80,7 @@ public final class ProblemRoute {
      * {@code application/x.problem+json} as {@link Problem problems} and handles them given the supplied consumer.
      * The given fallback will be used if none of the mentioned content types matches.
      *
+     * @param consumer the exception handler
      * @param fallback the fallback route
      * @return a route for handling problems dynamically
      */
