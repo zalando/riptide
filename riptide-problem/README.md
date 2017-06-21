@@ -82,6 +82,10 @@ of Riptide and fail with a `NoRouteException` (unless a wildcard matches). This 
 http.post("/").dispatch(series(),
     on(SUCCESSFUL).call(pass()),
     anySeries().call(problemHandling(call(this::onUnsupportedError))));
+
+void onUnsupportedError(ClientHttpResponse response) throws IOException {
+    // TODO handle non-problem error response here
+}
 ```
 
 ## Getting Help
