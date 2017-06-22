@@ -63,6 +63,31 @@ try {
 }
 ```
 
+### Custom Handling
+
+If throwing a problem is not the desired behaviour one can override it by passing in a custom consumer:
+ 
+```java
+http.post("/").dispatch(series(),
+    on(SUCCESSFUL).call(pass()),
+    anySeries().call(problemHandling(e -> LOG.error("Unexpected problem", e))));
+```
+
+### Fallback Route
+
+If the `ProblemRoute` fails to dispatch, e.g. because of a different media type, it will follow the default behaviour
+of Riptide and fail with a `NoRouteException` (unless a wildcard matches). This behaviour can be overridden by:
+
+```java
+http.post("/").dispatch(series(),
+    on(SUCCESSFUL).call(pass()),
+    anySeries().call(problemHandling(call(this::onUnsupportedError))));
+
+void onUnsupportedError(ClientHttpResponse response) throws IOException {
+    // TODO handle non-problem error response here
+}
+```
+
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
