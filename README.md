@@ -16,7 +16,7 @@ protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_d
 language. Riptide allows users to leverage the power of HTTP with its unique API.
 
 - **Technology stack**: Based on `spring-web` and uses the same foundation as Spring's RestTemplate.
-- **Status**:  Version 1.x is used in production and 2.x is currently available as a release candidate.
+- **Status**:  Versions 1.x and 2.x are used in production.
 - Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
 
 ## Example
