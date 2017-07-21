@@ -12,11 +12,10 @@
 > **Riptide** noun, /ˈrɪp.taɪd/: strong flow of water away from the shore
 
 *Riptide* is a library that implements ***client-side response routing***.  It tries to fill the gap between the HTTP
-protocol and Java as a [single-dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch#Single_and_multiple_dispatch)
-language. Riptide allows users to leverage the power of HTTP with its unique API.
+protocol and Java. Riptide allows users to leverage the power of HTTP with its unique API.
 
 - **Technology stack**: Based on `spring-web` and uses the same foundation as Spring's RestTemplate.
-- **Status**:  Versions 1.x and 2.x are used in production.
+- **Status**:  Actively maintained and used in production.
 - Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
 
 ## Example
@@ -38,14 +37,16 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - full access to the underlying HTTP client
 - encourages to write more resilient clients, by forcing you to consider
   - fallbacks
-  - content negotiation and versioning
+  - content negotiation
   - robust error handling
 - elegant syntax
 - type-safe
+- asynchronous by default
+- bulkhead pattern through isolated thread and connection pools
 
 ## Origin
 
-Most modern clients try to adapt HTTP to single-dispatch paradigm like shown in the following example. Even though this
+Most modern clients try to adapt HTTP to a single-return paradigm as shown in the following example. Even though this
 may be perfectly suitable for most applications it takes away a lot of the power that comes with HTTP. It's not easy to
 support multiple different return values, i.e. distinct happy cases. Access to response headers or manual content
 negotiation are also harder to do.
@@ -230,24 +231,10 @@ based on the chosen resolution strategy:
 |`null`|`RFC`|`null`|Exception|
 |`null`|`RFC`|`/foo`|Exception|
 |`null`|`RFC`|`foo`|Exception|
-|`https://example.com`|`APPEND`|`null`|`https://example.com`|
-|`https://example.com/`|`APPEND`|`null`|`https://example.com/`|
-|`https://example.com`|`APPEND`|(empty)|`https://example.com`|
-|`https://example.com/`|`APPEND`|(empty)|`https://example.com/`|
-|`https://example.com`|`APPEND`|`/`|`https://example.com/`|
-|`https://example.com/`|`APPEND`|`/`|`https://example.com/`|
-|`https://example.com`|`APPEND`|`https://example.org/foo`|`https://example.org/foo`|
-|`https://example.com`|`APPEND`|`/foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com`|`APPEND`|`foo/bar`|`https://example.com/foo/bar`|
 |`https://example.com/api`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
 |`https://example.com/api`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
 |`https://example.com/api/`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
 |`https://example.com/api/`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
-|`null`|`APPEND`|`https://example.com/foo`|`https://example.com/foo`|
-|`/foo`|`APPEND`|`/`|Exception|
-|`null`|`APPEND`|`null`|Exception|
-|`null`|`APPEND`|`/foo`|Exception|
-|`null`|`APPEND`|`foo`|Exception|
 
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.
