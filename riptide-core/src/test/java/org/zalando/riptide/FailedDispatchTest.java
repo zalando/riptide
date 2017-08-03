@@ -122,7 +122,6 @@ public final class FailedDispatchTest {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(HttpMessageNotReadableException.class));
-        exception.expectMessage("JSON parse error: Unexpected end-of-input");
 
         unit.get(url)
                 .dispatch(status(),
