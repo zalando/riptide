@@ -36,7 +36,7 @@ public final class ContentTypeDispatchTest {
 
     private final URI url = URI.create("https://api.example.com");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public ContentTypeDispatchTest() {

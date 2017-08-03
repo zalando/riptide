@@ -60,7 +60,7 @@ public final class FailedDispatchTest {
 
     private final String url = "https://api.example.com";
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public FailedDispatchTest() {

@@ -16,12 +16,11 @@ import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
 
 import java.io.IOException;
@@ -71,7 +70,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
-    private final Rest rest = Rest.builder()
+    private final Http http = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
             .converter(createJsonConverter())
@@ -119,7 +118,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
         final Capture<List<User>> capture = Capture.empty();
 
-        final List<User> users = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final List<User> users = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(listOf(User.class), capture))
                 .thenApply(capture).join();

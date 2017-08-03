@@ -53,43 +53,43 @@ public final class MethodDelegateTest {
     @SuppressWarnings("unchecked")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {GET, new NoParam(Rest::get)},
-                {HEAD, new NoParam(Rest::head)},
-                {POST, new NoParam(Rest::post)},
-                {PUT, new NoParam(Rest::put)},
-                {PATCH, new NoParam(Rest::patch)},
-                {DELETE, new NoParam(Rest::delete)},
-                {OPTIONS, new NoParam(Rest::options)},
-                {TRACE, new NoParam(Rest::trace)},
-                {GET, new UriParam(Rest::get, URI.create("https://example.com"))},
-                {HEAD, new UriParam(Rest::head, URI.create("https://example.com"))},
-                {POST, new UriParam(Rest::post, URI.create("https://example.com"))},
-                {PUT, new UriParam(Rest::put, URI.create("https://example.com"))},
-                {PATCH, new UriParam(Rest::patch, URI.create("https://example.com"))},
-                {DELETE, new UriParam(Rest::delete, URI.create("https://example.com"))},
-                {OPTIONS, new UriParam(Rest::options, URI.create("https://example.com"))},
-                {TRACE, new UriParam(Rest::trace, URI.create("https://example.com"))},
-                {GET, new UriTemplateParam(Rest::get, "https://example.com")},
-                {HEAD, new UriTemplateParam(Rest::head, "https://example.com")},
-                {POST, new UriTemplateParam(Rest::post, "https://example.com")},
-                {PUT, new UriTemplateParam(Rest::put, "https://example.com")},
-                {PATCH, new UriTemplateParam(Rest::patch, "https://example.com")},
-                {DELETE, new UriTemplateParam(Rest::delete, "https://example.com")},
-                {OPTIONS, new UriTemplateParam(Rest::options, "https://example.com")},
-                {TRACE, new UriTemplateParam(Rest::trace, "https://example.com")},
+                {GET, new NoParam(Http::get)},
+                {HEAD, new NoParam(Http::head)},
+                {POST, new NoParam(Http::post)},
+                {PUT, new NoParam(Http::put)},
+                {PATCH, new NoParam(Http::patch)},
+                {DELETE, new NoParam(Http::delete)},
+                {OPTIONS, new NoParam(Http::options)},
+                {TRACE, new NoParam(Http::trace)},
+                {GET, new UriParam(Http::get, URI.create("https://example.com"))},
+                {HEAD, new UriParam(Http::head, URI.create("https://example.com"))},
+                {POST, new UriParam(Http::post, URI.create("https://example.com"))},
+                {PUT, new UriParam(Http::put, URI.create("https://example.com"))},
+                {PATCH, new UriParam(Http::patch, URI.create("https://example.com"))},
+                {DELETE, new UriParam(Http::delete, URI.create("https://example.com"))},
+                {OPTIONS, new UriParam(Http::options, URI.create("https://example.com"))},
+                {TRACE, new UriParam(Http::trace, URI.create("https://example.com"))},
+                {GET, new UriTemplateParam(Http::get, "https://example.com")},
+                {HEAD, new UriTemplateParam(Http::head, "https://example.com")},
+                {POST, new UriTemplateParam(Http::post, "https://example.com")},
+                {PUT, new UriTemplateParam(Http::put, "https://example.com")},
+                {PATCH, new UriTemplateParam(Http::patch, "https://example.com")},
+                {DELETE, new UriTemplateParam(Http::delete, "https://example.com")},
+                {OPTIONS, new UriTemplateParam(Http::options, "https://example.com")},
+                {TRACE, new UriTemplateParam(Http::trace, "https://example.com")},
         });
     }
 
     private interface Tester {
-        Requester test(final Rest unit);
+        Requester test(final Http unit);
     }
 
     @Value
     private static final class NoParam implements Tester {
-        Function<Rest, Requester> function;
+        Function<Http, Requester> function;
 
         @Override
-        public Requester test(final Rest unit) {
+        public Requester test(final Http unit) {
             return function.apply(unit);
         }
 
@@ -101,11 +101,11 @@ public final class MethodDelegateTest {
 
     @Value
     private static final class UriParam implements Tester {
-        BiFunction<Rest, URI, Requester> function;
+        BiFunction<Http, URI, Requester> function;
         URI parameter;
 
         @Override
-        public Requester test(final Rest unit) {
+        public Requester test(final Http unit) {
             return function.apply(unit, parameter);
         }
 
@@ -117,11 +117,11 @@ public final class MethodDelegateTest {
 
     @Value
     private static final class UriTemplateParam implements Tester {
-        TriFunction<Rest, String, Object[], Requester> function;
+        TriFunction<Http, String, Object[], Requester> function;
         String parameter;
 
         @Override
-        public Requester test(final Rest unit) {
+        public Requester test(final Http unit) {
             return function.apply(unit, parameter, new Object[0]);
         }
 
@@ -139,7 +139,7 @@ public final class MethodDelegateTest {
     @Test
     public void shouldDelegate() {
         final MockSetup setup = new MockSetup("https://example.com");
-        final Rest unit = setup.getRest();
+        final Http unit = setup.getRest();
         final MockRestServiceServer server = setup.getServer();
 
         server.expect(requestTo("https://example.com"))

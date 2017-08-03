@@ -2,22 +2,19 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
-public final class RestBuilder {
+public final class RestBuilder implements HttpBuilder {
 
     // package private so we can trick code coverage
     static class Converters {
@@ -42,35 +39,42 @@ public final class RestBuilder {
 
     }
 
-    public RestBuilder requestFactory(final AsyncClientHttpRequestFactory requestFactory) {
+    @Override
+    public HttpBuilder requestFactory(final AsyncClientHttpRequestFactory requestFactory) {
         this.requestFactory = requestFactory;
         return this;
     }
 
-    public RestBuilder defaultConverters() {
+    @Override
+    public HttpBuilder defaultConverters() {
         return converters(Converters.DEFAULT);
     }
 
-    public RestBuilder converters(final Iterable<HttpMessageConverter<?>> converters) {
+    @Override
+    public HttpBuilder converters(final Iterable<HttpMessageConverter<?>> converters) {
         converters.forEach(this::converter);
         return this;
     }
 
-    public RestBuilder converter(final HttpMessageConverter<?> converter) {
+    @Override
+    public HttpBuilder converter(final HttpMessageConverter<?> converter) {
         this.converters.add(converter);
         return this;
     }
 
-    public RestBuilder baseUrl(@Nullable final String baseUrl) {
+    @Override
+    public HttpBuilder baseUrl(@Nullable final String baseUrl) {
         return baseUrl(baseUrl == null ? null : URI.create(baseUrl));
     }
 
-    public RestBuilder baseUrl(@Nullable final URI baseUrl) {
+    @Override
+    public HttpBuilder baseUrl(@Nullable final URI baseUrl) {
         checkAbsoluteBaseUrl(baseUrl);
         return baseUrl(() -> baseUrl);
     }
 
-    public RestBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
+    @Override
+    public HttpBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
         this.baseUrlProvider = () -> checkAbsoluteBaseUrl(baseUrlProvider.get());
         return this;
     }
@@ -80,39 +84,37 @@ public final class RestBuilder {
         return baseUrl;
     }
 
-    public RestBuilder urlResolution(@Nullable final UrlResolution resolution) {
+    @Override
+    public HttpBuilder urlResolution(@Nullable final UrlResolution resolution) {
         this.resolution = firstNonNull(resolution, DEFAULT_RESOLUTION);
         return this;
     }
 
-    public RestBuilder defaultPlugins() {
+    @Override
+    public HttpBuilder defaultPlugins() {
         return plugins(Plugins.DEFAULT);
     }
 
-    public RestBuilder plugins(final Iterable<Plugin> plugins) {
+    @Override
+    public HttpBuilder plugins(final Iterable<Plugin> plugins) {
         plugins.forEach(this::plugin);
         return this;
     }
 
-    public RestBuilder plugin(final Plugin plugin) {
+    @Override
+    public HttpBuilder plugin(final Plugin plugin) {
         this.plugins.add(plugin);
         return this;
     }
 
-    public RestBuilder configure(final RestConfigurer configurer) {
+    @Override
+    public HttpBuilder configure(final RestConfigurer configurer) {
         configurer.configure(this);
         return this;
     }
 
-    public static RestConfigurer simpleRequestFactory(final ExecutorService executor) {
-        return builder -> {
-            final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
-            builder.requestFactory(factory);
-        };
-    }
-
-    public Rest build() {
+    @Override
+    public Http build() {
         return new Rest(requestFactory, converters(), baseUrlProvider, resolution, plugin());
     }
 

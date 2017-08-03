@@ -6,8 +6,8 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.zalando.riptide.Rest;
-import org.zalando.riptide.RestBuilder;
+import org.zalando.riptide.Http;
+import org.zalando.riptide.HttpBuilder;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -52,13 +52,13 @@ public final class MockSetup {
         return server;
     }
 
-    public RestBuilder getRestBuilder() {
-        return Rest.builder()
+    public HttpBuilder getRestBuilder() {
+        return Http.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
                 .baseUrl(baseUrl);
     }
-    public Rest getRest() {
+    public Http getRest() {
         return getRestBuilder().build();
     }
 

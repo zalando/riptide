@@ -52,7 +52,7 @@ public final class RouteTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public RouteTest() {

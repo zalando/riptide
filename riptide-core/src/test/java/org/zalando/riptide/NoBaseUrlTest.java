@@ -17,7 +17,7 @@ public class NoBaseUrlTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Base URL is not absolute");
 
-        Rest.builder().baseUrl("");
+        Http.builder().baseUrl("");
     }
 
     @Test
@@ -25,7 +25,7 @@ public class NoBaseUrlTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Base URL is not absolute");
 
-        Rest.builder().baseUrl(URI.create(""));
+        Http.builder().baseUrl(URI.create(""));
     }
 
     @Test
@@ -33,7 +33,7 @@ public class NoBaseUrlTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("Base URL is not absolute");
 
-        final Rest unit = Rest.builder()
+        final Http unit = Http.builder()
                 .baseUrl(() -> URI.create(""))
                 .requestFactory(new SimpleClientHttpRequestFactory())
                 .build();

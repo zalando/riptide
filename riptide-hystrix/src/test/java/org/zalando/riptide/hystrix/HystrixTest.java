@@ -9,7 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,7 +34,7 @@ public final class HystrixTest {
     @Rule
     public final HystrixRequestContextRule hystrix = new HystrixRequestContextRule();
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public HystrixTest() {

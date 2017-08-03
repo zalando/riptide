@@ -20,8 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * as follows:
  * 
  * <pre>
- * try (Rest rest = Rest.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
- *     rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+ * try (Http http = Http.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
+ *     http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
  *             .accept(MediaType.APPLICATION_JSON)
  *             .dispatch(series(),
  *                     on(SUCCESSFUL).call(streamOf(User.class),

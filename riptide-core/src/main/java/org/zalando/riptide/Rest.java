@@ -13,20 +13,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Central class for actual asynchronous HTTP-based communication. Rest is loosely modeled after the HTTP protocol,
- * i.e. you start with a method and by a URL and optionally followed query parameters, headers and a body:
- *
- * <pre>{@code http.get("/users")
- *     .queryParam("active", "true")
- *     .accept(APPLICATION_JSON)
- *     .dispatch(..)}</pre>
- *
- * @see RestTemplate
- * @see AsyncRestTemplate
- */
-// TODO rename to Http?
-public final class Rest {
+public final class Rest implements Http {
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
@@ -43,102 +30,127 @@ public final class Rest {
         this.plugin = plugin;
     }
 
+    @Override
     public final Requester get(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.GET, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester get(final URI uri) {
         return execute(HttpMethod.GET, uri);
     }
 
+    @Override
     public final Requester get() {
         return execute(HttpMethod.GET);
     }
 
+    @Override
     public final Requester head(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.HEAD, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester head(final URI uri) {
         return execute(HttpMethod.HEAD, uri);
     }
 
+    @Override
     public final Requester head() {
         return execute(HttpMethod.HEAD);
     }
 
+    @Override
     public final Requester post(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.POST, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester post(final URI uri) {
         return execute(HttpMethod.POST, uri);
     }
 
+    @Override
     public final Requester post() {
         return execute(HttpMethod.POST);
     }
 
+    @Override
     public final Requester put(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PUT, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester put(final URI uri) {
         return execute(HttpMethod.PUT, uri);
     }
 
+    @Override
     public final Requester put() {
         return execute(HttpMethod.PUT);
     }
 
+    @Override
     public final Requester patch(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PATCH, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester patch(final URI uri) {
         return execute(HttpMethod.PATCH, uri);
     }
 
+    @Override
     public final Requester patch() {
         return execute(HttpMethod.PATCH);
     }
 
+    @Override
     public final Requester delete(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.DELETE, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester delete(final URI uri) {
         return execute(HttpMethod.DELETE, uri);
     }
 
+    @Override
     public final Requester delete() {
         return execute(HttpMethod.DELETE);
     }
 
+    @Override
     public final Requester options(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.OPTIONS, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester options(final URI uri) {
         return execute(HttpMethod.OPTIONS, uri);
     }
 
+    @Override
     public final Requester options() {
         return execute(HttpMethod.OPTIONS);
     }
 
+    @Override
     public final Requester trace(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.TRACE, uriTemplate, urlVariables);
     }
 
+    @Override
     public final Requester trace(final URI uri) {
         return execute(HttpMethod.TRACE, uri);
     }
 
+    @Override
     public final Requester trace() {
         return execute(HttpMethod.TRACE);
     }
 
+    @Override
     public Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
                 .withMethod(method)
@@ -147,6 +159,7 @@ public final class Rest {
                 .withUriVariables(ImmutableList.copyOf(uriVariables)));
     }
 
+    @Override
     public Requester execute(final HttpMethod method, final URI uri) {
         return execute(arguments
                 .withMethod(method)
@@ -154,6 +167,7 @@ public final class Rest {
                 .withUri(uri));
     }
 
+    @Override
     public Requester execute(final HttpMethod method) {
         return execute(arguments
                 .withMethod(method)
@@ -162,10 +176,6 @@ public final class Rest {
 
     private Requester execute(final RequestArguments arguments) {
         return new Requester(requestFactory, worker, arguments, plugin);
-    }
-
-    public static RestBuilder builder() {
-        return new RestBuilder();
     }
 
 }

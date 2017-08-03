@@ -48,15 +48,15 @@ public final class MockSetup {
         return server;
     }
 
-    public RestBuilder getRestBuilder() {
-        return Rest.builder()
+    public HttpBuilder getRestBuilder() {
+        return Http.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
                 .baseUrl(baseUrl)
                 .defaultPlugins()
                 .plugin(NoopPlugin.INSTANCE);
     }
-    public Rest getRest() {
+    public Http getRest() {
         return getRestBuilder().build();
     }
 

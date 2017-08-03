@@ -12,7 +12,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -38,13 +38,13 @@ public final class CaptureTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public CaptureTest() {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.builder()
+        this.unit = Http.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converter(createJsonConverter())
                 .converter(new StringHttpMessageConverter())

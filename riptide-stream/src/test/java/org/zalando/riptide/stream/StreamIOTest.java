@@ -8,7 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,7 +37,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.RestBuilder.simpleRequestFactory;
+import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
@@ -60,7 +60,7 @@ public final class StreamIOTest {
 
     private final ExecutorService executor = newSingleThreadExecutor();
 
-    private final Rest rest = Rest.builder()
+    private final Http http = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .configure(simpleRequestFactory(newSingleThreadExecutor()))
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
@@ -79,7 +79,7 @@ public final class StreamIOTest {
 
         final AtomicReference<Stream<User>> reference = new AtomicReference<>();
 
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(streamOf(User.class), reference::set)).join();
 
@@ -95,7 +95,7 @@ public final class StreamIOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
-        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final CompletableFuture<Void> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 
@@ -121,7 +121,7 @@ public final class StreamIOTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
 
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
                         on("OK").call(ClientHttpResponse::close)).join();
     }
@@ -131,7 +131,7 @@ public final class StreamIOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveEmptyResponse().withStatus(200));
 
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
                         on("OK").call(ClientHttpResponse::close)).join();
     }
