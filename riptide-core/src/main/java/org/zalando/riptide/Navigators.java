@@ -4,6 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
 
+/**
+ * Static factory method for built-in {@link Navigator navigators}.
+ *
+ * @see Navigator
+ */
 public final class Navigators {
 
     Navigators() {

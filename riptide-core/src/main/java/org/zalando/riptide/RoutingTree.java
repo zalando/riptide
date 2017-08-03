@@ -9,6 +9,16 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 
+/**
+ * A routing tree is a nested {@link Route route} that consists of a {@link Navigator navigator} and a set of
+ * {@link Binding bindings}. When being {@link Route#execute(ClientHttpResponse, MessageReader) executed} the navigator
+ * will select the attribute value of the returned {@link ClientHttpResponse response}, find the correct binding
+ * and execute {@link Binding#getRoute() it's route}. Since a routing tree is a route itself they can be nested
+ * recursively inside each other to produce complex graphs.
+ *
+ * @param <A> generic attribute type
+ * @see Route
+ */
 public interface RoutingTree<A> extends Route {
 
     Navigator<A> getNavigator();

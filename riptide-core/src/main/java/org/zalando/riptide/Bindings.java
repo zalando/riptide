@@ -4,6 +4,11 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+/**
+ * Static factories that form entry points to create full {@link Binding bindings}.
+ *
+ * @see Binding
+ */
 public final class Bindings {
 
     Bindings() {
@@ -15,7 +20,7 @@ public final class Bindings {
     }
 
     /**
-     * Creates an <i>any</i> condition for the given type. Note that this method is meant to be
+     * Creates a wildcard condition for the given type. Note that this method is meant to be
      * used as a base for specialized factory methods, e.g. like {@link #anyStatus()}.
      *
      * @param type attribute type

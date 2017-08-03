@@ -29,7 +29,9 @@ public interface ExceptionClassifier {
      * @param <T> generic return type
      * @return never, always throws
      */
-    <T> T classifyExceptionally(final Throwable throwable);
+    default <T> T classifyExceptionally(final Throwable throwable) throws Throwable {
+        throw classify(throwable);
+    }
 
     static ExceptionClassifier createDefault() {
         return create(InterruptedIOException.class::isInstance,

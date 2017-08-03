@@ -6,7 +6,6 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
 import org.zalando.fauxpas.ThrowingConsumer;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -86,11 +85,11 @@ public final class Streams {
     }
 
     /**
-     * Creates {@link ThrowingConsumer stream consumer} for given {@link ThrowingConsumer element consumer}. Used to
-     * standardly wrap a single entity consumer function in a stream consumer function as follows:
+     * Creates {@link ThrowingConsumer stream consumer} for given {@link ThrowingConsumer element consumer}. Commonly
+     * used to wrap a single entity consumer function in a stream consumer function as follows:
      * 
      * <pre>
-     *     on(...).call(streamOf(...), forEach(element -> { println(element); }))
+     *     on(...).call(streamOf(...), forEach(System.out::println))
      * </pre>
      * 
      * @param consumer element consumer function.

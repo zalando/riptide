@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.base.Strings;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;

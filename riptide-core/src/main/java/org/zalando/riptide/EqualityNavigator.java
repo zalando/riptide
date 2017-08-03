@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Optional;
 
+@FunctionalInterface
 public interface EqualityNavigator<A> extends Navigator<A> {
 
     /**

@@ -1,9 +1,7 @@
 package org.zalando.riptide.exceptions;
 
 import com.google.common.base.Throwables;
-import lombok.SneakyThrows;
 
-import java.util.concurrent.CompletionException;
 import java.util.function.Predicate;
 
 final class DefaultExceptionClassifier implements ExceptionClassifier {
@@ -23,21 +21,6 @@ final class DefaultExceptionClassifier implements ExceptionClassifier {
         }
 
         return throwable;
-    }
-
-    @Override
-    @SneakyThrows
-    public <T> T classifyExceptionally(final Throwable throwable) {
-        throw classify(skipCompletionException(throwable));
-    }
-
-    /**
-     * @see <a href="http://stackoverflow.com/questions/27430255/surprising-behavior-of-java-8-completablefuture-exceptionally-method"/>
-     * @param throwable the throwable
-     * @return the cause of the given throwable if it's a {@link CompletionException}
-     */
-    private Throwable skipCompletionException(final Throwable throwable) {
-        return throwable instanceof CompletionException ? throwable.getCause() : throwable;
     }
 
 }

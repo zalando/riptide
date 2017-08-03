@@ -12,6 +12,11 @@ import java.util.Optional;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
+/**
+ * Thrown when no matching {@link Route route} was found during {@link Dispatcher#dispatch(RoutingTree) dispatch}.
+ *
+ * @see Route#noRoute()
+ */
 @SuppressWarnings("serial")
 public final class NoRouteException extends RestClientException {
 
