@@ -1,11 +1,10 @@
-package org.zalando.riptide;
+package org.zalando.riptide.capture;
 
 import lombok.SneakyThrows;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-@Deprecated
 public final class Completion {
 
     Completion() {

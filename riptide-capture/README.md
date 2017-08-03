@@ -25,7 +25,8 @@ Order order = http.get("/sales-orders/{id}", id)
 
 ## Features
 
--  type-safe
+- produce return values based on Riptide's asynchronous API
+- type-safe
 
 ## Dependencies
 
@@ -46,6 +47,8 @@ Add the following dependency to your project:
 
 ## Usage
 
+### Asynchronous return values
+
 ```java
 public CompletableFuture<Order> getOrder(final String id) {
     Capture<Order> capture = Capture.empty();
@@ -57,6 +60,24 @@ public CompletableFuture<Order> getOrder(final String id) {
         .thenApply(capture);
 }
 ```
+
+### Synchronous return values
+
+```java
+public Order getOrder(final String id) {
+    Capture<Order> capture = Capture.empty();
+    
+    CompletableFuture<Order> future = http.get("/sales-orders/{id}", id)
+        .dispatch(series(),
+            on(SUCCESSFUL).dispatch(contentType(),
+                on(MediaTypes.ORDER).call(Order.class, capture)))
+        .thenApply(capture);
+    
+    return Completion.join(future);
+}
+```
+
+`Completion.join(CompletableFuture)` unwraps any `CompletionException` and sneakily re-throws the cause.
 
 ## Getting Help
 
