@@ -63,7 +63,7 @@ The `RestAsyncClientHttpRequestFactory` implements `ClientHttpRequestFactory` **
 ```java
 RestAsyncClientHttpRequestFactory factory = ...;
 
-RestTemplate sync = new RestTemplate();
+RestTemplate sync = new RestTemplate(factory);
 AsyncRestTemplate async = new AsyncRestTemplate(factory);
 ```
 

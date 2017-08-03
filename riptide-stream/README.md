@@ -1,4 +1,4 @@
-# Riptide: Streams
+# Riptide: Stream
 
 [![Waterfall](../docs/waterfall.jpg)](https://pixabay.com/en/waterfalls-river-stream-water-691917/)
 
@@ -8,9 +8,7 @@
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-capture.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-stream)
 
-*Riptide Stream* extension allows to capture arbitrary infinite object streams via Spring's [RestTemplate](https://spring.io/guides/gs/consuming-rest/).
-This includes infinite streaming format as application/x-json-stream and application/json-seq, but also streaming of
-simple finite lists/arrays of JSON objects.
+*Riptide: Stream* allows to read arbitrary infinite JSON streams.
 
 ## Example
 
@@ -23,12 +21,16 @@ http.get("/sales-orders")
 ## Features
 
 - HTTP streaming
+- no direct Riptide dependency
+  - can be used with a plain `RestTemplate`
+- supports
+  - `application/x-json-stream`
+  - `application/json-seq`
 - type-safe
 
 ## Dependencies
 
 - Java 8
-- Riptide: Core
 
 ## Installation
 
@@ -42,14 +44,47 @@ Add the following dependency to your project:
 </dependency>
 ```
 
+## Configuration
+
+In order to enable streaming you only need to register the
+[`StreamConverter`](src/main/java/org/zalando/riptide/stream/StreamConverter.java). You're also strongly encouraged to
+use `RestAsyncClientHttpRequestFactory` provided by [*Riptide: HTTP Client*](../riptide-httpclient) as it fixes an
+issue with Spring's implementation which tries to consume infinite streams when trying to close a connection.
+
+```java
+Rest.builder()
+    .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
+    .converter(Streams.streamConverter(mapper))
+    .build();
+```
+
 ## Usage
 
-To enable streaming you only need to register the
-[stream converter](src/main/java/org/zalando/riptide/stream/StreamConverter.java) with Riptide and declare a route for
-your stream that is calling a the stream consumer.
+You can either consume a stream using `forEach(Consumer)`, as shown in the first example.
+Alternatively you can capture and return a stream:
 
-The unique entry point for all specific methods is the [Streams](src/main/java/org/zalando/riptide/stream/Streams.java)
-class.
+```java
+public Stream<Order> streamOrders() {
+    Capture<Stream<Order>> capture = Capture.empty();
+    
+    return http.get("/sales-orders")
+        .dispatch(series(),
+            on(SUCCESSFUL).call(streamOf(Order.class), capture))
+        .thenApply(capture)
+        .join();
+}
+```
+
+**Beware**, the returned stream has to be closed properly otherwise it may occupy a connection/socket forever. This 
+might be easy to miss since most streams are backed by collections and don't need to be closed explicitly:
+
+> Streams have a BaseStream.close() method and implement AutoCloseable, but nearly all stream instances do not actually
+need to be closed after use. Generally, only streams whose source is an IO channel (such as those returned by
+Files.lines(Path, Charset)) will require closing. Most streams are backed by collections, arrays, or generating
+functions, which require no special resource management. (If a stream does require closing, it can be declared as a
+resource in a try-with-resources statement.)
+>
+> https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html
 
 ## Getting Help
 

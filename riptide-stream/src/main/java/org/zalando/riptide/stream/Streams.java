@@ -5,12 +5,13 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.springframework.http.MediaType;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Route;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
@@ -35,17 +36,19 @@ import java.util.stream.Stream;
  */
 public final class Streams {
 
-    /** Default singleton {@link MediaType media type} for application/x-json-stream. */
-    public static final MediaType APPLICATION_X_JSON_STREAM = //
-            new MediaType("application", "x-json-stream", StandardCharsets.UTF_8);
+    /**
+     * Default singleton {@link MediaType media type} for application/x-json-stream.
+     */
+    public static final MediaType APPLICATION_X_JSON_STREAM = new MediaType("application", "x-json-stream", UTF_8);
 
-    /** Default singleton {@link MediaType media type} for application/json-seq. */
-    public static final MediaType APPLICATION_JSON_SEQ = //
-            new MediaType("application", "json-seq", StandardCharsets.UTF_8);
+    /**
+     * Default singleton {@link MediaType media type} for application/json-seq.
+     */
+    public static final MediaType APPLICATION_JSON_SEQ = new MediaType("application", "json-seq", UTF_8);
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
-     * declare the expected stream response {@link TypeToken type token} in Riptide {@link Route route} as follows:
+     * declare the expected stream response {@link TypeToken type token} in Riptide {@link org.zalando.riptide.Route route} as follows:
      * 
      * <pre>
      *     on(...).call(streamOf(Result.class),...)
@@ -60,7 +63,7 @@ public final class Streams {
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link TypeToken type token}. Used
-     * to declare the expected stream response {@link TypeToken type token} in Riptide {@link Route route} as follows:
+     * to declare the expected stream response {@link TypeToken type token} in Riptide {@link org.zalando.riptide.Route route} as follows:
      * 
      * <pre>
      *     on(...).call(streamOf(resultTypeToken),...)
