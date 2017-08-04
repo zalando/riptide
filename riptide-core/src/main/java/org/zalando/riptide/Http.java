@@ -57,7 +57,7 @@ public interface Http {
     Requester execute(HttpMethod method);
 
     static HttpBuilder builder() {
-        return new RestBuilder();
+        return Rest.builder();
     }
 
 }

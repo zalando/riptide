@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
@@ -176,6 +174,10 @@ public final class Rest implements Http {
 
     private Requester execute(final RequestArguments arguments) {
         return new Requester(requestFactory, worker, arguments, plugin);
+    }
+
+    public static RestBuilder builder() {
+        return new RestBuilder();
     }
 
 }
