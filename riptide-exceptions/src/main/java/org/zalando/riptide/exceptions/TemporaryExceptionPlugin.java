@@ -4,6 +4,8 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
+import static org.zalando.fauxpas.FauxPas.partially;
+
 public final class TemporaryExceptionPlugin implements Plugin {
 
     private final ExceptionClassifier classifier;
@@ -18,7 +20,7 @@ public final class TemporaryExceptionPlugin implements Plugin {
 
     @Override
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> execution.execute().exceptionally(classifier::classifyExceptionally);
+        return () -> execution.execute().exceptionally(partially(classifier::classifyExceptionally));
     }
 
 }

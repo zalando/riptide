@@ -6,8 +6,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ObjectArrays.concat;
+import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
+/**
+ * Preserves the original stack traces of failed requests. Requests in Riptide are executed asynchronously by default.
+ * That has the unfortunate side-effect that stack traces from exceptions that happen when processing the response will
+ * not contain everything that is needed to trace back to the caller.
+ *
+ * This plugin will modify the stack trace of any thrown exception and appending the stack trace elements of the
+ * original stack trace
+ */
 public final class OriginalStackTracePlugin implements Plugin {
 
     @Override
@@ -16,7 +25,7 @@ public final class OriginalStackTracePlugin implements Plugin {
             final CompletableFuture<ClientHttpResponse> future = execution.execute();
             // let's do the "heavy" stack trace work while the request is already on its way
             final Supplier<StackTraceElement[]> original = keepOriginalStackTrace();
-            return future.exceptionally(throwingFunction(cause -> {
+            return future.exceptionally(partially(cause -> {
                 cause.setStackTrace(concat(cause.getStackTrace(), original.get(), StackTraceElement.class));
                 throw cause;
             }));

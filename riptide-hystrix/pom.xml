@@ -20,7 +20,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <hystrix.version>1.5.8</hystrix.version>
+        <hystrix.version>1.5.12</hystrix.version>
     </properties>
 
     <dependencies>

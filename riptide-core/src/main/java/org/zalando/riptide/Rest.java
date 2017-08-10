@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
@@ -11,6 +13,19 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Central class for actual asynchronous HTTP-based communication. Rest is loosely modeled after the HTTP protocol,
+ * i.e. you start with a method and by a URL and optionally followed query parameters, headers and a body:
+ *
+ * <pre>{@code http.get("/users")
+ *     .queryParam("active", "true")
+ *     .accept(APPLICATION_JSON)
+ *     .dispatch(..)}</pre>
+ *
+ * @see RestTemplate
+ * @see AsyncRestTemplate
+ */
+// TODO rename to Http?
 public final class Rest {
 
     private final AsyncClientHttpRequestFactory requestFactory;

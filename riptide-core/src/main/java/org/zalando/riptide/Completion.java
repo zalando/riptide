@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+// TODO move to riptide-capture
 public final class Completion {
 
     Completion() {

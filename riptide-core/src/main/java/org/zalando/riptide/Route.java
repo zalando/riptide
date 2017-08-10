@@ -17,6 +17,11 @@ import java.util.List;
 import static com.google.common.base.Throwables.propagateIfPossible;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
+/**
+ *
+ * @see RoutingTree
+ * @see
+ */
 @FunctionalInterface
 public interface Route {
 
@@ -24,7 +29,7 @@ public interface Route {
 
     static Route call(final ThrowingRunnable<? extends Exception> runnable) {
         return (response, reader) ->
-                tryWith(response, (ClientHttpResponse ＿) -> runnable.tryRun());
+                tryWith(response, (ClientHttpResponse ignored) -> runnable.tryRun());
     }
 
     static Route call(final ThrowingConsumer<ClientHttpResponse, ? extends Exception> consumer) {

@@ -16,7 +16,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
@@ -165,9 +164,8 @@ public class StreamConverterTest {
     }
 
     @Test
-    public void shouldWrapIOExceptionOnClose() throws Exception {
-        exception.expect(UncheckedIOException.class);
-        exception.expectCause(instanceOf(IOException.class));
+    public void shouldThrowIOExceptionOnClose() throws Exception {
+        exception.expect(IOException.class);
 
         final ObjectMapper mapper = spy(new ObjectMapper().findAndRegisterModules());
         final JsonFactory factory = spy(mapper.getFactory());

@@ -9,7 +9,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-capture.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-capture)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Capture* adds the possibility to produce synchronous return values with *Riptide*.
+*Riptide: Capture* adds the possibility to produce meaningful return values with *Riptide*.
 
 ## Example
 

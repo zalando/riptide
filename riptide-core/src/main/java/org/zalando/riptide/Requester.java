@@ -19,6 +19,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
+import static org.zalando.riptide.ListenableCompletableFutureAdapter.adapt;
+
 public final class Requester extends Dispatcher {
 
     private final AsyncClientHttpRequestFactory requestFactory;
@@ -118,7 +120,7 @@ public final class Requester extends Dispatcher {
             final HttpMethod method = arguments.getMethod();
             final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUri, method);
             worker.write(request, entity);
-            return new ListenableCompletableFutureAdapter<>(request.executeAsync());
+            return adapt(request.executeAsync());
         }
 
         private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {

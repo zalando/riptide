@@ -4,6 +4,8 @@ import org.junit.Test;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureTask;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -12,7 +14,7 @@ public final class ListenableCompletableFutureAdapterTest {
     @Test
     public void shouldCancel() {
         final ListenableFuture<Void> original = new ListenableFutureTask<Void>(() -> {}, null);
-        final ListenableCompletableFutureAdapter<Void> unit = new ListenableCompletableFutureAdapter<>(original);
+        final CompletableFuture<Void> unit = ListenableCompletableFutureAdapter.adapt(original);
 
         unit.cancel(true);
 

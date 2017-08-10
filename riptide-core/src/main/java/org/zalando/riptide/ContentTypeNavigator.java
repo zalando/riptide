@@ -31,13 +31,8 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
             return exact;
         }
 
-        final Optional<Route> best = bestMatch(contentType, tree);
+        return bestMatch(contentType, tree);
 
-        if (best.isPresent()) {
-            return best;
-        }
-
-        return Optional.empty();
     }
 
     private Optional<Route> exactMatch(@Nullable final MediaType contentType,

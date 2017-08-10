@@ -2,6 +2,13 @@ package org.zalando.riptide;
 
 import javax.annotation.Nullable;
 
+/**
+ * Bindings are the building blocks of {@link RoutingTree routing trees}. They bind an {@link #getAttribute() attribute}
+ * to a {@link #getRoute() route}. A binding represents a choice to the {@link Navigator navigator} which route to
+ * follow.
+ *
+ * @param <A> generic attribute type
+ */
 public final class Binding<A> {
 
     private final A attribute;
@@ -21,6 +28,16 @@ public final class Binding<A> {
         return route;
     }
 
+    /**
+     * A static factory to create bindings. {@link Bindings#on(Object)} and {@link PartialBinding} provide the same
+     * functionality but with some more syntactic sugar.
+     *
+     * @param attribute attribute to bind
+     * @param route route to bind to
+     * @param <A> generic attribute type
+     * @return a binding of attribute to route
+     * @see PartialBinding
+     */
     public static <A> Binding<A> create(@Nullable final A attribute, final Route route) {
         return new Binding<>(attribute, route);
     }

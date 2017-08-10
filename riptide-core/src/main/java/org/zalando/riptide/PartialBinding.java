@@ -7,6 +7,14 @@ import org.zalando.fauxpas.ThrowingRunnable;
 
 import javax.annotation.Nullable;
 
+/**
+ * A partial {@link Binding binding} that already has an attribute associated but is missing a {@link Route route}.
+ * The functionality provided by this class is just syntactic sugar. Clients could use
+ * {@link Binding#create(Object, Route)} directly.
+ *
+ * @see Binding#create(Object, Route)
+ * @param <A> generic attribute.
+ */
 public final class PartialBinding<A> {
 
     private final A attribute;

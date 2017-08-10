@@ -254,7 +254,7 @@ private void propagate(ThrowableProblem problem);
 Riptide will return a `CompletableFuture<Void>`. That means you can choose to chain transformations/callbacks or block
 on it.
 
-If you need synchronous return values take a look at [Riptide: Capture](riptide-capture).
+If you need proper return values take a look at [Riptide: Capture](riptide-capture).
 
 #### Exceptions
 

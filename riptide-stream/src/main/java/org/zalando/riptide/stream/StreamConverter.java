@@ -13,13 +13,13 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 
 final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>> {
@@ -100,13 +100,7 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     private Stream<T> stream(final JavaType elementType, final InputStream stream) throws IOException {
         final JsonParser parser = mapper.getFactory().createParser(stream);
         final StreamSpliterator<T> split = new StreamSpliterator<>(elementType, parser);
-        return StreamSupport.stream(split, false).onClose(() -> {
-            try {
-                parser.close();
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        return StreamSupport.stream(split, false).onClose(throwingRunnable(parser::close));
     }
 
     @Override
