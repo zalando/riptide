@@ -128,13 +128,13 @@ public final class InputStreamTest {
 
     private final URI url = URI.create("https://api.example.com/blobs/123");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public InputStreamTest() {
         final AsyncRestTemplate template = new AsyncRestTemplate();
         this.server = MockRestServiceServer.createServer(template);
-        this.unit = Rest.builder()
+        this.unit = Http.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converter(new InputStreamHttpMessageConverter())
                 .baseUrl("https://api.example.com")

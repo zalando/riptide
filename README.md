@@ -141,7 +141,7 @@ Additional modules/artifacts of Riptide always share the same version number.
 ## Configuration
 
 ```java
-Rest.builder()
+Http.builder()
     .baseUrl("https://api.github.com")
     .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .converter(new MappingJackson2HttpMessageConverter())
@@ -153,7 +153,7 @@ Rest.builder()
 Since all properties are optional the following code is the bare minimum:
 
 ```java
-Rest.builder().build();
+Http.builder().build();
 ```
 
 This defaults to:

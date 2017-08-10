@@ -120,7 +120,7 @@ public class RequestUriTest {
     }
 
     private interface Result {
-        void execute(final String baseUrl, final UrlResolution resolution, final String uri, final HttpMethod method, final Consumer<Rest> tester);
+        void execute(final String baseUrl, final UrlResolution resolution, final String uri, final HttpMethod method, final Consumer<Http> tester);
     }
 
     @Value
@@ -130,10 +130,10 @@ public class RequestUriTest {
 
         @Override
         public void execute(final String baseUrl, final UrlResolution resolution, final String uri,
-                final HttpMethod method, final Consumer<Rest> tester) {
+                final HttpMethod method, final Consumer<Http> tester) {
 
             final MockSetup setup = new MockSetup(baseUrl);
-            final Rest unit = setup.getRestBuilder().urlResolution(resolution).build();
+            final Http unit = setup.getRestBuilder().urlResolution(resolution).build();
             final MockRestServiceServer server = setup.getServer();
 
             server.expect(requestTo(requestUri))
@@ -163,10 +163,10 @@ public class RequestUriTest {
 
         @Override
         public void execute(final String baseUrl, final UrlResolution resolution, final String uri,
-                final HttpMethod method, final Consumer<Rest> tester) {
+                final HttpMethod method, final Consumer<Http> tester) {
 
             try {
-                final Rest unit = Rest.builder()
+                final Http unit = Http.builder()
                         .baseUrl(baseUrl)
                         .urlResolution(resolution)
                         .requestFactory(new SimpleClientHttpRequestFactory())
@@ -195,24 +195,24 @@ public class RequestUriTest {
     public void shouldIgnoreEmptyUri() {
         assumeThat(uri, is(nullValue()));
 
-        result.execute(baseUrl, resolution, uri, method, rest ->
-                rest.execute(method).call(call(pass())));
+        result.execute(baseUrl, resolution, uri, method, http ->
+                http.execute(method).call(call(pass())));
     }
 
     @Test
     public void shouldResolveUri() {
         assumeThat(uri, is(notNullValue()));
 
-        result.execute(baseUrl, resolution, uri, method, rest ->
-                rest.execute(method, URI.create(uri)).call(call(pass())));
+        result.execute(baseUrl, resolution, uri, method, http ->
+                http.execute(method, URI.create(uri)).call(call(pass())));
     }
 
     @Test
     public void shouldResolveUriTemplate() {
         assumeThat(uri, is(notNullValue()));
 
-        result.execute(baseUrl, resolution, uri, method, rest ->
-                rest.execute(method, uri).call(call(pass())));
+        result.execute(baseUrl, resolution, uri, method, http ->
+                http.execute(method, uri).call(call(pass())));
     }
 
     /**

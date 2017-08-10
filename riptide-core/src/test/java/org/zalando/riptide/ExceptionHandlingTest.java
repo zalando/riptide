@@ -19,7 +19,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @RunWith(MockitoJUnitRunner.class)
 public final class ExceptionHandlingTest {
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     @Mock

@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.zalando.riptide.Navigators.contentType;
-import static org.zalando.riptide.RestBuilder.simpleRequestFactory;
+import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 
 public final class StackTraceTest {
 
@@ -44,7 +44,7 @@ public final class StackTraceTest {
 
     @Test
     public void shouldKeepOriginalStackTrace() throws Exception {
-        final Rest unit = configureRest().build();
+        final Http unit = configureRest().build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 
@@ -57,7 +57,7 @@ public final class StackTraceTest {
 
     @Test
     public void shouldNotKeepOriginalStackTrace() throws Exception {
-        final Rest unit = configureRest().plugin(NoopPlugin.INSTANCE).build();
+        final Http unit = configureRest().plugin(NoopPlugin.INSTANCE).build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 
@@ -68,8 +68,8 @@ public final class StackTraceTest {
         assertThat(getStackTraceAsString(exception), not(containsString("StackTraceTest.execute(")));
     }
 
-    private RestBuilder configureRest() {
-        return Rest.builder()
+    private HttpBuilder configureRest() {
+        return Http.builder()
                 .baseUrl(driver.getBaseUrl())
                 .configure(simpleRequestFactory(executor));
     }

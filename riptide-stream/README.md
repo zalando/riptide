@@ -52,7 +52,7 @@ use `RestAsyncClientHttpRequestFactory` provided by [*Riptide: HTTP Client*](../
 issue with Spring's implementation which tries to consume infinite streams when trying to close a connection.
 
 ```java
-Rest.builder()
+Http.builder()
     .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
     .converter(Streams.streamConverter(mapper))
     .build();

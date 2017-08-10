@@ -18,7 +18,7 @@ import static org.zalando.riptide.Route.pass;
 
 public class DynamicBaseUrlTest {
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     @SuppressWarnings("unchecked")

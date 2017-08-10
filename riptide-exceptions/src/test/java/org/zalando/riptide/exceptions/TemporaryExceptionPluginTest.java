@@ -10,8 +10,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.Rest;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldClassifyAsTemporary() {
-        final Rest unit = newUnit(new TemporaryExceptionPlugin());
+        final Http unit = newUnit(new TemporaryExceptionPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
@@ -75,7 +75,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldNotClassifyAsTemporaryIfNotMatching() {
-        final Rest unit = newUnit(new TemporaryExceptionPlugin(create()));
+        final Http unit = newUnit(new TemporaryExceptionPlugin(create()));
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
@@ -88,7 +88,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldClassifyExceptionAsTemporaryAsIs() {
-        final Rest unit = newUnit((arguments, execution) -> () -> {
+        final Http unit = newUnit((arguments, execution) -> () -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
                     return future;
@@ -101,12 +101,12 @@ public final class TemporaryExceptionPluginTest {
         request(unit).join();
     }
 
-    private void execute(final Rest unit) {
+    private void execute(final Http unit) {
         request(unit)
                 .join();
     }
 
-    private CompletableFuture<Void> request(final Rest unit) {
+    private CompletableFuture<Void> request(final Http unit) {
         return unit.get("/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
@@ -114,7 +114,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldClassifyAsPermanent() {
-        final Rest unit = newUnit(new TemporaryExceptionPlugin());
+        final Http unit = newUnit(new TemporaryExceptionPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse());
@@ -128,8 +128,8 @@ public final class TemporaryExceptionPluginTest {
                 .join();
     }
 
-    private Rest newUnit(final Plugin... plugins) {
-        return Rest.builder()
+    private Http newUnit(final Plugin... plugins) {
+        return Http.builder()
                 .baseUrl(driver.getBaseUrl())
                 .requestFactory(factory)
                 .plugins(Arrays.asList(plugins))

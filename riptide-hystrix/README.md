@@ -14,7 +14,7 @@
 ## Example
 
 ```java
-Rest.builder()
+Http.builder()
     .plugin(new HystrixPlugin())
     .build();
 ```

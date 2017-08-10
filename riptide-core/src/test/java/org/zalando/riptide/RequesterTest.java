@@ -16,7 +16,7 @@ import static org.zalando.riptide.Route.pass;
 
 public class RequesterTest {
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public RequesterTest() {

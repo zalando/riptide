@@ -10,7 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class StreamsTest {
     private final String baseUrl = "https://api.example.com";
     private final URI url = URI.create(baseUrl + "/accounts");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public StreamsTest() {

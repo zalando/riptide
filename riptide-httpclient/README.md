@@ -14,7 +14,7 @@
 ## Example
 
 ```java
-final Rest rest = Rest.builder()
+final Http http = Http.builder()
         .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
         .build();
 ```
@@ -52,7 +52,7 @@ CloseableHttpClient client = HttpClientBuilder.create()
 
 AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
 
-final Rest rest = Rest.builder()
+final Http http = Http.builder()
         .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
         .build();
 ```

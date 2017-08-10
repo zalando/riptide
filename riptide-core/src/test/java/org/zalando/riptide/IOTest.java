@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.RestBuilder.simpleRequestFactory;
+import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Route.listOf;
 import static org.zalando.riptide.Route.pass;
 
@@ -50,7 +50,7 @@ public final class IOTest {
 
     private final ExecutorService executor = newSingleThreadExecutor();
 
-    private final Rest rest = Rest.builder()
+    private final Http http = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .configure(simpleRequestFactory(executor))
             .converter(createJsonConverter())
@@ -75,7 +75,7 @@ public final class IOTest {
 
         final AtomicReference<List<User>> reference = new AtomicReference<>();
 
-        rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(listOf(User.class), reference::set)).join();
 
@@ -91,7 +91,7 @@ public final class IOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveEmptyResponse().after(1, TimeUnit.SECONDS));
 
-        final CompletableFuture<Void> future = rest.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final CompletableFuture<Void> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 

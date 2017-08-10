@@ -32,7 +32,7 @@ public final class ExecuteTest {
 
     private final String url = "https://api.example.com";
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public ExecuteTest() {
@@ -118,7 +118,7 @@ public final class ExecuteTest {
     public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
         final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
         final MockRestServiceServer server = setup.getServer();
-        final Rest unit = setup.getRestBuilder()
+        final Http unit = setup.getRestBuilder()
                 .converter(new Jaxb2RootElementHttpMessageConverter()).build();
 
         // we never actually make the request, but the mock server is doing some magic pre-actively

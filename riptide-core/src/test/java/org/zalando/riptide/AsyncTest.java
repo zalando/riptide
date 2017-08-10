@@ -45,7 +45,7 @@ public final class AsyncTest {
 
     private final URI url = URI.create("http://localhost");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     public AsyncTest() {

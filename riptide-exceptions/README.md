@@ -37,7 +37,7 @@ Add the following dependency to your project:
 ## Configuration
 
 ```java
-Rest.builder()
+Http.builder()
     .plugin(new TemporaryExceptionPlugin())
     .build();
 ```

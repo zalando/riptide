@@ -20,7 +20,7 @@ import static org.zalando.riptide.Route.pass;
 @RunWith(Parameterized.class)
 public class UriTemplateArgTest {
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     private final String uriTemplate;

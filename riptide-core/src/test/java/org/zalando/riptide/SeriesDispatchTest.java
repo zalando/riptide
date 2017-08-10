@@ -27,7 +27,7 @@ public final class SeriesDispatchTest {
 
     private final URI url = URI.create("https://api.example.com");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     private final HttpStatus expected;

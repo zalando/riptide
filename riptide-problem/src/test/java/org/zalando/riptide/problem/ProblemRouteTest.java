@@ -12,7 +12,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.problem.Exceptional;
 import org.zalando.problem.ThrowableProblem;
-import org.zalando.riptide.Rest;
+import org.zalando.riptide.Http;
 import org.zalando.riptide.Route;
 
 import java.net.URI;
@@ -40,7 +40,7 @@ public final class ProblemRouteTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
-    private final Rest unit;
+    private final Http unit;
     private final MockRestServiceServer server;
 
     @Mock
