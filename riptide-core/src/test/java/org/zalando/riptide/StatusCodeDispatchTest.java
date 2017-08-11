@@ -29,7 +29,7 @@ public final class StatusCodeDispatchTest {
 
     public StatusCodeDispatchTest(final int expected) {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
         this.expected = expected;
     }

@@ -38,7 +38,7 @@ public final class ExecuteTest {
     public ExecuteTest() {
         final MockSetup setup = new MockSetup();
         this.server = setup.getServer();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
     }
 
     @Test
@@ -118,7 +118,7 @@ public final class ExecuteTest {
     public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
         final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
         final MockRestServiceServer server = setup.getServer();
-        final Http unit = setup.getRestBuilder()
+        final Http unit = setup.getHttpBuilder()
                 .converter(new Jaxb2RootElementHttpMessageConverter()).build();
 
         // we never actually make the request, but the mock server is doing some magic pre-actively

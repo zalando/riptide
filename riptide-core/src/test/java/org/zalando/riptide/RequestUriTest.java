@@ -133,7 +133,7 @@ public class RequestUriTest {
                 final HttpMethod method, final Consumer<Http> tester) {
 
             final MockSetup setup = new MockSetup(baseUrl);
-            final Http unit = setup.getRestBuilder().urlResolution(resolution).build();
+            final Http unit = setup.getHttpBuilder().urlResolution(resolution).build();
             final MockRestServiceServer server = setup.getServer();
 
             server.expect(requestTo(requestUri))

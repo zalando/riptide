@@ -45,7 +45,7 @@ public final class CallTest {
 
     public CallTest() {
         final MockSetup setup = new MockSetup("https://api.example.com/");
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 

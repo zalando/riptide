@@ -28,15 +28,15 @@ import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.Route.pass;
 
 /**
- * A test that verifies that the specific request methods in {@link Rest}, e.g. {@link Rest#get(URI)} delegate the
- * chosen method to {@link Rest#execute(HttpMethod, URI)} correctly
+ * A test that verifies that the specific request methods in {@link Http}, e.g. {@link Http#get(URI)} delegate the
+ * chosen method to {@link Http#execute(HttpMethod, URI)} correctly
  *
- * @see Rest#get()
- * @see Rest#execute(HttpMethod)
- * @see Rest#get(URI)
- * @see Rest#execute(HttpMethod, URI)
- * @see Rest#get(String, Object...)
- * @see Rest#execute(HttpMethod, String, Object...)
+ * @see Http#get()
+ * @see Http#execute(HttpMethod)
+ * @see Http#get(URI)
+ * @see Http#execute(HttpMethod, URI)
+ * @see Http#get(String, Object...)
+ * @see Http#execute(HttpMethod, String, Object...)
  */
 @RunWith(Parameterized.class)
 public final class MethodDelegateTest {
@@ -139,7 +139,7 @@ public final class MethodDelegateTest {
     @Test
     public void shouldDelegate() {
         final MockSetup setup = new MockSetup("https://example.com");
-        final Http unit = setup.getRest();
+        final Http unit = setup.getHttp();
         final MockRestServiceServer server = setup.getServer();
 
         server.expect(requestTo("https://example.com"))

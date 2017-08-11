@@ -1,133 +1,93 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Preconditions.checkArgument;
-
+/**
+ * @see Http#builder()
+ * @see DefaultHttpBuilder
+ */
+@Deprecated
 public final class RestBuilder implements HttpBuilder {
 
-    // package private so we can trick code coverage
-    static class Converters {
-        private static final ImmutableList<HttpMessageConverter<?>> DEFAULT =
-                ImmutableList.copyOf(new RestTemplate().getMessageConverters());
+    private final HttpBuilder builder;
+
+    RestBuilder(final HttpBuilder builder) {
+        this.builder = builder;
     }
 
-    static class Plugins {
-        private static final ImmutableList<Plugin> DEFAULT =
-                ImmutableList.of(new OriginalStackTracePlugin());
-    }
-
-    private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;
-
-    private AsyncClientHttpRequestFactory requestFactory;
-    private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
-    private Supplier<URI> baseUrlProvider = () -> null;
-    private UrlResolution resolution = DEFAULT_RESOLUTION;
-    private final List<Plugin> plugins = new ArrayList<>();
-
-    RestBuilder() {
-
+    public static RestConfigurer simpleRequestFactory(final ExecutorService executor) {
+        return HttpBuilder.simpleRequestFactory(executor)::configure;
     }
 
     @Override
-    public HttpBuilder requestFactory(final AsyncClientHttpRequestFactory requestFactory) {
-        this.requestFactory = requestFactory;
-        return this;
+    public RestBuilder requestFactory(final AsyncClientHttpRequestFactory requestFactory) {
+        return new RestBuilder(builder.requestFactory(requestFactory));
     }
 
     @Override
-    public HttpBuilder defaultConverters() {
-        return converters(Converters.DEFAULT);
+    public RestBuilder defaultConverters() {
+        return new RestBuilder(builder.defaultConverters());
     }
 
     @Override
-    public HttpBuilder converters(final Iterable<HttpMessageConverter<?>> converters) {
-        converters.forEach(this::converter);
-        return this;
+    public RestBuilder converters(final Iterable<HttpMessageConverter<?>> converters) {
+        return new RestBuilder(builder.converters(converters));
     }
 
     @Override
-    public HttpBuilder converter(final HttpMessageConverter<?> converter) {
-        this.converters.add(converter);
-        return this;
+    public RestBuilder converter(final HttpMessageConverter<?> converter) {
+        return new RestBuilder(builder.converter(converter));
     }
 
     @Override
-    public HttpBuilder baseUrl(@Nullable final String baseUrl) {
-        return baseUrl(baseUrl == null ? null : URI.create(baseUrl));
+    public RestBuilder baseUrl(@Nullable final String baseUrl) {
+        return new RestBuilder(builder.baseUrl(baseUrl));
     }
 
     @Override
-    public HttpBuilder baseUrl(@Nullable final URI baseUrl) {
-        checkAbsoluteBaseUrl(baseUrl);
-        return baseUrl(() -> baseUrl);
+    public RestBuilder baseUrl(@Nullable final URI baseUrl) {
+        return new RestBuilder(builder.baseUrl(baseUrl));
     }
 
     @Override
-    public HttpBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
-        this.baseUrlProvider = () -> checkAbsoluteBaseUrl(baseUrlProvider.get());
-        return this;
-    }
-
-    private URI checkAbsoluteBaseUrl(@Nullable final URI baseUrl) {
-        checkArgument(baseUrl == null || baseUrl.isAbsolute(), "Base URL is not absolute");
-        return baseUrl;
+    public RestBuilder baseUrl(final Supplier<URI> baseUrlProvider) {
+        return new RestBuilder(builder.baseUrl(baseUrlProvider));
     }
 
     @Override
-    public HttpBuilder urlResolution(@Nullable final UrlResolution resolution) {
-        this.resolution = firstNonNull(resolution, DEFAULT_RESOLUTION);
-        return this;
+    public RestBuilder urlResolution(@Nullable final UrlResolution resolution) {
+        return new RestBuilder(builder.urlResolution(resolution));
     }
 
     @Override
-    public HttpBuilder defaultPlugins() {
-        return plugins(Plugins.DEFAULT);
+    public RestBuilder defaultPlugins() {
+        return new RestBuilder(builder.defaultPlugins());
     }
 
     @Override
-    public HttpBuilder plugins(final Iterable<Plugin> plugins) {
-        plugins.forEach(this::plugin);
-        return this;
+    public RestBuilder plugins(final Iterable<Plugin> plugins) {
+        return new RestBuilder(builder.plugins(plugins));
     }
 
     @Override
-    public HttpBuilder plugin(final Plugin plugin) {
-        this.plugins.add(plugin);
-        return this;
+    public RestBuilder plugin(final Plugin plugin) {
+        return new RestBuilder(builder.plugin(plugin));
     }
 
     @Override
-    public HttpBuilder configure(final RestConfigurer configurer) {
-        configurer.configure(this);
-        return this;
+    public RestBuilder configure(final HttpConfigurer configurer) {
+        return new RestBuilder(builder.configure(configurer));
     }
 
     @Override
-    public Http build() {
-        return new Rest(requestFactory, converters(), baseUrlProvider, resolution, plugin());
-    }
-
-    private List<HttpMessageConverter<?>> converters() {
-        return converters.isEmpty() ? Converters.DEFAULT : converters;
-    }
-
-    private Plugin plugin() {
-        return plugins().stream().reduce(Plugin::merge).orElse(NoopPlugin.INSTANCE);
-    }
-
-    private List<Plugin> plugins() {
-        return plugins.isEmpty() ? Plugins.DEFAULT : plugins;
+    public Rest build() {
+        return new Rest(builder.build());
     }
 
 }

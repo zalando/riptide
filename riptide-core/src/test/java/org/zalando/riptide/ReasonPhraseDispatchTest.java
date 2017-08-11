@@ -29,7 +29,7 @@ public final class ReasonPhraseDispatchTest {
 
     public ReasonPhraseDispatchTest(final String expected) {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
         this.expected = expected;
     }
