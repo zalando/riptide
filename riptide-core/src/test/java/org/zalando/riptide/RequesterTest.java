@@ -21,7 +21,7 @@ public class RequesterTest {
 
     public RequesterTest() {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 

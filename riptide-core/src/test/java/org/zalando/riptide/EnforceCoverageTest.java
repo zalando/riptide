@@ -20,13 +20,13 @@ public final class EnforceCoverageTest {
     }
 
     @Test
-    public void shouldUseRestBuilderConvertersConstructor() {
-        new RestBuilder.Converters();
+    public void shouldUseDefaultHttpBuilderConvertersConstructor() {
+        new DefaultHttpBuilder.Converters();
     }
 
     @Test
-    public void shouldUseRestBuilderPluginsConstructor() {
-        new RestBuilder.Plugins();
+    public void shouldUseDefaultHttpBuilderPluginsConstructor() {
+        new DefaultHttpBuilder.Plugins();
     }
 
     @Test

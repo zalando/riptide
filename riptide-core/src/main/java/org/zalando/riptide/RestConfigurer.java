@@ -1,8 +1,9 @@
 package org.zalando.riptide;
 
-@FunctionalInterface
-public interface RestConfigurer {
-
-    void configure(final HttpBuilder builder);
+/**
+ * @see HttpConfigurer
+ */
+@Deprecated
+public interface RestConfigurer extends HttpConfigurer {
 
 }

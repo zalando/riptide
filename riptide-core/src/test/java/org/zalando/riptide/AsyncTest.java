@@ -50,7 +50,7 @@ public final class AsyncTest {
 
     public AsyncTest() {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 

@@ -1,183 +1,159 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
 
 import java.net.URI;
-import java.util.List;
-import java.util.function.Supplier;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+/**
+ * @see Http
+ * @see DefaultHttp
+ */
+@Deprecated
 public final class Rest implements Http {
 
-    private final AsyncClientHttpRequestFactory requestFactory;
-    private final MessageWorker worker;
-    private final Supplier<URI> baseUrlProvider;
-    private final RequestArguments arguments;
-    private final Plugin plugin;
+    private final Http http;
 
-    Rest(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
-        this.requestFactory = checkNotNull(requestFactory, "request factory");
-        this.worker = new MessageWorker(converters);
-        this.baseUrlProvider = checkNotNull(baseUrlProvider, "base url provider");
-        this.arguments = RequestArguments.create().withUrlResolution(resolution);
-        this.plugin = plugin;
+    Rest(final Http http) {
+        this.http = http;
     }
 
     @Override
-    public final Requester get(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.GET, uriTemplate, urlVariables);
+    public Requester get(final String uriTemplate, final Object... urlVariables) {
+        return http.get(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester get(final URI uri) {
-        return execute(HttpMethod.GET, uri);
+    public Requester get(final URI uri) {
+        return http.get(uri);
     }
 
     @Override
-    public final Requester get() {
-        return execute(HttpMethod.GET);
+    public Requester get() {
+        return http.get();
     }
 
     @Override
-    public final Requester head(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.HEAD, uriTemplate, urlVariables);
+    public Requester head(final String uriTemplate, final Object... urlVariables) {
+        return http.head(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester head(final URI uri) {
-        return execute(HttpMethod.HEAD, uri);
+    public Requester head(final URI uri) {
+        return http.head(uri);
     }
 
     @Override
-    public final Requester head() {
-        return execute(HttpMethod.HEAD);
+    public Requester head() {
+        return http.head();
     }
 
     @Override
-    public final Requester post(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.POST, uriTemplate, urlVariables);
+    public Requester post(final String uriTemplate, final Object... urlVariables) {
+        return http.post(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester post(final URI uri) {
-        return execute(HttpMethod.POST, uri);
+    public Requester post(final URI uri) {
+        return http.post(uri);
     }
 
     @Override
-    public final Requester post() {
-        return execute(HttpMethod.POST);
+    public Requester post() {
+        return http.post();
     }
 
     @Override
-    public final Requester put(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.PUT, uriTemplate, urlVariables);
+    public Requester put(final String uriTemplate, final Object... urlVariables) {
+        return http.put(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester put(final URI uri) {
-        return execute(HttpMethod.PUT, uri);
+    public Requester put(final URI uri) {
+        return http.put(uri);
     }
 
     @Override
-    public final Requester put() {
-        return execute(HttpMethod.PUT);
+    public Requester put() {
+        return http.put();
     }
 
     @Override
-    public final Requester patch(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.PATCH, uriTemplate, urlVariables);
+    public Requester patch(final String uriTemplate, final Object... urlVariables) {
+        return http.patch(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester patch(final URI uri) {
-        return execute(HttpMethod.PATCH, uri);
+    public Requester patch(final URI uri) {
+        return http.patch(uri);
     }
 
     @Override
-    public final Requester patch() {
-        return execute(HttpMethod.PATCH);
+    public Requester patch() {
+        return http.patch();
     }
 
     @Override
-    public final Requester delete(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.DELETE, uriTemplate, urlVariables);
+    public Requester delete(final String uriTemplate, final Object... urlVariables) {
+        return http.delete(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester delete(final URI uri) {
-        return execute(HttpMethod.DELETE, uri);
+    public Requester delete(final URI uri) {
+        return http.delete(uri);
     }
 
     @Override
-    public final Requester delete() {
-        return execute(HttpMethod.DELETE);
+    public Requester delete() {
+        return http.delete();
     }
 
     @Override
-    public final Requester options(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.OPTIONS, uriTemplate, urlVariables);
+    public Requester options(final String uriTemplate, final Object... urlVariables) {
+        return http.options(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester options(final URI uri) {
-        return execute(HttpMethod.OPTIONS, uri);
+    public Requester options(final URI uri) {
+        return http.options(uri);
     }
 
     @Override
-    public final Requester options() {
-        return execute(HttpMethod.OPTIONS);
+    public Requester options() {
+        return http.options();
     }
 
     @Override
-    public final Requester trace(final String uriTemplate, final Object... urlVariables) {
-        return execute(HttpMethod.TRACE, uriTemplate, urlVariables);
+    public Requester trace(final String uriTemplate, final Object... urlVariables) {
+        return http.trace(uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester trace(final URI uri) {
-        return execute(HttpMethod.TRACE, uri);
+    public Requester trace(final URI uri) {
+        return http.trace(uri);
     }
 
     @Override
-    public final Requester trace() {
-        return execute(HttpMethod.TRACE);
+    public Requester trace() {
+        return http.trace();
     }
 
     @Override
     public Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
-        return execute(arguments
-                .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get())
-                .withUriTemplate(uriTemplate)
-                .withUriVariables(ImmutableList.copyOf(uriVariables)));
+        return http.execute(method, uriTemplate, uriVariables);
     }
 
     @Override
     public Requester execute(final HttpMethod method, final URI uri) {
-        return execute(arguments
-                .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get())
-                .withUri(uri));
+        return http.execute(method, uri);
     }
 
     @Override
     public Requester execute(final HttpMethod method) {
-        return execute(arguments
-                .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get()));
-    }
-
-    private Requester execute(final RequestArguments arguments) {
-        return new Requester(requestFactory, worker, arguments, plugin);
+        return http.execute(method);
     }
 
     public static RestBuilder builder() {
-        return new RestBuilder();
+        return new RestBuilder(Http.builder());
     }
 
 }

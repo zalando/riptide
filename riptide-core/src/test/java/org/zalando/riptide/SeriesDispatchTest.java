@@ -34,7 +34,7 @@ public final class SeriesDispatchTest {
 
     public SeriesDispatchTest(final HttpStatus expected) {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
         this.expected = expected;
     }

@@ -30,7 +30,7 @@ public final class AnyDispatchTest {
 
     public AnyDispatchTest() {
         final MockSetup setup = new MockSetup();
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 

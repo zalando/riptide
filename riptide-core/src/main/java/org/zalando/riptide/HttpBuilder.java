@@ -11,7 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 public interface HttpBuilder {
-    static RestConfigurer simpleRequestFactory(ExecutorService executor) {
+
+    static HttpConfigurer simpleRequestFactory(final ExecutorService executor) {
         return builder -> {
             final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
             factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
@@ -41,7 +42,7 @@ public interface HttpBuilder {
 
     HttpBuilder plugin(Plugin plugin);
 
-    HttpBuilder configure(RestConfigurer configurer);
+    HttpBuilder configure(HttpConfigurer configurer);
 
     Http build();
 }

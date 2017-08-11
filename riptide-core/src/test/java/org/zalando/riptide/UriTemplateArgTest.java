@@ -30,7 +30,7 @@ public class UriTemplateArgTest {
     public UriTemplateArgTest(final String baseUrl, final String uriTemplate, final Object[] uriVariables,
             final String requestUrl) {
         final MockSetup setup = new MockSetup(baseUrl);
-        this.unit = setup.getRest();
+        this.unit = setup.getHttp();
         this.server = setup.getServer();
 
         this.uriTemplate = uriTemplate;
