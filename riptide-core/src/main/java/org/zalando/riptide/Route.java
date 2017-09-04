@@ -20,7 +20,6 @@ import static org.zalando.fauxpas.TryWith.tryWith;
 /**
  *
  * @see RoutingTree
- * @see
  */
 @FunctionalInterface
 public interface Route {
@@ -87,10 +86,12 @@ public interface Route {
         };
     }
 
+    @Deprecated
     static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
         return HttpMessage::getHeaders;
     }
 
+    @Deprecated
     static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
         return response ->
                 response.getHeaders().getLocation();
@@ -109,12 +110,14 @@ public interface Route {
         };
     }
 
+    @Deprecated
     static <T> Adapter<ClientHttpResponse, T> to(
             final ThrowingFunction<ClientHttpResponse, T, ? extends Exception> function) {
         return consumer ->
                 response -> consumer.tryAccept(function.tryApply(response));
     }
 
+    @Deprecated
     @FunctionalInterface
     interface Adapter<T, R> {
         ThrowingConsumer<T, Exception> andThen(final ThrowingConsumer<R, ? extends Exception> consumer);

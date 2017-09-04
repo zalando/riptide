@@ -72,6 +72,7 @@ public final class RouteTest {
                         anyStatus().call(this::fail));
     }
 
+    @Deprecated
     @Test
     public void shouldMapHeaders() {
         server.expect(requestTo(url)).andRespond(
@@ -91,6 +92,7 @@ public final class RouteTest {
         assertThat(headers.toSingleValueMap(), hasEntry("Content-Type", APPLICATION_JSON_VALUE));
     }
 
+    @Deprecated
     @Test
     public void shouldMapLocation() {
         final HttpHeaders headers = new HttpHeaders();
