@@ -61,6 +61,7 @@
         <module>riptide-capture</module>
         <module>riptide-core</module>
         <module>riptide-exceptions</module>
+        <module>riptide-failsafe</module>
         <module>riptide-httpclient</module>
         <module>riptide-hystrix</module>
         <module>riptide-problem</module>

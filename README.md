@@ -43,6 +43,7 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - type-safe
 - asynchronous by default
 - bulkhead pattern through isolated thread and connection pools
+- [Failsafe integration](riptide-failsafe)
 - [Hystrix integration](riptide-hystrix)
 - [`application/problem+json` support](riptide-problem)
 - [streaming](riptide-stream)
