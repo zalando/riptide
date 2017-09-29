@@ -12,9 +12,11 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.Navigators;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -27,8 +29,10 @@ import java.util.stream.IntStream;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.junit.Assert.fail;
+import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 public class FailsafePluginTest {
 
@@ -83,6 +87,23 @@ public class FailsafePluginTest {
         try {
             unit.get("/foo")
                     .call(call(pass()))
+                    .join();
+            fail("Expecting exception");
+        } catch (final CompletionException e) {
+            throw e.getCause();
+        }
+    }
+
+    @Test(expected = RetryException.class)
+    public void shouldRetry() throws Throwable {
+        IntStream.range(0, 5).forEach(i ->
+                driver.addExpectation(onRequestTo("/foo"),
+                        giveEmptyResponse().withStatus(503)));
+
+        try {
+            unit.get("/foo")
+                    .dispatch(Navigators.status(),
+                        on(HttpStatus.SERVICE_UNAVAILABLE).call(retry()))
                     .join();
             fail("Expecting exception");
         } catch (final CompletionException e) {
