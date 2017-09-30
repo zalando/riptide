@@ -9,8 +9,9 @@ public final class RetryRoute {
     }
 
     public static Route retry() {
-        return Route.call(response -> {
+        return (response, reader) -> {
             throw new RetryException(response);
-        });
+        };
     }
+
 }

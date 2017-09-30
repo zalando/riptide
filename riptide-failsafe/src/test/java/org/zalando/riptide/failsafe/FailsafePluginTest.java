@@ -51,7 +51,7 @@ public class FailsafePluginTest {
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(Executors.newSingleThreadScheduledExecutor())
+            .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
                     .withRetryPolicy(new RetryPolicy()
                             .retryOn(SocketTimeoutException.class)
                             .withDelay(25, TimeUnit.MILLISECONDS)

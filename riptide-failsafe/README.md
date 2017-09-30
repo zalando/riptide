@@ -50,7 +50,7 @@ The failsafe plugin will not perform retries nor apply circuit breakers unless t
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(Executors.newSingleThreadScheduledExecutor())
+    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
             .withRetryPolicy(new RetryPolicy()
                     .retryOn(SocketTimeoutException.class)
                     .withDelay(25, TimeUnit.MILLISECONDS)
@@ -64,6 +64,34 @@ Http.builder()
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see which configuration
 is possible.
+
+## Usage
+
+Give. the failsafe plugin was configured as shown in the last section: A normal call like the following will now be
+retried up to 4 times if the server did not respond within the socket timeout.
+
+```java
+http.get("/users/me")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(User.class, this::greet),
+        anySeries().call(problemHandling()))
+```
+
+Handling certain technical issues automatically, like socket timeouts, is quite useful.
+But there might be cases where the server did respond, but the response indicates something that is worth
+retrying, e.g. a `409 Conflict` or a `503 Service Unavailable`. Use the predefined `retry` route that comes with the
+failsafe plugin:
+
+```java
+http.get("/users/me")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(User.class, this::greet),
+        on(CLIENT_ERROR).dispatch(status(),
+            on(CONFLICT).call(retry())),
+        on(SERVER_ERROR).dispatch(status(),
+            on(SERVICE_UNAVAILABLE).call(retry())),
+        anySeries().call(problemHandling()))
+```
 
 ## Getting Help
 

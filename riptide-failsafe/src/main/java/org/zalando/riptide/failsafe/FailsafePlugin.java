@@ -27,7 +27,8 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, retryPolicy.retryOn(RetryException.class), circuitBreaker);
+        return new FailsafePlugin(scheduler, retryPolicy
+                .retryOn(RetryException.class), circuitBreaker);
     }
 
     public FailsafePlugin withCircuitBreaker(final CircuitBreaker circuitBreaker) {
