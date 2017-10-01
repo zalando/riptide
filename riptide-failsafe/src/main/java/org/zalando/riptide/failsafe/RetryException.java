@@ -1,18 +1,14 @@
 package org.zalando.riptide.failsafe;
 
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.riptide.BaseException;
 
 import java.io.IOException;
 
-final class RetryException extends RuntimeException {
+final class RetryException extends BaseException {
 
     RetryException(final ClientHttpResponse response) throws IOException {
-        super(formatMessage(response));
-    }
-
-    private static String formatMessage(final ClientHttpResponse response) throws IOException {
-        return String.format("Giving up retrying response: %d - %s\n%s",
-                response.getRawStatusCode(), response.getStatusText(), response.getHeaders());
+        super("Retrying response", response);
     }
 
 }

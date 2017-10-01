@@ -80,7 +80,6 @@ public final class FailedDispatchTest {
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
         exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
-        exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
 
         unit.options(url)
                 .dispatch(contentType(),
