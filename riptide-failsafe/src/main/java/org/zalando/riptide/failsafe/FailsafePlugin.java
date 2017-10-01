@@ -11,12 +11,14 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public final class FailsafePlugin implements Plugin {
 
+    private static final RetryPolicy NEVER = new RetryPolicy().withMaxRetries(0);
+
     private final ScheduledExecutorService scheduler;
     private final RetryPolicy retryPolicy;
     private final CircuitBreaker circuitBreaker;
 
     public FailsafePlugin(final ScheduledExecutorService scheduler) {
-        this(scheduler, new RetryPolicy(), new CircuitBreaker());
+        this(scheduler, NEVER, new CircuitBreaker());
     }
 
     private FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
