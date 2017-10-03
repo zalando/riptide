@@ -218,6 +218,10 @@ public final class FailedDispatchTest {
         exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
         exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
         exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
+        exception.expectCause(hasFeature("raw status code", NoRouteException::getRawStatusCode, is(201)));
+        exception.expectCause(hasFeature("status text", NoRouteException::getStatusText, is("Created")));
+        exception.expectCause(hasFeature("response headers", NoRouteException::getResponseHeaders, is(notNullValue())));
+        exception.expectCause(hasFeature("response body", NoRouteException::getResponseBody, is(notNullValue())));
 
         unit.post(url)
                 .dispatch(series(),

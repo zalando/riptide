@@ -5,7 +5,7 @@ import com.google.gag.annotation.remark.Hack;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestClientException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,19 +16,27 @@ import java.util.Optional;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 // TODO rename
-public abstract class BaseException extends RestClientResponseException {
+public abstract class BaseException extends RestClientException {
 
     private static final int MAX_BODY_BYTES_TO_READ = 8192;
 
+    private final int rawStatusCode;
+    private final String statusText;
+    private final HttpHeaders responseHeaders;
+    private final byte[] responseBody;
+
     public BaseException(final String message, final ClientHttpResponse response) throws IOException {
-        this(message, readFromBody(response), extractCharset(response),
-                response.getStatusText(), response.getRawStatusCode(), response.getHeaders());
+        this(message, response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
+                extractCharset(response), readFromBody(response));
     }
 
-    private BaseException(final String message, final byte[] body, final Charset charset, final String statusText,
-            final int rawStatusCode, final HttpHeaders headers) throws IOException {
-        super(format(message, body, charset, rawStatusCode, statusText, headers), rawStatusCode, statusText, headers,
-                body, charset);
+    private BaseException(final String message, final int rawStatusCode, final String statusText,
+            final HttpHeaders headers, final Charset charset, final byte[] responseBody) throws IOException {
+        super(format(message, responseBody, charset, rawStatusCode, statusText, headers));
+        this.rawStatusCode = rawStatusCode;
+        this.statusText = statusText;
+        this.responseHeaders = headers;
+        this.responseBody = responseBody;
     }
 
     private static byte[] readFromBody(final ClientHttpResponse response) throws IOException {
@@ -56,6 +64,22 @@ public abstract class BaseException extends RestClientResponseException {
     private static String format(final String message, final byte[] body, final Charset charset,
             final int statusCode, final String reasonPhrase, final HttpHeaders headers) throws IOException {
         return String.format("%s: %d - %s\n%s\n%s", message, statusCode, reasonPhrase, headers, new String(body, charset));
+    }
+
+    public int getRawStatusCode() {
+        return rawStatusCode;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public HttpHeaders getResponseHeaders() {
+        return responseHeaders;
+    }
+
+    public byte[] getResponseBody() {
+        return responseBody;
     }
 
 }
