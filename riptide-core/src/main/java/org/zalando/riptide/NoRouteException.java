@@ -10,7 +10,7 @@ import java.io.IOException;
  * @see NoRoute#noRoute()
  */
 @SuppressWarnings("serial")
-public final class NoRouteException extends BaseException {
+public final class NoRouteException extends HttpResponseException {
 
     private final ClientHttpResponse response;
 

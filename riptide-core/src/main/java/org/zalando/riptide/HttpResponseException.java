@@ -15,8 +15,7 @@ import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
-// TODO rename
-public abstract class BaseException extends RestClientException {
+public abstract class HttpResponseException extends RestClientException {
 
     private static final int MAX_BODY_BYTES_TO_READ = 8192;
 
@@ -25,12 +24,12 @@ public abstract class BaseException extends RestClientException {
     private final HttpHeaders responseHeaders;
     private final byte[] responseBody;
 
-    public BaseException(final String message, final ClientHttpResponse response) throws IOException {
+    public HttpResponseException(final String message, final ClientHttpResponse response) throws IOException {
         this(message, response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
                 extractCharset(response), readFromBody(response));
     }
 
-    private BaseException(final String message, final int rawStatusCode, final String statusText,
+    private HttpResponseException(final String message, final int rawStatusCode, final String statusText,
             final HttpHeaders headers, final Charset charset, final byte[] responseBody) throws IOException {
         super(format(message, responseBody, charset, rawStatusCode, statusText, headers));
         this.rawStatusCode = rawStatusCode;
@@ -51,7 +50,7 @@ public abstract class BaseException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(BaseException::extractCharset)
+                .map(HttpResponseException::extractCharset)
                 .orElse(ISO_8859_1);
     }
 
