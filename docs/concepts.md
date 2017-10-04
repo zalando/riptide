@@ -36,13 +36,13 @@ on(SUCCESSFUL).dispatch(contentType(),
   The act of **traversing a [routing tree](#routing-tree)** by choosing a binding and following its associated route is
   called **nested dispatch**.
 
-| Navigator                                                                                              | Aspect               |
-|--------------------------------------------------------------------------------------------------------|----------------------|
-| [Navigators.series()](riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)             | Class of status code |
-| [Navigators.status()](riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)             | Status               |
-| [Navigators.statusCode()](riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)     | Status code          |
-| [Navigators.reasonPhrase()](riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java) | Reason Phrase        |
-| [Navigators.contentType()](riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)   | Content-Type header  |
+| Navigator                                                                                                 | Aspect               |
+|-----------------------------------------------------------------------------------------------------------|----------------------|
+| [Navigators.series()](../riptide-core/src/main/java/org/zalando/riptide/SeriesNavigator.java)             | Class of status code |
+| [Navigators.status()](../riptide-core/src/main/java/org/zalando/riptide/StatusNavigator.java)             | Status               |
+| [Navigators.statusCode()](../riptide-core/src/main/java/org/zalando/riptide/StatusCodeNavigator.java)     | Status code          |
+| [Navigators.reasonPhrase()](../riptide-core/src/main/java/org/zalando/riptide/ReasonPhraseNavigator.java) | Reason Phrase        |
+| [Navigators.contentType()](../riptide-core/src/main/java/org/zalando/riptide/ContentTypeNavigator.java)   | Content-Type header  |
 
 ### Binding
 
