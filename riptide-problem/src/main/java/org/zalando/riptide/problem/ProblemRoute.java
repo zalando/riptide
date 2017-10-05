@@ -11,8 +11,8 @@ import static org.springframework.http.MediaType.parseMediaType;
 import static org.zalando.riptide.Bindings.anyContentType;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.Route.noRoute;
 import static org.zalando.riptide.RoutingTree.dispatch;
 
 public final class ProblemRoute {
@@ -58,7 +58,7 @@ public final class ProblemRoute {
      * @return a route for handling problems dynamically
      */
     public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer) {
-        return problemHandling(consumer, call(noRoute()));
+        return problemHandling(consumer, noRoute());
     }
 
     /**

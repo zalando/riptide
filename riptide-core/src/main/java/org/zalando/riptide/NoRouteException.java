@@ -15,7 +15,7 @@ import static org.zalando.fauxpas.TryWith.tryWith;
 /**
  * Thrown when no matching {@link Route route} was found during {@link Dispatcher#dispatch(RoutingTree) dispatch}.
  *
- * @see Route#noRoute()
+ * @see NoRoute#noRoute()
  */
 @SuppressWarnings("serial")
 public final class NoRouteException extends RestClientException {

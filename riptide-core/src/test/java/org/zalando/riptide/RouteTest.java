@@ -8,6 +8,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.mock.http.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.problem.ThrowableProblem;
 
@@ -38,10 +40,10 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.NoRoute.noRoute;
+import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.headers;
 import static org.zalando.riptide.Route.location;
-import static org.zalando.riptide.Route.noRoute;
-import static org.zalando.riptide.Route.pass;
 import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.Route.to;
 
@@ -133,6 +135,12 @@ public final class RouteTest {
                 .join();
     }
 
+    @Deprecated
+    @Test
+    public void shouldDoNothing() {
+        Route.pass().tryAccept(null);
+    }
+
     @Test
     public void shouldThrowNoRouteExceptionWithoutContent() {
         server.expect(requestTo(url)).andRespond(withStatus(NO_CONTENT));
@@ -146,6 +154,13 @@ public final class RouteTest {
                 .join();
     }
 
+    @Deprecated
+    @Test(expected = NoRouteException.class)
+    public void shouldThrowNoRouteException() throws IOException {
+        Route.noRoute().tryAccept(new MockClientHttpResponse(new byte[0], OK));
+    }
+
+    @Deprecated
     @Test
     public void shouldWrapAndPropagateException() throws IOException {
         exception.expect(IOException.class);
@@ -154,6 +169,7 @@ public final class RouteTest {
         propagate().tryAccept(new URISyntaxException("foo", "bar"));
     }
 
+    @Deprecated
     @Test
     public void shouldPropagateRuntimeExceptionAsIs() {
         server.expect(requestTo(url)).andRespond(
@@ -171,6 +187,7 @@ public final class RouteTest {
                 .join();
     }
 
+    @Deprecated
     @Test
     public void shouldPropagateIOExceptionAsIs() {
         server.expect(requestTo(url)).andRespond(
