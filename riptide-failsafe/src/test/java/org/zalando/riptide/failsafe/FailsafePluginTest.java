@@ -30,8 +30,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.junit.Assert.fail;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 public class FailsafePluginTest {
@@ -86,7 +85,7 @@ public class FailsafePluginTest {
 
         try {
             unit.get("/foo")
-                    .call(call(pass()))
+                    .call(pass())
                     .join();
             fail("Expecting exception");
         } catch (final CompletionException e) {
