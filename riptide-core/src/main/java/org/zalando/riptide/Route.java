@@ -47,6 +47,7 @@ public interface Route {
         };
     }
 
+    // TODO move somewhere else
     static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
         return listOf(TypeToken.of(entityType));
     }
@@ -64,6 +65,7 @@ public interface Route {
         return listType.where(elementType, entityType);
     }
 
+    // TODO move somewhere else
     static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final Class<T> entityType) {
         return responseEntityOf(TypeToken.of(entityType));
     }
@@ -80,6 +82,7 @@ public interface Route {
         return responseEntityType.where(elementType, entityType);
     }
 
+    @Deprecated
     static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
         return response -> {
             // nothing to do!
@@ -97,12 +100,14 @@ public interface Route {
                 response.getHeaders().getLocation();
     }
 
+    @Deprecated
     static ThrowingConsumer<ClientHttpResponse, IOException> noRoute() {
         return response -> {
             throw new NoRouteException(response);
         };
     }
 
+    @Deprecated
     static <X extends Exception> ThrowingConsumer<X, IOException> propagate() {
         return entity -> {
             propagateIfPossible(entity, IOException.class);

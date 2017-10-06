@@ -27,7 +27,7 @@ import static org.zalando.riptide.Binding.create;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RoutingTreeTest {

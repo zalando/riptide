@@ -31,8 +31,7 @@ import static org.junit.Assume.assumeThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.UrlResolution.APPEND;
 import static org.zalando.riptide.UrlResolution.RFC;
 
@@ -196,7 +195,7 @@ public class RequestUriTest {
         assumeThat(uri, is(nullValue()));
 
         result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method).call(call(pass())));
+                http.execute(method).call(pass()));
     }
 
     @Test
@@ -204,7 +203,7 @@ public class RequestUriTest {
         assumeThat(uri, is(notNullValue()));
 
         result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method, URI.create(uri)).call(call(pass())));
+                http.execute(method, URI.create(uri)).call(pass()));
     }
 
     @Test
@@ -212,7 +211,7 @@ public class RequestUriTest {
         assumeThat(uri, is(notNullValue()));
 
         result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method, uri).call(call(pass())));
+                http.execute(method, uri).call(pass()));
     }
 
     /**

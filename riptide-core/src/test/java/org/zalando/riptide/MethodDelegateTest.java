@@ -24,8 +24,7 @@ import static org.springframework.http.HttpMethod.TRACE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 /**
  * A test that verifies that the specific request methods in {@link Http}, e.g. {@link Http#get(URI)} delegate the
@@ -147,7 +146,7 @@ public final class MethodDelegateTest {
                 .andRespond(withSuccess());
 
         tester.test(unit)
-                .call(call(pass()));
+                .call(pass());
 
         server.verify();
     }

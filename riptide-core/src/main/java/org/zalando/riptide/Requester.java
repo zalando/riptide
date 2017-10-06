@@ -31,7 +31,7 @@ public final class Requester extends Dispatcher {
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
-    public Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
+    Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
             final RequestArguments arguments, final Plugin plugin) {
         this.requestFactory = requestFactory;
         this.worker = worker;
@@ -108,6 +108,7 @@ public final class Requester extends Dispatcher {
 
                 final CompletableFuture<ClientHttpResponse> future = execution.execute();
 
+                // TODO why not return CompletableFuture<ClientHttpResponse> here?
                 // we need a CompletableFuture<Void>
                 return future.thenApply(response -> null);
             } catch (final IOException e) {

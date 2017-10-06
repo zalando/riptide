@@ -32,6 +32,7 @@ final class MessageWorker implements MessageReader, MessageWriter {
 
     @Override
     public <I> I read(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
+        // TODO get rid of those special cases
         if (type.isSubtypeOf(ClientHttpResponse.class)) {
             return cast(response);
         } else if (type.isSubtypeOf(ResponseEntity.class)) {

@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 public final class HandlesIOExceptionTest {
 

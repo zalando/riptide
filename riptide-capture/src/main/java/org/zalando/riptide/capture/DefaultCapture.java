@@ -19,6 +19,7 @@ final class DefaultCapture<T> implements Capture<T> {
 
     @Override
     public void tryAccept(@Nullable final T input) {
+        // TODO fail on second capture?
         reference.compareAndSet(null, Optional.ofNullable(input));
     }
 
@@ -31,6 +32,7 @@ final class DefaultCapture<T> implements Capture<T> {
 
     private void checkPresent(@Nullable final Optional<T> value) {
         if (value == null) {
+            // TODO throw specific exception?
             throw new NoSuchElementException("No value present");
         }
     }

@@ -23,7 +23,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 public final class ExecuteTest {
 

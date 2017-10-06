@@ -93,6 +93,7 @@ public final class NestedDispatchTest {
         return type.cast(capture.get());
     }
 
+    @SuppressWarnings("deprecation")
     private Route problemHandling() {
         return dispatch(contentType(),
                 on(PROBLEM).call(ThrowableProblem.class, propagate()),
