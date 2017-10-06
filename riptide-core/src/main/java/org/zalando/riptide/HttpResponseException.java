@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static org.zalando.fauxpas.TryWith.tryWith;
 
 public abstract class HttpResponseException extends RestClientException {
 
@@ -39,13 +40,16 @@ public abstract class HttpResponseException extends RestClientException {
     }
 
     private static byte[] readFromBody(final ClientHttpResponse response) throws IOException {
-        if (response.getBody() == null) {
-            return new byte[0];
-        }
-        final InputStream input = ByteStreams.limit(response.getBody(), MAX_BODY_BYTES_TO_READ);
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        ByteStreams.copy(input, output);
-        return output.toByteArray();
+        return tryWith(response.getBody(), stream -> {
+            if (stream == null) {
+                return new byte[0];
+            }
+
+            final InputStream input = ByteStreams.limit(stream, MAX_BODY_BYTES_TO_READ);
+            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ByteStreams.copy(input, output);
+            return output.toByteArray();
+        });
     }
 
     private static Charset extractCharset(final ClientHttpResponse response) {
