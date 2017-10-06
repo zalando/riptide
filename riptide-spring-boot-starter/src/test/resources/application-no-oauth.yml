@@ -1,0 +1,6 @@
+rest:
+  clients:
+    example:
+      base-url: https://example.com
+    ecb:
+      base-url: http://www.ecb.europa.eu
