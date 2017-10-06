@@ -62,12 +62,12 @@ Http.builder()
     .build();
 ```
 
-Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see which configuration
-is possible.
+Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible
+configurations.
 
 ## Usage
 
-Give. the failsafe plugin was configured as shown in the last section: A normal call like the following will now be
+Given the failsafe plugin was configured as shown in the last section: A regular call like the following will now be
 retried up to 4 times if the server did not respond within the socket timeout.
 
 ```java
@@ -99,5 +99,5 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 
 ## Getting Involved/Contributing
 
-To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change. For
+To contribute, simply open a pull request and add a brief description (1-2 sentences) of your addition or change. For
 more details, check the [contribution guidelines](../CONTRIBUTING.md).
