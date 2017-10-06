@@ -63,7 +63,25 @@ Http.builder()
 ```
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible
-configurations.
+configurations. Make sure you **check out 
+[zalando/failsafe-actuator](https://github.com/zalando-incubator/failsafe-actuator)** for a seemless integration of
+Failsafe and Spring Boot:
+
+```java
+@Autowired
+@FailsafeBreaker("myBreaker")
+private CircuitBreaker breaker;
+
+Http.builder()
+    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
+            .withRetryPolicy(new RetryPolicy()
+                    .retryOn(SocketTimeoutException.class)
+                    .withDelay(25, TimeUnit.MILLISECONDS)
+                    .withMaxRetries(4))
+            .withCircuitBreaker(breaker))
+    .build();
+```
+
 
 ## Usage
 
