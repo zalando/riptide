@@ -29,8 +29,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -97,7 +96,7 @@ public final class PluginTest {
     @Test
     public void shouldUseCreatedPlugin() {
         server.expect(requestTo("http://localhost")).andRespond(withSuccess());
-        example.get("http://localhost").call(call(pass())).join();
+        example.get("http://localhost").call(pass()).join();
     }
 
     @Test
@@ -118,7 +117,7 @@ public final class PluginTest {
     @Test
     public void shouldUseProvidedPlugin() {
         server.expect(requestTo("http://localhost")).andRespond(withSuccess());
-        foo.get("http://localhost").call(call(pass())).join();
+        foo.get("http://localhost").call(pass()).join();
     }
 
     private List<Class<? extends Plugin>> getPlugins(final Http http) throws Exception {

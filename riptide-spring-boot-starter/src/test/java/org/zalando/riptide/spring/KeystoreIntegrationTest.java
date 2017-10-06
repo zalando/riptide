@@ -16,7 +16,7 @@ import javax.net.ssl.SSLHandshakeException;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.pass;
+import static org.zalando.riptide.PassRoute.pass;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = DefaultTestConfiguration.class)
