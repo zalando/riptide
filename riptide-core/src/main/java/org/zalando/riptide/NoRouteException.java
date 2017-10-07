@@ -1,16 +1,8 @@
 package org.zalando.riptide;
 
-import com.google.gag.annotation.remark.Hack;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Optional;
-
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static org.zalando.fauxpas.TryWith.tryWith;
 
 /**
  * Thrown when no matching {@link Route route} was found during {@link Dispatcher#dispatch(RoutingTree) dispatch}.
@@ -18,51 +10,16 @@ import static org.zalando.fauxpas.TryWith.tryWith;
  * @see NoRoute#noRoute()
  */
 @SuppressWarnings("serial")
-public final class NoRouteException extends RestClientException {
-
-    private static final int MAX_BODY_BYTES_TO_READ = 8192;
+public final class NoRouteException extends HttpResponseException {
 
     private final ClientHttpResponse response;
 
     public NoRouteException(final ClientHttpResponse response) throws IOException {
-        super(formatMessage(response));
+        super("Unable to dispatch response", response);
         this.response = response;
     }
 
-    private static String formatMessage(final ClientHttpResponse response) throws IOException {
-        return String.format("Unable to dispatch response: %d - %s\n%s\n%s",
-                response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
-                readStartOfBody(response));
-    }
-
-    private static String readStartOfBody(final ClientHttpResponse response) throws IOException {
-        return tryWith(response.getBody(), stream -> {
-            if (stream == null) {
-                return "";
-            }
-
-            final byte[] buffer = new byte[MAX_BODY_BYTES_TO_READ];
-            final int read = stream.read(buffer);
-            if (read == -1) {
-                return "";
-            }
-            final Charset charset = extractCharset(response);
-            return new String(buffer, 0, read, charset);
-        });
-    }
-
-    private static Charset extractCharset(final ClientHttpResponse response) {
-        return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(NoRouteException::extractCharset)
-                .orElse(ISO_8859_1);
-    }
-
-    @Hack("MediaType#getCharset is not available prior to Spring 4.3")
-    @SuppressWarnings("deprecation")
-    private static Charset extractCharset(final MediaType mediaType) {
-        return mediaType.getCharSet();
-    }
-
+    // TODO deprecate?
     public ClientHttpResponse getResponse() {
         return response;
     }
