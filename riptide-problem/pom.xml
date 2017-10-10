@@ -19,10 +19,6 @@
     <name>Riptide: Problem</name>
     <description>Client side response routing</description>
 
-    <properties>
-        <problem.version>0.11.0</problem.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>

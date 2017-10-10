@@ -74,10 +74,10 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <spring.version>4.3.10.RELEASE</spring.version>
-        <spring-boot.version>1.5.4.RELEASE</spring-boot.version>
-        <jackson.version>2.8.9</jackson.version>
-        <problem.version>0.11.0</problem.version>
+        <spring.version>4.3.11.RELEASE</spring.version>
+        <spring-boot.version>1.5.7.RELEASE</spring-boot.version>
+        <jackson.version>2.9.1</jackson.version>
+        <problem.version>0.20.0</problem.version>
         <fauxpas.version>0.4.0</fauxpas.version>
     </properties>
 
@@ -101,6 +101,11 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-failsafe</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-httpclient</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -112,6 +117,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-problem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -254,6 +264,18 @@
             </dependency>
 
             <!-- jackson -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
