@@ -107,8 +107,8 @@ This defaults to:
 - `OriginalStackTracePlugin` which preserves stack traces when executing requests asynchronously
 
 Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and
-[Tracer](https://github.com/zalando/tracer) can be greatly simplified by using 
-[**Put it to REST!**](https://github.com/zalando-incubator/put-it-to-rest). Go check it out!
+[Tracer](https://github.com/zalando/tracer) can be greatly simplified by using the
+[**Riptide: Spring Boot Starter**](riptide-spring-boot-starter). Go check it out!
 
 ## Usage
 
