@@ -66,13 +66,9 @@ class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
     private URI getAccessTokenUrl(final GlobalOAuth oauth) {
         @Nullable final URI accessTokenUrl = oauth.getAccessTokenUrl();
 
-        if (accessTokenUrl == null) {
-            @Nullable final String env = System.getenv("ACCESS_TOKEN_URL");
-            checkArgument(env != null, "" +
-                    "Neither 'rest.oauth.access-token-url' nor 'ACCESS_TOKEN_URL' was set, " +
-                    "but at least one client requires OAuth");
-            return URI.create(env);
-        }
+        checkArgument(accessTokenUrl != null, "" +
+                "Neither 'riptide.oauth.access-token-url' nor 'ACCESS_TOKEN_URL' was set, " +
+                "but at least one client requires OAuth");
 
         return accessTokenUrl;
     }

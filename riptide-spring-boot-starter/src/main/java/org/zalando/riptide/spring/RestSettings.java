@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static java.lang.System.getenv;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Getter
@@ -24,21 +26,19 @@ public final class RestSettings {
     @Getter
     @Setter
     public static final class Defaults {
-
-        static final List<String> PLUGINS = ImmutableList.of("original-stack-trace");
-
         private TimeSpan connectionTimeout = TimeSpan.of(5, SECONDS);
         private TimeSpan socketTimeout = TimeSpan.of(5, SECONDS);
         private TimeSpan connectionTimeToLive = TimeSpan.of(30, SECONDS);
         private int maxConnectionsPerRoute = 2;
         private int maxConnectionsTotal = 20;
-        private final List<String> plugins = new ArrayList<>();
+        private boolean keepOriginalStackTrace = true;
+        private boolean detectTransientFaults = true;
     }
 
     @Getter
     @Setter
     public static final class GlobalOAuth {
-        private URI accessTokenUrl;
+        private URI accessTokenUrl = Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null);
         private Path credentialsDirectory;
         private TimeSpan schedulingPeriod = TimeSpan.of(5, SECONDS);
         private TimeSpan connectionTimeout = TimeSpan.of(1, SECONDS);
@@ -55,7 +55,8 @@ public final class RestSettings {
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
         private OAuth oauth;
-        private final List<String> plugins = new ArrayList<>();
+        private Boolean keepOriginalStackTrace;
+        private Boolean detectTransientFaults;
         private boolean compressRequest = false;
         private Keystore keystore;
     }

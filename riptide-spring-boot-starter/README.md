@@ -41,7 +41,6 @@ private Http example;
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
        - optional gzipping of request body
        - optional pinning of a trusted keystore
-  - [Hystrix](https://github.com/Netflix/Hystrix)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Sensible defaults
 
@@ -55,7 +54,6 @@ private Http example;
 - Tracer
 - Tokens
 - Apache HTTP Client
-- Hystrix
 
 ## Installation
 
@@ -93,8 +91,8 @@ riptide:
     connection-time-to-live: 30 seconds
     max-connections-per-route: 16
     max-connections-total: 16
-    plugins:
-      - original-stack-trace
+    keep-original-stack-trace: true
+    detect-transient-faults: true
   oauth:
     access-token-url: https://auth.example.com
     credentials-directory: /secrets
@@ -109,10 +107,7 @@ riptide:
       oauth.scopes:
         - uid
         - example.read
-      plugins:
-        - original-stack-trace
-        - temporary-exception
-        - hystrix
+      detect-transient-faults: false
       compress-request: true
     trusted:
       base-url: https://my.trusted.com
@@ -132,7 +127,8 @@ For a complete overview of available properties, they type and default value ple
 | `riptide.defaults.connection-time-to-live`       | `TimeSpan`     | no       | `30 seconds`                                     |
 | `riptide.defaults.max-connections-per-route`     | `int`          | no       | `2`                                              |
 | `riptide.defaults.max-connections-total`         | `int`          | no       | maximum of `20` and *per route*                  |
-| `riptide.defaults.plugins`                       | `List<String>` | no       | `[original-stack-trace]`                         |
+| `riptide.defaults.keep-original-stack-trace`     | `boolean`      | no       | `true`                                           |
+| `riptide.defaults.detect-transient-faults`       | `boolean`      | no       | `true`                                           |
 | `riptide.oauth.access-token-url`                 | `URI`          | no       | env var `ACCESS_TOKEN_URL`                       |
 | `riptide.oauth.credentials-directory`            | `Path`         | no       | env var `CREDENTIALS_DIR`                        |
 | `riptide.oauth.scheduling-period`                | `TimeSpan`     | no       | `5 seconds`                                      |
@@ -147,7 +143,8 @@ For a complete overview of available properties, they type and default value ple
 | `riptide.clients.<id>.max-connections-total`     | `int`          | no       | see `riptide.defaults.max-connections-total    ` |
 | `riptide.clients.<id>.oauth`                     |                | no       | none, disables OAuth2 if omitted                 |
 | `riptide.clients.<id>.oauth.scopes`              | `List<String>` | no       | none                                             |
-| `riptide.clients.<id>.plugins`                   | `List<String>` | no       | `[original-stack-trace]`                         |
+| `riptide.clients.<id>.keep-original-stack-trace` | `boolean`      | no       | see `riptide.defaults.keep-original-stack-trace` |
+| `riptide.clients.<id>.detect-transient-faults`   | `boolean`      | no       | see `riptide.defaults.detect-transient-faults`   |
 | `riptide.clients.<id>.compress-request`          | `boolean`      | no       | `false`                                          |
 | `riptide.clients.<id>.keystore.path`             | `String`       | no       | none                                             |
 | `riptide.clients.<id>.keystore.password`         | `String`       | no       | none                                             |

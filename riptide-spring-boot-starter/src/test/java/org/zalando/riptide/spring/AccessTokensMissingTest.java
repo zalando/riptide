@@ -48,7 +48,7 @@ public final class AccessTokensMissingTest {
         exception.expectCause(hasFeature("exception", PropertyBatchUpdateException::getPropertyAccessExceptions,
                 hasItemInArray(hasFeature("cause", Throwables::getRootCause,
                         hasFeature("message", Throwable::getMessage,
-                                compose(containsString("rest.oauth.access-token-url")).and(
+                                compose(containsString("riptide.oauth.access-token-url")).and(
                                         containsString("ACCESS_TOKEN_URL")))))));
 
         new SpringApplicationBuilder(TestConfiguration.class)

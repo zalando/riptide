@@ -2,12 +2,12 @@ package org.zalando.riptide.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import lombok.SneakyThrows;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,12 +23,12 @@ import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.Plugin;
+import org.zalando.riptide.OriginalStackTracePlugin;
+import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.spring.RestSettings.Client;
 import org.zalando.riptide.spring.RestSettings.Defaults;
@@ -42,12 +42,9 @@ import org.zalando.tracer.concurrent.TracingExecutors;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
-import static org.springframework.util.ClassUtils.getDefaultClassLoader;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
 import static org.zalando.riptide.spring.Registry.list;
 import static org.zalando.riptide.spring.Registry.ref;
@@ -56,14 +53,9 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
 
     private static final Logger LOG = LoggerFactory.getLogger(RestClientPostProcessor.class);
 
-    private final ObjectFactory<PluginResolver> resolver;
     private ConfigurableEnvironment environment;
     private Registry registry;
     private RestSettings settings;
-
-    public RestClientPostProcessor(final ObjectFactory<PluginResolver> resolver) {
-        this.resolver = resolver;
-    }
 
     @Override
     public void setEnvironment(final Environment environment) {
@@ -161,30 +153,29 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
 
             http.addConstructorArgValue(converters);
             http.addConstructorArgValue(baseUrl);
-            http.addConstructorArgReference(registerPlugins(id, client.getPlugins()));
+            http.addConstructorArgValue(registerPlugins(settings.getDefaults(), client));
 
             return http;
         });
     }
 
-    private String registerPlugins(final String id, final List<String> clientPlugins) {
-        return registry.register(id, Plugins.class, () -> {
-            final List<String> defaultPlugins = settings.getDefaults().getPlugins().isEmpty() ?
-                    Defaults.PLUGINS : settings.getDefaults().getPlugins();
+    private List<Object> registerPlugins(final Defaults defaults, final Client client) {
+        final List<Object> list = list();
 
-            final List<String> names = clientPlugins.isEmpty() ?
-                    defaultPlugins : clientPlugins;
+        if (firstNonNull(client.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace())) {
+            list.add(genericBeanDefinition(OriginalStackTracePlugin.class)
+                    .getBeanDefinition());
+        }
 
-            final BeanDefinitionBuilder plugins = genericBeanDefinition(Plugins.class);
+        if (firstNonNull(client.getDetectTransientFaults(), defaults.isDetectTransientFaults())) {
+            list.add(ref(registry.register(TemporaryExceptionPlugin.class, () ->
+                    genericBeanDefinition(TemporaryExceptionPlugin.class))));
+        }
 
-            plugins.addConstructorArgValue((Supplier<List<Plugin>>) () -> names.stream()
-                    .map(name -> resolver.getObject().resolve(name))
-                    .collect(toList()));
-
-            return plugins;
-        });
+        return list;
     }
 
+    @CanIgnoreReturnValue
     private String registerRestTemplate(final String id, final String factoryId, final String convertersId,
             @Nullable final String baseUrl) {
         return registry.register(id, RestTemplate.class, () -> {

@@ -1,7 +1,6 @@
 riptide:
   defaults:
-    plugins:
-      - temporary-exception
+    detect-transient-faults: false
   clients:
     example:
       base-url: https://example.com
@@ -11,12 +10,9 @@ riptide:
         - example.read
     ecb:
       base-url: http://www.ecb.europa.eu
-      plugins:
-        - original-stack-trace
       compress-request: true
     github:
       base-url: https://github.com
-      plugins: []
       keystore:
         path: github.keystore
         password: password
@@ -25,8 +21,6 @@ riptide:
       keystore:
         path: github.keystore
     foo:
-      plugins:
-        - hystrix
+      base-url: http://localhost
     bar:
-      plugins:
-        - hystrix
+      base-url: http://localhost

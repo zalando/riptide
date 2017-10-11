@@ -13,7 +13,7 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@TestPropertySource(properties = "rest.oauth.access-token-url: http://example.com")
+@TestPropertySource(properties = "riptide.oauth.access-token-url: http://example.com")
 public final class AccessTokensPropertiesTest {
 
     @Configuration

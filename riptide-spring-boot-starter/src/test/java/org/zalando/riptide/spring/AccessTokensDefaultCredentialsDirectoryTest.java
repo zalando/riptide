@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@TestPropertySource(properties = "rest.oauth.access-token-url: http://example.com")
+@TestPropertySource(properties = "riptide.oauth.access-token-url: http://example.com")
 @Component
 public final class AccessTokensDefaultCredentialsDirectoryTest {
 

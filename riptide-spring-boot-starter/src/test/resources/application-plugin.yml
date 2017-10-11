@@ -1,8 +1,0 @@
-riptide:
-  defaults:
-    plugins:
-      - temporary-exception
-  clients:
-    foo:
-      plugins:
-        - bar
