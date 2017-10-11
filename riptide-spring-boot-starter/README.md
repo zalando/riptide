@@ -192,7 +192,7 @@ You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/jav
 For every client that is defined in your configuration the following graph of beans, indicated by the green color, will
 be created:
 
-[![Client Dependency Graph](docs/graph.png)](https://raw.githubusercontent.com/zalando/riptide/master/docs/graph.png)
+[![Client Dependency Graph](../docs/graph.png)](https://raw.githubusercontent.com/zalando/riptide/master/docs/graph.png)
 
 Regarding the other colors:
 - *yellow*: will be created once and then shared across different clients (if needed)
