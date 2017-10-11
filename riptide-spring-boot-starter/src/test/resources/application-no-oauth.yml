@@ -1,4 +1,4 @@
-rest:
+riptide:
   clients:
     example:
       base-url: https://example.com

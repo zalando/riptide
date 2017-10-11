@@ -1,4 +1,4 @@
-rest:
+riptide:
   defaults:
     plugins:
       - temporary-exception

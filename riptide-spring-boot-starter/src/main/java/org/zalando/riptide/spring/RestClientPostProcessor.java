@@ -95,7 +95,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
             final PropertiesConfigurationFactory<RestSettings> factory =
                     new PropertiesConfigurationFactory<>(RestSettings.class);
 
-            factory.setTargetName("rest");
+            factory.setTargetName("riptide");
             factory.setPropertySources(environment.getPropertySources());
             factory.setConversionService(environment.getConversionService());
 
