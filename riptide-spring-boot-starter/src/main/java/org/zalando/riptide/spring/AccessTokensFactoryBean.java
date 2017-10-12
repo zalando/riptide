@@ -21,7 +21,7 @@ final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
 
     private AccessTokensBuilder builder;
 
-    public void setSettings(final RiptideSettings settings) {
+    AccessTokensFactoryBean(final RiptideSettings settings) {
         final Defaults defaults = settings.getDefaults();
         final GlobalOAuth oAuth = settings.getOauth();
 

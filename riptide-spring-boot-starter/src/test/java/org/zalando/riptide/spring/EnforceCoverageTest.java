@@ -3,26 +3,18 @@ package org.zalando.riptide.spring;
 import com.google.gag.annotation.remark.Hack;
 import com.google.gag.annotation.remark.OhNoYouDidnt;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
+
+import static org.mockito.Mockito.mock;
 
 @Hack
 @OhNoYouDidnt
-@RunWith(MockitoJUnitRunner.class)
 public final class EnforceCoverageTest {
-
-    @Mock
-    private ConfigurableEnvironment environment;
-
-    @InjectMocks
-    private RiptidePostProcessor unit = new RiptidePostProcessor();
 
     @Test(expected = IllegalStateException.class)
     public void shouldTriggerSneakyException() {
-        unit.getSettings();
+        final RiptidePostProcessor unit = new RiptidePostProcessor();
+        unit.setEnvironment(mock(ConfigurableEnvironment.class));
     }
 
     @Test
