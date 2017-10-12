@@ -1,6 +1,8 @@
 package org.zalando.riptide.spring;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.net.URI;
@@ -15,12 +17,13 @@ import static java.lang.System.getenv;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public final class RiptideSettings {
 
-    private final Defaults defaults = new Defaults();
-    private final GlobalOAuth oauth = new GlobalOAuth();
-    private final Map<String, Client> clients = new LinkedHashMap<>();
+    private Defaults defaults = new Defaults();
+    private GlobalOAuth oauth = new GlobalOAuth();
+    private Map<String, Client> clients = new LinkedHashMap<>();
 
     @Getter
     @Setter
@@ -32,10 +35,13 @@ public final class RiptideSettings {
         private int maxConnectionsTotal = 20;
         private boolean keepOriginalStackTrace = true;
         private boolean detectTransientFaults = true;
+        private Failsafe failsafe;
     }
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static final class GlobalOAuth {
         private URI accessTokenUrl = Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null);
         private Path credentialsDirectory;
@@ -46,6 +52,8 @@ public final class RiptideSettings {
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static final class Client {
         private String baseUrl;
         private TimeSpan connectionTimeout;
@@ -56,21 +64,65 @@ public final class RiptideSettings {
         private OAuth oauth;
         private Boolean keepOriginalStackTrace;
         private Boolean detectTransientFaults;
+        private Failsafe failsafe;
         private boolean compressRequest = false;
         private Keystore keystore;
+
+        @Getter
+        @Setter
+        public static final class OAuth {
+            private final List<String> scopes = new ArrayList<>();
+
+        }
+
+        @Getter
+        @Setter
+        public static final class Keystore {
+            private String path;
+            private String password;
+        }
     }
 
     @Getter
     @Setter
-    public static final class OAuth {
-        private final List<String> scopes = new ArrayList<>();
-    }
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Failsafe {
+        private Retry retry;
+        private CircuitBreaker circuitBreaker;
 
-    @Getter
-    @Setter
-    public static final class Keystore {
-        private String path;
-        private String password;
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class Retry {
+            private TimeSpan fixedDelay;
+            private ExponentialBackoff exponentialBackoff;
+            private Integer maxRetries;
+            private TimeSpan maxDuration;
+            private Double jitterFactor;
+            private TimeSpan jitter;
+
+            @Getter
+            @Setter
+            @NoArgsConstructor
+            @AllArgsConstructor
+            public static final class ExponentialBackoff {
+                private TimeSpan delay;
+                private TimeSpan maxDelay;
+                private Double delayFactor;
+            }
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class CircuitBreaker {
+            private Ratio failureThreshold;
+            private TimeSpan delay;
+            private Ratio successThreshold;
+        }
     }
 
 }

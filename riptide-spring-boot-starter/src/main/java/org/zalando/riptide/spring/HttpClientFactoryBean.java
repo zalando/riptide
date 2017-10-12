@@ -12,6 +12,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
+import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -62,7 +63,7 @@ class HttpClientFactoryBean implements FactoryBean<HttpClient> {
         builder.setMaxConnTotal(maxConnectionsTotal);
     }
 
-    public void setTrustedKeystore(final RiptideSettings.Keystore keystore) throws Exception {
+    public void setTrustedKeystore(final Keystore keystore) throws Exception {
         final SSLContextBuilder ssl = SSLContexts.custom();
 
         final String path = keystore.getPath();

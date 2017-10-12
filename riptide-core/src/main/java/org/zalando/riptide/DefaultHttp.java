@@ -17,15 +17,15 @@ final class DefaultHttp implements Http {
     private final MessageWorker worker;
     private final Supplier<URI> baseUrlProvider;
     private final RequestArguments arguments;
-    private final Plugin plugin;
+    private final List<Plugin> plugins;
 
     DefaultHttp(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
-            final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
+            final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final List<Plugin> plugins) {
         this.requestFactory = checkNotNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
         this.baseUrlProvider = checkNotNull(baseUrlProvider, "base url provider");
         this.arguments = RequestArguments.create().withUrlResolution(resolution);
-        this.plugin = plugin;
+        this.plugins = plugins;
     }
 
     @Override
@@ -173,7 +173,7 @@ final class DefaultHttp implements Http {
     }
 
     private Requester execute(final RequestArguments arguments) {
-        return new Requester(requestFactory, worker, arguments, plugin);
+        return new Requester(requestFactory, worker, arguments, plugins);
     }
 
 }

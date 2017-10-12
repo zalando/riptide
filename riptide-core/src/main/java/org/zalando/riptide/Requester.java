@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.zalando.riptide.ListenableCompletableFutureAdapter.adapt;
@@ -26,17 +27,17 @@ public final class Requester extends Dispatcher {
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final RequestArguments arguments;
-    private final Plugin plugin;
+    private final List<Plugin> plugins;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
     Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final Plugin plugin) {
+            final RequestArguments arguments, final List<Plugin> plugins) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
-        this.plugin = plugin;
+        this.plugins = plugins;
     }
 
     public final Requester queryParam(final String name, final String value) {
@@ -103,6 +104,9 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<Void> call(final Route route) {
             try {
+                // TODO optimize
+                final Plugin plugin = plugins.stream().reduce(Plugin::merge).orElse(NoopPlugin.INSTANCE);
+
                 final RequestExecution execution = plugin.prepare(arguments, () ->
                         execute(entity).thenApply(dispatch(route)));
 

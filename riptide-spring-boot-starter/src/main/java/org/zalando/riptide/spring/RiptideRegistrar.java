@@ -3,6 +3,8 @@ package org.zalando.riptide.spring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.jodah.failsafe.CircuitBreaker;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -13,13 +15,18 @@ import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
+import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.spring.RiptideSettings.Client;
+import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
+import org.zalando.riptide.spring.RiptideSettings.Failsafe;
 import org.zalando.riptide.spring.zmon.ZmonRequestInterceptor;
 import org.zalando.riptide.spring.zmon.ZmonResponseInterceptor;
 import org.zalando.riptide.stream.Streams;
@@ -30,8 +37,8 @@ import org.zalando.tracer.concurrent.TracingExecutors;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
 import static org.zalando.riptide.spring.Registry.list;
@@ -56,7 +63,7 @@ final class RiptideRegistrar {
         });
     }
 
-    private String registerAsyncClientHttpRequestFactory(final String id, final RiptideSettings.Client client) {
+    private String registerAsyncClientHttpRequestFactory(final String id, final Client client) {
         return registry.register(id, AsyncClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
 
@@ -64,7 +71,7 @@ final class RiptideRegistrar {
                     genericBeanDefinition(RestAsyncClientHttpRequestFactory.class);
 
             factory.addConstructorArgReference(registerHttpClient(id, client));
-            factory.addConstructorArgReference(registerAsyncListenableTaskExecutor(id));
+            factory.addConstructorArgReference(registerAsyncListenableTaskExecutor(id, client));
 
             return factory;
         });
@@ -105,7 +112,7 @@ final class RiptideRegistrar {
         return converters;
     }
 
-    private void registerHttp(final String id, final RiptideSettings.Client client, final String factoryId,
+    private void registerHttp(final String id, final Client client, final String factoryId,
             final BeanDefinition converters) {
         registry.register(id, Http.class, () -> {
             log.debug("Client [{}]: Registering Http", id);
@@ -152,46 +159,85 @@ final class RiptideRegistrar {
         });
     }
 
-    private List<Object> registerPlugins(final String id, final RiptideSettings.Client client) {
-        final RiptideSettings.Defaults defaults = settings.getDefaults();
+    private List<Object> registerPlugins(final String id, final Client client) {
+        final List<Object> plugins = list();
 
-        final List<Object> list = list();
-
-        if (firstNonNull(client.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace())) {
+        if (client.getKeepOriginalStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            list.add(ref(registry.register(id, OriginalStackTracePlugin.class)));
+            plugins.add(ref(registry.register(id, OriginalStackTracePlugin.class)));
         }
 
-        if (firstNonNull(client.getDetectTransientFaults(), defaults.isDetectTransientFaults())) {
+        if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TemporaryExceptionPlugin.class.getSimpleName());
-            list.add(ref(registry.register(id, TemporaryExceptionPlugin.class)));
+            plugins.add(ref(registry.register(id, TemporaryExceptionPlugin.class)));
         }
 
-        return list;
+        if (client.getFailsafe() != null) {
+            plugins.add(ref(registry.register(id, FailsafePlugin.class, () -> {
+                final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
+
+                plugin.addConstructorArgReference(registerThreadPool(id, client));
+
+                plugin.addConstructorArgReference(registry.register(id, RetryPolicy.class, () -> {
+                    final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
+                    @Nullable final Failsafe.Retry retry = client.getFailsafe().getRetry();
+                    if (retry != null) {
+                        retryPolicy.addPropertyValue("configuration", retry);
+                    }
+                    return retryPolicy;
+                }));
+
+
+                plugin.addConstructorArgReference(registry.register(id, CircuitBreaker.class, () -> {
+                    final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
+                    @Nullable final Failsafe.CircuitBreaker breaker = client.getFailsafe().getCircuitBreaker();
+                    if (breaker != null) {
+                        circuitBreaker.addPropertyValue("configuration", breaker);
+                    }
+                    return circuitBreaker;
+                }));
+
+                return plugin;
+            })));
+        }
+
+        return plugins;
     }
 
-    private String registerAsyncListenableTaskExecutor(final String id) {
-        return registry.register(id, AsyncListenableTaskExecutor.class, () -> {
-            log.debug("Client [{}]: Registering AsyncListenableTaskExecutor", id);
-
-            return genericBeanDefinition(ConcurrentTaskExecutor.class)
-                    .addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(TracingExecutors.class)
-                            .setFactoryMethod("preserve")
-                            .addConstructorArgValue(genericBeanDefinition(Executors.class)
-                                    .setFactoryMethod("newCachedThreadPool")
-                                    .setDestroyMethodName("shutdown")
-                                    .getBeanDefinition())
-                            .addConstructorArgReference("tracer")
-                            .getBeanDefinition());
-        });
+    private String registerAsyncListenableTaskExecutor(final String id, final Client client) {
+        return registry.register(id, AsyncListenableTaskExecutor.class, () ->
+                genericBeanDefinition(ConcurrentTaskExecutor.class)
+                        .addConstructorArgReference(registerThreadPool(id, client)));
     }
 
-    private String registerHttpClient(final String id, final RiptideSettings.Client client) {
+    private String registerThreadPool(final String id, final Client client) {
+        return registry.register(id, ScheduledExecutorService.class, () ->
+                genericBeanDefinition(TracingExecutors.class)
+                        .setFactoryMethod("preserve")
+                        .addConstructorArgValue(genericBeanDefinition(Executors.class)
+                                .setFactoryMethod("newScheduledThreadPool")
+                                // TODO should we have some breathing room for retries?
+                                .addConstructorArgValue(client.getMaxConnectionsTotal())
+                                .addConstructorArgValue(genericBeanDefinition(CustomizableThreadFactory.class)
+                                        .addConstructorArgValue("http-" + id + "-")
+                                        .getBeanDefinition())
+                                .setDestroyMethodName("shutdown")
+                                .getBeanDefinition())
+                        .addConstructorArgReference("tracer"));
+    }
+
+    private String registerHttpClient(final String id, final Client client) {
         return registry.register(id, HttpClient.class, () -> {
             log.debug("Client [{}]: Registering HttpClient", id);
 
             final BeanDefinitionBuilder httpClient = genericBeanDefinition(HttpClientFactoryBean.class);
-            configure(httpClient, id, client);
+
+            configure(httpClient, id, "connectionTimeout", client.getConnectionTimeout());
+            configure(httpClient, id, "socketTimeout", client.getSocketTimeout());
+            configure(httpClient, id, "connectionTimeToLive", client.getConnectionTimeToLive());
+            configure(httpClient, id, "maxConnectionsPerRoute", client.getMaxConnectionsPerRoute());
+            configure(httpClient, id, "maxConnectionsTotal", client.getMaxConnectionsTotal());
+
             configureInterceptors(httpClient, id, client);
             configureKeystore(httpClient, id, client.getKeystore());
 
@@ -205,34 +251,13 @@ final class RiptideRegistrar {
         });
     }
 
-    private void configure(final BeanDefinitionBuilder builder, final String id, final RiptideSettings.Client client) {
-        final RiptideSettings.Defaults defaults = settings.getDefaults();
-
-        configure(builder, id, "connectionTimeout",
-                firstNonNull(client.getConnectionTimeout(), defaults.getConnectionTimeout()));
-        configure(builder, id, "socketTimeout",
-                firstNonNull(client.getSocketTimeout(), defaults.getSocketTimeout()));
-        configure(builder, id, "connectionTimeToLive",
-                firstNonNull(client.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()));
-
-        final int maxConnectionsPerRoute =
-                firstNonNull(client.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
-        configure(builder, id, "maxConnectionsPerRoute", maxConnectionsPerRoute);
-
-        final int maxConnectionsTotal = Math.max(
-                maxConnectionsPerRoute,
-                firstNonNull(client.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal()));
-
-        configure(builder, id, "maxConnectionsTotal", maxConnectionsTotal);
-    }
-
     private void configure(final BeanDefinitionBuilder bean, final String id, final String name, final Object value) {
         log.debug("Client [{}]: Configuring {}: [{}]", id, name, value);
         bean.addPropertyValue(name, value);
     }
 
     private void configureInterceptors(final BeanDefinitionBuilder builder, final String id,
-            final RiptideSettings.Client client) {
+            final Client client) {
         final List<Object> requestInterceptors = list();
         final List<Object> responseInterceptors = list();
 
@@ -272,7 +297,8 @@ final class RiptideRegistrar {
         builder.addPropertyValue("lastResponseInterceptors", responseInterceptors);
     }
 
-    private void configureKeystore(final BeanDefinitionBuilder httpClient, final String id, @Nullable final RiptideSettings.Keystore keystore) {
+    private void configureKeystore(final BeanDefinitionBuilder httpClient, final String id,
+            @Nullable final Keystore keystore) {
         if (keystore == null) {
             return;
         }

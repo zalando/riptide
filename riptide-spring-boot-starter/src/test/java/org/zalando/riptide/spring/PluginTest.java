@@ -18,14 +18,13 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
-import org.zalando.riptide.hystrix.HystrixPlugin;
+import org.zalando.riptide.failsafe.FailsafePlugin;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -85,36 +84,26 @@ public final class PluginTest {
     private Http foo;
 
     @Test
-    public void shouldUseDefault() throws Exception {
-        assertThat(getPlugins(example), contains(equalTo(OriginalStackTracePlugin.class)));
+    public void shouldUseOriginalStackTracePlugin() throws Exception {
+        assertThat(getPlugins(example), contains(instanceOf(OriginalStackTracePlugin.class)));
     }
 
     @Test
-    public void shouldUseCreatedPlugin() {
-        server.expect(requestTo("http://localhost")).andRespond(withSuccess());
-        example.get("http://localhost").call(pass()).join();
+    public void shouldUseTemporaryExceptionPlugin() throws Exception {
+        assertThat(getPlugins(ecb), contains(instanceOf(TemporaryExceptionPlugin.class)));
     }
 
     @Test
-    public void shouldUseTemporaryException() throws Exception {
-        assertThat(getPlugins(ecb), contains(equalTo(TemporaryExceptionPlugin.class)));
+    public void shouldUseFailsafeException() throws Exception {
+        assertThat(getPlugins(foo), contains(instanceOf(FailsafePlugin.class)));
     }
 
-    @Test
-    public void shouldUseProvidedPlugin() {
-        server.expect(requestTo("http://localhost")).andRespond(withSuccess());
-        foo.get("http://localhost").call(pass()).join();
-    }
-
-    private List<Class<? extends Plugin>> getPlugins(final Http http) throws Exception {
-        final List<Class<? extends Plugin>> plugins = new ArrayList<>();
-
-        final Field field = http.getClass().getDeclaredField("plugin");
+    private List<Plugin> getPlugins(final Http http) throws Exception {
+        final Field field = http.getClass().getDeclaredField("plugins");
         field.setAccessible(true);
 
-        final Plugin plugin = (Plugin) field.get(http);
-
-        plugins.add(plugin.getClass());
+        @SuppressWarnings("unchecked")
+        final List<Plugin> plugins = (List<Plugin>) field.get(http);
 
         return plugins;
     }

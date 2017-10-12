@@ -3,6 +3,7 @@ package org.zalando.riptide.spring;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,7 +20,7 @@ public class HttpClientFactoryBeanTest {
         exception.expect(FileNotFoundException.class);
         exception.expectMessage("i-do-not-exist.keystore");
 
-        final RiptideSettings.Keystore nonExistingKeystore = new RiptideSettings.Keystore();
+        final Keystore nonExistingKeystore = new Keystore();
         nonExistingKeystore.setPath("i-do-not-exist.keystore");
         unit.setTrustedKeystore(nonExistingKeystore);
     }
@@ -29,7 +30,7 @@ public class HttpClientFactoryBeanTest {
         exception.expect(IOException.class);
         exception.expectMessage("Invalid keystore format");
 
-        final RiptideSettings.Keystore invalidKeystore = new RiptideSettings.Keystore();
+        final Keystore invalidKeystore = new Keystore();
         invalidKeystore.setPath("application-default.yml");
         unit.setTrustedKeystore(invalidKeystore);
     }
