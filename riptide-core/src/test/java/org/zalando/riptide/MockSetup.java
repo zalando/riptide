@@ -53,8 +53,7 @@ public final class MockSetup {
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
                 .baseUrl(baseUrl)
-                .defaultPlugins()
-                .plugin(NoopPlugin.INSTANCE);
+                .defaultPlugins();
     }
     public Http getHttp() {
         return getHttpBuilder().build();
