@@ -30,7 +30,9 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy).retryOn(RetryException.class),
+        return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy)
+                // TODO temporary exception
+                .retryOn(RetryException.class),
                 circuitBreaker);
     }
 
