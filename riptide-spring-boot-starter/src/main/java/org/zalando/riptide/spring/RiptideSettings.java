@@ -1,6 +1,5 @@
 package org.zalando.riptide.spring;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +16,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Getter
 @Setter
-public final class RestSettings {
+public final class RiptideSettings {
 
     private final Defaults defaults = new Defaults();
     private final GlobalOAuth oauth = new GlobalOAuth();

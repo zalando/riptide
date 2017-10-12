@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 @AllArgsConstructor(staticName = "of")
 @Getter
-public final class TimeSpan {
+final class TimeSpan {
 
     static final TimeSpan ZERO = new TimeSpan(0, TimeUnit.NANOSECONDS);
 

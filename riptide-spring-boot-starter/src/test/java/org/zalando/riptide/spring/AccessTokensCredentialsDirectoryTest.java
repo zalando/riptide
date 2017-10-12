@@ -33,7 +33,7 @@ public final class AccessTokensCredentialsDirectoryTest {
 
     @Configuration
     @ImportAutoConfiguration({
-            RestClientAutoConfiguration.class,
+            RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class

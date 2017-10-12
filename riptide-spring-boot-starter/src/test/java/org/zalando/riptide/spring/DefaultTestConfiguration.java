@@ -17,7 +17,7 @@ import static org.zalando.riptide.exceptions.ExceptionClassifier.create;
 
 @Configuration
 @ImportAutoConfiguration({
-        RestClientAutoConfiguration.class,
+        RiptideAutoConfiguration.class,
         JacksonAutoConfiguration.class,
         LogbookAutoConfiguration.class,
         TracerAutoConfiguration.class,

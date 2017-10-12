@@ -11,7 +11,7 @@ import org.apache.http.protocol.HttpContext;
 
 import java.io.IOException;
 
-class GzippingHttpRequestInterceptor implements HttpRequestInterceptor {
+final class GzippingHttpRequestInterceptor implements HttpRequestInterceptor {
 
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {

@@ -26,7 +26,7 @@ public final class AccessTokensImplicitDisableTest {
 
     @Configuration
     @ImportAutoConfiguration({
-            RestClientAutoConfiguration.class,
+            RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class

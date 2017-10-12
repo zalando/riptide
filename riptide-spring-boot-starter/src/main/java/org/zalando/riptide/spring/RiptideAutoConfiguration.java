@@ -15,11 +15,11 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
 }, name = {
         "ZmonMetricFilterAutoConfiguration"
 })
-public class RestClientAutoConfiguration {
+public class RiptideAutoConfiguration {
 
     @Bean
-    public static RestClientPostProcessor restClientPostProcessor() {
-        return new RestClientPostProcessor();
+    public static RiptidePostProcessor restClientPostProcessor() {
+        return new RiptidePostProcessor();
     }
 
 }

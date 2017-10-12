@@ -2,7 +2,6 @@ package org.zalando.riptide.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import lombok.SneakyThrows;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
@@ -30,8 +29,8 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
-import org.zalando.riptide.spring.RestSettings.Client;
-import org.zalando.riptide.spring.RestSettings.Defaults;
+import org.zalando.riptide.spring.RiptideSettings.Client;
+import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.zmon.ZmonRequestInterceptor;
 import org.zalando.riptide.spring.zmon.ZmonResponseInterceptor;
 import org.zalando.riptide.stream.Streams;
@@ -49,13 +48,13 @@ import static org.zalando.riptide.spring.Registry.generateBeanName;
 import static org.zalando.riptide.spring.Registry.list;
 import static org.zalando.riptide.spring.Registry.ref;
 
-public class RestClientPostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
+final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RestClientPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RiptidePostProcessor.class);
 
     private ConfigurableEnvironment environment;
-    private Registry registry;
-    private RestSettings settings;
+    private Registry registry; // TODO
+    private RiptideSettings settings;
 
     @Override
     public void setEnvironment(final Environment environment) {
@@ -66,7 +65,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry beanDefinitionRegistry) {
         this.registry = new Registry(beanDefinitionRegistry);
 
-        final RestSettings settings = getSettings();
+        final RiptideSettings settings = getSettings();
         final Defaults defaults = settings.getDefaults();
 
         settings.getClients().forEach((id, client) -> {
@@ -82,10 +81,10 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
 
     @VisibleForTesting
     @SneakyThrows
-    RestSettings getSettings() {
+    RiptideSettings getSettings() {
         if (settings == null) {
-            final PropertiesConfigurationFactory<RestSettings> factory =
-                    new PropertiesConfigurationFactory<>(RestSettings.class);
+            final PropertiesConfigurationFactory<RiptideSettings> factory =
+                    new PropertiesConfigurationFactory<>(RiptideSettings.class);
 
             factory.setTargetName("riptide");
             factory.setPropertySources(environment.getPropertySources());
@@ -128,7 +127,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         return registry.isRegistered(beanName) ? beanName : "jacksonObjectMapper";
     }
 
-    private String registerAccessTokens(final String id, final RestSettings settings) {
+    private String registerAccessTokens(final String id, final RiptideSettings settings) {
         return registry.register(AccessTokens.class, () -> {
             LOG.debug("Client [{}]: Registering AccessTokens", id);
             final BeanDefinitionBuilder builder = genericBeanDefinition(AccessTokensFactoryBean.class);
@@ -137,6 +136,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         });
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String registerHttp(final String id, final Client client, final String factoryId,
             final String convertersId, @Nullable final String baseUrl) {
         return registry.register(id, Http.class, () -> {
@@ -153,29 +153,27 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
 
             http.addConstructorArgValue(converters);
             http.addConstructorArgValue(baseUrl);
-            http.addConstructorArgValue(registerPlugins(settings.getDefaults(), client));
+            http.addConstructorArgValue(registerPlugins(settings.getDefaults(), id, client));
 
             return http;
         });
     }
 
-    private List<Object> registerPlugins(final Defaults defaults, final Client client) {
+    private List<Object> registerPlugins(final Defaults defaults, final String id, final Client client) {
         final List<Object> list = list();
 
         if (firstNonNull(client.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace())) {
-            list.add(genericBeanDefinition(OriginalStackTracePlugin.class)
-                    .getBeanDefinition());
+            list.add(ref(registry.register(id, OriginalStackTracePlugin.class)));
         }
 
         if (firstNonNull(client.getDetectTransientFaults(), defaults.isDetectTransientFaults())) {
-            list.add(ref(registry.register(TemporaryExceptionPlugin.class, () ->
-                    genericBeanDefinition(TemporaryExceptionPlugin.class))));
+            list.add(ref(registry.register(id, TemporaryExceptionPlugin.class)));
         }
 
         return list;
     }
 
-    @CanIgnoreReturnValue
+    @SuppressWarnings("UnusedReturnValue")
     private String registerRestTemplate(final String id, final String factoryId, final String convertersId,
             @Nullable final String baseUrl) {
         return registry.register(id, RestTemplate.class, () -> {
@@ -199,6 +197,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         });
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String registerAsyncRestTemplate(final String id, final String factoryId, final String convertersId,
             @Nullable final String baseUrl) {
         return registry.register(id, AsyncRestTemplate.class, () -> {
@@ -222,6 +221,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         });
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String registerAsyncListenableTaskExecutor(final String id) {
         return registry.register(id, AsyncListenableTaskExecutor.class, () -> {
             LOG.debug("Client [{}]: Registering AsyncListenableTaskExecutor", id);
@@ -238,6 +238,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         });
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String registerAsyncClientHttpRequestFactory(final String id, final Defaults defaults,
             final Client client) {
         return registry.register(id, AsyncClientHttpRequestFactory.class, () -> {
@@ -253,6 +254,7 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         });
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String registerHttpClient(final String id, final Defaults defaults, final Client client) {
         return registry.register(id, HttpClient.class, () -> {
             LOG.debug("Client [{}]: Registering HttpClient", id);
@@ -338,11 +340,13 @@ public class RestClientPostProcessor implements BeanDefinitionRegistryPostProces
         builder.addPropertyValue("lastResponseInterceptors", responseInterceptors);
     }
 
-    private void configureKeystore(final BeanDefinitionBuilder httpClient, final String id, @Nullable final RestSettings.Keystore keystore) {
-        if (keystore != null) {
-            LOG.debug("Client [{}]: Registering trusted keystore", id);
-            httpClient.addPropertyValue("trustedKeystore", keystore);
+    private void configureKeystore(final BeanDefinitionBuilder httpClient, final String id, @Nullable final RiptideSettings.Keystore keystore) {
+        if (keystore == null) {
+            return;
         }
+
+        LOG.debug("Client [{}]: Registering trusted keystore", id);
+        httpClient.addPropertyValue("trustedKeystore", keystore);
     }
 
     @Override

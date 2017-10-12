@@ -86,7 +86,7 @@ public final class PluginTest {
 
     @Test
     public void shouldUseDefault() throws Exception {
-        assertThat(getPlugins(example), contains( equalTo(OriginalStackTracePlugin.class)));
+        assertThat(getPlugins(example), contains(equalTo(OriginalStackTracePlugin.class)));
     }
 
     @Test
@@ -97,7 +97,7 @@ public final class PluginTest {
 
     @Test
     public void shouldUseTemporaryException() throws Exception {
-        assertThat(getPlugins(ecb), contains(equalTo(OriginalStackTracePlugin.class)));
+        assertThat(getPlugins(ecb), contains(equalTo(TemporaryExceptionPlugin.class)));
     }
 
     @Test

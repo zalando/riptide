@@ -23,7 +23,7 @@ public final class AccessTokensEnvironmentVariablesTest {
 
     @Configuration
     @ImportAutoConfiguration({
-            RestClientAutoConfiguration.class,
+            RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class

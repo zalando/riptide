@@ -1,8 +1,8 @@
 package org.zalando.riptide.spring;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.zalando.riptide.spring.RestSettings.Defaults;
-import org.zalando.riptide.spring.RestSettings.GlobalOAuth;
+import org.zalando.riptide.spring.RiptideSettings.Defaults;
+import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.AccessTokensBuilder;
 import org.zalando.stups.tokens.JsonFileBackedClientCredentialsProvider;
@@ -17,11 +17,11 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
-class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
+final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
 
     private AccessTokensBuilder builder;
 
-    public void setSettings(final RestSettings settings) {
+    public void setSettings(final RiptideSettings settings) {
         final Defaults defaults = settings.getDefaults();
         final GlobalOAuth oAuth = settings.getOauth();
 
@@ -39,7 +39,7 @@ class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
                 .socketTimeout((int) socketTimeout.to(TimeUnit.MILLISECONDS));
 
         settings.getClients().forEach((id, client) -> {
-            @Nullable final RestSettings.OAuth clientOAuth = client.getOauth();
+            @Nullable final RiptideSettings.OAuth clientOAuth = client.getOauth();
 
             if (clientOAuth == null) {
                 return;

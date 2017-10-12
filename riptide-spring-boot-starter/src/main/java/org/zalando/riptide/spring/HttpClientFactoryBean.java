@@ -12,7 +12,6 @@ import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -22,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
-@Component
 class HttpClientFactoryBean implements FactoryBean<HttpClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactoryBean.class);
@@ -64,7 +62,7 @@ class HttpClientFactoryBean implements FactoryBean<HttpClient> {
         builder.setMaxConnTotal(maxConnectionsTotal);
     }
 
-    public void setTrustedKeystore(final RestSettings.Keystore keystore) throws Exception {
+    public void setTrustedKeystore(final RiptideSettings.Keystore keystore) throws Exception {
         final SSLContextBuilder ssl = SSLContexts.custom();
 
         final String path = keystore.getPath();

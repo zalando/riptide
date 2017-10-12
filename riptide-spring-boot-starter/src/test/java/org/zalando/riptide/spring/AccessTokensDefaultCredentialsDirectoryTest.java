@@ -41,7 +41,7 @@ public final class AccessTokensDefaultCredentialsDirectoryTest {
 
     @Configuration
     @ImportAutoConfiguration({
-            RestClientAutoConfiguration.class,
+            RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class

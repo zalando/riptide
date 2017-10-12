@@ -19,7 +19,7 @@ public class HttpClientFactoryBeanTest {
         exception.expect(FileNotFoundException.class);
         exception.expectMessage("i-do-not-exist.keystore");
 
-        final RestSettings.Keystore nonExistingKeystore = new RestSettings.Keystore();
+        final RiptideSettings.Keystore nonExistingKeystore = new RiptideSettings.Keystore();
         nonExistingKeystore.setPath("i-do-not-exist.keystore");
         unit.setTrustedKeystore(nonExistingKeystore);
     }
@@ -29,7 +29,7 @@ public class HttpClientFactoryBeanTest {
         exception.expect(IOException.class);
         exception.expectMessage("Invalid keystore format");
 
-        final RestSettings.Keystore invalidKeystore = new RestSettings.Keystore();
+        final RiptideSettings.Keystore invalidKeystore = new RiptideSettings.Keystore();
         invalidKeystore.setPath("application-default.yml");
         unit.setTrustedKeystore(invalidKeystore);
     }
