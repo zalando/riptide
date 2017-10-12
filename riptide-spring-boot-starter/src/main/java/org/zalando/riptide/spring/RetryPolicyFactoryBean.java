@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.beans.factory.FactoryBean;
+import org.zalando.riptide.exceptions.TemporaryException;
 import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry;
 
 import javax.annotation.Nullable;
@@ -43,6 +44,8 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
 
         Optional.ofNullable(config.getJitter())
                 .ifPresent(jitter -> jitter.applyTo(retryPolicy::withJitter));
+
+        retryPolicy.retryOn(TemporaryException.class);
     }
 
     @Override
