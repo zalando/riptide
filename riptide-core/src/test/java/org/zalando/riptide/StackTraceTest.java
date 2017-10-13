@@ -20,8 +20,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
+import static org.zalando.riptide.Navigators.contentType;
 
 public final class StackTraceTest {
 

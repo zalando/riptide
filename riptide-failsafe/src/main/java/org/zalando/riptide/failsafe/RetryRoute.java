@@ -2,7 +2,6 @@ package org.zalando.riptide.failsafe;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.MessageReader;
-import org.zalando.riptide.NoRouteException;
 import org.zalando.riptide.Route;
 
 public final class RetryRoute {

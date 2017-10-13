@@ -1,9 +1,10 @@
 package org.zalando.riptide;
 
-import java.net.URI;
-import java.util.function.Supplier;
 import org.junit.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
+
+import java.net.URI;
+import java.util.function.Supplier;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

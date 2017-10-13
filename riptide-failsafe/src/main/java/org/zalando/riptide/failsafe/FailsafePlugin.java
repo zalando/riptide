@@ -2,7 +2,6 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
