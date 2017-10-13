@@ -22,7 +22,8 @@ public final class FailsafePlugin implements Plugin {
         this(scheduler, NEVER, new CircuitBreaker());
     }
 
-    private FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
+    // used by spring-boot-starter
+    FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
             final CircuitBreaker circuitBreaker) {
         this.scheduler = scheduler;
         this.retryPolicy = retryPolicy;
@@ -31,7 +32,6 @@ public final class FailsafePlugin implements Plugin {
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
         return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy)
-                // TODO temporary exception
                 .retryOn(RetryException.class),
                 circuitBreaker);
     }
