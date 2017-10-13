@@ -97,7 +97,7 @@ public final class RiptideSettings {
         @AllArgsConstructor
         public static final class Retry {
             private TimeSpan fixedDelay;
-            private ExponentialBackoff exponentialBackoff;
+            private Backoff backoff;
             private Integer maxRetries;
             private TimeSpan maxDuration;
             private Double jitterFactor;
@@ -107,7 +107,7 @@ public final class RiptideSettings {
             @Setter
             @NoArgsConstructor
             @AllArgsConstructor
-            public static final class ExponentialBackoff {
+            public static final class Backoff {
                 private TimeSpan delay;
                 private TimeSpan maxDelay;
                 private Double delayFactor;

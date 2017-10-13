@@ -46,6 +46,7 @@ public final class FailsafePlugin implements Plugin {
                 .with(retryPolicy)
                 .with(circuitBreaker)
                 .with(scheduler)
+                // TODO allow to register listeners
                 .future(execution::execute);
     }
 

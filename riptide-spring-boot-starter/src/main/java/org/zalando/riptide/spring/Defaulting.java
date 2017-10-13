@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.Failsafe;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry.ExponentialBackoff;
+import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry.Backoff;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 
 import javax.annotation.Nullable;
@@ -18,88 +18,87 @@ import static org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry;
 
 final class Defaulting {
 
-    static RiptideSettings withDefaults(final RiptideSettings original) {
+    static RiptideSettings withDefaults(final RiptideSettings base) {
+        return merge(base, base.getDefaults());
+    }
+
+    private static RiptideSettings merge(final RiptideSettings base, final Defaults defaults) {
         return new RiptideSettings(
-                original.getDefaults(),
-                merge(original.getOauth(), original.getDefaults()),
-                ImmutableMap.copyOf(transformValues(original.getClients(), client ->
-                        merge(client, original.getDefaults())
+                defaults,
+                merge(base.getOauth(), defaults),
+                ImmutableMap.copyOf(transformValues(base.getClients(), client ->
+                        merge(client, defaults)
                 ))
         );
     }
 
-    private static GlobalOAuth merge(final GlobalOAuth auth, final Defaults defaults) {
+    private static GlobalOAuth merge(final GlobalOAuth base, final Defaults defaults) {
         return new GlobalOAuth(
-                auth.getAccessTokenUrl(),
-                auth.getCredentialsDirectory(),
-                auth.getSchedulingPeriod(),
-                either(auth.getConnectionTimeout(), defaults.getConnectionTimeout()),
-                either(auth.getSocketTimeout(), defaults.getSocketTimeout())
+                base.getAccessTokenUrl(),
+                base.getCredentialsDirectory(),
+                base.getSchedulingPeriod(),
+                either(base.getConnectionTimeout(), defaults.getConnectionTimeout()),
+                either(base.getSocketTimeout(), defaults.getSocketTimeout())
         );
     }
 
-    static Client merge(final Client client, final Defaults defaults) {
+    static Client merge(final Client base, final Defaults defaults) {
         final int maxConnectionsPerRoute =
-                either(client.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
+                either(base.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
 
         final int maxConnectionsTotal =
-                either(client.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal());
+                either(base.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal());
 
         return new Client(
-                client.getBaseUrl(),
-                either(client.getConnectionTimeout(), defaults.getConnectionTimeout()),
-                either(client.getSocketTimeout(), defaults.getSocketTimeout()),
-                either(client.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()),
+                base.getBaseUrl(),
+                either(base.getConnectionTimeout(), defaults.getConnectionTimeout()),
+                either(base.getSocketTimeout(), defaults.getSocketTimeout()),
+                either(base.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()),
                 maxConnectionsPerRoute,
                 max(maxConnectionsPerRoute, maxConnectionsTotal),
-                client.getOauth(),
-                either(client.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace()),
-                either(client.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
-                merge(client.getFailsafe(), defaults.getFailsafe()),
-                client.isCompressRequest(),
-                client.getKeystore()
+                base.getOauth(),
+                either(base.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace()),
+                either(base.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
+                merge(base.getFailsafe(), defaults.getFailsafe(), Defaulting::merge),
+                base.isCompressRequest(),
+                base.getKeystore()
         );
     }
 
-    @Nullable
-    private static Failsafe merge(@Nullable final Failsafe l, @Nullable final Failsafe r) {
-        return merge(l, r, (base, defaults) -> new Failsafe(
-                merge(base.getRetry(), defaults.getRetry()),
-                merge(base.getCircuitBreaker(), defaults.getCircuitBreaker())
-        ));
+    private static Failsafe merge(final Failsafe base, final Failsafe defaults) {
+        return new Failsafe(
+                merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
+                merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge)
+        );
     }
 
-    @Nullable
-    private static Retry merge(@Nullable final Retry l, @Nullable final Retry r) {
-        return merge(l, r, (base, defaults) -> new Retry(
+    private static Retry merge(final Retry base, final Retry defaults) {
+        return new Retry(
                 either(base.getFixedDelay(), defaults.getFixedDelay()),
-                merge(base.getExponentialBackoff(), defaults.getExponentialBackoff()),
+                merge(base.getBackoff(), defaults.getBackoff(), Defaulting::merge),
                 either(base.getMaxRetries(), defaults.getMaxRetries()),
                 either(base.getMaxDuration(), defaults.getMaxDuration()),
                 either(base.getJitterFactor(), defaults.getJitterFactor()),
                 either(base.getJitter(), defaults.getJitter())
-        ));
+        );
     }
 
-    @Nullable
-    private static ExponentialBackoff merge(@Nullable final ExponentialBackoff l,
-            @Nullable final ExponentialBackoff r) {
-        return merge(l, r, (base, defaults) -> new ExponentialBackoff(
+    private static Backoff merge(final Backoff base, final Backoff defaults) {
+        return new Backoff(
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getMaxDelay(), defaults.getMaxDelay()),
                 either(base.getDelayFactor(), defaults.getDelayFactor())
-        ));
+        );
     }
 
-    @Nullable
-    private static CircuitBreaker merge(@Nullable final CircuitBreaker l, @Nullable final CircuitBreaker r) {
-        return merge(l, r, (base, defaults) -> new CircuitBreaker(
+    private static CircuitBreaker merge(final CircuitBreaker base, final CircuitBreaker defaults) {
+        return new CircuitBreaker(
                 either(base.getFailureThreshold(), defaults.getFailureThreshold()),
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getSuccessThreshold(), defaults.getSuccessThreshold())
-        ));
+        );
     }
-    
+
     private static <T> T either(@Nullable final T left, @Nullable final T right) {
         return Optional.ofNullable(left).orElse(right);
     }

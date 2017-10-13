@@ -176,7 +176,7 @@ final class RiptideRegistrar {
             plugins.add(ref(registry.register(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
-                plugin.addConstructorArgReference(registerThreadPool(id, client));
+                plugin.addConstructorArgValue(registerThreadPool(id, client));
 
                 plugin.addConstructorArgReference(registry.register(id, RetryPolicy.class, () -> {
                     final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
@@ -207,23 +207,24 @@ final class RiptideRegistrar {
     private String registerAsyncListenableTaskExecutor(final String id, final Client client) {
         return registry.register(id, AsyncListenableTaskExecutor.class, () ->
                 genericBeanDefinition(ConcurrentTaskExecutor.class)
-                        .addConstructorArgReference(registerThreadPool(id, client)));
+                        .addConstructorArgValue(registerThreadPool(id, client)));
     }
 
-    private String registerThreadPool(final String id, final Client client) {
-        return registry.register(id, ScheduledExecutorService.class, () ->
-                genericBeanDefinition(TracingExecutors.class)
-                        .setFactoryMethod("preserve")
-                        .addConstructorArgValue(genericBeanDefinition(Executors.class)
+    private BeanDefinition registerThreadPool(final String id, final Client client) {
+        // we allow users to supply their own ScheduledExecutorService, but they don't have to configure tracing
+        return genericBeanDefinition(TracingExecutors.class)
+                .setFactoryMethod("preserve")
+                .addConstructorArgReference(registry.register(id, ScheduledExecutorService.class, () ->
+                        genericBeanDefinition(Executors.class)
                                 .setFactoryMethod("newScheduledThreadPool")
                                 // TODO should we have some breathing room for retries?
                                 .addConstructorArgValue(client.getMaxConnectionsTotal())
                                 .addConstructorArgValue(genericBeanDefinition(CustomizableThreadFactory.class)
                                         .addConstructorArgValue("http-" + id + "-")
                                         .getBeanDefinition())
-                                .setDestroyMethodName("shutdown")
-                                .getBeanDefinition())
-                        .addConstructorArgReference("tracer"));
+                                .setDestroyMethodName("shutdown")))
+                .addConstructorArgReference("tracer")
+                .getBeanDefinition();
     }
 
     private String registerHttpClient(final String id, final Client client) {
@@ -306,5 +307,5 @@ final class RiptideRegistrar {
         log.debug("Client [{}]: Registering trusted keystore", id);
         httpClient.addPropertyValue("trustedKeystore", keystore);
     }
-    
+
 }

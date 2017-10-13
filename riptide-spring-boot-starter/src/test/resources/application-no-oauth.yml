@@ -25,7 +25,7 @@ riptide:
       base-url: http://www.ecb.europa.eu
       failsafe:
         retry:
-          exponential-backoff:
+          backoff:
             delay: 500 milliseconds
             max-delay: 3 seconds
           max-retries: 4

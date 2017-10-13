@@ -19,7 +19,7 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
         Optional.ofNullable(config.getFixedDelay())
                 .ifPresent(delay -> delay.applyTo(retryPolicy::withDelay));
 
-        Optional.ofNullable(config.getExponentialBackoff()).ifPresent(backoff -> {
+        Optional.ofNullable(config.getBackoff()).ifPresent(backoff -> {
             final TimeSpan delay = backoff.getDelay();
             final TimeSpan maxDelay = backoff.getMaxDelay();
             final TimeUnit unit = MILLISECONDS;
