@@ -34,7 +34,7 @@ final class Registry {
         return registry.isBeanNameInUse(name);
     }
 
-    public <T> String register(final Class<T> type, final Supplier<BeanDefinitionBuilder> factory) {
+    public <T> String registerIfAbsent(final Class<T> type, final Supplier<BeanDefinitionBuilder> factory) {
         final String name = UPPER_CAMEL.to(LOWER_CAMEL, type.getSimpleName());
 
         if (isRegistered(name)) {
@@ -47,11 +47,11 @@ final class Registry {
         return name;
     }
 
-    public <T> String register(final String id, final Class<T> type) {
-        return register(id, type, () -> genericBeanDefinition(type));
+    public <T> String registerIfAbsent(final String id, final Class<T> type) {
+        return registerIfAbsent(id, type, () -> genericBeanDefinition(type));
     }
 
-    public <T> String register(final String id, final Class<T> type,
+    public <T> String registerIfAbsent(final String id, final Class<T> type,
             final Supplier<BeanDefinitionBuilder> factory) {
 
         final String name = generateBeanName(id, type);

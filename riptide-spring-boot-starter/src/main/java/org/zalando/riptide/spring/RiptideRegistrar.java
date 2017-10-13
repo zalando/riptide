@@ -64,7 +64,7 @@ final class RiptideRegistrar {
     }
 
     private String registerAsyncClientHttpRequestFactory(final String id, final Client client) {
-        return registry.register(id, AsyncClientHttpRequestFactory.class, () -> {
+        return registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
 
             final BeanDefinitionBuilder factory =
@@ -78,7 +78,7 @@ final class RiptideRegistrar {
     }
 
     private BeanDefinition registerHttpMessageConverters(final String id) {
-        final String convertersId = registry.register(id, HttpMessageConverters.class, () -> {
+        final String convertersId = registry.registerIfAbsent(id, HttpMessageConverters.class, () -> {
             final List<Object> list = list();
 
             log.debug("Client [{}]: Registering StringHttpMessageConverter", id);
@@ -114,7 +114,7 @@ final class RiptideRegistrar {
 
     private void registerHttp(final String id, final Client client, final String factoryId,
             final BeanDefinition converters) {
-        registry.register(id, Http.class, () -> {
+        registry.registerIfAbsent(id, Http.class, () -> {
             log.debug("Client [{}]: Registering Http", id);
 
             final BeanDefinitionBuilder http = genericBeanDefinition(HttpFactory.class);
@@ -130,7 +130,7 @@ final class RiptideRegistrar {
 
     private void registerTemplate(final String id, final Class<?> type, final String factoryId,
             final BeanDefinition converters, @Nullable final String baseUrl) {
-        registry.register(id, type, () -> {
+        registry.registerIfAbsent(id, type, () -> {
             log.debug("Client [{}]: Registering AsyncRestTemplate", id);
 
             final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
@@ -151,7 +151,7 @@ final class RiptideRegistrar {
     }
 
     private String registerAccessTokens(final String id, final RiptideSettings settings) {
-        return registry.register(AccessTokens.class, () -> {
+        return registry.registerIfAbsent(AccessTokens.class, () -> {
             log.debug("Client [{}]: Registering AccessTokens", id);
             final BeanDefinitionBuilder builder = genericBeanDefinition(AccessTokensFactoryBean.class);
             builder.addConstructorArgValue(settings);
@@ -164,21 +164,21 @@ final class RiptideRegistrar {
 
         if (client.getKeepOriginalStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            plugins.add(ref(registry.register(id, OriginalStackTracePlugin.class)));
+            plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
         }
 
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TemporaryExceptionPlugin.class.getSimpleName());
-            plugins.add(ref(registry.register(id, TemporaryExceptionPlugin.class)));
+            plugins.add(ref(registry.registerIfAbsent(id, TemporaryExceptionPlugin.class)));
         }
 
         if (client.getFailsafe() != null) {
-            plugins.add(ref(registry.register(id, FailsafePlugin.class, () -> {
+            plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
                 plugin.addConstructorArgValue(registerThreadPool(id, client));
 
-                plugin.addConstructorArgReference(registry.register(id, RetryPolicy.class, () -> {
+                plugin.addConstructorArgReference(registry.registerIfAbsent(id, RetryPolicy.class, () -> {
                     final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
                     @Nullable final Failsafe.Retry retry = client.getFailsafe().getRetry();
                     if (retry != null) {
@@ -188,7 +188,7 @@ final class RiptideRegistrar {
                 }));
 
 
-                plugin.addConstructorArgReference(registry.register(id, CircuitBreaker.class, () -> {
+                plugin.addConstructorArgReference(registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
                     final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
                     @Nullable final Failsafe.CircuitBreaker breaker = client.getFailsafe().getCircuitBreaker();
                     if (breaker != null) {
@@ -205,7 +205,7 @@ final class RiptideRegistrar {
     }
 
     private String registerAsyncListenableTaskExecutor(final String id, final Client client) {
-        return registry.register(id, AsyncListenableTaskExecutor.class, () ->
+        return registry.registerIfAbsent(id, AsyncListenableTaskExecutor.class, () ->
                 genericBeanDefinition(ConcurrentTaskExecutor.class)
                         .addConstructorArgValue(registerThreadPool(id, client)));
     }
@@ -214,7 +214,7 @@ final class RiptideRegistrar {
         // we allow users to supply their own ScheduledExecutorService, but they don't have to configure tracing
         return genericBeanDefinition(TracingExecutors.class)
                 .setFactoryMethod("preserve")
-                .addConstructorArgReference(registry.register(id, ScheduledExecutorService.class, () ->
+                .addConstructorArgReference(registry.registerIfAbsent(id, ScheduledExecutorService.class, () ->
                         genericBeanDefinition(Executors.class)
                                 .setFactoryMethod("newScheduledThreadPool")
                                 // TODO should we have some breathing room for retries?
@@ -228,7 +228,7 @@ final class RiptideRegistrar {
     }
 
     private String registerHttpClient(final String id, final Client client) {
-        return registry.register(id, HttpClient.class, () -> {
+        return registry.registerIfAbsent(id, HttpClient.class, () -> {
             log.debug("Client [{}]: Registering HttpClient", id);
 
             final BeanDefinitionBuilder httpClient = genericBeanDefinition(HttpClientFactoryBean.class);
