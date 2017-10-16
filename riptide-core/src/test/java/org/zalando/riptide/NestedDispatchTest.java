@@ -8,7 +8,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.problem.MoreStatus;
+import org.zalando.problem.Exceptional;
+import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.riptide.model.Message;
 import org.zalando.riptide.model.Problem;
@@ -45,7 +46,6 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Navigators.statusCode;
-import static org.zalando.riptide.Route.propagate;
 import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
@@ -96,8 +96,8 @@ public final class NestedDispatchTest {
     @SuppressWarnings("deprecation")
     private Route problemHandling() {
         return dispatch(contentType(),
-                on(PROBLEM).call(ThrowableProblem.class, propagate()),
-                on(ERROR).call(ThrowableProblem.class, propagate()),
+                on(PROBLEM).call(ThrowableProblem.class, Exceptional::propagate),
+                on(ERROR).call(ThrowableProblem.class, Exceptional::propagate),
                 anyContentType().call(this::fail));
     }
 
@@ -158,7 +158,7 @@ public final class NestedDispatchTest {
             final ThrowableProblem problem = (ThrowableProblem) e.getCause();
             assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
             assertThat(problem.getTitle(), is("Unprocessable Entity"));
-            assertThat(problem.getStatus(), is(MoreStatus.UNPROCESSABLE_ENTITY));
+            assertThat(problem.getStatus(), is(Status.UNPROCESSABLE_ENTITY));
             assertThat(problem.getDetail(), is("A problem occurred."));
         }
     }

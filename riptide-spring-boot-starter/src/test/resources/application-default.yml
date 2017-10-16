@@ -1,0 +1,29 @@
+riptide:
+  defaults:
+    keep-original-stack-trace: false
+    detect-transient-faults: false
+  clients:
+    example:
+      base-url: https://example.com
+      connection-timout: 2000 milliseconds
+      socket-timeout: 3000 milliseconds
+      oauth.scopes:
+        - example.read
+      keep-original-stack-trace: true
+    ecb:
+      base-url: http://www.ecb.europa.eu
+      compress-request: true
+      detect-transient-faults: true
+    github:
+      base-url: https://github.com
+      keystore:
+        path: github.keystore
+        password: password
+    github-invalid:
+      base-url: https://github.com
+      keystore:
+        path: github.keystore
+    foo:
+      base-url: http://localhost
+    bar:
+      base-url: http://localhost

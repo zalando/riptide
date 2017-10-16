@@ -14,14 +14,8 @@ cache:
   directories:
     - $HOME/.m2
 
-env:
-  matrix:
-    - SUFFIX='-D spring.version=4.1.0.RELEASE'
-    - SUFFIX='-D spring.version=4.2.0.RELEASE'
-    - SUFFIX='-D spring.version=4.3.0.RELEASE'
-    - SUFFIX=
 
-script: ./mvnw clean verify $SUFFIX
+script: ./mvnw clean verify
 
 after_success:
   - ./mvnw coveralls:report

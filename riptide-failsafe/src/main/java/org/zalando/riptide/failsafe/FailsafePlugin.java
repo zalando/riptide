@@ -2,6 +2,7 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -29,7 +30,9 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy).retryOn(RetryException.class),
+        return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy)
+                // TODO temporary exception
+                .retryOn(RetryException.class),
                 circuitBreaker);
     }
 
