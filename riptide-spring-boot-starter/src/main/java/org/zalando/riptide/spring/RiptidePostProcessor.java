@@ -10,6 +10,8 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
+import static org.zalando.riptide.spring.Defaulting.withDefaults;
+
 final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
     private RiptideSettings settings;
@@ -31,7 +33,7 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
-        final RiptideRegistrar registrar = new RiptideRegistrar(new Registry(registry), settings);
+        final RiptideRegistrar registrar = new RiptideRegistrar(new Registry(registry), withDefaults(settings));
         registrar.register();
     }
 

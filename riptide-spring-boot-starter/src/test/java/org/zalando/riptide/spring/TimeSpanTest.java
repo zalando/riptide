@@ -11,6 +11,12 @@ import static org.junit.Assert.assertThat;
 public final class TimeSpanTest {
 
     @Test
+    public void shouldParseEmpty() {
+        final TimeSpan span = TimeSpan.valueOf("");
+        assertThat(span.getAmount(), is(0L));
+    }
+
+    @Test
     public void shouldParseSingular() {
         final TimeSpan span = TimeSpan.valueOf("1 second");
         assertThat(span.to(SECONDS), is(1L));
@@ -18,26 +24,8 @@ public final class TimeSpanTest {
 
     @Test
     public void shouldParsePlural() {
-        final TimeSpan span = TimeSpan.valueOf("17 seconds");
-        assertThat(span.to(SECONDS), is(17L));
-    }
-
-    @Test
-    public void shouldParseMultiple() {
-        final TimeSpan span = TimeSpan.valueOf("17 seconds, 500 milliseconds");
-        assertThat(span.to(MILLISECONDS), is(17_500L));
-    }
-
-    @Test
-    public void shouldParseMultipleOfTheSameUnit() {
-        final TimeSpan span = TimeSpan.valueOf("17 seconds, 2 seconds");
-        assertThat(span.to(SECONDS), is(19L));
-    }
-
-    @Test
-    public void shouldParseMultipleInReverseOrder() {
-        final TimeSpan span = TimeSpan.valueOf("500 milliseconds, 17 seconds");
-        assertThat(span.to(MILLISECONDS), is(17_500L));
+        final TimeSpan span = TimeSpan.valueOf("17 milliseconds");
+        assertThat(span.to(MILLISECONDS), is(17L));
     }
 
     @Test

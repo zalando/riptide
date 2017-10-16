@@ -1,19 +1,17 @@
 package org.zalando.riptide.spring;
 
-import com.google.common.base.Splitter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.Integer.signum;
-import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -21,13 +19,10 @@ import static java.util.stream.Collectors.toMap;
 @Getter
 final class TimeSpan {
 
-    static final TimeSpan ZERO = new TimeSpan(0, TimeUnit.NANOSECONDS);
+    private static final Pattern PATTERN = Pattern.compile("(\\d+) (\\w+)");
 
     private static final Map<String, TimeUnit> UNITS = Arrays.stream(TimeUnit.values())
-            .collect(toMap(TimeSpan::toName, identity(), (u, v) -> u, () -> new TreeMap<>(CASE_INSENSITIVE_ORDER)));
-
-    private static final Splitter PARTS = Splitter.on(',').trimResults().omitEmptyStrings();
-    private static final Splitter DURATION = Splitter.on(' ').trimResults().omitEmptyStrings().limit(2);
+            .collect(toMap(TimeSpan::toName, identity()));
 
     private final long amount;
     private final TimeUnit unit;
@@ -39,27 +34,15 @@ final class TimeSpan {
     }
 
     private TimeSpan(final TimeSpan span) {
-        this(span.getAmount(), span.getUnit());
-    }
-
-    TimeSpan plus(final TimeSpan span) {
-        switch (signum(unit.compareTo(span.getUnit()))) {
-            case -1:
-                return span.addTo(this);
-            case 1:
-                return this.addTo(span);
-            default:
-                // same time unit
-                return new TimeSpan(amount + span.getAmount(), unit);
-        }
-    }
-
-    private TimeSpan addTo(final TimeSpan span) {
-        return new TimeSpan(span.getAmount() + span.getUnit().convert(amount, unit), span.getUnit());
+        this(span.amount, span.unit);
     }
 
     long to(final TimeUnit targetUnit) {
         return targetUnit.convert(amount, unit);
+    }
+
+    void applyTo(final BiConsumer<Long, TimeUnit> consumer) {
+        consumer.accept(amount, unit);
     }
 
     @Override
@@ -68,20 +51,24 @@ final class TimeSpan {
     }
 
     static TimeSpan valueOf(final String value) {
-        return PARTS.splitToList(value).stream()
-                .map(TimeSpan::parse)
-                .reduce(TimeSpan::plus).orElse(ZERO);
-    }
+        if (value.isEmpty()) {
+            return new TimeSpan(0, TimeUnit.NANOSECONDS);
+        }
 
-    private static TimeSpan parse(final String part) {
-        final List<String> parts = DURATION.splitToList(part);
-        final long amount = Long.parseLong(parts.get(0));
-        final TimeUnit unit = fromName(parts.get(1));
+        final Matcher matcher = PATTERN.matcher(value);
+        checkArgument(matcher.matches(), "'%s' is not a valid time span", value);
+
+        final long amount = Long.parseLong(matcher.group(1));
+        final TimeUnit unit = fromName(matcher.group(2));
 
         return new TimeSpan(amount, unit);
     }
 
     private static TimeUnit fromName(final String name) {
+        return parse(name.toLowerCase(Locale.ROOT));
+    }
+
+    private static TimeUnit parse(final String name) {
         final TimeUnit unit = UNITS.get(name.endsWith("s") ? name : name + "s");
         checkArgument(unit != null, "Unknown time unit: [%s]", name);
         return unit;

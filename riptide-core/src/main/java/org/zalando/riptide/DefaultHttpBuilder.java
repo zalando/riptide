@@ -115,15 +115,11 @@ final class DefaultHttpBuilder implements HttpBuilder {
 
     @Override
     public Http build() {
-        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, plugin());
+        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, plugins());
     }
 
     private List<HttpMessageConverter<?>> converters() {
         return converters.isEmpty() ? Converters.DEFAULT : converters;
-    }
-
-    private Plugin plugin() {
-        return plugins().stream().reduce(Plugin::merge).orElse(NoopPlugin.INSTANCE);
     }
 
     private List<Plugin> plugins() {

@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ObjectArrays.concat;
 import static org.zalando.fauxpas.FauxPas.partially;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 /**
  * Preserves the original stack traces of failed requests. Requests in Riptide are executed asynchronously by default.

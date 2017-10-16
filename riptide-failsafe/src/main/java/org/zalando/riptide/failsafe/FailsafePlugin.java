@@ -2,7 +2,6 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -22,7 +21,8 @@ public final class FailsafePlugin implements Plugin {
         this(scheduler, NEVER, new CircuitBreaker());
     }
 
-    private FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
+    // used by spring-boot-starter
+    FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
             final CircuitBreaker circuitBreaker) {
         this.scheduler = scheduler;
         this.retryPolicy = retryPolicy;
@@ -31,7 +31,6 @@ public final class FailsafePlugin implements Plugin {
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
         return new FailsafePlugin(scheduler, new RetryPolicy(retryPolicy)
-                // TODO temporary exception
                 .retryOn(RetryException.class),
                 circuitBreaker);
     }
@@ -46,6 +45,7 @@ public final class FailsafePlugin implements Plugin {
                 .with(retryPolicy)
                 .with(circuitBreaker)
                 .with(scheduler)
+                // TODO allow to register listeners
                 .future(execution::execute);
     }
 

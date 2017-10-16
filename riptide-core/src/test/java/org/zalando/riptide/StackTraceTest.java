@@ -20,8 +20,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
+import static org.zalando.riptide.Navigators.contentType;
 
 public final class StackTraceTest {
 
@@ -57,7 +57,7 @@ public final class StackTraceTest {
 
     @Test
     public void shouldNotKeepOriginalStackTrace() throws Exception {
-        final Http unit = configureRest().plugin(NoopPlugin.INSTANCE).build();
+        final Http unit = configureRest().plugin((arguments, execution) -> execution).build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 

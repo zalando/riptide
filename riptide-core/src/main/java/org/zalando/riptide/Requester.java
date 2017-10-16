@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.zalando.riptide.ListenableCompletableFutureAdapter.adapt;
@@ -26,17 +27,17 @@ public final class Requester extends Dispatcher {
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final RequestArguments arguments;
-    private final Plugin plugin;
+    private final List<Plugin> plugins;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
 
     Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final Plugin plugin) {
+            final RequestArguments arguments, final List<Plugin> plugins) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
-        this.plugin = plugin;
+        this.plugins = plugins;
     }
 
     public final Requester queryParam(final String name, final String value) {
@@ -103,9 +104,10 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<Void> call(final Route route) {
             try {
-                final RequestExecution execution = plugin.prepare(arguments, () ->
-                        execute(entity).thenApply(dispatch(route)));
+                final RequestExecution start = () ->
+                        sendRequest().thenApply(dispatchResponse(route));
 
+                final RequestExecution execution = applyPlugins(start);
                 final CompletableFuture<ClientHttpResponse> future = execution.execute();
 
                 // TODO why not return CompletableFuture<ClientHttpResponse> here?
@@ -116,7 +118,17 @@ public final class Requester extends Dispatcher {
             }
         }
 
-        private <T> CompletableFuture<ClientHttpResponse> execute(final HttpEntity<T> entity) throws IOException {
+        private RequestExecution applyPlugins(final RequestExecution start) {
+            RequestExecution execution = start;
+
+            for (final Plugin plugin : plugins) {
+                execution = plugin.prepare(arguments, execution);
+            }
+
+            return execution;
+        }
+
+        private <T> CompletableFuture<ClientHttpResponse> sendRequest() throws IOException {
             final URI requestUri = arguments.getRequestUri();
             final HttpMethod method = arguments.getMethod();
             final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUri, method);
@@ -124,7 +136,7 @@ public final class Requester extends Dispatcher {
             return adapt(request.executeAsync());
         }
 
-        private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {
+        private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatchResponse(final Route route) {
             return response -> {
                 try {
                     route.execute(response, worker);

@@ -29,10 +29,10 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
-import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.Route.listOf;
 
 public final class IOTest {
 

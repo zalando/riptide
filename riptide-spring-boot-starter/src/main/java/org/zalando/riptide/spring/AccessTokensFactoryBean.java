@@ -1,6 +1,7 @@
 package org.zalando.riptide.spring;
 
 import org.springframework.beans.factory.FactoryBean;
+import org.zalando.riptide.spring.RiptideSettings.Client.OAuth;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 import org.zalando.stups.tokens.AccessTokens;
@@ -14,7 +15,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
 final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
@@ -27,8 +27,8 @@ final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
         @Nullable final Path directory = oAuth.getCredentialsDirectory();
-        final TimeSpan connectionTimeout = firstNonNull(oAuth.getConnectionTimeout(), defaults.getConnectionTimeout());
-        final TimeSpan socketTimeout = firstNonNull(oAuth.getSocketTimeout(), defaults.getSocketTimeout());
+        final TimeSpan connectionTimeout = oAuth.getConnectionTimeout();
+        final TimeSpan socketTimeout = oAuth.getSocketTimeout();
 
         this.builder = Tokens.createAccessTokensWithUri(accessTokenUrl)
                 .usingClientCredentialsProvider(getClientCredentialsProvider(directory))
@@ -39,7 +39,7 @@ final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
                 .socketTimeout((int) socketTimeout.to(TimeUnit.MILLISECONDS));
 
         settings.getClients().forEach((id, client) -> {
-            @Nullable final RiptideSettings.OAuth clientOAuth = client.getOauth();
+            @Nullable final OAuth clientOAuth = client.getOauth();
 
             if (clientOAuth == null) {
                 return;
