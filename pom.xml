@@ -60,8 +60,8 @@
     <modules>
         <module>riptide-capture</module>
         <module>riptide-core</module>
-        <module>riptide-exceptions</module>
         <module>riptide-failsafe</module>
+        <module>riptide-faults</module>
         <module>riptide-httpclient</module>
         <module>riptide-hystrix</module>
         <module>riptide-problem</module>
@@ -96,7 +96,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-exceptions</artifactId>
+                <artifactId>riptide-faults</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

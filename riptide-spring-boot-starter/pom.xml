@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>riptide-exceptions</artifactId>
+            <artifactId>riptide-faults</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

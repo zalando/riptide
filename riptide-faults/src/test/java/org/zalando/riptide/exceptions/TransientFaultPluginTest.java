@@ -12,6 +12,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.faults.TransientFaultException;
+import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -31,9 +33,9 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.exceptions.ExceptionClassifier.create;
+import static org.zalando.riptide.faults.FaultClassifier.create;
 
-public final class TemporaryExceptionPluginTest {
+public final class TransientFaultPluginTest {
 
     private static final int SOCKET_TIMEOUT = 1000;
     private static final int DELAY = 2000;
@@ -59,14 +61,14 @@ public final class TemporaryExceptionPluginTest {
     }
 
     @Test
-    public void shouldClassifyAsTemporary() {
-        final Http unit = newUnit(new TemporaryExceptionPlugin());
+    public void shouldClassifyAsTransient() {
+        final Http unit = newUnit(new TransientFaultPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(TemporaryException.class));
+        exception.expectCause(instanceOf(TransientFaultException.class));
         // not second level of CompletionException!
         exception.expectCause(hasFeature(Throwable::getCause, is(instanceOf(SocketTimeoutException.class))));
 
@@ -74,8 +76,8 @@ public final class TemporaryExceptionPluginTest {
     }
 
     @Test
-    public void shouldNotClassifyAsTemporaryIfNotMatching() {
-        final Http unit = newUnit(new TemporaryExceptionPlugin(create()));
+    public void shouldNotClassifyAsTransientIfNotMatching() {
+        final Http unit = newUnit(new TransientFaultPlugin(create()));
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
@@ -87,15 +89,15 @@ public final class TemporaryExceptionPluginTest {
     }
 
     @Test
-    public void shouldClassifyExceptionAsTemporaryAsIs() {
+    public void shouldClassifyExceptionAsTransientAsIs() {
         final Http unit = newUnit((arguments, execution) -> () -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
                     return future;
-                }, new TemporaryExceptionPlugin(create(IllegalArgumentException.class::isInstance)));
+                }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(TemporaryException.class));
+        exception.expectCause(instanceOf(TransientFaultException.class));
         exception.expectCause(hasFeature(Throwable::getCause, is(instanceOf(IllegalArgumentException.class))));
 
         request(unit).join();
@@ -114,7 +116,7 @@ public final class TemporaryExceptionPluginTest {
 
     @Test
     public void shouldClassifyAsPermanent() {
-        final Http unit = newUnit(new TemporaryExceptionPlugin());
+        final Http unit = newUnit(new TransientFaultPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse());

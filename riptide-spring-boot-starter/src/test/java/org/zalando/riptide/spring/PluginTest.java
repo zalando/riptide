@@ -17,8 +17,9 @@ import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.faults.FaultClassifier;
+import org.zalando.riptide.faults.TransientFaultPlugin;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -37,8 +38,13 @@ public final class PluginTest {
     public static class TestConfiguration {
 
         @Bean
-        public TemporaryExceptionPlugin temporaryExceptionPlugin() {
-            return new TemporaryExceptionPlugin();
+        public FaultClassifier ecbFaultClassifier() {
+            return FaultClassifier.createDefault();
+        }
+
+        @Bean
+        public FaultClassifier faultClassifier() {
+            return FaultClassifier.createDefault();
         }
 
         @Bean
@@ -86,8 +92,8 @@ public final class PluginTest {
     }
 
     @Test
-    public void shouldUseTemporaryExceptionPlugin() throws Exception {
-        assertThat(getPlugins(ecb), contains(instanceOf(TemporaryExceptionPlugin.class)));
+    public void shouldUseTransientFaultPlugin() throws Exception {
+        assertThat(getPlugins(ecb), contains(instanceOf(TransientFaultPlugin.class)));
     }
 
     @Test

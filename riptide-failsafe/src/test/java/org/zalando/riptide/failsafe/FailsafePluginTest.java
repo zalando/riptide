@@ -24,6 +24,7 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import org.apache.http.ConnectionClosedException;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -21,8 +23,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
-import org.zalando.riptide.exceptions.TemporaryExceptionPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.faults.FaultClassifier;
+import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
@@ -38,6 +41,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
@@ -168,8 +172,10 @@ final class RiptideRegistrar {
         }
 
         if (client.getDetectTransientFaults()) {
-            log.debug("Client [{}]: Registering [{}]", id, TemporaryExceptionPlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, TemporaryExceptionPlugin.class)));
+            log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
+            plugins.add(genericBeanDefinition(TransientFaultPlugin.class)
+                .addConstructorArgReference(findFaultClassifier(id))
+                .getBeanDefinition());
         }
 
         if (client.getFailsafe() != null) {
@@ -202,6 +208,26 @@ final class RiptideRegistrar {
         }
 
         return plugins;
+    }
+
+    private String findFaultClassifier(final String id) {
+        if (registry.isRegistered(id, FaultClassifier.class)) {
+            return generateBeanName(id, FaultClassifier.class);
+        } else if (registry.isRegistered(FaultClassifier.class)) {
+            return generateBeanName(FaultClassifier.class);
+        } else {
+            return registry.registerIfAbsent(FaultClassifier.class, () -> {
+                final List<Predicate<Throwable>> predicates = list();
+
+                predicates.addAll(FaultClassifier.defaults());
+                predicates.add(ConnectionClosedException.class::isInstance);
+                predicates.add(NoHttpResponseException.class::isInstance);
+
+                return genericBeanDefinition(FaultClassifier.class)
+                        .setFactoryMethod("create")
+                        .addConstructorArgValue(predicates);
+            });
+        }
     }
 
     private String registerAsyncListenableTaskExecutor(final String id, final Client client) {

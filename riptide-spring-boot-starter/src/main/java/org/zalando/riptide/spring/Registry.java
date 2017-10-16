@@ -13,6 +13,7 @@ import org.springframework.beans.factory.support.ManagedList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
@@ -30,12 +31,20 @@ final class Registry {
         this.registry = registry;
     }
 
+    public boolean isRegistered(final Class<?> type) {
+        return isRegistered(generateBeanName(type));
+    }
+
+    public boolean isRegistered(final String id, final Class<?> type) {
+        return isRegistered(generateBeanName(id, type));
+    }
+
     public boolean isRegistered(final String name) {
         return registry.isBeanNameInUse(name);
     }
 
     public <T> String registerIfAbsent(final Class<T> type, final Supplier<BeanDefinitionBuilder> factory) {
-        final String name = UPPER_CAMEL.to(LOWER_CAMEL, type.getSimpleName());
+        final String name = generateBeanName(type);
 
         if (isRegistered(name)) {
             LOG.debug("Bean [{}] is already registered, skipping it.", name);
@@ -70,6 +79,10 @@ final class Registry {
         return name;
     }
 
+    public static <T> String generateBeanName(final Class<T> type) {
+        return UPPER_CAMEL.to(LOWER_CAMEL, type.getSimpleName());
+    }
+
     public static <T> String generateBeanName(final String id, final Class<T> type) {
         return LOWER_HYPHEN.to(LOWER_CAMEL, id) + type.getSimpleName();
     }
@@ -78,8 +91,9 @@ final class Registry {
         return new RuntimeBeanReference(beanName);
     }
 
-    public static List<Object> list(final Object... elements) {
-        final ManagedList<Object> list = new ManagedList<>();
+    @SafeVarargs
+    public static <T> List<T> list(final T... elements) {
+        final ManagedList<T> list = new ManagedList<>();
         Collections.addAll(list, elements);
         return list;
     }

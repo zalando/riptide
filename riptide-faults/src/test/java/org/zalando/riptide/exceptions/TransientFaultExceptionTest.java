@@ -1,6 +1,7 @@
 package org.zalando.riptide.exceptions;
 
 import org.junit.Test;
+import org.zalando.riptide.faults.TransientFaultException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -10,11 +11,11 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class TemporaryExceptionTest {
+public final class TransientFaultExceptionTest {
 
     @Test
     public void shouldSupportSuppressedExceptions() {
-        final TemporaryException unit = new TemporaryException();
+        final TransientFaultException unit = new TransientFaultException();
         unit.addSuppressed(new TimeoutException());
         unit.addSuppressed(new IOException());
         unit.addSuppressed(new IllegalStateException());

@@ -1,22 +1,24 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface ExceptionClassifier {
+public interface FaultClassifier {
 
     /**
-     * Classifies the given {@link Throwable throwable} into temporary and permanent exceptions.
+     * Classifies the given {@link Throwable throwable} into transient and persistent faults.
      *
      * @param throwable the throwable
-     * @return the given throwable if it's considered permanent, ora {@link TemporaryException} with the given
-     * throwable as its cause, if it's considered temporary
+     * @return the given throwable if it's considered permanent, or a {@link TransientFaultException} with the given
+     * throwable as its cause, if it's considered transient
      */
     Throwable classify(final Throwable throwable);
 
@@ -33,22 +35,26 @@ public interface ExceptionClassifier {
         throw classify(throwable);
     }
 
-    static ExceptionClassifier createDefault() {
-        return create(InterruptedIOException.class::isInstance,
+    static FaultClassifier createDefault() {
+        return create(defaults());
+    }
+
+    static List<Predicate<Throwable>> defaults()  {
+        return Collections.unmodifiableList(Arrays.asList(
+                InterruptedIOException.class::isInstance,
                 SocketException.class::isInstance,
                 throwable -> throwable instanceof SSLHandshakeException
-                        && "Remote host closed connection during handshake".equals(throwable.getMessage()));
+                        && "Remote host closed connection during handshake".equals(throwable.getMessage())));
     }
 
     @SafeVarargs
-    static ExceptionClassifier create(final Predicate<Throwable>... predicates) {
+    static FaultClassifier create(final Predicate<Throwable>... predicates) {
         return create(Arrays.asList(predicates));
     }
 
-    static ExceptionClassifier create(final Collection<Predicate<Throwable>> predicates) {
-        final Predicate<Throwable> isTemporary = predicates.stream().reduce(Predicate::or).orElse(throwable -> false);
-
-        return new DefaultExceptionClassifier(isTemporary);
+    static FaultClassifier create(final Collection<Predicate<Throwable>> predicates) {
+        final Predicate<Throwable> isTransient = predicates.stream().reduce(Predicate::or).orElse(throwable -> false);
+        return new DefaultFaultClassifier(isTransient);
     }
 
 }

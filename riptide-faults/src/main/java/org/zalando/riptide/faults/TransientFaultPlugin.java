@@ -1,4 +1,4 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -6,15 +6,15 @@ import org.zalando.riptide.RequestExecution;
 
 import static org.zalando.fauxpas.FauxPas.partially;
 
-public final class TemporaryExceptionPlugin implements Plugin {
+public final class TransientFaultPlugin implements Plugin {
 
-    private final ExceptionClassifier classifier;
+    private final FaultClassifier classifier;
 
-    public TemporaryExceptionPlugin() {
-        this(ExceptionClassifier.createDefault());
+    public TransientFaultPlugin() {
+        this(FaultClassifier.createDefault());
     }
 
-    public TemporaryExceptionPlugin(final ExceptionClassifier classifier) {
+    public TransientFaultPlugin(final FaultClassifier classifier) {
         this.classifier = classifier;
     }
 
