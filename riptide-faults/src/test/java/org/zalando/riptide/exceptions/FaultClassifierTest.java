@@ -1,6 +1,8 @@
 package org.zalando.riptide.exceptions;
 
 import org.junit.Test;
+import org.zalando.riptide.faults.FaultClassifier;
+import org.zalando.riptide.faults.TransientFaultException;
 
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
@@ -11,35 +13,35 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-public final class ExceptionClassifierTest {
+public final class FaultClassifierTest {
 
-    private final ExceptionClassifier classifier = ExceptionClassifier.createDefault();
+    private final FaultClassifier classifier = FaultClassifier.createDefault();
 
     @Test
     public void shouldClassifyInterruptedIOException() {
-        assertTemporary(new InterruptedIOException());
+        assertTransient(new InterruptedIOException());
     }
 
     @Test
     public void shouldClassifySocketException() {
-        assertTemporary(new SocketTimeoutException());
+        assertTransient(new SocketTimeoutException());
     }
 
     @Test
     public void shouldClassifySSLHandshakeException() {
-        assertTemporary(new SSLHandshakeException("Remote host closed connection during handshake"));
+        assertTransient(new SSLHandshakeException("Remote host closed connection during handshake"));
     }
 
     @Test
     public void shouldNotClassifyGenericSSLHandShakeException() {
-        assertNotTemporary(new SSLHandshakeException("No hands, no cookies"));
+        assertNotTransient(new SSLHandshakeException("No hands, no cookies"));
     }
 
-    private void assertTemporary(final Exception e) {
-        assertThat(classifier.classify(e), is(instanceOf(TemporaryException.class)));
+    private void assertTransient(final Exception e) {
+        assertThat(classifier.classify(e), is(instanceOf(TransientFaultException.class)));
     }
 
-    private void assertNotTemporary(final Exception e) {
+    private void assertNotTransient(final Exception e) {
         assertThat(classifier.classify(e), is(sameInstance(e)));
     }
 

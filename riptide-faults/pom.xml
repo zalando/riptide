@@ -14,9 +14,9 @@
         <maven>3.0.4</maven>
     </prerequisites>
 
-    <artifactId>riptide-exceptions</artifactId>
+    <artifactId>riptide-faults</artifactId>
 
-    <name>Riptide: Exceptions</name>
+    <name>Riptide: Faults</name>
     <description>Client side response routing</description>
 
     <dependencies>

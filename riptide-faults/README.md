@@ -1,20 +1,22 @@
-# Riptide: Exceptions
+# Riptide: Faults
 
-[![Shipwreck](../docs/shipwreck.jpg)](https://commons.wikimedia.org/wiki/File:2008-12-15_Lanzarote_Wreck.jpg)
+[![Light bulb](../docs/bulb.jpg)](https://pixabay.com/en/electric-light-bulb-wire-rain-2616487/)
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide.svg)](https://coveralls.io/r/zalando/riptide)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-exceptions/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-exceptions)
+[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-faults/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-faults)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-exceptions.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-exceptions)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-faults.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-faults)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Exceptions* helps to classify exceptions into *permant* and *temporary* errors.
+> **[Transient fault](https://en.wikipedia.org/wiki/Fault_(power_engineering)#Transient_fault)**: a fault that is no longer present if power is disconnected for a short time and then restored
+
+*Riptide: Faults* helps to classify exceptions into *persistent* and *transient* faults.
 
 ## Features
 
 - exception classification
-- easier exception handling, e.g. retries
+- easier exception handling, e.g. for retries
 - reusable
 
 ## Dependencies
@@ -29,7 +31,7 @@ Add the following dependency to your project:
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>riptide-exceptions</artifactId>
+    <artifactId>riptide-faults</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -38,11 +40,11 @@ Add the following dependency to your project:
 
 ```java
 Http.builder()
-    .plugin(new TemporaryExceptionPlugin())
+    .plugin(new TransientFaultPlugin())
     .build();
 ```
 
-By default the following exception types are classified as temporary:
+By default the following exception types are classified as transient faults:
 
 - [`InterruptedIOException`](https://docs.oracle.com/javase/8/docs/api/java/io/InterruptedIOException.html)
 - [`SocketException`](https://docs.oracle.com/javase/8/docs/api/java/net/SocketException.html)
@@ -52,20 +54,32 @@ By default the following exception types are classified as temporary:
 In order to change this you can pass in a custom `Classifier`:
 
 ```java
-Classifier classifier = Classifier.create(IOException.class::isInstance);
+FaultClassifier classifier = FaultClassifier.create(IOException.class::isInstance);
 
-new TemporaryExceptionPlugin(classifier);
+new TransientFaultPlugin(classifier);
+```
+
+But it's a more common use case to augment the defaults, i.e. add some more predicates:
+
+```java
+List<Predicate<Throwable>> predicates = new ArrayList<>();
+
+predicates.addAll(FaultClassified.defaults());
+predicates.add(IOException.class::isInstance);
+
+new TransientFaultPlugin(predicates);
 ```
 
 ## Usage
 
 ```java
-CompletableFuture<Void> future = http.post("/").dispatch(series(),
-    on(SUCCESSFUL).call(pass()));
+CompletableFuture<Void> future = http.post("/")
+        .dispatch(series(),
+            on(SUCCESSFUL).call(pass()));
     
 try {
     Completion.join(future);
-} catch (TemporaryException e) {
+} catch (TransientFaultException e) {
     // TODO retry later
 }
 ```
