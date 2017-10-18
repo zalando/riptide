@@ -41,9 +41,13 @@ private Http example;
   - [Tokens](https://github.com/zalando-stups/tokens) (plus [interceptor](https://github.com/zalando-stups/stups-spring-oauth2-support/tree/master/stups-http-components-oauth2))
   - [Jackson 2](https://github.com/FasterXML/jackson)
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
-       - optional gzipping of request body
-       - optional pinning of a trusted keystore
+  - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
+- Automatically integrates and supports:
+  - Transient fault detection via [Riptide: Faults](../riptide-faults)
+  - HTTP JSON Streaming via [Riptide: Stream](../riptide-stream)
+  - Timeouts via [Riptide: Timeout](../riptide-timeout)
+- SSL certificate pinning
 - Sensible defaults
 
 ## Dependencies
@@ -54,8 +58,10 @@ private Http example;
 - Riptide
 - Logbook
 - Tracer
-- Tokens
+- Tokens (optional)
 - Apache HTTP Client
+- Failsafe (optional)
+- ZMon Actuator (optional)
 
 ## Installation
 

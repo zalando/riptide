@@ -42,10 +42,12 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - elegant syntax
 - type-safe
 - asynchronous by default
+- [synchronous return values](riptide-capture) on demand
 - bulkhead pattern through isolated thread and connection pools
 - [Failsafe integration](riptide-failsafe)
 - [`application/problem+json` support](riptide-problem)
 - [streaming](riptide-stream)
+- [timeouts](riptide-timeout)
 
 ## Origin
 
