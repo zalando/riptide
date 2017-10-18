@@ -153,33 +153,8 @@ The following operations are applied to URI Templates (`get(String, Object...)`)
 - Query String (merged with existing)
 - Normalization
 
-The following table shows some examples how URIs are resolved against Base URLs, 
-based on the chosen resolution strategy:
-
-| Base URL                   | Resolution | URI / URI Template        | Result                        |
-|----------------------------|------------|---------------------------|-------------------------------|
-|`https://example.com`|`RFC`|`null`|`https://example.com`|
-|`https://example.com/`|`RFC`|`null`|`https://example.com/`|
-|`https://example.com`|`RFC`|(empty)|`https://example.com`|
-|`https://example.com/`|`RFC`|(empty)|`https://example.com/`|
-|`https://example.com`|`RFC`|`/`|`https://example.com/`|
-|`https://example.com/`|`RFC`|`/`|`https://example.com/`|
-|`https://example.com`|`RFC`|`https://example.org/foo`|`https://example.org/foo`|
-|`https://example.com`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com`|`RFC`|`foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com/api`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com/api`|`RFC`|`foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com/api/`|`RFC`|`/foo/bar`|`https://example.com/foo/bar`|
-|`https://example.com/api/`|`RFC`|`foo/bar`|`https://example.com/api/foo/bar`|
-|`null`|`RFC`|`https://example.com/foo`|`https://example.com/foo`|
-|`/foo`|`RFC`|`/`|Exception|
-|`null`|`RFC`|`null`|Exception|
-|`null`|`RFC`|`/foo`|Exception|
-|`null`|`RFC`|`foo`|Exception|
-|`https://example.com/api`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
-|`https://example.com/api`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
-|`https://example.com/api/`|`APPEND`|`/foo/bar`|`https://example.com/api/foo/bar`|
-|`https://example.com/api/`|`APPEND`|`foo/bar`|`https://example.com/api/foo/bar`|
+The [URI Resolution](docs/uri-resolution.md) table shows some examples how URIs are resolved against Base URLs, 
+based on the chosen resolution strategy.
 
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.
