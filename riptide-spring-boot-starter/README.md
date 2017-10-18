@@ -1,5 +1,7 @@
 # Riptide: Spring Boot Starter
 
+[![Leafs](../docs/leafs.jpg)](https://pixabay.com/en/leaf-green-foliage-green-leaves-1001679/)
+
 [![Build Status](https://img.shields.io/travis/zalando/riptide/master.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-spring-boot-starter/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-spring-boot-starter)
