@@ -26,16 +26,14 @@ riptide:
         path: github.keystore
     foo:
       base-url: http://localhost
-      failsafe:
-        retry:
-          fixed-delay: 1 second
-          max-retries: 3
-          max-duration: 5 seconds
-          jitter: 100 milliseconds
+      retry:
+        fixed-delay: 1 second
+        max-retries: 3
+        max-duration: 5 seconds
+        jitter: 100 milliseconds
     bar:
       base-url: http://localhost
-      failsafe:
-        circuit-breaker:
-          failure-threshold: 5
-          delay: 1 minute
-          success-threshold: 3 out of 5
+      circuit-breaker:
+        failure-threshold: 5
+        delay: 1 minute
+        success-threshold: 3 out of 5

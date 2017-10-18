@@ -3,9 +3,8 @@ package org.zalando.riptide.spring;
 import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry.Backoff;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
+import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -15,8 +14,8 @@ import java.util.function.BinaryOperator;
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.lang.System.getenv;
-import static org.zalando.riptide.spring.RiptideSettings.Failsafe.CircuitBreaker;
-import static org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry;
+import static org.zalando.riptide.spring.RiptideSettings.CircuitBreaker;
+import static org.zalando.riptide.spring.RiptideSettings.Retry;
 
 final class Defaulting {
 
@@ -62,17 +61,11 @@ final class Defaulting {
                 base.getOauth(),
                 either(base.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace()),
                 either(base.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
-                merge(base.getFailsafe(), defaults.getFailsafe(), Defaulting::merge),
-                base.isCompressRequest(),
-                base.getKeystore(),
-                either(base.getTimeout(), defaults.getTimeout())
-        );
-    }
-
-    private static Failsafe merge(final Failsafe base, final Failsafe defaults) {
-        return new Failsafe(
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
-                merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge)
+                merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
+                either(base.getTimeout(), defaults.getTimeout()),
+                base.isCompressRequest(),
+                base.getKeystore()
         );
     }
 

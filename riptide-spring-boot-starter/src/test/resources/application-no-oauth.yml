@@ -1,34 +1,31 @@
 riptide:
   defaults:
-    failsafe:
-      retry:
-        max-retries: 3
-        max-duration: 5 seconds
-      circuit-breaker:
-        failure-threshold: 5
-        delay: 1 minute
-        success-threshold: 5
+    retry:
+      max-retries: 3
+      max-duration: 5 seconds
+    circuit-breaker:
+      failure-threshold: 5
+      delay: 1 minute
+      success-threshold: 5
     timeout: 1 second
   clients:
     example:
       base-url: https://example.com
-      failsafe:
-        retry:
-          fixed-delay: 1 second
-          max-retries: 3
-          max-duration: 10 seconds
-          jitter-factor: 0.5
-        circuit-breaker:
-          failure-threshold: 3 out of 5
-          delay: 5 minute
-          success-threshold: 2 out of 5
+      retry:
+        fixed-delay: 1 second
+        max-retries: 3
+        max-duration: 10 seconds
+        jitter-factor: 0.5
+      circuit-breaker:
+        failure-threshold: 3 out of 5
+        delay: 5 minute
+        success-threshold: 2 out of 5
     ecb:
       base-url: http://www.ecb.europa.eu
-      failsafe:
-        retry:
-          backoff:
-            delay: 500 milliseconds
-            max-delay: 3 seconds
-          max-retries: 4
-          max-duration: 10 seconds
-          jitter: 200 milliseconds
+      retry:
+        backoff:
+          delay: 500 milliseconds
+          max-delay: 3 seconds
+        max-retries: 4
+        max-duration: 10 seconds
+        jitter: 200 milliseconds

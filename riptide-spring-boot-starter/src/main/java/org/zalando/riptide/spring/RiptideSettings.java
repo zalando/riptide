@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.System.getenv;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -35,7 +34,8 @@ public final class RiptideSettings {
         private int maxConnectionsTotal = 20;
         private boolean keepOriginalStackTrace = true;
         private boolean detectTransientFaults = true;
-        private Failsafe failsafe;
+        private Retry retry;
+        private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;
     }
 
@@ -65,10 +65,11 @@ public final class RiptideSettings {
         private OAuth oauth;
         private Boolean keepOriginalStackTrace;
         private Boolean detectTransientFaults;
-        private Failsafe failsafe;
+        private Retry retry;
+        private CircuitBreaker circuitBreaker;
+        private TimeSpan timeout;
         private boolean compressRequest = false;
         private Keystore keystore;
-        private TimeSpan timeout;
 
         @Getter
         @Setter
@@ -89,42 +90,32 @@ public final class RiptideSettings {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static final class Failsafe {
-        private Retry retry;
-        private CircuitBreaker circuitBreaker;
+    public static final class Retry {
+        private TimeSpan fixedDelay;
+        private Backoff backoff;
+        private Integer maxRetries;
+        private TimeSpan maxDuration;
+        private Double jitterFactor;
+        private TimeSpan jitter;
 
         @Getter
         @Setter
         @NoArgsConstructor
         @AllArgsConstructor
-        public static final class Retry {
-            private TimeSpan fixedDelay;
-            private Backoff backoff;
-            private Integer maxRetries;
-            private TimeSpan maxDuration;
-            private Double jitterFactor;
-            private TimeSpan jitter;
-
-            @Getter
-            @Setter
-            @NoArgsConstructor
-            @AllArgsConstructor
-            public static final class Backoff {
-                private TimeSpan delay;
-                private TimeSpan maxDelay;
-                private Double delayFactor;
-            }
-        }
-
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static final class CircuitBreaker {
-            private Ratio failureThreshold;
+        public static final class Backoff {
             private TimeSpan delay;
-            private Ratio successThreshold;
+            private TimeSpan maxDelay;
+            private Double delayFactor;
         }
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class CircuitBreaker {
+        private Ratio failureThreshold;
+        private TimeSpan delay;
+        private Ratio successThreshold;
+    }
 }
