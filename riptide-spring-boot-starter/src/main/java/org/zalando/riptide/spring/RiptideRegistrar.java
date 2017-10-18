@@ -8,6 +8,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpClient;
+import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -166,11 +167,6 @@ final class RiptideRegistrar {
     private List<Object> registerPlugins(final String id, final Client client) {
         final List<Object> plugins = list();
 
-        if (client.getKeepOriginalStackTrace()) {
-            log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
-        }
-
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
             plugins.add(genericBeanDefinition(TransientFaultPlugin.class)
@@ -197,6 +193,9 @@ final class RiptideRegistrar {
                 plugin.addConstructorArgReference(registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
                     final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
                     @Nullable final Failsafe.CircuitBreaker breaker = client.getFailsafe().getCircuitBreaker();
+                    if (client.getTimeout() != null) {
+                        circuitBreaker.addPropertyValue("timeout", client.getTimeout());
+                    }
                     if (breaker != null) {
                         circuitBreaker.addPropertyValue("configuration", breaker);
                     }
@@ -205,6 +204,18 @@ final class RiptideRegistrar {
 
                 return plugin;
             })));
+        }
+
+        if (client.getTimeout() != null) {
+            plugins.add(genericBeanDefinition(TimeoutPlugin.class)
+                .addConstructorArgValue(client.getTimeout().getAmount())
+                .addConstructorArgValue(client.getTimeout().getUnit())
+                .getBeanDefinition());
+        }
+
+        if (client.getKeepOriginalStackTrace()) {
+            log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
+            plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
         }
 
         return plugins;

@@ -8,6 +8,7 @@ riptide:
         failure-threshold: 5
         delay: 1 minute
         success-threshold: 5
+    timeout: 1 second
   clients:
     example:
       base-url: https://example.com

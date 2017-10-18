@@ -64,7 +64,8 @@ final class Defaulting {
                 either(base.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
                 merge(base.getFailsafe(), defaults.getFailsafe(), Defaulting::merge),
                 base.isCompressRequest(),
-                base.getKeystore()
+                base.getKeystore(),
+                either(base.getTimeout(), defaults.getTimeout())
         );
     }
 

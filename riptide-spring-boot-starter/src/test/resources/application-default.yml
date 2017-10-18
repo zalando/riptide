@@ -19,6 +19,7 @@ riptide:
       keystore:
         path: github.keystore
         password: password
+      timeout: 1 seconds
     github-invalid:
       base-url: https://github.com
       keystore:

@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -75,10 +76,6 @@ public final class PluginTest {
     private MockRestServiceServer server;
 
     @Autowired
-    @Qualifier("example")
-    private Http example;
-
-    @Autowired
     @Qualifier("ecb")
     private Http ecb;
 
@@ -86,10 +83,13 @@ public final class PluginTest {
     @Qualifier("foo")
     private Http foo;
 
-    @Test
-    public void shouldUseOriginalStackTracePlugin() throws Exception {
-        assertThat(getPlugins(example), contains(instanceOf(OriginalStackTracePlugin.class)));
-    }
+    @Autowired
+    @Qualifier("github")
+    private Http github;
+
+    @Autowired
+    @Qualifier("example")
+    private Http example;
 
     @Test
     public void shouldUseTransientFaultPlugin() throws Exception {
@@ -97,8 +97,17 @@ public final class PluginTest {
     }
 
     @Test
-    public void shouldUseFailsafeException() throws Exception {
+    public void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(instanceOf(FailsafePlugin.class)));
+    }
+
+    public void shouldUseTimeoutPlugin() throws Exception {
+        assertThat(getPlugins(github), contains(instanceOf(TimeoutPlugin.class)));
+    }
+
+    @Test
+    public void shouldUseOriginalStackTracePlugin() throws Exception {
+        assertThat(getPlugins(example), contains(instanceOf(OriginalStackTracePlugin.class)));
     }
 
     private List<Plugin> getPlugins(final Http http) throws Exception {
