@@ -126,70 +126,70 @@ Clients are identified by a *Client ID*, for instance `example` in the sample ab
 
 For a complete overview of available properties, they type and default value please refer to the following table:
 
-| Configuration                           | Data type      | Required | Default                                          |
-|-----------------------------------------|----------------|----------|--------------------------------------------------|
-| `riptide`                               |                | no       |                                                  |
-| `├── defaults`                          |                | no       |                                                  |
-| `│   ├── connection-timeout`            | `TimeSpan`     | no       | `5 seconds`                                      |
-| `│   ├── socket-timeout`                | `TimeSpan`     | no       | `5 seconds`                                      |
-| `│   ├── connection-time-to-live`       | `TimeSpan`     | no       | `30 seconds`                                     |
-| `│   ├── max-connections-per-route`     | `int`          | no       | `2`                                              |
-| `│   ├── max-connections-total`         | `int`          | no       | maximum of `20` and *per route*                  |
-| `│   ├── keep-original-stack-trace`     | `boolean`      | no       | `true`                                           |
-| `│   ├── detect-transient-faults`       | `boolean`      | no       | `true`                                           |
-| `│   ├── retry`                         |                | no       |                                                  |
-| `│   │   ├── fixed-delay`               | `TimeSpan`     | no       | none, mutually exclusive to `backoff`            |
-| `│   │   ├── backoff`                   |                | no       | mutually exclusive to `fixed-delay`              |
-| `│   │   │   ├── delay`                 | `TimeSpan`     | yes      | none, requires `backoff.max-delay`               |
-| `│   │   │   ├── max-delay`             | `TimeSpan`     | yes      | none, requires `backoff.delay`                   |
-| `│   │   │   └── delay-factor`          | `double`       | no       | `2.0`                                            |
-| `│   │   ├── max-retries`               | `int`          | no       | none                                             |
-| `│   │   ├── max-duration`              | `TimeSpan`     | no       | none                                             |
-| `│   │   ├── jitter-factor`             | `double`       | no       | none, mutually exclusive to `jitter`             |
-| `│   │   └── jitter`                    | `TimeSpan`     | no       | none, mutually exclusive to `jitter-factor`      |
-| `│   ├── circuit-breaker`               |                | no       |                                                  |
-| `│   │   ├── failure-threshold`         | `Ratio`        | no       | none                                             |
-| `│   │   ├── delay`                     | `TimeSpan`     | no       | none                                             |
-| `│   │   └── success-threshold`         | `Ratio`        | no       | none                                             |
-| `│   └── timeout`                       | `TimeSpan`     | no       | none                                             |
-| `├── oauth`                             |                | no       |                                                  |
-| `│   ├── access-token-url`              | `URI`          | no       | env var `ACCESS_TOKEN_URL`                       |
-| `│   ├── credentials-directory`         | `Path`         | no       | env var `CREDENTIALS_DIR`                        |
-| `│   ├── scheduling-period`             | `TimeSpan`     | no       | `5 seconds`                                      |
-| `│   ├── connetion-timeout`             | `TimeSpan`     | no       | `1 second`                                       |
-| `│   ├── socket-timeout`                | `TimeSpan`     | no       | `2 seconds`                                      |
-| `│   └── connection-time-to-live`       | `TimeSpan`     | no       | see `riptide.defaults.connection-time-to-live`   |
-| `└── clients`                           |                | no       |                                                  |
-| `    └── <id>`                          |                | no       |                                                  |
-| `        ├── base-url`                  | `URI`          | no       | none                                             |
-| `        ├── connection-timeout`        | `TimeSpan`     | no       | see `riptide.defaults.connection-timeout`        |
-| `        ├── socket-timeout`            | `TimeSpan`     | no       | see `riptide.defaults.socket-timeout`            |
-| `        ├── connection-time-to-live`   | `TimeSpan`     | no       | see `riptide.defaults.connection-time-to-live`   |
-| `        ├── max-connections-per-route` | `int`          | no       | see `riptide.defaults.max-connections-per-route` |
-| `        ├── max-connections-total`     | `int`          | no       | see `riptide.defaults.max-connections-total    ` |
-| `        ├── oauth`                     |                | no       | none, disables OAuth2 if omitted                 |
-| `        ├── oauth.scopes`              | `List<String>` | no       | none                                             |
-| `        ├── keep-original-stack-trace` | `boolean`      | no       | see `riptide.defaults.keep-original-stack-trace` |
-| `        ├── detect-transient-faults`   | `boolean`      | no       | see `riptide.defaults.detect-transient-faults`   |
-| `        ├── retry`                     |                | no       |                                                  |
-| `        │   ├── fixed-delay`           | `TimeSpan`     | no       | none, mutually exclusive to `backoff`            |
-| `        │   ├── backoff`               |                | no       | mutually exclusive to `fixed-delay`              |
-| `        │   │   ├── delay`             | `TimeSpan`     | yes      | none, requires `backoff.max-delay`               |
-| `        │   │   ├── max-delay`         | `TimeSpan`     | yes      | none, requires `backoff.delay`                   |
-| `        │   │   └── delay-factor`      | `double`       | no       | `2.0`                                            |
-| `        │   ├── max-retries`           | `int`          | no       | none                                             |
-| `        │   ├── max-duration`          | `TimeSpan`     | no       | none                                             |
-| `        │   ├── jitter-factor`         | `double`       | no       | none, mutually exclusive to `jitter`             |
-| `        │   └── jitter`                | `TimeSpan`     | no       | none, mutually exclusive to `jitter-factor`      |
-| `        ├── circuit-breaker`           |                | no       |                                                  |
-| `        │   ├── failure-threshold`     | `Ratio`        | no       | none                                             |
-| `        │   ├── delay`                 | `TimeSpan`     | no       | none                                             |
-| `        │   └── success-threshold`     | `Ratio`        | no       | none                                             |
-| `        ├── timeout`                   | `TimeSpan`     | no       | none                                             |
-| `        ├── compress-request`          | `boolean`      | no       | `false`                                          |
-| `        └── keystore`                  |                | no       |                                                  |
-| `            ├── path`                  | `String`       | no       | none                                             |
-| `            └── password`              | `String`       | no       | none                                             |
+| Configuration                           | Data type      | Default                                          |
+|-----------------------------------------|----------------|--------------------------------------------------|
+| `riptide`                               |                |                                                  |
+| `├── defaults`                          |                |                                                  |
+| `│   ├── connection-timeout`            | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
+| `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
+| `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
+| `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `true`                                           |
+| `│   ├── retry`                         |                |                                                  |
+| `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `│   │   ├── backoff`                   |                | mutually exclusive to `fixed-delay`              |
+| `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
+| `│   │   ├── max-retries`               | `int`          | none                                             |
+| `│   │   ├── max-duration`              | `TimeSpan`     | none                                             |
+| `│   │   ├── jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
+| `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `│   ├── circuit-breaker`               |                |                                                  |
+| `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── delay`                     | `TimeSpan`     | none                                             |
+| `│   │   └── success-threshold`         | `Ratio`        | none                                             |
+| `│   └── timeout`                       | `TimeSpan`     | none                                             |
+| `├── oauth`                             |                |                                                  |
+| `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
+| `│   ├── credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
+| `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
+| `│   └── connection-time-to-live`       | `TimeSpan`     | see `riptide.defaults.connection-time-to-live`   |
+| `└── clients`                           |                |                                                  |
+| `    └── <id>`                          |                |                                                  |
+| `        ├── base-url`                  | `URI`          | none                                             |
+| `        ├── connection-timeout`        | `TimeSpan`     | see `riptide.defaults.connection-timeout`        |
+| `        ├── socket-timeout`            | `TimeSpan`     | see `riptide.defaults.socket-timeout`            |
+| `        ├── connection-time-to-live`   | `TimeSpan`     | see `riptide.defaults.connection-time-to-live`   |
+| `        ├── max-connections-per-route` | `int`          | see `riptide.defaults.max-connections-per-route` |
+| `        ├── max-connections-total`     | `int`          | see `riptide.defaults.max-connections-total    ` |
+| `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
+| `        ├── oauth.scopes`              | `List<String>` | none                                             |
+| `        ├── keep-original-stack-trace` | `boolean`      | see `riptide.defaults.keep-original-stack-trace` |
+| `        ├── detect-transient-faults`   | `boolean`      | see `riptide.defaults.detect-transient-faults`   |
+| `        ├── retry`                     |                |                                                  |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
+| `        │   │   ├── delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `        │   │   └── delay-factor`      | `double`       | `2.0`                                            |
+| `        │   ├── max-retries`           | `int`          | none                                             |
+| `        │   ├── max-duration`          | `TimeSpan`     | none                                             |
+| `        │   ├── jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
+| `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `        ├── circuit-breaker`           |                |                                                  |
+| `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
+| `        │   ├── delay`                 | `TimeSpan`     | none                                             |
+| `        │   └── success-threshold`     | `Ratio`        | none                                             |
+| `        ├── timeout`                   | `TimeSpan`     | none                                             |
+| `        ├── compress-request`          | `boolean`      | `false`                                          |
+| `        └── keystore`                  |                |                                                  |
+| `            ├── path`                  | `String`       | none                                             |
+| `            └── password`              | `String`       | none                                             |
 
 ## Usage
 
