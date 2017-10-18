@@ -67,6 +67,7 @@
         <module>riptide-problem</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
+        <module>riptide-timeout</module>
     </modules>
 
     <properties>
@@ -96,12 +97,12 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-faults</artifactId>
+                <artifactId>riptide-failsafe</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-failsafe</artifactId>
+                <artifactId>riptide-faults</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -127,6 +128,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-stream</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-timeout</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
