@@ -1,6 +1,6 @@
 # Riptide: HTTP Client
 
-[![Feather](../docs/apache.png)](https://commons.wikimedia.org/wiki/File:Apache_HTTP_server_logo_(2016).svg)
+[![Feather](../docs/feather.jpg)](https://pixabay.com/en/plumage-feather-bird-pink-violet-176723/)
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide.svg)](https://coveralls.io/r/zalando/riptide)
@@ -75,7 +75,3 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 
 To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change. For
 more details, check the [contribution guidelines](../CONTRIBUTING.md).
-
-## Attributions
-
-The Apache HTTP Server Logo is licensed under the Apache License, Version 2.0 (the "License").
