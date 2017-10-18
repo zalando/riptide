@@ -24,7 +24,7 @@ Http.builder()
 
 ## Features
 
--  seamlessly integrates Riptide with Failsafe
+- seamlessly integrates Riptide with Failsafe
 
 ## Dependencies
 
@@ -81,7 +81,6 @@ Http.builder()
             .withCircuitBreaker(breaker))
     .build();
 ```
-
 
 ## Usage
 
