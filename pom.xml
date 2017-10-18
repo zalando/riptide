@@ -63,7 +63,6 @@
         <module>riptide-failsafe</module>
         <module>riptide-faults</module>
         <module>riptide-httpclient</module>
-        <module>riptide-hystrix</module>
         <module>riptide-problem</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
@@ -108,11 +107,6 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-httpclient</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-hystrix</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
