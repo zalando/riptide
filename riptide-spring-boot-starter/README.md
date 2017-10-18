@@ -129,67 +129,67 @@ For a complete overview of available properties, they type and default value ple
 | Configuration                           | Data type      | Default                                          |
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
-| `├──` `defaults`                          |                |                                                  |
-| `│   ├──` `connection-timeout`            | `TimeSpan`     | `5 seconds`                                      |
-| `│   ├──` `socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
-| `│   ├──` `connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
-| `│   ├──` `max-connections-per-route`     | `int`          | `2`                                              |
-| `│   ├──` `max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
-| `│   ├──` `keep-original-stack-trace`     | `boolean`      | `true`                                           |
-| `│   ├──` `detect-transient-faults`       | `boolean`      | `true`                                           |
-| `│   ├──` `retry`                         |                |                                                  |
-| `│   │   ├──` `fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `│   │   ├──` `backoff`                   |                | mutually exclusive to `fixed-delay`              |
-| `│   │   │   ├──` `delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
-| `│   │   │   ├──` `max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
-| `│   │   │   └──` `delay-factor`          | `double`       | `2.0`                                            |
-| `│   │   ├──` `max-retries`               | `int`          | none                                             |
-| `│   │   ├──` `max-duration`              | `TimeSpan`     | none                                             |
-| `│   │   ├──` `jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
-| `│   │   └──` `jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
-| `│   ├──` `circuit-breaker`               |                |                                                  |
-| `│   │   ├──` `failure-threshold`         | `Ratio`        | none                                             |
-| `│   │   ├──` `delay`                     | `TimeSpan`     | none                                             |
-| `│   │   └──` `success-threshold`         | `Ratio`        | none                                             |
-| `│   └──` `timeout`                       | `TimeSpan`     | none                                             |
-| `├──` `oauth`                             |                |                                                  |
-| `│   ├──` `access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
-| `│   ├──` `credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
-| `│   ├──` `scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
-| `│   ├──` `connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
-| `│   ├──` `socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
-| `│   └──` `connection-time-to-live`       | `TimeSpan`     | see `riptide.defaults.connection-time-to-live`   |
-| `└──` `clients`                           |                |                                                  |
-| `    └──` `<id>`                          |                |                                                  |
-| `        ├──` `base-url`                  | `URI`          | none                                             |
-| `        ├──` `connection-timeout`        | `TimeSpan`     | see `riptide.defaults.connection-timeout`        |
-| `        ├──` `socket-timeout`            | `TimeSpan`     | see `riptide.defaults.socket-timeout`            |
-| `        ├──` `connection-time-to-live`   | `TimeSpan`     | see `riptide.defaults.connection-time-to-live`   |
-| `        ├──` `max-connections-per-route` | `int`          | see `riptide.defaults.max-connections-per-route` |
-| `        ├──` `max-connections-total`     | `int`          | see `riptide.defaults.max-connections-total    ` |
-| `        ├──` `oauth`                     |                | none, disables OAuth2 if omitted                 |
-| `        ├──` `oauth.scopes`              | `List<String>` | none                                             |
-| `        ├──` `keep-original-stack-trace` | `boolean`      | see `riptide.defaults.keep-original-stack-trace` |
-| `        ├──` `detect-transient-faults`   | `boolean`      | see `riptide.defaults.detect-transient-faults`   |
-| `        ├──` `retry`                     |                |                                                  |
-| `        │   ├──` `fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `        │   ├──` `backoff`               |                | mutually exclusive to `fixed-delay`              |
-| `        │   │   ├──` `delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
-| `        │   │   ├──` `max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
-| `        │   │   └──` `delay-factor`      | `double`       | `2.0`                                            |
-| `        │   ├──` `max-retries`           | `int`          | none                                             |
-| `        │   ├──` `max-duration`          | `TimeSpan`     | none                                             |
-| `        │   ├──` `jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
-| `        │   └──` `jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
-| `        ├──` `circuit-breaker`           |                |                                                  |
-| `        │   ├──` `failure-threshold`     | `Ratio`        | none                                             |
-| `        │   ├──` `delay`                 | `TimeSpan`     | none                                             |
-| `        │   └──` `success-threshold`     | `Ratio`        | none                                             |
-| `        ├──` `timeout`                   | `TimeSpan`     | none                                             |
-| `        ├──` `compress-request`          | `boolean`      | `false`                                          |
-| `        └──` `keystore`                  |                |                                                  |
-| `            ├──` `path`                  | `String`       | none                                             |
-| `            └──` `password`              | `String`       | none                                             |
+| `├── defaults`                          |                |                                                  |
+| `│   ├── connection-timeout`            | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
+| `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
+| `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
+| `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `true`                                           |
+| `│   ├── retry`                         |                |                                                  |
+| `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `│   │   ├── backoff`                   |                | mutually exclusive to `fixed-delay`              |
+| `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
+| `│   │   ├── max-retries`               | `int`          | none                                             |
+| `│   │   ├── max-duration`              | `TimeSpan`     | none                                             |
+| `│   │   ├── jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
+| `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `│   ├── circuit-breaker`               |                |                                                  |
+| `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── delay`                     | `TimeSpan`     | none                                             |
+| `│   │   └── success-threshold`         | `Ratio`        | none                                             |
+| `│   └── timeout`                       | `TimeSpan`     | none                                             |
+| `├── oauth`                             |                |                                                  |
+| `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
+| `│   ├── credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
+| `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
+| `│   └── connection-time-to-live`       | `TimeSpan`     |                                                  |
+| `└── clients`                           |                |                                                  |
+| `    └── <id>`                          |                |                                                  |
+| `        ├── base-url`                  | `URI`          | none                                             |
+| `        ├── connection-timeout`        | `TimeSpan`     |                                                  |
+| `        ├── socket-timeout`            | `TimeSpan`     |                                                  |
+| `        ├── connection-time-to-live`   | `TimeSpan`     |                                                  |
+| `        ├── max-connections-per-route` | `int`          |                                                  |
+| `        ├── max-connections-total`     | `int`          |                                                  |
+| `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
+| `        ├── oauth.scopes`              | `List<String>` | none                                             |
+| `        ├── keep-original-stack-trace` | `boolean`      |                                                  |
+| `        ├── detect-transient-faults`   | `boolean`      |                                                  |
+| `        ├── retry`                     |                |                                                  |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
+| `        │   │   ├── delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `        │   │   └── delay-factor`      | `double`       | `2.0`                                            |
+| `        │   ├── max-retries`           | `int`          | none                                             |
+| `        │   ├── max-duration`          | `TimeSpan`     | none                                             |
+| `        │   ├── jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
+| `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `        ├── circuit-breaker`           |                |                                                  |
+| `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
+| `        │   ├── delay`                 | `TimeSpan`     | none                                             |
+| `        │   └── success-threshold`     | `Ratio`        | none                                             |
+| `        ├── timeout`                   | `TimeSpan`     | none                                             |
+| `        ├── compress-request`          | `boolean`      | `false`                                          |
+| `        └── keystore`                  |                |                                                  |
+| `            ├── path`                  | `String`       | none                                             |
+| `            └── password`              | `String`       | none                                             |
 
 ## Usage
 
