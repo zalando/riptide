@@ -8,11 +8,13 @@ import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry.Backoff;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
+import static java.lang.System.getenv;
 import static org.zalando.riptide.spring.RiptideSettings.Failsafe.CircuitBreaker;
 import static org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry;
 
@@ -34,7 +36,8 @@ final class Defaulting {
 
     private static GlobalOAuth merge(final GlobalOAuth base, final Defaults defaults) {
         return new GlobalOAuth(
-                base.getAccessTokenUrl(),
+                either(base.getAccessTokenUrl(),
+                        Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null)),
                 base.getCredentialsDirectory(),
                 base.getSchedulingPeriod(),
                 either(base.getConnectionTimeout(), defaults.getConnectionTimeout()),
