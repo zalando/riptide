@@ -1,6 +1,6 @@
 # Riptide: Problem
 
-[![Rescue Ring](../docs/rescue-ring.jpg)](https://pixabay.com/en/lifesaver-life-buoy-safety-rescue-933560/)
+[![Lifebelt](../docs/lifebelt.jpg)](https://pixabay.com/en/lifesaver-life-buoy-safety-rescue-933560/)
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide.svg)](https://coveralls.io/r/zalando/riptide)
