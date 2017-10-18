@@ -36,6 +36,7 @@ public final class RiptideSettings {
         private boolean keepOriginalStackTrace = true;
         private boolean detectTransientFaults = true;
         private Failsafe failsafe;
+        private TimeSpan timeout;
     }
 
     @Getter
@@ -43,7 +44,7 @@ public final class RiptideSettings {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class GlobalOAuth {
-        private URI accessTokenUrl = Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null);
+        private URI accessTokenUrl;
         private Path credentialsDirectory;
         private TimeSpan schedulingPeriod = TimeSpan.of(5, SECONDS);
         private TimeSpan connectionTimeout = TimeSpan.of(1, SECONDS);
@@ -67,6 +68,7 @@ public final class RiptideSettings {
         private Failsafe failsafe;
         private boolean compressRequest = false;
         private Keystore keystore;
+        private TimeSpan timeout;
 
         @Getter
         @Setter

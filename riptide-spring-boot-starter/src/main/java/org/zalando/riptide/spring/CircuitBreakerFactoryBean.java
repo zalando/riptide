@@ -10,6 +10,10 @@ final class CircuitBreakerFactoryBean implements FactoryBean<CircuitBreaker> {
 
     private final CircuitBreaker circuitBreaker = new CircuitBreaker();
 
+    public void setTimeout(final TimeSpan timeout) {
+        timeout.applyTo(circuitBreaker::withTimeout);
+    }
+
     public void setConfiguration(final Failsafe.CircuitBreaker config) {
         Optional.ofNullable(config.getFailureThreshold())
                 .ifPresent(threshold -> threshold.applyTo(circuitBreaker::withFailureThreshold));
