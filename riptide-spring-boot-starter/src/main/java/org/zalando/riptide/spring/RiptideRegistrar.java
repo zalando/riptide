@@ -30,7 +30,6 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe;
 import org.zalando.riptide.spring.zmon.ZmonRequestInterceptor;
 import org.zalando.riptide.spring.zmon.ZmonResponseInterceptor;
 import org.zalando.riptide.stream.Streams;
@@ -174,7 +173,7 @@ final class RiptideRegistrar {
                 .getBeanDefinition());
         }
 
-        if (client.getFailsafe() != null) {
+        if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
@@ -182,7 +181,7 @@ final class RiptideRegistrar {
 
                 plugin.addConstructorArgReference(registry.registerIfAbsent(id, RetryPolicy.class, () -> {
                     final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
-                    @Nullable final Failsafe.Retry retry = client.getFailsafe().getRetry();
+                    @Nullable final RiptideSettings.Retry retry = client.getRetry();
                     if (retry != null) {
                         retryPolicy.addPropertyValue("configuration", retry);
                     }
@@ -192,7 +191,7 @@ final class RiptideRegistrar {
 
                 plugin.addConstructorArgReference(registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
                     final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
-                    @Nullable final Failsafe.CircuitBreaker breaker = client.getFailsafe().getCircuitBreaker();
+                    @Nullable final RiptideSettings.CircuitBreaker breaker = client.getCircuitBreaker();
                     if (client.getTimeout() != null) {
                         circuitBreaker.addPropertyValue("timeout", client.getTimeout());
                     }

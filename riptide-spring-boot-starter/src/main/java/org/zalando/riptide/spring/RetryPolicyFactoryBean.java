@@ -3,7 +3,7 @@ package org.zalando.riptide.spring;
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.beans.factory.FactoryBean;
 import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe.Retry;
+import org.zalando.riptide.spring.RiptideSettings.Retry;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

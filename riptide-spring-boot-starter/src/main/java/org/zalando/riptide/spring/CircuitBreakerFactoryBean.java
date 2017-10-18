@@ -2,7 +2,6 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.CircuitBreaker;
 import org.springframework.beans.factory.FactoryBean;
-import org.zalando.riptide.spring.RiptideSettings.Failsafe;
 
 import java.util.Optional;
 
@@ -14,7 +13,7 @@ final class CircuitBreakerFactoryBean implements FactoryBean<CircuitBreaker> {
         timeout.applyTo(circuitBreaker::withTimeout);
     }
 
-    public void setConfiguration(final Failsafe.CircuitBreaker config) {
+    public void setConfiguration(final RiptideSettings.CircuitBreaker config) {
         Optional.ofNullable(config.getFailureThreshold())
                 .ifPresent(threshold -> threshold.applyTo(circuitBreaker::withFailureThreshold));
 

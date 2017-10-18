@@ -89,18 +89,10 @@ It comes with [Tokens](https://github.com/zalando-stups/tokens) equipped.
 
 ## Configuration
 
-You can now define new REST clients and override default configuration in your `application.yml`:
+You can now define new clients and override default configuration in your `application.yml`:
 
 ```yaml
 riptide:
-  defaults:
-    connection-timeout: 1 seconds
-    socket-timeout: 2 seconds
-    connection-time-to-live: 30 seconds
-    max-connections-per-route: 16
-    max-connections-total: 16
-    keep-original-stack-trace: true
-    detect-transient-faults: true
   oauth:
     access-token-url: https://auth.example.com
     credentials-directory: /secrets
@@ -109,53 +101,95 @@ riptide:
     socket-timeout: 1500 milliseconds
   clients:
     example:
-      base-url: https://example.com
-      connection-timeout: 2 seconds
-      socket-timeout: 3 seconds
+      base-url: http://example.com
+      connection-timeout: 150 milliseconds
+      socket-timeout: 100 milliseconds
+      connection-time-to-live: 30 seconds
+      max-connections-per-route: 16
+      keep-original-stack-trace: true
+      detect-transient-faults: true
+      retry:
+        fixed-delay: 50 milliseconds
+        max-retries: 5
+        max-duration: 2 second
+        jitter: 25 milliseconds
+      circuit-breaker:
+        failure-threshold: 3 out of 5
+        delay: 30 seconds
+        success-threshold: 5 out of 5
+      timeout: 500 milliseconds
       oauth.scopes:
-        - uid
         - example.read
-      detect-transient-faults: false
-      compress-request: true
-    trusted:
-      base-url: https://my.trusted.com
-      keystore:
-        path: trusted.keystore
-        password: passphrase
 ```
 
 Clients are identified by a *Client ID*, for instance `example` in the sample above. You can have as many clients as you want.
 
 For a complete overview of available properties, they type and default value please refer to the following table:
 
-| Configuration                                    | Type           | Required | Default                                          |
-|--------------------------------------------------|----------------|----------|--------------------------------------------------|
-| `riptide.defaults.connection-timeout`            | `TimeSpan`     | no       | `5 seconds`                                      |
-| `riptide.defaults.socket-timeout`                | `TimeSpan`     | no       | `5 seconds`                                      |
-| `riptide.defaults.connection-time-to-live`       | `TimeSpan`     | no       | `30 seconds`                                     |
-| `riptide.defaults.max-connections-per-route`     | `int`          | no       | `2`                                              |
-| `riptide.defaults.max-connections-total`         | `int`          | no       | maximum of `20` and *per route*                  |
-| `riptide.defaults.keep-original-stack-trace`     | `boolean`      | no       | `true`                                           |
-| `riptide.defaults.detect-transient-faults`       | `boolean`      | no       | `true`                                           |
-| `riptide.oauth.access-token-url`                 | `URI`          | no       | env var `ACCESS_TOKEN_URL`                       |
-| `riptide.oauth.credentials-directory`            | `Path`         | no       | env var `CREDENTIALS_DIR`                        |
-| `riptide.oauth.scheduling-period`                | `TimeSpan`     | no       | `5 seconds`                                      |
-| `riptide.oauth.connetion-timeout`                | `TimeSpan`     | no       | `1 second`                                       |
-| `riptide.oauth.socket-timeout`                   | `TimeSpan`     | no       | `2 seconds`                                      |
-| `riptide.oauth.connection-time-to-live`          | `TimeSpan`     | no       | see `riptide.defaults.connection-time-to-live`   |
-| `riptide.clients.<id>.base-url`                  | `URI`          | no       | none                                             |
-| `riptide.clients.<id>.connection-timeout`        | `TimeSpan`     | no       | see `riptide.defaults.connection-timeout`        |
-| `riptide.clients.<id>.socket-timeout`            | `TimeSpan`     | no       | see `riptide.defaults.socket-timeout`            |
-| `riptide.clients.<id>.connection-time-to-live`   | `TimeSpan`     | no       | see `riptide.defaults.connection-time-to-live`   |
-| `riptide.clients.<id>.max-connections-per-route` | `int`          | no       | see `riptide.defaults.max-connections-per-route` |
-| `riptide.clients.<id>.max-connections-total`     | `int`          | no       | see `riptide.defaults.max-connections-total    ` |
-| `riptide.clients.<id>.oauth`                     |                | no       | none, disables OAuth2 if omitted                 |
-| `riptide.clients.<id>.oauth.scopes`              | `List<String>` | no       | none                                             |
-| `riptide.clients.<id>.keep-original-stack-trace` | `boolean`      | no       | see `riptide.defaults.keep-original-stack-trace` |
-| `riptide.clients.<id>.detect-transient-faults`   | `boolean`      | no       | see `riptide.defaults.detect-transient-faults`   |
-| `riptide.clients.<id>.compress-request`          | `boolean`      | no       | `false`                                          |
-| `riptide.clients.<id>.keystore.path`             | `String`       | no       | none                                             |
-| `riptide.clients.<id>.keystore.password`         | `String`       | no       | none                                             |
+| Configuration                           | Data type      | Default                                          |
+|-----------------------------------------|----------------|--------------------------------------------------|
+| `riptide`                               |                |                                                  |
+| `├── defaults`                          |                |                                                  |
+| `│   ├── connection-timeout`            | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
+| `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
+| `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
+| `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `true`                                           |
+| `│   ├── retry`                         |                |                                                  |
+| `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `│   │   ├── backoff`                   |                | mutually exclusive to `fixed-delay`              |
+| `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
+| `│   │   ├── max-retries`               | `int`          | none                                             |
+| `│   │   ├── max-duration`              | `TimeSpan`     | none                                             |
+| `│   │   ├── jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
+| `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `│   ├── circuit-breaker`               |                |                                                  |
+| `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── delay`                     | `TimeSpan`     | none                                             |
+| `│   │   └── success-threshold`         | `Ratio`        | none                                             |
+| `│   └── timeout`                       | `TimeSpan`     | none                                             |
+| `├── oauth`                             |                |                                                  |
+| `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
+| `│   ├── credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
+| `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
+| `│   ├── socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
+| `│   └── connection-time-to-live`       | `TimeSpan`     |                                                  |
+| `└── clients`                           |                |                                                  |
+| `    └── <id>`                          |                |                                                  |
+| `        ├── base-url`                  | `URI`          | none                                             |
+| `        ├── connection-timeout`        | `TimeSpan`     |                                                  |
+| `        ├── socket-timeout`            | `TimeSpan`     |                                                  |
+| `        ├── connection-time-to-live`   | `TimeSpan`     |                                                  |
+| `        ├── max-connections-per-route` | `int`          |                                                  |
+| `        ├── max-connections-total`     | `int`          |                                                  |
+| `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
+| `        ├── oauth.scopes`              | `List<String>` | none                                             |
+| `        ├── keep-original-stack-trace` | `boolean`      |                                                  |
+| `        ├── detect-transient-faults`   | `boolean`      |                                                  |
+| `        ├── retry`                     |                |                                                  |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
+| `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
+| `        │   │   ├── delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
+| `        │   │   └── delay-factor`      | `double`       | `2.0`                                            |
+| `        │   ├── max-retries`           | `int`          | none                                             |
+| `        │   ├── max-duration`          | `TimeSpan`     | none                                             |
+| `        │   ├── jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
+| `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
+| `        ├── circuit-breaker`           |                |                                                  |
+| `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
+| `        │   ├── delay`                 | `TimeSpan`     | none                                             |
+| `        │   └── success-threshold`     | `Ratio`        | none                                             |
+| `        ├── timeout`                   | `TimeSpan`     | none                                             |
+| `        ├── compress-request`          | `boolean`      | `false`                                          |
+| `        └── keystore`                  |                |                                                  |
+| `            ├── path`                  | `String`       | none                                             |
+| `            └── password`              | `String`       | none                                             |
 
 ## Usage
 
