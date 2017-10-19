@@ -340,19 +340,25 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 
 The following table shows all beans with their respective name (for the `example` client) and type:
 
-| Bean Name                              | Bean Type                                                          | Configures by default      |
-|----------------------------------------|--------------------------------------------------------------------|----------------------------|
-| `accessToken` (no client prefix!)      | `AccessTokens`                                                     | OAuth settings             |
-| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                                      | Text, JSON and JSON Stream |
-| `exampleHttpClient`                    | `HttpClient`                                                       | Interceptors and timeouts  |
-| `exampleAsyncClientHttpRequestFactory` | `AsyncClientHttpRequestFactory` **and** `ClientHttpRequestFactory` |                            |
-| `exampleHttp`                          | `Http`                                                             | Base URL                   |
-| `exampleRestTemplate`                  | `RestTemplate`                                                     | Base URL                   |
-| `exampleAsyncRestTemplate`             | `AsyncRestTemplate`                                                | Base URL                   |
-| `exampleAsyncListenableTaskExecutor`   | `AsyncListenableTaskExecutor`                                      | ConcurrentTaskExecutor     |
+| Bean Name                              | Bean Type                                                          | Configures by default       |
+|----------------------------------------|--------------------------------------------------------------------|-----------------------------|
+| `accessToken` (no client prefix!)      | `AccessTokens`                                                     | OAuth settings              |
+| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                                      | Text, JSON and JSON Stream  |
+| `exampleHttpClient`                    | `HttpClient`                                                       | Interceptors and timeouts   |
+| `exampleAsyncClientHttpRequestFactory` | `AsyncClientHttpRequestFactory` **and** `ClientHttpRequestFactory` |                             |
+| `exampleHttp`                          | `Http`                                                             | Base URL                    |
+| `exampleRestTemplate`                  | `RestTemplate`                                                     | Base URL                    |
+| `exampleAsyncRestTemplate`             | `AsyncRestTemplate`                                                | Base URL                    |
+| `exampleScheduledExecutorService`      | `ScheduledExecutorService`                                         | Fixed-size thread pool      |
+| `exampleFailsafePlugin`                | `FailsafePlugin`                                                   | Retries and circuit breaker |
+| `exampleRetryPolicy`                   | `RetryPolicy`                                                      | Retries                     |
+| `exampleCircuitBreaker`                | `CircuitBreaker`                                                   | Circuit breaker             |
+| `examplePlugin`                        | `Plugin`                                                           | n/a                         |
 
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.
+
+In case you need more than one custom plugin, please use `Plugin.compound(Plugin...)`.
 
 ## Getting Help
 

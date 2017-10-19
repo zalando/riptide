@@ -12,6 +12,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
 
 import java.io.FileNotFoundException;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
-class HttpClientFactoryBean implements FactoryBean<HttpClient> {
+class HttpClientFactoryBean extends AbstractFactoryBean<CloseableHttpClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactoryBean.class);
 
@@ -89,20 +90,20 @@ class HttpClientFactoryBean implements FactoryBean<HttpClient> {
     }
 
     @Override
-    public CloseableHttpClient getObject() {
+    public Class<?> getObjectType() {
+        return CloseableHttpClient.class;
+    }
+
+    @Override
+    protected CloseableHttpClient createInstance() throws Exception {
         builder.setDefaultRequestConfig(config.build());
         customizer.customize(builder);
         return builder.build();
     }
 
     @Override
-    public Class<?> getObjectType() {
-        return CloseableHttpClient.class;
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return true;
+    protected void destroyInstance(final CloseableHttpClient client) throws Exception {
+        client.close();
     }
 
 }

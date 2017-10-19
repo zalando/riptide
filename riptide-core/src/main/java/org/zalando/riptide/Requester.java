@@ -27,7 +27,7 @@ public final class Requester extends Dispatcher {
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final RequestArguments arguments;
-    private final List<Plugin> plugins;
+    private final Plugin plugin;
 
     private final Multimap<String, String> query = LinkedHashMultimap.create();
     private final HttpHeaders headers = new HttpHeaders();
@@ -37,7 +37,7 @@ public final class Requester extends Dispatcher {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
-        this.plugins = plugins;
+        this.plugin = Plugin.compound(plugins);
     }
 
     public final Requester queryParam(final String name, final String value) {
@@ -104,11 +104,10 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<Void> call(final Route route) {
             try {
-                final RequestExecution start = () ->
-                        sendRequest().thenApply(dispatchResponse(route));
+                final RequestExecution original = () -> send().thenApply(dispatch(route));
+                final RequestExecution augmented = plugin.prepare(arguments, original);
 
-                final RequestExecution execution = applyPlugins(start);
-                final CompletableFuture<ClientHttpResponse> future = execution.execute();
+                final CompletableFuture<ClientHttpResponse> future = augmented.execute();
 
                 // TODO why not return CompletableFuture<ClientHttpResponse> here?
                 // we need a CompletableFuture<Void>
@@ -118,25 +117,19 @@ public final class Requester extends Dispatcher {
             }
         }
 
-        private RequestExecution applyPlugins(final RequestExecution start) {
-            RequestExecution execution = start;
-
-            for (final Plugin plugin : plugins) {
-                execution = plugin.prepare(arguments, execution);
-            }
-
-            return execution;
-        }
-
-        private <T> CompletableFuture<ClientHttpResponse> sendRequest() throws IOException {
-            final URI requestUri = arguments.getRequestUri();
-            final HttpMethod method = arguments.getMethod();
-            final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(requestUri, method);
+        private <T> CompletableFuture<ClientHttpResponse> send() throws IOException {
+            final AsyncClientHttpRequest request = createRequest();
             worker.write(request, entity);
             return adapt(request.executeAsync());
         }
 
-        private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatchResponse(final Route route) {
+        private AsyncClientHttpRequest createRequest() throws IOException {
+            final URI requestUri = arguments.getRequestUri();
+            final HttpMethod method = arguments.getMethod();
+            return requestFactory.createAsyncRequest(requestUri, method);
+        }
+
+        private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {
             return response -> {
                 try {
                     route.execute(response, worker);
