@@ -26,14 +26,16 @@ public final class RiptideSettings {
 
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static final class Defaults {
-        private TimeSpan connectionTimeout = TimeSpan.of(5, SECONDS);
-        private TimeSpan socketTimeout = TimeSpan.of(5, SECONDS);
-        private TimeSpan connectionTimeToLive = TimeSpan.of(30, SECONDS);
-        private int maxConnectionsPerRoute = 2;
-        private int maxConnectionsTotal = 20;
-        private boolean preserveStackTrace = true;
-        private boolean detectTransientFaults = false;
+        private TimeSpan connectionTimeout;
+        private TimeSpan socketTimeout;
+        private TimeSpan connectionTimeToLive;
+        private Integer maxConnectionsPerRoute;
+        private Integer maxConnectionsTotal;
+        private Boolean preserveStackTrace;
+        private Boolean detectTransientFaults;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;

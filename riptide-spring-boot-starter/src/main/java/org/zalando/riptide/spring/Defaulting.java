@@ -8,19 +8,37 @@ import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.lang.System.getenv;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.zalando.riptide.spring.RiptideSettings.CircuitBreaker;
 import static org.zalando.riptide.spring.RiptideSettings.Retry;
 
 final class Defaulting {
 
     static RiptideSettings withDefaults(final RiptideSettings base) {
-        return merge(base, base.getDefaults());
+        return merge(base, merge(base.getDefaults()));
+    }
+
+    private static Defaults merge(final Defaults defaults) {
+        return new Defaults(
+                either(defaults.getConnectionTimeout(), TimeSpan.of(5, SECONDS)),
+                either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
+                either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
+                either(defaults.getMaxConnectionsPerRoute(), 2),
+                either(defaults.getMaxConnectionsTotal(), 20),
+                either(defaults.getPreserveStackTrace(), true),
+                either(defaults.getDetectTransientFaults(), false),
+                defaults.getRetry(),
+                defaults.getCircuitBreaker(),
+                defaults.getTimeout()
+        );
     }
 
     private static RiptideSettings merge(final RiptideSettings base, final Defaults defaults) {
@@ -28,8 +46,7 @@ final class Defaulting {
                 defaults,
                 merge(base.getOauth(), defaults),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(client, defaults)
-                ))
+                        merge(client, defaults)))
         );
     }
 
@@ -59,8 +76,8 @@ final class Defaulting {
                 maxConnectionsPerRoute,
                 max(maxConnectionsPerRoute, maxConnectionsTotal),
                 base.getOauth(),
-                either(base.getPreserveStackTrace(), defaults.isPreserveStackTrace()),
-                either(base.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
+                either(base.getPreserveStackTrace(), defaults.getPreserveStackTrace()),
+                either(base.getDetectTransientFaults(), defaults.getDetectTransientFaults()),
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
                 either(base.getTimeout(), defaults.getTimeout()),
