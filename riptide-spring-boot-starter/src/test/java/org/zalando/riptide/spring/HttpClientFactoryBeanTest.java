@@ -34,4 +34,13 @@ public class HttpClientFactoryBeanTest {
         invalidKeystore.setPath("application-default.yml");
         unit.setTrustedKeystore(invalidKeystore);
     }
+
+    // just because spring sometimes fails to destroy properly during tests
+    @Test
+    public void shouldDestroy() throws Exception {
+        unit.afterPropertiesSet();
+        unit.getObject();
+        unit.destroy();;
+    }
+
 }
