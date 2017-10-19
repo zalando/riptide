@@ -78,8 +78,22 @@ public class FailsafePluginTest {
         client.close();
     }
 
+    @Test
+    public void shouldRetrySuccessfully() throws Throwable {
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse().after(100, TimeUnit.MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse().after(100, TimeUnit.MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse());
+
+        unit.get("/foo")
+                .call(pass())
+                .join();
+    }
+
     @Test(expected = SocketTimeoutException.class)
-    public void shouldExecute() throws Throwable {
+    public void shouldRetryUnsuccessfully() throws Throwable {
         IntStream.range(0, 5).forEach(i ->
                 driver.addExpectation(onRequestTo("/foo"),
                         giveEmptyResponse().after(100, TimeUnit.MILLISECONDS)));
@@ -95,7 +109,7 @@ public class FailsafePluginTest {
     }
 
     @Test(expected = RetryException.class)
-    public void shouldRetry() throws Throwable {
+    public void shouldRetryOnDemand() throws Throwable {
         IntStream.range(0, 5).forEach(i ->
                 driver.addExpectation(onRequestTo("/foo"),
                         giveEmptyResponse().withStatus(503)));
