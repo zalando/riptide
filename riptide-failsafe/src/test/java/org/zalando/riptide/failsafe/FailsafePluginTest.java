@@ -24,13 +24,16 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.junit.Assert.fail;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
@@ -80,14 +83,14 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetrySuccessfully() throws Throwable {
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(100, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(100, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"),
+        driver.addExpectation(onRequestTo("/success"),
+                giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
+        driver.addExpectation(onRequestTo("/success"),
+                giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
+        driver.addExpectation(onRequestTo("/success"),
                 giveEmptyResponse());
 
-        unit.get("/foo")
+        unit.get("/success")
                 .call(pass())
                 .join();
     }
@@ -95,11 +98,11 @@ public class FailsafePluginTest {
     @Test(expected = SocketTimeoutException.class)
     public void shouldRetryUnsuccessfully() throws Throwable {
         IntStream.range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/foo"),
-                        giveEmptyResponse().after(100, TimeUnit.MILLISECONDS)));
+                driver.addExpectation(onRequestTo("/failure"),
+                        giveEmptyResponse().after(50, TimeUnit.MILLISECONDS)));
 
         try {
-            unit.get("/foo")
+            unit.get("/failure")
                     .call(pass())
                     .join();
             fail("Expecting exception");
@@ -108,21 +111,19 @@ public class FailsafePluginTest {
         }
     }
 
-    @Test(expected = RetryException.class)
+    @Test
     public void shouldRetryOnDemand() throws Throwable {
-        IntStream.range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/foo"),
-                        giveEmptyResponse().withStatus(503)));
+        driver.addExpectation(onRequestTo("/retried"),
+                giveEmptyResponse().withStatus(503));
+        driver.addExpectation(onRequestTo("/retried"),
+                giveEmptyResponse());
 
-        try {
-            unit.get("/foo")
-                    .dispatch(Navigators.status(),
-                        on(HttpStatus.SERVICE_UNAVAILABLE).call(retry()))
-                    .join();
-            fail("Expecting exception");
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        unit.get("/retried")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().dispatch(status(),
+                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
     }
 
 }
