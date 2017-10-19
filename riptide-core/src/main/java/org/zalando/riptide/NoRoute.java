@@ -2,23 +2,21 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
-public final class NoRoute {
+public final class NoRoute implements Route {
 
-    NoRoute() {
-        // package private so we can trick code coverage
+    private static final Route NO_ROUTE = new NoRoute();
+
+    private NoRoute() {
+
+    }
+
+    @Override
+    public void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception {
+        throw new NoRouteException(response);
     }
 
     public static Route noRoute() {
-        return Impl.NO_ROUTE;
-    }
-
-    private enum Impl implements Route {
-        NO_ROUTE;
-
-        @Override
-        public void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception {
-            throw new NoRouteException(response);
-        }
+        return NO_ROUTE;
     }
 
 }

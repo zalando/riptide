@@ -30,16 +30,6 @@ public final class EnforceCoverageTest {
     }
 
     @Test
-    public void shouldUseNoRouteConstructor() {
-        new NoRoute();
-    }
-
-    @Test
-    public void shouldUsePassRouteConstructor() {
-        new PassRoute();
-    }
-
-    @Test
     public void shouldUseSelectorsConstructor() {
         new Navigators();
     }

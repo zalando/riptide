@@ -2,23 +2,21 @@ package org.zalando.riptide;
 
 import org.springframework.http.client.ClientHttpResponse;
 
-public final class PassRoute {
+public final class PassRoute implements Route {
 
-    PassRoute() {
-        // package private so we can trick code coverage
+    private static final Route PASS = new PassRoute();
+
+    private PassRoute() {
+
+    }
+
+    @Override
+    public void execute(final ClientHttpResponse response, final MessageReader reader) {
+        // nothing to do here
     }
 
     public static Route pass() {
-        return Impl.PASS;
-    }
-
-    private enum Impl implements Route {
-        PASS;
-
-        @Override
-        public void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception {
-            // nothing to do here
-        }
+        return PASS;
     }
 
 }
