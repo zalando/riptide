@@ -294,6 +294,8 @@ final class RiptideRegistrar {
                 httpClient.addPropertyReference("customizer", customizerId);
             }
 
+            httpClient.setDestroyMethodName("close");
+
             return httpClient;
         });
     }
