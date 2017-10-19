@@ -226,10 +226,10 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
 | `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
 | `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
-| `│   ├── detect-transient-faults`       | `boolean`      | `true`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `false`                                           |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `│   │   ├── backoff`                   |                | mutually exclusive to `fixed-delay`              |
+| `│   │   ├── backoff`                   |                | none, mutually exclusive to `fixed-delay`        |
 | `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
 | `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
 | `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
@@ -248,19 +248,18 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
-| `│   └── connection-time-to-live`       | `TimeSpan`     |                                                  |
 | `└── clients`                           |                |                                                  |
-| `    └── <id>`                          |                |                                                  |
+| `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
-| `        ├── connection-timeout`        | `TimeSpan`     |                                                  |
-| `        ├── socket-timeout`            | `TimeSpan`     |                                                  |
-| `        ├── connection-time-to-live`   | `TimeSpan`     |                                                  |
-| `        ├── max-connections-per-route` | `int`          |                                                  |
-| `        ├── max-connections-total`     | `int`          |                                                  |
+| `        ├── connection-timeout`        | `TimeSpan`     | see defaults                                     |
+| `        ├── socket-timeout`            | `TimeSpan`     | see defaults                                     |
+| `        ├── connection-time-to-live`   | `TimeSpan`     | see defaults                                     |
+| `        ├── max-connections-per-route` | `int`          | see defaults                                     |
+| `        ├── max-connections-total`     | `int`          | see defaults                                     |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
-| `        ├── oauth.scopes`              | `List<String>` | none                                             |
-| `        ├── keep-original-stack-trace` | `boolean`      |                                                  |
-| `        ├── detect-transient-faults`   | `boolean`      |                                                  |
+| `        │   └── scopes`                | `List<String>` | none                                             |
+| `        ├── keep-original-stack-trace` | `boolean`      | see defaults                                     |
+| `        ├── detect-transient-faults`   | `boolean`      | see defaults                                     |
 | `        ├── retry`                     |                |                                                  |
 | `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
 | `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
@@ -277,7 +276,7 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── success-threshold`     | `Ratio`        | `failure-threshold`                              |           
 | `        ├── timeout`                   | `TimeSpan`     | none                                             |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
-| `        └── keystore`                  |                |                                                  |
+| `        └── keystore`                  |                | disables certificate pinning if omitted          |
 | `            ├── path`                  | `String`       | none                                             |
 | `            └── password`              | `String`       | none                                             |
 

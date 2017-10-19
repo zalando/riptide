@@ -33,7 +33,7 @@ public final class RiptideSettings {
         private int maxConnectionsPerRoute = 2;
         private int maxConnectionsTotal = 20;
         private boolean keepOriginalStackTrace = true;
-        private boolean detectTransientFaults = true;
+        private boolean detectTransientFaults = false;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;
