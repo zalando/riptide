@@ -116,7 +116,7 @@ Required when `detect-transient-faults` is enabled.
 
 #### [Timeout](../riptide-timeout) support
 
-Required when `timeout` is enabled. Not to be confused with `connection-timeout` and `socket-timeout`, those are 
+Required when `timeout` is enabled. Not to be confused with `connection-timeout` and `socket-timeout`, those are
 supported out of the box.
 
 ```xml
@@ -149,7 +149,7 @@ supported out of the box.
 </dependency>
 ```
 
-#### OAuth support 
+#### OAuth support
 
 Required for `oauth` support.
 
@@ -226,7 +226,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
 | `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
 | `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
-| `│   ├── detect-transient-faults`       | `boolean`      | `false`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
 | `│   │   ├── backoff`                   |                | none, mutually exclusive to `fixed-delay`        |
@@ -260,21 +260,21 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── scopes`                | `List<String>` | none                                             |
 | `        ├── keep-original-stack-trace` | `boolean`      | see defaults                                     |
 | `        ├── detect-transient-faults`   | `boolean`      | see defaults                                     |
-| `        ├── retry`                     |                |                                                  |
-| `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
-| `        │   │   ├── delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
-| `        │   │   ├── max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
-| `        │   │   └── delay-factor`      | `double`       | `2.0`                                            |
-| `        │   ├── max-retries`           | `int`          | none                                             |
-| `        │   ├── max-duration`          | `TimeSpan`     | none                                             |
-| `        │   ├── jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
-| `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
-| `        ├── circuit-breaker`           |                |                                                  |
-| `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
-| `        │   ├── delay`                 | `TimeSpan`     | no delay                                         |
-| `        │   └── success-threshold`     | `Ratio`        | `failure-threshold`                              |           
-| `        ├── timeout`                   | `TimeSpan`     | none                                             |
+| `        ├── retry`                     |                | see defaults                                     |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | see defaults                                     |
+| `        │   ├── backoff`               |                | see defaults                                     |
+| `        │   │   ├── delay`             | `TimeSpan`     | see defaults                                     |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | see defaults                                     |
+| `        │   │   └── delay-factor`      | `double`       | see defaults                                     |
+| `        │   ├── max-retries`           | `int`          | see defaults                                     |
+| `        │   ├── max-duration`          | `TimeSpan`     | see defaults                                     |
+| `        │   ├── jitter-factor`         | `double`       | see defaults                                     |
+| `        │   └── jitter`                | `TimeSpan`     | see defaults                                     |
+| `        ├── circuit-breaker`           |                | see defaults                                     |
+| `        │   ├── failure-threshold`     | `Ratio`        | see defaults                                     |
+| `        │   ├── delay`                 | `TimeSpan`     | see defaults                                     |
+| `        │   └── success-threshold`     | `Ratio`        | see defaults                                     |
+| `        ├── timeout`                   | `TimeSpan`     | see defaults                                     |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
 | `        └── keystore`                  |                | disables certificate pinning if omitted          |
 | `            ├── path`                  | `String`       | none                                             |
@@ -305,8 +305,8 @@ A global `AccessTokens` bean is also provided.
 
 ### Trusted Keystore
 
-A client can be configured to only connect to trusted hosts (see 
-[Certificate Pinning](https://www.owasp.org/index.php/Certificate_and_Public_Key_Pinning)) by configuring the `keystore` key. Use 
+A client can be configured to only connect to trusted hosts (see
+[Certificate Pinning](https://www.owasp.org/index.php/Certificate_and_Public_Key_Pinning)) by configuring the `keystore` key. Use
 `keystore.path` to refer to a *JKS*  keystore on the classpath/filesystem and (optionally) specify the passphrase via `keystore.password`.
 
 You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/javase/7/docs/technotes/tools/#security):
