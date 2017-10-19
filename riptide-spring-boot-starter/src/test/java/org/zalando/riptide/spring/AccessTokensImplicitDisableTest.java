@@ -28,8 +28,6 @@ public final class AccessTokensImplicitDisableTest {
     @ImportAutoConfiguration({
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-            LogbookAutoConfiguration.class,
-            TracerAutoConfiguration.class
     })
     public static class TestConfiguration {
 

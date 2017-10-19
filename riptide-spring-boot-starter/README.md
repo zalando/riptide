@@ -22,8 +22,17 @@ together whenever interaction with a remote service is required. Spinning up new
 riptide.clients:
   example:
     base-url: http://example.com
-    oauth.scopes:
-      - example.read
+    connection-timeout: 150 milliseconds
+    socket-timeout: 100 milliseconds
+    connection-time-to-live: 30 seconds
+    max-connections-per-route: 16
+    retry:
+      fixed-delay: 50 milliseconds
+      max-retries: 5
+    circuit-breaker:
+      failure-threshold: 3 out of 5
+      delay: 30 seconds
+      success-threshold: 5 out of 5
 ```
 
 ```java
@@ -53,14 +62,16 @@ private Http example;
 ## Dependencies
 
 - Java 8
-- Any build tool using Maven Central, or direct download
 - Spring Boot
 - Riptide
-- Logbook
-- Tracer
+  - Core
+  - (Apache) HTTP Client
+  - Failsafe (optional)
+  - Faults (optional)
+  - Timeouts (optional)
+- Logbook (optional)
+- Tracer (optional)
 - Tokens (optional)
-- Apache HTTP Client
-- Failsafe (optional)
 - ZMon Actuator (optional)
 
 ## Installation
@@ -75,15 +86,94 @@ Add the following dependency to your project:
 </dependency>
 ```
 
-If you want OAuth support you need to additionally add [stups-spring-oauth2-support](https://github.com/zalando-stups/stups-spring-oauth2-support/tree/master/stups-http-components-oauth2) to your project. 
-It comes with [Tokens](https://github.com/zalando-stups/tokens) equipped. 
+### Optional Dependencies
+
+You will need to add declare the following dependencies, in order to enable some integrations and/or features:
+
+#### [Failsafe](../riptide-failsafe) integration
+
+Required for `retry` and `circuit-breaker` support.
 
 ```xml
-<!-- if you need OAuth support additionally add: -->
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-failsafe</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Transient Fault](../riptide-faults) detection
+
+Required when `detect-transient-faults` is enabled.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-faults</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Timeout](../riptide-timeout) support
+
+Required when `timeout` is enabled. Not to be confused with `connection-timeout` and `socket-timeout`, those are 
+supported out of the box.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-timeout</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Logbook](https://github.com/zalando/logbook) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>logbook-spring-boot-starter</artifactId>
+    <version>${logbook.version}</version>
+    <optional>true</optional>
+</dependency>
+```
+
+#### [Tracer](https://github.com/zalando/tracer) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>tracer-spring-boot-starter</artifactId>
+    <version>${tracer.version}</version>
+    <optional>true</optional>
+</dependency>
+```
+
+#### OAuth support 
+
+Required for `oauth` support.
+
+```xml
 <dependency>
     <groupId>org.zalando.stups</groupId>
     <artifactId>stups-http-components-oauth2</artifactId>
-    <version>$stups-http-components-oauth2.version}{</version>
+    <version>${stups-http-components-oauth2.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.zalando.stups</groupId>
+    <artifactId>tokens</artifactId>
+    <!-- 0.11.0-beta-2 or higher! -->
+    <version>${tokens.version</version>
+</dependency>
+```
+
+#### [ZMon](https://github.com/zalando-zmon/zmon-actuator) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando.zmon</groupId>
+    <artifactId>zmon-actuator</artifactId>
+    <version>${zmon.version}</version>
 </dependency>
 ```
 
@@ -149,8 +239,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
 | `│   ├── circuit-breaker`               |                |                                                  |
 | `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
-| `│   │   ├── delay`                     | `TimeSpan`     | none                                             |
-| `│   │   └── success-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── delay`                     | `TimeSpan`     | no delay                                         |
+| `│   │   └── success-threshold`         | `Ratio`        | `failure-threshold`                              |
 | `│   └── timeout`                       | `TimeSpan`     | none                                             |
 | `├── oauth`                             |                |                                                  |
 | `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
@@ -183,8 +273,8 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
 | `        ├── circuit-breaker`           |                |                                                  |
 | `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
-| `        │   ├── delay`                 | `TimeSpan`     | none                                             |
-| `        │   └── success-threshold`     | `Ratio`        | none                                             |
+| `        │   ├── delay`                 | `TimeSpan`     | no delay                                         |
+| `        │   └── success-threshold`     | `Ratio`        | `failure-threshold`                              |           
 | `        ├── timeout`                   | `TimeSpan`     | none                                             |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
 | `        └── keystore`                  |                |                                                  |
