@@ -42,7 +42,7 @@ public class FailsafePluginTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(250)
+                    .setSocketTimeout(500)
                     .build())
             .build();
 
@@ -53,7 +53,7 @@ public class FailsafePluginTest {
             .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
                     .withRetryPolicy(new RetryPolicy()
                             .retryOn(SocketTimeoutException.class)
-                            .withDelay(250, MILLISECONDS)
+                            .withDelay(500, MILLISECONDS)
                             .withMaxRetries(4))
                     .withCircuitBreaker(new CircuitBreaker()
                             .withFailureThreshold(3, 10)
@@ -79,7 +79,7 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetrySuccessfully() throws Throwable {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(400, MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
@@ -90,7 +90,7 @@ public class FailsafePluginTest {
     @Test(expected = SocketTimeoutException.class)
     public void shouldRetryUnsuccessfully() throws Throwable {
         range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(400, MILLISECONDS)));
+                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
 
         try {
             unit.get("/bar")

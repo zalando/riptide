@@ -84,6 +84,10 @@ Additional modules/artifacts of Riptide always share the same version number.
 
 ## Configuration
 
+Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and
+[Tracer](https://github.com/zalando/tracer) can be greatly simplified by using the
+[**Riptide: Spring Boot Starter**](riptide-spring-boot-starter). Go check it out!
+
 ```java
 Http.builder()
     .baseUrl("https://api.github.com")
@@ -105,13 +109,11 @@ Http.builder()
 This defaults to:
 - no base URL
 - same list of converters as `new RestTemplate()`
-- `OriginalStackTracePlugin` which preserves stack traces when executing requests asynchronously
-
-Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and
-[Tracer](https://github.com/zalando/tracer) can be greatly simplified by using the
-[**Riptide: Spring Boot Starter**](riptide-spring-boot-starter). Go check it out!
+- [`OriginalStackTracePlugin`](#plugins)
 
 ## Usage
+
+### Requests
 
 A full-blown request may contain any of the following aspects: HTTP method, request URI, query parameters,
 headers and a body:
@@ -123,16 +125,7 @@ http.post("/sales-order")
     .accept(SALES_ORDER)
     .header("Client-IP", "127.0.0.1")
     .body(cart)
-    .dispatch(series(),
-        on(SUCCESSFUL).dispatch(contentType(),
-            on(SALES_ORDER).call(this::persistLocationHeader),
-        on(CLIENT_ERROR).dispatch(status(),
-            on(CONFLICT).call(this::retry),
-            on(PRECONDITION_FAILED).call(this::readAgainAndRetry),
-            anyStatus().call(problemHandling())),
-        on(SERVER_ERROR).dispatch(status(),
-            on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))))
-    .join();
+    //...
 ```
 
 Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
@@ -141,15 +134,15 @@ once with `queryParams(Multimap<String, String>)`.
 
 The following operations are applied to URI Templates (`get(String, Object...)`) and URIs (`get(URI)`) respectively:
 
-**URI Template**
+#### URI Template
 - parameter expansion, e.g `/{id}` (see [`UriTemplate.expand`](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriTemplate.html#expand-java.lang.Object...-))
 - encoding
 
-**URI**
+#### URI
 - none, used *as is*
 - expected to be already encoded
 
-**Both**
+#### Both
 - after respective transformation
 - resolved against Base URL (if present)
 - Query String (merged with existing)
@@ -161,12 +154,32 @@ based on the chosen resolution strategy.
 The `Content-Type`- and `Accept`-header have type-safe methods in addition to the generic support that is
 `header(String, String)` and `headers(HttpHeaders)`.
 
+### Responses
+
+Riptide is special in the way it handles responses. Rather than having a single return value, you need to register
+callbacks. Traditionally you would attach different callbacks for different response status codes, alternatively there
+are also built-in routing capabilities on status code families (called series in Spring) as well as on content types. 
+
+```java
+http.post("/sales-order")
+    // ...
+    .dispatch(series(),
+        on(SUCCESSFUL).dispatch(contentType(),
+            on(SALES_ORDER).call(SalesOrder.class, this::persist),
+        on(CLIENT_ERROR).dispatch(status(),
+            on(CONFLICT).call(this::retry),
+            on(PRECONDITION_FAILED).call(this::readAgainAndRetry),
+            anyStatus().call(problemHandling())),
+        on(SERVER_ERROR).dispatch(status(),
+            on(SERVICE_UNAVAILABLE).call(this::scheduleRetryLater))));
+```
+
 The callbacks can have the following signatures:
 
 ```java
-private void persistLocationHeader(ClientHttpResponse response)
-private void retry();
-private void propagate(ThrowableProblem problem);
+persist(SalesOrder)
+retry(ClientHttpResponse)
+scheduleRetryLater()
 ```
 
 ### Futures
@@ -176,10 +189,41 @@ on it.
 
 If you need proper return values take a look at [Riptide: Capture](riptide-capture).
 
-#### Exceptions
+### Exceptions
 
 The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
 no wildcard condition either.
+
+### Plugins
+
+Riptide comes with a way to register extensions in the form of plugins.
+
+- `OriginalStackTracePlugin`, preserves stack traces when executing requests asynchronously
+- [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
+- [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
+- [`TimeoutPlugin`](riptide-timeout), applies timeouts to the whole call (including retries, network latency, etc.)
+
+Whenever you encounter the need to perform some repetitive task on the futures returned by a remote call,
+you may consider implementing a custom Plugin for it, e.g.:
+
+```java
+class MetricsPlugin implements Plugin {
+    
+    @Override
+    public RequestExecution prepare(RequestArguments arguments, RequestExecution execution) {
+        return () -> {
+           StopWatch watch = createStarted();
+           CompletableFuture<ClientHttpResponse> future = execution.execute();
+           future.whenComplete((result, e) -> {
+               Duration duration = watch.elapsed();
+               metrics.record(arguments, result, e, duration);
+           });
+           return future;
+       };
+    }
+    
+}
+```
 
 ## Getting help
 

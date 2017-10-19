@@ -13,7 +13,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -24,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
+import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
@@ -77,13 +77,17 @@ final class RiptideRegistrar {
                     genericBeanDefinition(RestAsyncClientHttpRequestFactory.class);
 
             factory.addConstructorArgReference(registerHttpClient(id, client));
-            factory.addConstructorArgReference(registerAsyncListenableTaskExecutor(id, client));
+            factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
+                    .addConstructorArgValue(registerThreadPool(id, client))
+                    .getBeanDefinition());
 
             return factory;
         });
     }
 
     private BeanDefinition registerHttpMessageConverters(final String id) {
+        // we use the wrong type here since that's the easiest way to influence the name
+        // we want exampleHttpMessageConverters, rather than exampleClientHttpMessageConverters
         final String convertersId = registry.registerIfAbsent(id, HttpMessageConverters.class, () -> {
             final List<Object> list = list();
 
@@ -221,6 +225,12 @@ final class RiptideRegistrar {
             plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
         }
 
+        if (registry.isRegistered(id, Plugin.class)) {
+            final String plugin = generateBeanName(id, Plugin.class);
+            log.debug("Client [{}]: Registering [{}]", plugin);
+            plugins.add(ref(plugin));
+        }
+
         return plugins;
     }
 
@@ -242,12 +252,6 @@ final class RiptideRegistrar {
                         .addConstructorArgValue(predicates);
             });
         }
-    }
-
-    private String registerAsyncListenableTaskExecutor(final String id, final Client client) {
-        return registry.registerIfAbsent(id, AsyncListenableTaskExecutor.class, () ->
-                genericBeanDefinition(ConcurrentTaskExecutor.class)
-                        .addConstructorArgValue(registerThreadPool(id, client)));
     }
 
     private BeanMetadataElement registerThreadPool(final String id, final Client client) {
@@ -294,7 +298,7 @@ final class RiptideRegistrar {
                 httpClient.addPropertyReference("customizer", customizerId);
             }
 
-            httpClient.setDestroyMethodName("close");
+            httpClient.setDestroyMethodName("destroy");
 
             return httpClient;
         });

@@ -3,6 +3,8 @@ package org.zalando.riptide.spring;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.TestPropertySource;
+import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,6 +28,7 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
@@ -53,6 +56,11 @@ public final class PluginTest {
         }
 
         @Bean
+        public Plugin ecbPlugin() {
+            return new CustomPlugin();
+        }
+
+        @Bean
         public AsyncRestTemplate template() {
             return new AsyncRestTemplate();
         }
@@ -76,6 +84,14 @@ public final class PluginTest {
 
     }
 
+    static class CustomPlugin implements Plugin {
+
+        @Override
+        public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
+            return execution;
+        }
+    }
+
     @Autowired
     private MockRestServiceServer server;
 
@@ -97,7 +113,9 @@ public final class PluginTest {
 
     @Test
     public void shouldUseTransientFaultPlugin() throws Exception {
-        assertThat(getPlugins(ecb), contains(instanceOf(TransientFaultPlugin.class)));
+        assertThat(getPlugins(ecb), contains(asList(
+                instanceOf(TransientFaultPlugin.class),
+                instanceOf(CustomPlugin.class))));
     }
 
     @Test
