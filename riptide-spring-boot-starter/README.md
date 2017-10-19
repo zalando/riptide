@@ -163,7 +163,7 @@ Required for `oauth` support.
     <groupId>org.zalando.stups</groupId>
     <artifactId>tokens</artifactId>
     <!-- 0.11.0-beta-2 or higher! -->
-    <version>${tokens.version</version>
+    <version>${tokens.version}</version>
 </dependency>
 ```
 
