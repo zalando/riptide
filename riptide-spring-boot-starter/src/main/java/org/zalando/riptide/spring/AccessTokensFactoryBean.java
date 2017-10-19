@@ -1,6 +1,6 @@
 package org.zalando.riptide.spring;
 
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.zalando.riptide.spring.RiptideSettings.Client.OAuth;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
+final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
 
     private AccessTokensBuilder builder;
 
@@ -74,7 +74,7 @@ final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
     }
 
     @Override
-    public AccessTokens getObject() {
+    protected AccessTokens createInstance() throws Exception {
         return builder.start();
     }
 
@@ -84,8 +84,8 @@ final class AccessTokensFactoryBean implements FactoryBean<AccessTokens> {
     }
 
     @Override
-    public boolean isSingleton() {
-        return true;
+    protected void destroyInstance(final AccessTokens tokens) throws Exception {
+        tokens.stop();
     }
 
 }

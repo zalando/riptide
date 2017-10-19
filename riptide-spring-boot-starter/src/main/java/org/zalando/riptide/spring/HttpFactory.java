@@ -13,9 +13,9 @@ final class HttpFactory {
     public static Http create(final AsyncClientHttpRequestFactory requestFactory,
             final List<HttpMessageConverter<?>> converters, final String baseUrl, final List<Plugin> plugins) {
         return Http.builder()
+                .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
                 .converters(converters)
-                .baseUrl(baseUrl)
                 .plugins(plugins)
                 .build();
     }

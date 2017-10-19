@@ -368,3 +368,8 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 
 To contribute, simply make a pull request and add a brief description (1-2 sentences) of your addition or change. For
 more details, check the [contribution guidelines](CONTRIBUTING.md).
+
+## Alternatives
+
+In case you don't want to use this Spring Boot Starter you always have the possibility to wire everything up by hand.
+Feel free to take a look at [this example](src/test/java/org/zalando/riptide/spring/ManualConfiguration.java).
