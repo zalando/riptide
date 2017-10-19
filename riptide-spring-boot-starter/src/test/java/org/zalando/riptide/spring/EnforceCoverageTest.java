@@ -18,6 +18,11 @@ public final class EnforceCoverageTest {
     }
 
     @Test
+    public void shouldUseDependenciesConstructor() {
+        new Dependencies();
+    }
+
+    @Test
     public void shouldUseDefaultingConstructor() {
         new Defaulting();
     }

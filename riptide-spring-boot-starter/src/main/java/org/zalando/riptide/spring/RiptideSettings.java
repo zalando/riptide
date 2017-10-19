@@ -32,8 +32,8 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive = TimeSpan.of(30, SECONDS);
         private int maxConnectionsPerRoute = 2;
         private int maxConnectionsTotal = 20;
-        private boolean keepOriginalStackTrace = true;
-        private boolean detectTransientFaults = true;
+        private boolean preserveStackTrace = true;
+        private boolean detectTransientFaults = false;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;
@@ -63,7 +63,7 @@ public final class RiptideSettings {
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
         private OAuth oauth;
-        private Boolean keepOriginalStackTrace;
+        private Boolean preserveStackTrace;
         private Boolean detectTransientFaults;
         private Retry retry;
         private CircuitBreaker circuitBreaker;

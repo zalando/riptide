@@ -22,8 +22,17 @@ together whenever interaction with a remote service is required. Spinning up new
 riptide.clients:
   example:
     base-url: http://example.com
-    oauth.scopes:
-      - example.read
+    connection-timeout: 150 milliseconds
+    socket-timeout: 100 milliseconds
+    connection-time-to-live: 30 seconds
+    max-connections-per-route: 16
+    retry:
+      fixed-delay: 50 milliseconds
+      max-retries: 5
+    circuit-breaker:
+      failure-threshold: 3 out of 5
+      delay: 30 seconds
+      success-threshold: 5 out of 5
 ```
 
 ```java
@@ -53,14 +62,16 @@ private Http example;
 ## Dependencies
 
 - Java 8
-- Any build tool using Maven Central, or direct download
 - Spring Boot
 - Riptide
-- Logbook
-- Tracer
+  - Core
+  - (Apache) HTTP Client
+  - Failsafe (optional)
+  - Faults (optional)
+  - Timeouts (optional)
+- Logbook (optional)
+- Tracer (optional)
 - Tokens (optional)
-- Apache HTTP Client
-- Failsafe (optional)
 - ZMon Actuator (optional)
 
 ## Installation
@@ -75,15 +86,94 @@ Add the following dependency to your project:
 </dependency>
 ```
 
-If you want OAuth support you need to additionally add [stups-spring-oauth2-support](https://github.com/zalando-stups/stups-spring-oauth2-support/tree/master/stups-http-components-oauth2) to your project. 
-It comes with [Tokens](https://github.com/zalando-stups/tokens) equipped. 
+### Optional Dependencies
+
+You will need to add declare the following dependencies, in order to enable some integrations and/or features:
+
+#### [Failsafe](../riptide-failsafe) integration
+
+Required for `retry` and `circuit-breaker` support.
 
 ```xml
-<!-- if you need OAuth support additionally add: -->
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-failsafe</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Transient Fault](../riptide-faults) detection
+
+Required when `detect-transient-faults` is enabled.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-faults</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Timeout](../riptide-timeout) support
+
+Required when `timeout` is enabled. Not to be confused with `connection-timeout` and `socket-timeout`, those are
+supported out of the box.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-timeout</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Logbook](https://github.com/zalando/logbook) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>logbook-spring-boot-starter</artifactId>
+    <version>${logbook.version}</version>
+    <optional>true</optional>
+</dependency>
+```
+
+#### [Tracer](https://github.com/zalando/tracer) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>tracer-spring-boot-starter</artifactId>
+    <version>${tracer.version}</version>
+    <optional>true</optional>
+</dependency>
+```
+
+#### OAuth support
+
+Required for `oauth` support.
+
+```xml
 <dependency>
     <groupId>org.zalando.stups</groupId>
     <artifactId>stups-http-components-oauth2</artifactId>
-    <version>$stups-http-components-oauth2.version}{</version>
+    <version>${stups-http-components-oauth2.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.zalando.stups</groupId>
+    <artifactId>tokens</artifactId>
+    <!-- 0.11.0-beta-2 or higher! -->
+    <version>${tokens.version}</version>
+</dependency>
+```
+
+#### [ZMon](https://github.com/zalando-zmon/zmon-actuator) integration
+
+```xml
+<dependency>
+    <groupId>org.zalando.zmon</groupId>
+    <artifactId>zmon-actuator</artifactId>
+    <version>${zmon.version}</version>
 </dependency>
 ```
 
@@ -106,7 +196,7 @@ riptide:
       socket-timeout: 100 milliseconds
       connection-time-to-live: 30 seconds
       max-connections-per-route: 16
-      keep-original-stack-trace: true
+      preserve-stack-trace: true
       detect-transient-faults: true
       retry:
         fixed-delay: 50 milliseconds
@@ -135,11 +225,11 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
 | `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
 | `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
-| `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
-| `│   ├── detect-transient-faults`       | `boolean`      | `true`                                           |
+| `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
+| `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `│   │   ├── backoff`                   |                | mutually exclusive to `fixed-delay`              |
+| `│   │   ├── backoff`                   |                | none, mutually exclusive to `fixed-delay`        |
 | `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
 | `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
 | `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
@@ -149,8 +239,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
 | `│   ├── circuit-breaker`               |                |                                                  |
 | `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
-| `│   │   ├── delay`                     | `TimeSpan`     | none                                             |
-| `│   │   └── success-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── delay`                     | `TimeSpan`     | no delay                                         |
+| `│   │   └── success-threshold`         | `Ratio`        | `failure-threshold`                              |
 | `│   └── timeout`                       | `TimeSpan`     | none                                             |
 | `├── oauth`                             |                |                                                  |
 | `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
@@ -158,36 +248,35 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `2 seconds`                                      |
-| `│   └── connection-time-to-live`       | `TimeSpan`     |                                                  |
 | `└── clients`                           |                |                                                  |
-| `    └── <id>`                          |                |                                                  |
+| `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
-| `        ├── connection-timeout`        | `TimeSpan`     |                                                  |
-| `        ├── socket-timeout`            | `TimeSpan`     |                                                  |
-| `        ├── connection-time-to-live`   | `TimeSpan`     |                                                  |
-| `        ├── max-connections-per-route` | `int`          |                                                  |
-| `        ├── max-connections-total`     | `int`          |                                                  |
+| `        ├── connection-timeout`        | `TimeSpan`     | see `defaults`                                   |
+| `        ├── socket-timeout`            | `TimeSpan`     | see `defaults`                                   |
+| `        ├── connection-time-to-live`   | `TimeSpan`     | see `defaults`                                   |
+| `        ├── max-connections-per-route` | `int`          | see `defaults`                                   |
+| `        ├── max-connections-total`     | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
-| `        ├── oauth.scopes`              | `List<String>` | none                                             |
-| `        ├── keep-original-stack-trace` | `boolean`      |                                                  |
-| `        ├── detect-transient-faults`   | `boolean`      |                                                  |
-| `        ├── retry`                     |                |                                                  |
-| `        │   ├── fixed-delay`           | `TimeSpan`     | none, mutually exclusive to `backoff`            |
-| `        │   ├── backoff`               |                | mutually exclusive to `fixed-delay`              |
-| `        │   │   ├── delay`             | `TimeSpan`     | none, requires `backoff.max-delay`               |
-| `        │   │   ├── max-delay`         | `TimeSpan`     | none, requires `backoff.delay`                   |
-| `        │   │   └── delay-factor`      | `double`       | `2.0`                                            |
-| `        │   ├── max-retries`           | `int`          | none                                             |
-| `        │   ├── max-duration`          | `TimeSpan`     | none                                             |
-| `        │   ├── jitter-factor`         | `double`       | none, mutually exclusive to `jitter`             |
-| `        │   └── jitter`                | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
-| `        ├── circuit-breaker`           |                |                                                  |
-| `        │   ├── failure-threshold`     | `Ratio`        | none                                             |
-| `        │   ├── delay`                 | `TimeSpan`     | none                                             |
-| `        │   └── success-threshold`     | `Ratio`        | none                                             |
-| `        ├── timeout`                   | `TimeSpan`     | none                                             |
+| `        │   └── scopes`                | `List<String>` | none                                             |
+| `        ├── preserve-stack-trace`      | `boolean`      | see `defaults`                                   |
+| `        ├── detect-transient-faults`   | `boolean`      | see `defaults`                                   |
+| `        ├── retry`                     |                | see `defaults`                                   |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── backoff`               |                | see `defaults`                                   |
+| `        │   │   ├── delay`             | `TimeSpan`     | see `defaults`                                   |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | see `defaults`                                   |
+| `        │   │   └── delay-factor`      | `double`       | see `defaults`                                   |
+| `        │   ├── max-retries`           | `int`          | see `defaults`                                   |
+| `        │   ├── max-duration`          | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── jitter-factor`         | `double`       | see `defaults`                                   |
+| `        │   └── jitter`                | `TimeSpan`     | see `defaults`                                   |
+| `        ├── circuit-breaker`           |                | see `defaults`                                   |
+| `        │   ├── failure-threshold`     | `Ratio`        | see `defaults`                                   |
+| `        │   ├── delay`                 | `TimeSpan`     | see `defaults`                                   |
+| `        │   └── success-threshold`     | `Ratio`        | see `defaults`                                   |
+| `        ├── timeout`                   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
-| `        └── keystore`                  |                |                                                  |
+| `        └── keystore`                  |                | disables certificate pinning if omitted          |
 | `            ├── path`                  | `String`       | none                                             |
 | `            └── password`              | `String`       | none                                             |
 
@@ -216,8 +305,8 @@ A global `AccessTokens` bean is also provided.
 
 ### Trusted Keystore
 
-A client can be configured to only connect to trusted hosts (see 
-[Certificate Pinning](https://www.owasp.org/index.php/Certificate_and_Public_Key_Pinning)) by configuring the `keystore` key. Use 
+A client can be configured to only connect to trusted hosts (see
+[Certificate Pinning](https://www.owasp.org/index.php/Certificate_and_Public_Key_Pinning)) by configuring the `keystore` key. Use
 `keystore.path` to refer to a *JKS*  keystore on the classpath/filesystem and (optionally) specify the passphrase via `keystore.password`.
 
 You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/javase/7/docs/technotes/tools/#security):

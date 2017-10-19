@@ -1,6 +1,6 @@
 riptide:
   defaults:
-    keep-original-stack-trace: false
+    preserve-stack-trace: false
     detect-transient-faults: false
   clients:
     example:
@@ -9,7 +9,7 @@ riptide:
       socket-timeout: 3000 milliseconds
       oauth.scopes:
         - example.read
-      keep-original-stack-trace: true
+      preserve-stack-trace: true
     ecb:
       base-url: http://www.ecb.europa.eu
       compress-request: true

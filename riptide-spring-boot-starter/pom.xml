@@ -51,11 +51,13 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-failsafe</artifactId>
+            <!-- required if, explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-faults</artifactId>
+            <!-- required if, explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -65,33 +67,39 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-stream</artifactId>
+            <!-- not optional by default, but can be excluded, if needed -->
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-timeout</artifactId>
+            <!-- required if, explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando.stups</groupId>
             <artifactId>tokens</artifactId>
             <version>0.11.0-beta-2</version>
-            <scope>provided</scope>
+            <!-- required if, explicitly enabled by configuration -->
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando.stups</groupId>
             <artifactId>stups-http-components-oauth2</artifactId>
             <version>1.0.19</version>
-            <scope>provided</scope>
+            <!-- required if, explicitly enabled by configuration -->
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>tracer-spring-boot-starter</artifactId>
             <version>${tracer.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>logbook-spring-boot-starter</artifactId>
             <version>${logbook.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando.zmon</groupId>

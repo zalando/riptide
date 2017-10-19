@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.test.context.TestPropertySource;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +32,9 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
+@TestPropertySource(properties = {
+        "riptide.clients.bar.detect-transient-faults: true",
+})
 @Component
 public final class PluginTest {
 
