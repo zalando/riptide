@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.Navigators;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -83,14 +82,14 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetrySuccessfully() throws Throwable {
-        driver.addExpectation(onRequestTo("/success"),
+        driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/success"),
+        driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/success"),
+        driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse());
 
-        unit.get("/success")
+        unit.get("/foo")
                 .call(pass())
                 .join();
     }
@@ -98,11 +97,11 @@ public class FailsafePluginTest {
     @Test(expected = SocketTimeoutException.class)
     public void shouldRetryUnsuccessfully() throws Throwable {
         IntStream.range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/failure"),
+                driver.addExpectation(onRequestTo("/foo"),
                         giveEmptyResponse().after(50, TimeUnit.MILLISECONDS)));
 
         try {
-            unit.get("/failure")
+            unit.get("/foo")
                     .call(pass())
                     .join();
             fail("Expecting exception");
@@ -113,12 +112,12 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetryOnDemand() throws Throwable {
-        driver.addExpectation(onRequestTo("/retried"),
+        driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().withStatus(503));
-        driver.addExpectation(onRequestTo("/retried"),
+        driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse());
 
-        unit.get("/retried")
+        unit.get("/foo")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()),
                         anySeries().dispatch(status(),
