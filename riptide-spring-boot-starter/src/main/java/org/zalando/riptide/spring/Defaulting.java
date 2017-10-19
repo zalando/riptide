@@ -59,7 +59,7 @@ final class Defaulting {
                 maxConnectionsPerRoute,
                 max(maxConnectionsPerRoute, maxConnectionsTotal),
                 base.getOauth(),
-                either(base.getKeepOriginalStackTrace(), defaults.isKeepOriginalStackTrace()),
+                either(base.getPreserveStackTrace(), defaults.isPreserveStackTrace()),
                 either(base.getDetectTransientFaults(), defaults.isDetectTransientFaults()),
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),

@@ -19,7 +19,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriTemplateHandler;
@@ -41,14 +40,11 @@ import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
-import static org.springframework.util.ClassUtils.getDefaultClassLoader;
-import static org.springframework.util.ClassUtils.isPresent;
 import static org.zalando.riptide.spring.Dependencies.ifPresent;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
 import static org.zalando.riptide.spring.Registry.list;
@@ -220,7 +216,7 @@ final class RiptideRegistrar {
                 .getBeanDefinition());
         }
 
-        if (client.getKeepOriginalStackTrace()) {
+        if (client.getPreserveStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
             plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
         }

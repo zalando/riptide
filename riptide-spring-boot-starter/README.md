@@ -196,7 +196,7 @@ riptide:
       socket-timeout: 100 milliseconds
       connection-time-to-live: 30 seconds
       max-connections-per-route: 16
-      keep-original-stack-trace: true
+      preserve-stack-trace: true
       detect-transient-faults: true
       retry:
         fixed-delay: 50 milliseconds
@@ -225,7 +225,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
 | `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
 | `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
-| `│   ├── keep-original-stack-trace`     | `boolean`      | `true`                                           |
+| `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
 | `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
@@ -258,7 +258,7 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── max-connections-total`     | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
 | `        │   └── scopes`                | `List<String>` | none                                             |
-| `        ├── keep-original-stack-trace` | `boolean`      | see `defaults`                                   |
+| `        ├── preserve-stack-trace`      | `boolean`      | see `defaults`                                   |
 | `        ├── detect-transient-faults`   | `boolean`      | see `defaults`                                   |
 | `        ├── retry`                     |                | see `defaults`                                   |
 | `        │   ├── fixed-delay`           | `TimeSpan`     | see `defaults`                                   |
