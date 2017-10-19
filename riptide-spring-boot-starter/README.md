@@ -251,30 +251,30 @@ For a complete overview of available properties, they type and default value ple
 | `└── clients`                           |                |                                                  |
 | `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
-| `        ├── connection-timeout`        | `TimeSpan`     | see defaults                                     |
-| `        ├── socket-timeout`            | `TimeSpan`     | see defaults                                     |
-| `        ├── connection-time-to-live`   | `TimeSpan`     | see defaults                                     |
-| `        ├── max-connections-per-route` | `int`          | see defaults                                     |
-| `        ├── max-connections-total`     | `int`          | see defaults                                     |
+| `        ├── connection-timeout`        | `TimeSpan`     | see `defaults`                                   |
+| `        ├── socket-timeout`            | `TimeSpan`     | see `defaults`                                   |
+| `        ├── connection-time-to-live`   | `TimeSpan`     | see `defaults`                                   |
+| `        ├── max-connections-per-route` | `int`          | see `defaults`                                   |
+| `        ├── max-connections-total`     | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
 | `        │   └── scopes`                | `List<String>` | none                                             |
-| `        ├── keep-original-stack-trace` | `boolean`      | see defaults                                     |
-| `        ├── detect-transient-faults`   | `boolean`      | see defaults                                     |
-| `        ├── retry`                     |                | see defaults                                     |
-| `        │   ├── fixed-delay`           | `TimeSpan`     | see defaults                                     |
-| `        │   ├── backoff`               |                | see defaults                                     |
-| `        │   │   ├── delay`             | `TimeSpan`     | see defaults                                     |
-| `        │   │   ├── max-delay`         | `TimeSpan`     | see defaults                                     |
-| `        │   │   └── delay-factor`      | `double`       | see defaults                                     |
-| `        │   ├── max-retries`           | `int`          | see defaults                                     |
-| `        │   ├── max-duration`          | `TimeSpan`     | see defaults                                     |
-| `        │   ├── jitter-factor`         | `double`       | see defaults                                     |
-| `        │   └── jitter`                | `TimeSpan`     | see defaults                                     |
-| `        ├── circuit-breaker`           |                | see defaults                                     |
-| `        │   ├── failure-threshold`     | `Ratio`        | see defaults                                     |
-| `        │   ├── delay`                 | `TimeSpan`     | see defaults                                     |
-| `        │   └── success-threshold`     | `Ratio`        | see defaults                                     |
-| `        ├── timeout`                   | `TimeSpan`     | see defaults                                     |
+| `        ├── keep-original-stack-trace` | `boolean`      | see `defaults`                                   |
+| `        ├── detect-transient-faults`   | `boolean`      | see `defaults`                                   |
+| `        ├── retry`                     |                | see `defaults`                                   |
+| `        │   ├── fixed-delay`           | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── backoff`               |                | see `defaults`                                   |
+| `        │   │   ├── delay`             | `TimeSpan`     | see `defaults`                                   |
+| `        │   │   ├── max-delay`         | `TimeSpan`     | see `defaults`                                   |
+| `        │   │   └── delay-factor`      | `double`       | see `defaults`                                   |
+| `        │   ├── max-retries`           | `int`          | see `defaults`                                   |
+| `        │   ├── max-duration`          | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── jitter-factor`         | `double`       | see `defaults`                                   |
+| `        │   └── jitter`                | `TimeSpan`     | see `defaults`                                   |
+| `        ├── circuit-breaker`           |                | see `defaults`                                   |
+| `        │   ├── failure-threshold`     | `Ratio`        | see `defaults`                                   |
+| `        │   ├── delay`                 | `TimeSpan`     | see `defaults`                                   |
+| `        │   └── success-threshold`     | `Ratio`        | see `defaults`                                   |
+| `        ├── timeout`                   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
 | `        └── keystore`                  |                | disables certificate pinning if omitted          |
 | `            ├── path`                  | `String`       | none                                             |
