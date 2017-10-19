@@ -11,7 +11,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -23,11 +22,11 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static org.junit.Assert.fail;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.IntStream.range;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -43,20 +42,18 @@ public class FailsafePluginTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(50)
+                    .setSocketTimeout(250)
                     .build())
             .build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
-            .requestFactory(factory)
+            .requestFactory(new RestAsyncClientHttpRequestFactory(client, new ConcurrentTaskExecutor()))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
                     .withRetryPolicy(new RetryPolicy()
                             .retryOn(SocketTimeoutException.class)
-                            .withDelay(25, TimeUnit.MILLISECONDS)
+                            .withDelay(250, MILLISECONDS)
                             .withMaxRetries(4))
                     .withCircuitBreaker(new CircuitBreaker()
                             .withFailureThreshold(3, 10)
@@ -82,12 +79,8 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetrySuccessfully() throws Throwable {
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(50, TimeUnit.MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse());
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(400, MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
                 .call(pass())
@@ -96,15 +89,13 @@ public class FailsafePluginTest {
 
     @Test(expected = SocketTimeoutException.class)
     public void shouldRetryUnsuccessfully() throws Throwable {
-        IntStream.range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/foo"),
-                        giveEmptyResponse().after(50, TimeUnit.MILLISECONDS)));
+        range(0, 5).forEach(i ->
+                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(400, MILLISECONDS)));
 
         try {
-            unit.get("/foo")
+            unit.get("/bar")
                     .call(pass())
                     .join();
-            fail("Expecting exception");
         } catch (final CompletionException e) {
             throw e.getCause();
         }
@@ -112,12 +103,10 @@ public class FailsafePluginTest {
 
     @Test
     public void shouldRetryOnDemand() throws Throwable {
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().withStatus(503));
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse());
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        unit.get("/foo")
+        unit.get("/baz")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()),
                         anySeries().dispatch(status(),
