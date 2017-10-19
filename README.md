@@ -223,6 +223,11 @@ class MetricsPlugin implements Plugin {
     }
     
 }
+
+Http.builder()
+    // ...
+    .plugin(new MetricsPlugin(metrics))
+    .build();
 ```
 
 ## Getting help
