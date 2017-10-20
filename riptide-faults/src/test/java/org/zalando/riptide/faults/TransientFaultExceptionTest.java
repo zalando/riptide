@@ -1,7 +1,6 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import org.junit.Test;
-import org.zalando.riptide.faults.TransientFaultException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

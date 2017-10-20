@@ -1,8 +1,6 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import org.junit.Test;
-import org.zalando.riptide.faults.FaultClassifier;
-import org.zalando.riptide.faults.TransientFaultException;
 
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;

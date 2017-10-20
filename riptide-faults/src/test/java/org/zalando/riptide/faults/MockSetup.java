@@ -1,4 +1,4 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.converter.HttpMessageConverter;

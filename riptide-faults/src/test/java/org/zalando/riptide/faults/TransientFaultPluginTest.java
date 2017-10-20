@@ -1,4 +1,4 @@
-package org.zalando.riptide.exceptions;
+package org.zalando.riptide.faults;
 
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.apache.http.client.config.RequestConfig;
@@ -12,8 +12,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
