@@ -74,9 +74,10 @@ public final class RiptideSettings {
         private Keystore keystore;
 
         @Getter
-        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
         public static final class OAuth {
-            private final List<String> scopes = new ArrayList<>();
+            private List<String> scopes = new ArrayList<>();
 
         }
 

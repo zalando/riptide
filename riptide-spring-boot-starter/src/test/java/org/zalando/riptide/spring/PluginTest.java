@@ -46,7 +46,7 @@ public final class PluginTest {
     public static class TestConfiguration {
 
         @Bean
-        public FaultClassifier ecbFaultClassifier() {
+        public FaultClassifier githubFaultClassifier() {
             return FaultClassifier.createDefault();
         }
 
@@ -56,7 +56,7 @@ public final class PluginTest {
         }
 
         @Bean
-        public Plugin ecbPlugin() {
+        public Plugin githubPlugin() {
             return new CustomPlugin();
         }
 
@@ -113,7 +113,7 @@ public final class PluginTest {
 
     @Test
     public void shouldUseTransientFaultPlugin() throws Exception {
-        assertThat(getPlugins(ecb), contains(asList(
+        assertThat(getPlugins(github), contains(asList(
                 instanceOf(TransientFaultPlugin.class),
                 instanceOf(CustomPlugin.class))));
     }
@@ -124,7 +124,7 @@ public final class PluginTest {
     }
 
     public void shouldUseTimeoutPlugin() throws Exception {
-        assertThat(getPlugins(github), contains(instanceOf(TimeoutPlugin.class)));
+        assertThat(getPlugins(ecb), contains(instanceOf(TimeoutPlugin.class)));
     }
 
     @Test
