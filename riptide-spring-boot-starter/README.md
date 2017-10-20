@@ -220,6 +220,7 @@ For a complete overview of available properties, they type and default value ple
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
 | `├── defaults`                          |                |                                                  |
+| `│   ├── url-resolution`                | `String`       | `rfc`                                            |
 | `│   ├── connect-timeout`               | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
@@ -251,6 +252,7 @@ For a complete overview of available properties, they type and default value ple
 | `└── clients`                           |                |                                                  |
 | `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
+| `        ├── url-resolution`            | `String`       | see `defaults`                                   |
 | `        ├── connect-timeout`           | `TimeSpan`     | see `defaults`                                   |
 | `        ├── socket-timeout`            | `TimeSpan`     | see `defaults`                                   |
 | `        ├── connection-time-to-live`   | `TimeSpan`     | see `defaults`                                   |

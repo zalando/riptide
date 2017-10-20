@@ -1,6 +1,7 @@
 package org.zalando.riptide.spring;
 
 import com.google.common.collect.ImmutableMap;
+import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
@@ -26,6 +27,7 @@ final class Defaulting {
 
     private static Defaults merge(final Defaults defaults) {
         return new Defaults(
+                either(defaults.getUrlResolution(), UrlResolution.RFC),
                 either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
@@ -68,6 +70,7 @@ final class Defaulting {
 
         return new Client(
                 base.getBaseUrl(),
+                either(base.getUrlResolution(), defaults.getUrlResolution()),
                 either(base.getConnectTimeout(), defaults.getConnectTimeout()),
                 either(base.getSocketTimeout(), defaults.getSocketTimeout()),
                 either(base.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()),

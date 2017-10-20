@@ -28,7 +28,7 @@ public final class AccessTokensFactoryBeanTest {
             ),
             singletonMap(
                     "example", new Client(
-                            null, null, null, null, null, null,
+                            null, null, null, null, null, null, null,
                             new OAuth(singletonList("example")),
                             null, null, null, null, null, false, null                   )
             )

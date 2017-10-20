@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.zalando.riptide.UrlResolution;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ public final class RiptideSettings {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Defaults {
+        private UrlResolution urlResolution;
         private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan connectionTimeToLive;
@@ -59,6 +61,7 @@ public final class RiptideSettings {
     @AllArgsConstructor
     public static final class Client {
         private String baseUrl;
+        private UrlResolution urlResolution;
         private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan connectionTimeToLive;

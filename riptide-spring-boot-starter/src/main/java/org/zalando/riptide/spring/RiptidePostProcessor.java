@@ -18,15 +18,15 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     @SneakyThrows
-    public void setEnvironment(final Environment environment) {
-        final ConfigurableEnvironment environment1 = (ConfigurableEnvironment) environment;
+    public void setEnvironment(final Environment env) {
+        final ConfigurableEnvironment environment = (ConfigurableEnvironment) env;
 
         final PropertiesConfigurationFactory<RiptideSettings> factory =
                 new PropertiesConfigurationFactory<>(RiptideSettings.class);
 
         factory.setTargetName("riptide");
-        factory.setPropertySources(environment1.getPropertySources());
-        factory.setConversionService(environment1.getConversionService());
+        factory.setPropertySources(environment.getPropertySources());
+        factory.setConversionService(environment.getConversionService());
 
         this.settings = factory.getObject();
     }

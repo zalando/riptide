@@ -4,7 +4,8 @@ riptide:
     detect-transient-faults: false
   clients:
     example:
-      base-url: https://example.com
+      base-url: https://example.com/foo
+      url-resolution: append
       connection-timout: 2000 milliseconds
       socket-timeout: 3000 milliseconds
       oauth.scopes:

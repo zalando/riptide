@@ -131,9 +131,10 @@ final class RiptideRegistrar {
 
             final BeanDefinitionBuilder http = genericBeanDefinition(HttpFactory.class);
             http.setFactoryMethod("create");
+            http.addConstructorArgValue(client.getBaseUrl());
+            http.addConstructorArgValue(client.getUrlResolution());
             http.addConstructorArgReference(factoryId);
             http.addConstructorArgValue(converters);
-            http.addConstructorArgValue(client.getBaseUrl());
             http.addConstructorArgValue(registerPlugins(id, client));
 
             return http;

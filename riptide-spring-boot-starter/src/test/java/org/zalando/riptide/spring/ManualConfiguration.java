@@ -29,6 +29,7 @@ import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
+import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
@@ -76,6 +77,7 @@ public class ManualConfiguration {
             final ClientHttpMessageConverters converters, final ScheduledExecutorService executor) {
         return Http.builder()
                 .baseUrl("https://www.example.com")
+                .urlResolution(UrlResolution.RFC)
                 .requestFactory(requestFactory)
                 .converters(converters.getConverters())
                 .plugin(new TransientFaultPlugin(
