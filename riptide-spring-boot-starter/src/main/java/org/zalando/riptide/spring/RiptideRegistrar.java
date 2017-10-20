@@ -283,7 +283,7 @@ final class RiptideRegistrar {
 
             final BeanDefinitionBuilder httpClient = genericBeanDefinition(HttpClientFactoryBean.class);
 
-            configure(httpClient, id, "connectionTimeout", client.getConnectionTimeout());
+            configure(httpClient, id, "connectTimeout", client.getConnectTimeout());
             configure(httpClient, id, "socketTimeout", client.getSocketTimeout());
             configure(httpClient, id, "connectionTimeToLive", client.getConnectionTimeToLive());
             configure(httpClient, id, "maxConnectionsPerRoute", client.getMaxConnectionsPerRoute());

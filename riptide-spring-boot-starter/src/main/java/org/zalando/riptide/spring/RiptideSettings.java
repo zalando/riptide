@@ -29,7 +29,7 @@ public final class RiptideSettings {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Defaults {
-        private TimeSpan connectionTimeout;
+        private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
@@ -49,7 +49,7 @@ public final class RiptideSettings {
         private URI accessTokenUrl;
         private Path credentialsDirectory;
         private TimeSpan schedulingPeriod = TimeSpan.of(5, SECONDS);
-        private TimeSpan connectionTimeout = TimeSpan.of(1, SECONDS);
+        private TimeSpan connectTimeout = TimeSpan.of(1, SECONDS);
         private TimeSpan socketTimeout = TimeSpan.of(2, SECONDS);
     }
 
@@ -59,7 +59,7 @@ public final class RiptideSettings {
     @AllArgsConstructor
     public static final class Client {
         private String baseUrl;
-        private TimeSpan connectionTimeout;
+        private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;

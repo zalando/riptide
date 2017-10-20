@@ -8,10 +8,8 @@ import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
@@ -28,7 +26,7 @@ final class Defaulting {
 
     private static Defaults merge(final Defaults defaults) {
         return new Defaults(
-                either(defaults.getConnectionTimeout(), TimeSpan.of(5, SECONDS)),
+                either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
                 either(defaults.getMaxConnectionsPerRoute(), 2),
@@ -56,7 +54,7 @@ final class Defaulting {
                         Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null)),
                 base.getCredentialsDirectory(),
                 base.getSchedulingPeriod(),
-                either(base.getConnectionTimeout(), defaults.getConnectionTimeout()),
+                either(base.getConnectTimeout(), defaults.getConnectTimeout()),
                 either(base.getSocketTimeout(), defaults.getSocketTimeout())
         );
     }
@@ -70,7 +68,7 @@ final class Defaulting {
 
         return new Client(
                 base.getBaseUrl(),
-                either(base.getConnectionTimeout(), defaults.getConnectionTimeout()),
+                either(base.getConnectTimeout(), defaults.getConnectTimeout()),
                 either(base.getSocketTimeout(), defaults.getSocketTimeout()),
                 either(base.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()),
                 maxConnectionsPerRoute,

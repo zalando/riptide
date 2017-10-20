@@ -44,7 +44,7 @@ class HttpClientFactoryBean extends AbstractFactoryBean<CloseableHttpClient> {
         interceptors.forEach(builder::addInterceptorLast);
     }
 
-    public void setConnectionTimeout(final TimeSpan connectTimeout) {
+    public void setConnectTimeout(final TimeSpan connectTimeout) {
         config.setConnectTimeout((int) connectTimeout.to(TimeUnit.MILLISECONDS));
     }
 

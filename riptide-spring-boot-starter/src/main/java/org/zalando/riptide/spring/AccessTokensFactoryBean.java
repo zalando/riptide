@@ -27,7 +27,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
         @Nullable final Path directory = oAuth.getCredentialsDirectory();
-        final TimeSpan connectionTimeout = oAuth.getConnectionTimeout();
+        final TimeSpan connectTimeout = oAuth.getConnectTimeout();
         final TimeSpan socketTimeout = oAuth.getSocketTimeout();
 
         this.builder = Tokens.createAccessTokensWithUri(accessTokenUrl)
@@ -35,7 +35,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
                 .usingUserCredentialsProvider(getUserCredentialsProvider(directory))
                 .schedulingPeriod((int) oAuth.getSchedulingPeriod().getAmount())
                 .schedulingTimeUnit(oAuth.getSchedulingPeriod().getUnit())
-                .connectTimeout((int) connectionTimeout.to(TimeUnit.MILLISECONDS))
+                .connectTimeout((int) connectTimeout.to(TimeUnit.MILLISECONDS))
                 .socketTimeout((int) socketTimeout.to(TimeUnit.MILLISECONDS));
 
         settings.getClients().forEach((id, client) -> {

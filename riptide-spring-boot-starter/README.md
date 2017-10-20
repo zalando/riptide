@@ -22,7 +22,7 @@ together whenever interaction with a remote service is required. Spinning up new
 riptide.clients:
   example:
     base-url: http://example.com
-    connection-timeout: 150 milliseconds
+    connect-timeout: 150 milliseconds
     socket-timeout: 100 milliseconds
     connection-time-to-live: 30 seconds
     max-connections-per-route: 16
@@ -116,7 +116,7 @@ Required when `detect-transient-faults` is enabled.
 
 #### [Timeout](../riptide-timeout) support
 
-Required when `timeout` is enabled. Not to be confused with `connection-timeout` and `socket-timeout`, those are
+Required when `timeout` is enabled. Not to be confused with `connect-timeout` and `socket-timeout`, those are
 supported out of the box.
 
 ```xml
@@ -187,12 +187,12 @@ riptide:
     access-token-url: https://auth.example.com
     credentials-directory: /secrets
     scheduling-period: 10 seconds
-    connection-timeout: 1 second
+    connect-timeout: 1 second
     socket-timeout: 1500 milliseconds
   clients:
     example:
       base-url: http://example.com
-      connection-timeout: 150 milliseconds
+      connect-timeout: 150 milliseconds
       socket-timeout: 100 milliseconds
       connection-time-to-live: 30 seconds
       max-connections-per-route: 16
@@ -220,7 +220,7 @@ For a complete overview of available properties, they type and default value ple
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
 | `├── defaults`                          |                |                                                  |
-| `│   ├── connection-timeout`            | `TimeSpan`     | `5 seconds`                                      |
+| `│   ├── connect-timeout`               | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
 | `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
@@ -251,7 +251,7 @@ For a complete overview of available properties, they type and default value ple
 | `└── clients`                           |                |                                                  |
 | `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
-| `        ├── connection-timeout`        | `TimeSpan`     | see `defaults`                                   |
+| `        ├── connect-timeout`           | `TimeSpan`     | see `defaults`                                   |
 | `        ├── socket-timeout`            | `TimeSpan`     | see `defaults`                                   |
 | `        ├── connection-time-to-live`   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── max-connections-per-route` | `int`          | see `defaults`                                   |

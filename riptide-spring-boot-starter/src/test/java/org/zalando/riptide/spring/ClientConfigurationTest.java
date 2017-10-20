@@ -23,12 +23,12 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = DefaultTestConfiguration.class)
 @TestPropertySource(properties = {
-    "riptide.defaults.connection-timeout: 1 second",
+    "riptide.defaults.connect-timeout: 1 second",
     "riptide.defaults.socket-timeout: 2 seconds",
     "riptide.defaults.connection-time-to-live: 1 minute",
     "riptide.defaults.max-connections-per-route: 12",
     "riptide.defaults.max-connections-total: 12",
-    "riptide.clients.example.connection-timeout: 12 minutes",
+    "riptide.clients.example.connect-timeout: 12 minutes",
     "riptide.clients.example.socket-timeout: 34 hours",
     "riptide.clients.example.connection-time-to-live: 1 day",
     "riptide.clients.example.max-connections-per-route: 24",
