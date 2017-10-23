@@ -65,6 +65,9 @@ http.get("/users/me")
         anySeries().call(problemHandling()))
 ```
 
+**Be aware** that the timeout will also include the runtime of the `greet` method or `problemHandling()` depending
+on which one is being executed.
+
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
