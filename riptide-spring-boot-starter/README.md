@@ -224,8 +224,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── connect-timeout`               | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
-| `│   ├── max-connections-per-route`     | `int`          | `2`                                              |
-| `│   ├── max-connections-total`         | `int`          | maximum of `20` and *per route*                  |
+| `│   ├── max-connections-per-route`     | `int`          | `20`                                             |
+| `│   ├── max-connections-total`         | `int`          | `20` (or at least `max-connections-per-route`)   |
 | `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
 | `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |

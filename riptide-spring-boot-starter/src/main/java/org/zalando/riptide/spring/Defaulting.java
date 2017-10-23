@@ -9,12 +9,14 @@ import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.lang.System.getenv;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.zalando.riptide.spring.RiptideSettings.CircuitBreaker;
 import static org.zalando.riptide.spring.RiptideSettings.Retry;
@@ -31,7 +33,7 @@ final class Defaulting {
                 either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
-                either(defaults.getMaxConnectionsPerRoute(), 2),
+                either(defaults.getMaxConnectionsPerRoute(), 20),
                 either(defaults.getMaxConnectionsTotal(), 20),
                 either(defaults.getPreserveStackTrace(), true),
                 either(defaults.getDetectTransientFaults(), false),
@@ -46,7 +48,7 @@ final class Defaulting {
                 defaults,
                 merge(base.getOauth(), defaults),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(client, defaults)))
+                        merge(requireNonNull(client), defaults)))
         );
     }
 
