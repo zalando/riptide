@@ -21,7 +21,7 @@ public final class PluginTest {
 
     private final Plugin state = new Plugin() {
         @Override
-        public RequestExecution apply(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -40,7 +40,7 @@ public final class PluginTest {
 
     private final Plugin argument = new Plugin() {
         @Override
-        public RequestExecution apply(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -59,12 +59,12 @@ public final class PluginTest {
 
     @Test
     public void shouldApplyInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::apply);
+        shouldRunInCorrectOrder(compound(state, argument)::interceptBeforeRouting);
     }
 
     @Test
     public void shouldPrepareInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::prepare);
+        shouldRunInCorrectOrder(compound(state, argument)::interceptAfterRouting);
     }
 
     private void shouldRunInCorrectOrder(
@@ -96,7 +96,7 @@ public final class PluginTest {
         final RequestExecution expected = mock(RequestExecution.class);
 
         {
-            final RequestExecution actual = IdentityPlugin.IDENTITY.apply(arguments, expected);
+            final RequestExecution actual = IdentityPlugin.IDENTITY.interceptBeforeRouting(arguments, expected);
             assertThat(actual, is(sameInstance(expected)));
         }
 

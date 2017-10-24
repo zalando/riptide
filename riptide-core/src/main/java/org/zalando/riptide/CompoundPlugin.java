@@ -11,8 +11,8 @@ final class CompoundPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution apply(final RequestArguments arguments, final RequestExecution execution) {
-        return right.apply(arguments, left.apply(arguments, execution));
+    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
+        return right.interceptBeforeRouting(arguments, left.interceptBeforeRouting(arguments, execution));
     }
 
     @Override

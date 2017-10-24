@@ -11,11 +11,15 @@ import java.util.List;
 @FunctionalInterface // TODO (3.x): remove
 public interface Plugin {
 
-    default RequestExecution apply(final RequestArguments arguments, final RequestExecution execution) {
+    default RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
         return execution;
     }
 
-    // TODO (3.x): rename and provide default implementation
+    default RequestExecution interceptAfterRouting(final RequestArguments arguments, final RequestExecution execution) {
+        return prepare(arguments, execution);
+    }
+
+    // TODO (3.x): remove
     RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution);
 
     static Plugin compound(final Plugin... plugins) {

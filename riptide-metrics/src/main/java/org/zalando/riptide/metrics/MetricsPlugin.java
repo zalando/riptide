@@ -24,7 +24,7 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution apply(final RequestArguments arguments, final RequestExecution execution) {
+    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
         final Metric metric = new Metric(arguments);
 
         return () -> execution.execute()
@@ -44,11 +44,13 @@ public final class MetricsPlugin implements Plugin {
         void record(@Nullable final ClientHttpResponse response, @Nullable final Throwable e) throws Exception {
             stopwatch.stop();
 
-            if (response != null) {
-                final long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-                final String metricName = generator.generate(arguments, response);
-                gaugeService.submit(metricName, elapsed);
+            if (response == null) {
+                return;
             }
+
+            final long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            final String metricName = generator.generate(arguments, response);
+            gaugeService.submit(metricName, elapsed);
         }
     }
 

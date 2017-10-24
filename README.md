@@ -200,6 +200,7 @@ Riptide comes with a way to register extensions in the form of plugins.
 
 - `OriginalStackTracePlugin`, preserves stack traces when executing requests asynchronously
 - [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
+- [`MetricsPlugin`](riptide-metrics), adds metrics for request duration
 - [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
 - [`TimeoutPlugin`](riptide-timeout), applies timeouts to the whole call (including retries, network latency, etc.)
 
@@ -210,7 +211,7 @@ you may consider implementing a custom Plugin for it, e.g.:
 class MetricsPlugin implements Plugin {
     
     @Override
-    public RequestExecution prepare(RequestArguments arguments, RequestExecution execution) {
+    public RequestExecution interceptBeforeRouting(RequestArguments arguments, RequestExecution execution) {
         return () -> {
            StopWatch watch = createStarted();
            CompletableFuture<ClientHttpResponse> future = execution.execute();

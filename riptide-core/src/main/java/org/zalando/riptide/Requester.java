@@ -105,7 +105,7 @@ public final class Requester extends Dispatcher {
         public CompletableFuture<Void> call(final Route route) {
             try {
                 final RequestExecution original = this::send;
-                final RequestExecution applied = plugin.apply(arguments, original);
+                final RequestExecution applied = plugin.interceptBeforeRouting(arguments, original);
                 final RequestExecution prepared = plugin.prepare(arguments, dispatch(applied, route));
                 final CompletableFuture<ClientHttpResponse> future = prepared.execute();
 
