@@ -22,7 +22,6 @@
     <properties>
         <logbook.version>1.4.0</logbook.version>
         <tracer.version>0.11.2</tracer.version>
-        <zmon.version>0.9.7</zmon.version>
     </properties>
 
     <dependencies>
@@ -42,6 +41,11 @@
             </exclusions>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- zalando -->
         <dependency>
@@ -51,18 +55,24 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-failsafe</artifactId>
-            <!-- required if, explicitly enabled by configuration -->
+            <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-faults</artifactId>
-            <!-- required if, explicitly enabled by configuration -->
+            <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-metrics</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -72,21 +82,21 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-timeout</artifactId>
-            <!-- required if, explicitly enabled by configuration -->
+            <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando.stups</groupId>
             <artifactId>tokens</artifactId>
             <version>0.11.0-beta-2</version>
-            <!-- required if, explicitly enabled by configuration -->
+            <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.zalando.stups</groupId>
             <artifactId>stups-http-components-oauth2</artifactId>
             <version>1.0.19</version>
-            <!-- required if, explicitly enabled by configuration -->
+            <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -99,12 +109,6 @@
             <groupId>org.zalando</groupId>
             <artifactId>logbook-spring-boot-starter</artifactId>
             <version>${logbook.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando.zmon</groupId>
-            <artifactId>zmon-actuator</artifactId>
-            <version>${zmon.version}</version>
             <optional>true</optional>
         </dependency>
 

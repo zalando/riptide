@@ -1,0 +1,6 @@
+riptide:
+  clients:
+    example:
+      base-url: https://example.com/foo
+      oauth.scopes:
+        - example.read

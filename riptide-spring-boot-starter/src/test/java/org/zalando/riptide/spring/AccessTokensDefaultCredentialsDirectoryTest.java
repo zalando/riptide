@@ -8,21 +8,16 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.ClientCredentials;
 import org.zalando.stups.tokens.ClientCredentialsProvider;
 import org.zalando.stups.tokens.TokenRefresherConfiguration;
 import org.zalando.stups.tokens.UserCredentials;
 import org.zalando.stups.tokens.UserCredentialsProvider;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
@@ -31,22 +26,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(classes = DefaultTestConfiguration.class)
 @TestPropertySource(properties = "riptide.oauth.access-token-url: http://example.com")
 @Component
 public final class AccessTokensDefaultCredentialsDirectoryTest {
 
     @ClassRule
     public static final EnvironmentVariables ENVIRONMENT = new EnvironmentVariables();
-
-    @Configuration
-    @ImportAutoConfiguration({
-            RiptideAutoConfiguration.class,
-            JacksonAutoConfiguration.class,
-    })
-    public static class TestConfiguration {
-
-    }
 
     @BeforeClass
     public static void setAccessTokenUrl() {

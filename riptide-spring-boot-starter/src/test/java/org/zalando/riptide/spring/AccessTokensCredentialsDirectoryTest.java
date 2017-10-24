@@ -11,14 +11,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.ClientCredentials;
 import org.zalando.stups.tokens.ClientCredentialsProvider;
 import org.zalando.stups.tokens.TokenRefresherConfiguration;
 import org.zalando.stups.tokens.UserCredentials;
 import org.zalando.stups.tokens.UserCredentialsProvider;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.lang.reflect.Field;
 

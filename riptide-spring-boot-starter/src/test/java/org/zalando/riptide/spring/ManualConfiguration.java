@@ -10,6 +10,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,8 @@ import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
-import org.zalando.riptide.spring.zmon.ZmonRequestInterceptor;
-import org.zalando.riptide.spring.zmon.ZmonResponseInterceptor;
+import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.spring.PluginTest.CustomPlugin;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -48,8 +49,6 @@ import org.zalando.tracer.Tracer;
 import org.zalando.tracer.concurrent.TracingExecutors;
 import org.zalando.tracer.httpclient.TracerHttpRequestInterceptor;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
-import org.zalando.zmon.actuator.config.ZmonMetricsAutoConfiguration;
-import org.zalando.zmon.actuator.metrics.MetricsWrapper;
 
 import java.io.File;
 import java.net.URI;
@@ -67,19 +66,20 @@ import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHost
 @Import({
         LogbookAutoConfiguration.class,
         TracerAutoConfiguration.class,
-        ZmonMetricsAutoConfiguration.class,
         JacksonAutoConfiguration.class,
 })
 public class ManualConfiguration {
 
     @Bean
     public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
-            final ClientHttpMessageConverters converters, final ScheduledExecutorService executor) {
+            final ClientHttpMessageConverters converters, final GaugeService gaugeService,
+            final ScheduledExecutorService executor) {
         return Http.builder()
                 .baseUrl("https://www.example.com")
                 .urlResolution(UrlResolution.RFC)
                 .requestFactory(requestFactory)
                 .converters(converters.getConverters())
+                .plugin(new MetricsPlugin(gaugeService, new ZMonMetricsNameGenerator()))
                 .plugin(new TransientFaultPlugin(
                         FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                 .addAll(FaultClassifier.defaults())
@@ -100,6 +100,7 @@ public class ManualConfiguration {
                                 .withTimeout(3, SECONDS)))
                 .plugin(new TimeoutPlugin(3, SECONDS))
                 .plugin(new OriginalStackTracePlugin())
+                .plugin(new CustomPlugin())
                 .build();
     }
 
@@ -133,7 +134,7 @@ public class ManualConfiguration {
 
     @Bean
     public RestAsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-            final AccessTokens tokens, final Tracer tracer, final Logbook logbook, final MetricsWrapper metrics,
+            final AccessTokens tokens, final Tracer tracer, final Logbook logbook,
             final ScheduledExecutorService executor) throws Exception {
         return new RestAsyncClientHttpRequestFactory(
                 HttpClientBuilder.create()
@@ -146,10 +147,8 @@ public class ManualConfiguration {
                         .setMaxConnTotal(20)
                         .addInterceptorFirst(new AccessTokensRequestInterceptor("example", tokens))
                         .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
-                        .addInterceptorFirst(new ZmonRequestInterceptor())
                         .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
                         .addInterceptorLast(new GzippingHttpRequestInterceptor())
-                        .addInterceptorLast(new ZmonResponseInterceptor(metrics))
                         .addInterceptorLast(new LogbookHttpResponseInterceptor())
                         .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                 SSLContexts.custom()

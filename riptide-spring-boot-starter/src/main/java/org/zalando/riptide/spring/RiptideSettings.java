@@ -36,8 +36,9 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
-        private Boolean preserveStackTrace;
         private Boolean detectTransientFaults;
+        private Boolean preserveStackTrace;
+        private Boolean recordMetrics;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;
@@ -68,8 +69,9 @@ public final class RiptideSettings {
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
         private OAuth oauth;
-        private Boolean preserveStackTrace;
         private Boolean detectTransientFaults;
+        private Boolean preserveStackTrace;
+        private Boolean recordMetrics;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
         private TimeSpan timeout;

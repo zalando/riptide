@@ -104,10 +104,10 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<Void> call(final Route route) {
             try {
-                final RequestExecution original = () -> send().thenApply(dispatch(route));
-                final RequestExecution augmented = plugin.prepare(arguments, original);
-
-                final CompletableFuture<ClientHttpResponse> future = augmented.execute();
+                final RequestExecution original = this::send;
+                final RequestExecution applied = plugin.apply(arguments, original);
+                final RequestExecution prepared = plugin.prepare(arguments, dispatch(applied, route));
+                final CompletableFuture<ClientHttpResponse> future = prepared.execute();
 
                 // TODO why not return CompletableFuture<ClientHttpResponse> here?
                 // we need a CompletableFuture<Void>
@@ -127,6 +127,10 @@ public final class Requester extends Dispatcher {
             final URI requestUri = arguments.getRequestUri();
             final HttpMethod method = arguments.getMethod();
             return requestFactory.createAsyncRequest(requestUri, method);
+        }
+
+        private RequestExecution dispatch(final RequestExecution execution, final Route route) {
+            return () -> execution.execute().thenApply(dispatch(route));
         }
 
         private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {

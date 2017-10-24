@@ -2,10 +2,6 @@ package org.zalando.riptide.spring;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.test.context.TestPropertySource;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,15 +11,20 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.timeout.TimeoutPlugin;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -114,22 +115,29 @@ public final class PluginTest {
     @Test
     public void shouldUseTransientFaultPlugin() throws Exception {
         assertThat(getPlugins(github), contains(asList(
+                instanceOf(MetricsPlugin.class),
                 instanceOf(TransientFaultPlugin.class),
                 instanceOf(CustomPlugin.class))));
     }
 
     @Test
     public void shouldUseFailsafePlugin() throws Exception {
-        assertThat(getPlugins(foo), contains(instanceOf(FailsafePlugin.class)));
+        assertThat(getPlugins(foo), contains(asList(
+                instanceOf(MetricsPlugin.class),
+                instanceOf(FailsafePlugin.class))));
     }
 
     public void shouldUseTimeoutPlugin() throws Exception {
-        assertThat(getPlugins(ecb), contains(instanceOf(TimeoutPlugin.class)));
+        assertThat(getPlugins(ecb), contains(asList(
+                instanceOf(MetricsPlugin.class),
+                instanceOf(TimeoutPlugin.class))));
     }
 
     @Test
     public void shouldUseOriginalStackTracePlugin() throws Exception {
-        assertThat(getPlugins(example), contains(instanceOf(OriginalStackTracePlugin.class)));
+        assertThat(getPlugins(example), contains(asList(
+                instanceOf(MetricsPlugin.class),
+                instanceOf(OriginalStackTracePlugin.class))));
     }
 
     private List<Plugin> getPlugins(final Http http) throws Exception {

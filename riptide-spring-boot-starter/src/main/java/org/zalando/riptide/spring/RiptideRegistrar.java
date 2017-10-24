@@ -28,10 +28,9 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
-import org.zalando.riptide.spring.zmon.ZmonRequestInterceptor;
-import org.zalando.riptide.spring.zmon.ZmonResponseInterceptor;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -174,6 +173,11 @@ final class RiptideRegistrar {
 
     private List<BeanMetadataElement> registerPlugins(final String id, final Client client) {
         final List<BeanMetadataElement> plugins = list();
+
+        if (client.getRecordMetrics()) {
+            log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
+            plugins.add(ref("metricsPlugin"));
+        }
 
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
@@ -326,16 +330,6 @@ final class RiptideRegistrar {
         if (registry.isRegistered("tracerHttpRequestInterceptor")) {
             log.debug("Client [{}]: Registering TracerHttpRequestInterceptor", id);
             requestInterceptors.add(ref("tracerHttpRequestInterceptor"));
-        }
-
-        if (registry.isRegistered("zmonMetricsWrapper")) {
-            log.debug("Client [{}]: Registering ZmonRequestInterceptor", id);
-            requestInterceptors.add(genericBeanDefinition(ZmonRequestInterceptor.class)
-                    .getBeanDefinition());
-            log.debug("Client [{}]: Registering ZmonResponseInterceptor", id);
-            responseInterceptors.add(genericBeanDefinition(ZmonResponseInterceptor.class)
-                    .addConstructorArgValue(ref("zmonMetricsWrapper"))
-                    .getBeanDefinition());
         }
 
         if (registry.isRegistered("logbookHttpResponseInterceptor")) {
