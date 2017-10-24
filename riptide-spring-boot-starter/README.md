@@ -51,6 +51,7 @@ private Http example;
   - [Jackson 2](https://github.com/FasterXML/jackson)
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
   - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
+  - [Metrics](http://metrics.dropwizard.io/) via [Riptide: Metrics](../riptide-metrics)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
@@ -68,11 +69,11 @@ private Http example;
   - (Apache) HTTP Client
   - Failsafe (optional)
   - Faults (optional)
+  - Metrics (optional)
   - Timeouts (optional)
 - Logbook (optional)
 - Tracer (optional)
 - Tokens (optional)
-- ZMon Actuator (optional)
 
 ## Installation
 
@@ -167,13 +168,15 @@ Required for `oauth` support.
 </dependency>
 ```
 
-#### [ZMon](https://github.com/zalando-zmon/zmon-actuator) integration
+#### [Metrics](../riptide-metrics) integration
+
+Required when `record-metrics` is enabled. 
 
 ```xml
 <dependency>
-    <groupId>org.zalando.zmon</groupId>
-    <artifactId>zmon-actuator</artifactId>
-    <version>${zmon.version}</version>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-metrics</artifactId>
+    <version>${riptide.version}</version>
 </dependency>
 ```
 
@@ -226,8 +229,9 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
 | `│   ├── max-connections-per-route`     | `int`          | `20`                                             |
 | `│   ├── max-connections-total`         | `int`          | `20` (or at least `max-connections-per-route`)   |
-| `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
 | `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
+| `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
+| `│   ├── record-metrics`                | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
 | `│   │   ├── backoff`                   |                | none, mutually exclusive to `fixed-delay`        |
@@ -260,8 +264,9 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── max-connections-total`     | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
 | `        │   └── scopes`                | `List<String>` | none                                             |
-| `        ├── preserve-stack-trace`      | `boolean`      | see `defaults`                                   |
 | `        ├── detect-transient-faults`   | `boolean`      | see `defaults`                                   |
+| `        ├── preserve-stack-trace`      | `boolean`      | see `defaults`                                   |
+| `        ├── record-metrics`            | `boolean`      | see `defaults`                                   |
 | `        ├── retry`                     |                | see `defaults`                                   |
 | `        │   ├── fixed-delay`           | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── backoff`               |                | see `defaults`                                   |

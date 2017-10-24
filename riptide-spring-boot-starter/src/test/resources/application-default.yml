@@ -1,7 +1,10 @@
 riptide:
   defaults:
-    preserve-stack-trace: false
     detect-transient-faults: false
+    preserve-stack-trace: false
+    record-metrics: true
+  oauth:
+    access-token-url: http://example.com
   clients:
     example:
       base-url: https://example.com/foo

@@ -7,8 +7,6 @@ import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -30,7 +28,7 @@ public final class AccessTokensFactoryBeanTest {
                     "example", new Client(
                             null, null, null, null, null, null, null,
                             new OAuth(singletonList("example")),
-                            null, null, null, null, null, false, null                   )
+                            null, null, null, null, null, null, false, null)
             )
     ));
 

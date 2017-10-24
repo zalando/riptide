@@ -63,6 +63,7 @@
         <module>riptide-failsafe</module>
         <module>riptide-faults</module>
         <module>riptide-httpclient</module>
+        <module>riptide-metrics</module>
         <module>riptide-problem</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
@@ -107,6 +108,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-httpclient</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-metrics</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -428,6 +434,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.19.1</version>
                     <configuration>
+                        <failIfNoTests>true</failIfNoTests>
                         <parallel>classesAndMethods</parallel>
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>true</perCoreThreadCount>
