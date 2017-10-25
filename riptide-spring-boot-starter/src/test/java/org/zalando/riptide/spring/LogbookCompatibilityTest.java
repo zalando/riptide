@@ -24,7 +24,7 @@ public final class LogbookCompatibilityTest {
 
     }
 
-        @Test
+    @Test
     public void shouldUseInterceptors() {
         // TODO implement
     }

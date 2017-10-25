@@ -219,11 +219,11 @@ Clients are identified by a *Client ID*, for instance `example` in the sample ab
 
 For a complete overview of available properties, they type and default value please refer to the following table:
 
-| Configuration                           | Data type      | Default                                          |
+| Configuration                           | Data type      | Default / Comment                                |
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
 | `├── defaults`                          |                |                                                  |
-| `│   ├── url-resolution`                | `String`       | `rfc`                                            |
+| `│   ├── url-resolution`                | `String`       | `rfc`, not applicable to Async/RestTemplate      |
 | `│   ├── connect-timeout`               | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── socket-timeout`                | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |

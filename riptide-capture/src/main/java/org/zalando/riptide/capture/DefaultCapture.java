@@ -26,15 +26,13 @@ final class DefaultCapture<T> implements Capture<T> {
     @Override
     public T apply(final Void result) {
         final Optional<T> value = reference.get();
-        checkPresent(value);
-        return value.orElse(null);
-    }
 
-    private void checkPresent(@Nullable final Optional<T> value) {
         if (value == null) {
             // TODO throw specific exception?
             throw new NoSuchElementException("No value present");
         }
+
+        return value.orElse(null);
     }
 
 }

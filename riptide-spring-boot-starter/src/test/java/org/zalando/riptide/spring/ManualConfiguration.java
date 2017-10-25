@@ -79,7 +79,7 @@ public class ManualConfiguration {
                 .urlResolution(UrlResolution.RFC)
                 .requestFactory(requestFactory)
                 .converters(converters.getConverters())
-                .plugin(new MetricsPlugin(gaugeService, new ZMonMetricsNameGenerator()))
+                .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
                 .plugin(new TransientFaultPlugin(
                         FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                 .addAll(FaultClassifier.defaults())

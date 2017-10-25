@@ -4,12 +4,13 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.CompletableFuture;
 
-final class ListenableCompletableFutureAdapter<T> extends CompletableFuture<T> {
+public final class ListenableToCompletableFutureAdapter<T> extends CompletableFuture<T> {
 
     private final ListenableFuture<T> future;
 
-    private ListenableCompletableFutureAdapter(final ListenableFuture<T> future) {
+    public ListenableToCompletableFutureAdapter(final ListenableFuture<T> future) {
         this.future = future;
+        future.addCallback(this::complete, this::completeExceptionally);
     }
 
     @Override
@@ -17,12 +18,6 @@ final class ListenableCompletableFutureAdapter<T> extends CompletableFuture<T> {
         final boolean cancelled = future.cancel(mayInterruptIfRunning);
         super.cancel(mayInterruptIfRunning);
         return cancelled;
-    }
-
-    static <T> CompletableFuture<T> adapt(final ListenableFuture<T> original) {
-        final CompletableFuture<T> future = new ListenableCompletableFutureAdapter<>(original);
-        original.addCallback(future::complete, future::completeExceptionally);
-        return future;
     }
 
 }

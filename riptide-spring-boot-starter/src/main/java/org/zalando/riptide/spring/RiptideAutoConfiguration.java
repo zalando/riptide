@@ -37,7 +37,7 @@ public class RiptideAutoConfiguration {
         @SuppressWarnings("SpringJavaAutowiringInspection")
         public MetricsPlugin metricsPlugin(final MetricRegistry registry) {
             final MetricsGaugeService gaugeService = new MetricsGaugeService(registry);
-            final ZMonMetricsNameGenerator nameGenerator = new ZMonMetricsNameGenerator();
+            final ZMONMetricsNameGenerator nameGenerator = new ZMONMetricsNameGenerator();
             return new MetricsPlugin(gaugeService, nameGenerator);
         }
 
