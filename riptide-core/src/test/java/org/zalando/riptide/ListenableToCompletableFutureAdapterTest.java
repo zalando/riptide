@@ -9,12 +9,12 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class ListenableCompletableFutureAdapterTest {
+public final class ListenableToCompletableFutureAdapterTest {
 
     @Test
     public void shouldCancel() {
         final ListenableFuture<Void> original = new ListenableFutureTask<Void>(() -> {}, null);
-        final CompletableFuture<Void> unit = ListenableCompletableFutureAdapter.adapt(original);
+        final CompletableFuture<Void> unit = new ListenableToCompletableFutureAdapter<>(original);
 
         unit.cancel(true);
 

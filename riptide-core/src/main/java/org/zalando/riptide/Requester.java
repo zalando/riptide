@@ -20,8 +20,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.zalando.riptide.ListenableCompletableFutureAdapter.adapt;
-
 public final class Requester extends Dispatcher {
 
     private final AsyncClientHttpRequestFactory requestFactory;
@@ -105,9 +103,9 @@ public final class Requester extends Dispatcher {
         public CompletableFuture<Void> call(final Route route) {
             try {
                 final RequestExecution original = this::send;
-                final RequestExecution applied = plugin.interceptBeforeRouting(arguments, original);
-                final RequestExecution prepared = plugin.prepare(arguments, dispatch(applied, route));
-                final CompletableFuture<ClientHttpResponse> future = prepared.execute();
+                final RequestExecution before = plugin.interceptBeforeRouting(arguments, original);
+                final RequestExecution after = plugin.interceptAfterRouting(arguments, dispatch(before, route));
+                final CompletableFuture<ClientHttpResponse> future = after.execute();
 
                 // TODO why not return CompletableFuture<ClientHttpResponse> here?
                 // we need a CompletableFuture<Void>
@@ -117,10 +115,10 @@ public final class Requester extends Dispatcher {
             }
         }
 
-        private <T> CompletableFuture<ClientHttpResponse> send() throws IOException {
+        private CompletableFuture<ClientHttpResponse> send() throws IOException {
             final AsyncClientHttpRequest request = createRequest();
             worker.write(request, entity);
-            return adapt(request.executeAsync());
+            return new ListenableToCompletableFutureAdapter<>(request.executeAsync());
         }
 
         private AsyncClientHttpRequest createRequest() throws IOException {

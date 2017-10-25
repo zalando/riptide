@@ -43,6 +43,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.spring.Dependencies.ifPresent;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
@@ -61,10 +63,11 @@ final class RiptideRegistrar {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
             final BeanDefinition converters = registerHttpMessageConverters(id);
             final String baseUrl = client.getBaseUrl();
+            final List<BeanMetadataElement> plugins = registerPlugins(id, client);
 
-            registerHttp(id, client, factoryId, converters);
-            registerTemplate(id, RestTemplate.class, factoryId, converters, baseUrl);
-            registerTemplate(id, AsyncRestTemplate.class, factoryId, converters, baseUrl);
+            registerHttp(id, client, factoryId, converters, plugins);
+            registerTemplate(id, RestTemplate.class, factoryId, baseUrl, converters, plugins);
+            registerTemplate(id, AsyncRestTemplate.class, factoryId, baseUrl, converters, plugins);
         });
     }
 
@@ -124,7 +127,7 @@ final class RiptideRegistrar {
     }
 
     private void registerHttp(final String id, final Client client, final String factoryId,
-            final BeanDefinition converters) {
+            final BeanDefinition converters, final List<BeanMetadataElement> plugins) {
         registry.registerIfAbsent(id, Http.class, () -> {
             log.debug("Client [{}]: Registering Http", id);
 
@@ -134,14 +137,14 @@ final class RiptideRegistrar {
             http.addConstructorArgValue(client.getUrlResolution());
             http.addConstructorArgReference(factoryId);
             http.addConstructorArgValue(converters);
-            http.addConstructorArgValue(registerPlugins(id, client));
+            http.addConstructorArgValue(plugins);
 
             return http;
         });
     }
 
     private void registerTemplate(final String id, final Class<?> type, final String factoryId,
-            final BeanDefinition converters, @Nullable final String baseUrl) {
+            @Nullable final String baseUrl, final BeanDefinition converters, final List<BeanMetadataElement> plugins) {
         registry.registerIfAbsent(id, type, () -> {
             log.debug("Client [{}]: Registering AsyncRestTemplate", id);
 
@@ -152,6 +155,12 @@ final class RiptideRegistrar {
             template.addConstructorArgReference(factoryId);
             template.addPropertyValue("uriTemplateHandler", handler);
             template.addPropertyValue("messageConverters", converters);
+            template.addPropertyValue("interceptors", plugins.stream()
+                    .map(plugin -> genericBeanDefinition(PluginInterceptors.class)
+                            .setFactoryMethod("adapt")
+                            .addConstructorArgValue(plugin)
+                            .getBeanDefinition())
+                    .collect(toCollection(Registry::list)));
 
             return template;
         });

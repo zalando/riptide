@@ -32,4 +32,9 @@ public final class EnforceCoverageTest {
         new HttpFactory();
     }
 
+    @Test
+    public void shouldCallPluginInterceptorsConstructor() {
+        new PluginInterceptors();
+    }
+
 }
