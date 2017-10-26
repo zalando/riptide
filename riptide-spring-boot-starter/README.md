@@ -135,7 +135,6 @@ supported out of the box.
     <groupId>org.zalando</groupId>
     <artifactId>logbook-spring-boot-starter</artifactId>
     <version>${logbook.version}</version>
-    <optional>true</optional>
 </dependency>
 ```
 
@@ -146,7 +145,6 @@ supported out of the box.
     <groupId>org.zalando</groupId>
     <artifactId>tracer-spring-boot-starter</artifactId>
     <version>${tracer.version}</version>
-    <optional>true</optional>
 </dependency>
 ```
 
