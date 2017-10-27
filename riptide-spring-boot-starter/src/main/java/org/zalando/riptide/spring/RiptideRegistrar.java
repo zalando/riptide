@@ -219,7 +219,7 @@ final class RiptideRegistrar {
                 plugin.addConstructorArgValue(trace(registry.registerIfAbsent(id, ScheduledExecutorService.class, () ->
                         genericBeanDefinition(Executors.class)
                                 .setFactoryMethod("newScheduledThreadPool")
-                                .addConstructorArgValue(client.getMaxConnectionsTotal()) // TODO different default value?!
+                                .addConstructorArgValue(client.getMaxConnectionsTotal() / 5)
                                 .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-scheduler-"))
                                 .setDestroyMethodName("shutdown"))));
 
@@ -231,7 +231,6 @@ final class RiptideRegistrar {
                     }
                     return retryPolicy;
                 }));
-
 
                 plugin.addConstructorArgReference(registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
                     final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
