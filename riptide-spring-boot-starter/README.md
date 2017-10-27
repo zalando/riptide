@@ -197,6 +197,11 @@ riptide:
       socket-timeout: 100 milliseconds
       connection-time-to-live: 30 seconds
       max-connections-per-route: 16
+      thread-pool:
+        min-size: 4
+        max-size: 16
+        keep-alive: 1 minnute
+        queue-size: 0
       preserve-stack-trace: true
       detect-transient-faults: true
       retry:

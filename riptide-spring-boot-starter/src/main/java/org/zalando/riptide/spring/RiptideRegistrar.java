@@ -39,12 +39,15 @@ import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.spring.Dependencies.ifPresent;
 import static org.zalando.riptide.spring.Registry.generateBeanName;
@@ -80,7 +83,20 @@ final class RiptideRegistrar {
 
             factory.addConstructorArgReference(registerHttpClient(id, client));
             factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
-                    .addConstructorArgValue(registerThreadPool(id, client))
+                    // we allow users to use their own ExecutorService, but they don't have to configure tracing
+                    .addConstructorArgValue(trace(registry.registerIfAbsent(id, ExecutorService.class, () -> {
+                        final RiptideSettings.ThreadPool threadPool = client.getThreadPool();
+                        return genericBeanDefinition(ThreadPoolExecutor.class)
+                                .addConstructorArgValue(threadPool.getMinSize())
+                                .addConstructorArgValue(threadPool.getMaxSize())
+                                .addConstructorArgValue(threadPool.getKeepAlive().getAmount())
+                                .addConstructorArgValue(threadPool.getKeepAlive().getUnit())
+                                .addConstructorArgValue(threadPool.getQueueSize() == 0 ?
+                                        new SynchronousQueue<>() :
+                                        new ArrayBlockingQueue<>(threadPool.getQueueSize()))
+                                .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-"))
+                                .setDestroyMethodName("shutdown");
+                    })))
                     .getBeanDefinition());
 
             return factory;
@@ -191,15 +207,21 @@ final class RiptideRegistrar {
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
             plugins.add(genericBeanDefinition(TransientFaultPlugin.class)
-                .addConstructorArgReference(findFaultClassifier(id))
-                .getBeanDefinition());
+                    .addConstructorArgReference(findFaultClassifier(id))
+                    .getBeanDefinition());
         }
 
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
-                plugin.addConstructorArgValue(registerThreadPool(id, client));
+                // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
+                plugin.addConstructorArgValue(trace(registry.registerIfAbsent(id, ScheduledExecutorService.class, () ->
+                        genericBeanDefinition(Executors.class)
+                                .setFactoryMethod("newScheduledThreadPool")
+                                .addConstructorArgValue(client.getMaxConnectionsTotal()) // TODO different default value?!
+                                .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-scheduler-"))
+                                .setDestroyMethodName("shutdown"))));
 
                 plugin.addConstructorArgReference(registry.registerIfAbsent(id, RetryPolicy.class, () -> {
                     final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
@@ -229,9 +251,9 @@ final class RiptideRegistrar {
 
         if (client.getTimeout() != null) {
             plugins.add(genericBeanDefinition(TimeoutPlugin.class)
-                .addConstructorArgValue(client.getTimeout().getAmount())
-                .addConstructorArgValue(client.getTimeout().getUnit())
-                .getBeanDefinition());
+                    .addConstructorArgValue(client.getTimeout().getAmount())
+                    .addConstructorArgValue(client.getTimeout().getUnit())
+                    .getBeanDefinition());
         }
 
         if (client.getPreserveStackTrace()) {
@@ -268,26 +290,15 @@ final class RiptideRegistrar {
         }
     }
 
-    private BeanMetadataElement registerThreadPool(final String id, final Client client) {
-        // we allow users to supply their own ScheduledExecutorService, but they don't have to configure tracing
-        final String scheduler = registry.registerIfAbsent(id, ScheduledExecutorService.class, () ->
-                genericBeanDefinition(Executors.class)
-                        .setFactoryMethod("newScheduledThreadPool")
-                        // TODO should we have some breathing room for retries?
-                        .addConstructorArgValue(client.getMaxConnectionsTotal())
-                        .addConstructorArgValue(genericBeanDefinition(CustomizableThreadFactory.class)
-                                .addConstructorArgValue("http-" + id + "-")
-                                .getBeanDefinition())
-                        .setDestroyMethodName("shutdown"));
-
+    private BeanMetadataElement trace(final String executor) {
         if (registry.isRegistered("tracer")) {
             return genericBeanDefinition(TracingExecutors.class)
                     .setFactoryMethod("preserve")
-                    .addConstructorArgReference(scheduler)
+                    .addConstructorArgReference(executor)
                     .addConstructorArgReference("tracer")
                     .getBeanDefinition();
         } else {
-            return ref(scheduler);
+            return ref(executor);
         }
     }
 

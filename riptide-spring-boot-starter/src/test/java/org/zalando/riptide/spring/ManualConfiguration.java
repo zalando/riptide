@@ -10,6 +10,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.springframework.boot.actuate.autoconfigure.MetricsDropwizardAutoConfiguration;
 import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -53,149 +54,179 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 @Configuration
-// just for documentation, should not be imported manually
-@Import({
-        LogbookAutoConfiguration.class,
-        TracerAutoConfiguration.class,
-        JacksonAutoConfiguration.class,
-})
 public class ManualConfiguration {
 
-    @Bean
-    public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
-            final ClientHttpMessageConverters converters, final GaugeService gaugeService,
-            final ScheduledExecutorService executor) {
-        return Http.builder()
-                .baseUrl("https://www.example.com")
-                .urlResolution(UrlResolution.RFC)
-                .requestFactory(requestFactory)
-                .converters(converters.getConverters())
-                .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
-                .plugin(new TransientFaultPlugin(
-                        FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
-                                .addAll(FaultClassifier.defaults())
-                                .add(ConnectionClosedException.class::isInstance)
-                                .add(NoHttpResponseException.class::isInstance)
-                                .build())))
-                .plugin(new FailsafePlugin(executor)
-                        .withRetryPolicy(new RetryPolicy()
-                                .retryOn(TransientFaultException.class)
-                                .withBackoff(50, 2000, MILLISECONDS)
-                                .withMaxRetries(10)
-                                .withMaxDuration(2, SECONDS)
-                                .withJitter(0.2))
-                        .withCircuitBreaker(new CircuitBreaker()
-                                .withFailureThreshold(5, 5)
-                                .withDelay(30, SECONDS)
-                                .withSuccessThreshold(3, 5)
-                                .withTimeout(3, SECONDS)))
-                .plugin(new TimeoutPlugin(3, SECONDS))
-                .plugin(new OriginalStackTracePlugin())
-                .plugin(new CustomPlugin())
-                .build();
+    @Configuration
+    static class SharedConfiguration {
+
+        @Bean(destroyMethod = "stop")
+        public AccessTokens tokens() {
+            return Tokens.createAccessTokensWithUri(URI.create("https://auth.example.com"))
+                    .usingClientCredentialsProvider(
+                            new JsonFileBackedClientCredentialsProvider(new File("/credentials/client.json")))
+                    .usingUserCredentialsProvider(
+                            new JsonFileBackedUserCredentialsProvider(new File("/credentials/user.json")))
+                    .schedulingPeriod(5)
+                    .schedulingTimeUnit(SECONDS)
+                    .connectionRequestTimeout(1000)
+                    .socketTimeout(2000)
+                    .manageToken("example")
+                    .addScope("uid")
+                    .addScope("example.read")
+                    .done()
+                    .start();
+        }
+
     }
 
-    @Bean
-    public RestTemplate exampleRestTemplate(final ClientHttpRequestFactory requestFactory,
-            final ClientHttpMessageConverters converters) {
-        final RestTemplate template = new RestTemplate();
+    @Configuration
+    // just for documentation, should not be imported manually
+    @Import({
+            LogbookAutoConfiguration.class,
+            TracerAutoConfiguration.class,
+            JacksonAutoConfiguration.class,
+            MetricsDropwizardAutoConfiguration.class,
+            SharedConfiguration.class,
+    })
+    static class ExampleClientConfiguration {
 
-        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-        handler.setBaseUrl("https://www.example.com");
-        template.setUriTemplateHandler(handler);
-        template.setRequestFactory(requestFactory);
-        template.setMessageConverters(converters.getConverters());
+        @Bean
+        public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
+                final ClientHttpMessageConverters converters, final GaugeService gaugeService,
+                final ScheduledExecutorService scheduler) {
+            return Http.builder()
+                    .baseUrl("https://www.example.com")
+                    .urlResolution(UrlResolution.RFC)
+                    .requestFactory(requestFactory)
+                    .converters(converters.getConverters())
+                    .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
+                    .plugin(new TransientFaultPlugin(
+                            FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
+                                    .addAll(FaultClassifier.defaults())
+                                    .add(ConnectionClosedException.class::isInstance)
+                                    .add(NoHttpResponseException.class::isInstance)
+                                    .build())))
+                    .plugin(new FailsafePlugin(scheduler)
+                            .withRetryPolicy(new RetryPolicy()
+                                    .retryOn(TransientFaultException.class)
+                                    .withBackoff(50, 2000, MILLISECONDS)
+                                    .withMaxRetries(10)
+                                    .withMaxDuration(2, SECONDS)
+                                    .withJitter(0.2))
+                            .withCircuitBreaker(new CircuitBreaker()
+                                    .withFailureThreshold(5, 5)
+                                    .withDelay(30, SECONDS)
+                                    .withSuccessThreshold(3, 5)
+                                    .withTimeout(3, SECONDS)))
+                    .plugin(new TimeoutPlugin(3, SECONDS))
+                    .plugin(new OriginalStackTracePlugin())
+                    .plugin(new CustomPlugin())
+                    .build();
+        }
 
-        return template;
-    }
+        @Bean
+        public RestTemplate exampleRestTemplate(final ClientHttpRequestFactory requestFactory,
+                final ClientHttpMessageConverters converters) {
+            final RestTemplate template = new RestTemplate();
 
-    @Bean
-    public AsyncRestTemplate exampleAsyncRestTemplate(final AsyncClientHttpRequestFactory requestFactory,
-            final ClientHttpMessageConverters converters) {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
+            final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
+            handler.setBaseUrl("https://www.example.com");
+            template.setUriTemplateHandler(handler);
+            template.setRequestFactory(requestFactory);
+            template.setMessageConverters(converters.getConverters());
 
-        final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-        handler.setBaseUrl("https://www.example.com");
-        template.setUriTemplateHandler(handler);
-        template.setAsyncRequestFactory(requestFactory);
-        template.setMessageConverters(converters.getConverters());
+            return template;
+        }
 
-        return template;
-    }
+        @Bean
+        public AsyncRestTemplate exampleAsyncRestTemplate(final AsyncClientHttpRequestFactory requestFactory,
+                final ClientHttpMessageConverters converters) {
+            final AsyncRestTemplate template = new AsyncRestTemplate();
 
-    @Bean
-    public RestAsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-            final AccessTokens tokens, final Tracer tracer, final Logbook logbook,
-            final ScheduledExecutorService executor) throws Exception {
-        return new RestAsyncClientHttpRequestFactory(
-                HttpClientBuilder.create()
-                        .setDefaultRequestConfig(RequestConfig.custom()
-                                .setConnectTimeout(5000)
-                                .setSocketTimeout(5000)
-                                .build())
-                        .setConnectionTimeToLive(30, SECONDS)
-                        .setMaxConnPerRoute(2)
-                        .setMaxConnTotal(20)
-                        .addInterceptorFirst(new AccessTokensRequestInterceptor("example", tokens))
-                        .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
-                        .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
-                        .addInterceptorLast(new GzippingHttpRequestInterceptor())
-                        .addInterceptorLast(new LogbookHttpResponseInterceptor())
-                        .setSSLSocketFactory(new SSLConnectionSocketFactory(
-                                SSLContexts.custom()
-                                        .loadTrustMaterial(
-                                                getClass().getClassLoader().getResource("example.keystore"),
-                                                "password".toCharArray())
-                                        .build(),
-                                getDefaultHostnameVerifier()))
-                        .build(),
-                new ConcurrentTaskExecutor(executor));
-    }
+            final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
+            handler.setBaseUrl("https://www.example.com");
+            template.setUriTemplateHandler(handler);
+            template.setAsyncRequestFactory(requestFactory);
+            template.setMessageConverters(converters.getConverters());
 
-    @Bean(destroyMethod = "shutdown")
-    public ScheduledExecutorService exampleExecutor(final Tracer tracer) {
-        return TracingExecutors.preserve(
-                Executors.newScheduledThreadPool(20, new CustomizableThreadFactory("http-example-")),
-                tracer);
-    }
+            return template;
+        }
 
-    @Bean(destroyMethod = "stop")
-    public AccessTokens tokens() {
-        return Tokens.createAccessTokensWithUri(URI.create("https://auth.example.com"))
-                .usingClientCredentialsProvider(
-                        new JsonFileBackedClientCredentialsProvider(new File("/credentials/client.json")))
-                .usingUserCredentialsProvider(
-                        new JsonFileBackedUserCredentialsProvider(new File("/credentials/user.json")))
-                .schedulingPeriod(5)
-                .schedulingTimeUnit(SECONDS)
-                .connectionRequestTimeout(1000)
-                .socketTimeout(2000)
-                .manageToken("example")
-                .addScope("uid")
-                .addScope("example.read")
-                .done()
-                .start();
-    }
+        @Bean
+        public RestAsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
+                final AccessTokens tokens, final Tracer tracer, final Logbook logbook,
+                final ExecutorService executor) throws Exception {
+            return new RestAsyncClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(RequestConfig.custom()
+                                    .setConnectTimeout(5000)
+                                    .setSocketTimeout(5000)
+                                    .build())
+                            .setConnectionTimeToLive(30, SECONDS)
+                            .setMaxConnPerRoute(2)
+                            .setMaxConnTotal(20)
+                            .addInterceptorFirst(new AccessTokensRequestInterceptor("example", tokens))
+                            .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
+                            .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
+                            .addInterceptorLast(new GzippingHttpRequestInterceptor())
+                            .addInterceptorLast(new LogbookHttpResponseInterceptor())
+                            .setSSLSocketFactory(new SSLConnectionSocketFactory(
+                                    SSLContexts.custom()
+                                            .loadTrustMaterial(
+                                                    getClass().getClassLoader().getResource("example.keystore"),
+                                                    "password".toCharArray())
+                                            .build(),
+                                    getDefaultHostnameVerifier()))
+                            .build(),
+                    new ConcurrentTaskExecutor(executor));
+        }
 
-    @Bean
-    public ClientHttpMessageConverters exampleHttpMessageConverters(final ObjectMapper mapper) {
-        final StringHttpMessageConverter textConverter = new StringHttpMessageConverter();
-        textConverter.setWriteAcceptCharset(false);
+        @Bean(destroyMethod = "shutdown")
+        public ExecutorService executor(final Tracer tracer) {
+            return TracingExecutors.preserve(
+                    new ThreadPoolExecutor(
+                            1, 20, 1, MINUTES,
+                            new ArrayBlockingQueue<>(0),
+                            new CustomizableThreadFactory("http-example-"),
+                            new AbortPolicy()),
+                    tracer);
+        }
 
-        return new ClientHttpMessageConverters(Arrays.asList(
-                textConverter,
-                new MappingJackson2HttpMessageConverter(mapper),
-                Streams.streamConverter(mapper)
-        ));
+        @Bean(destroyMethod = "shutdown")
+        public ScheduledExecutorService scheduler(final Tracer tracer) {
+            return TracingExecutors.preserve(
+                    Executors.newScheduledThreadPool(
+                            20, // TODO max-connections-total?
+                            new CustomizableThreadFactory("http-example-scheduler-")),
+                    tracer);
+        }
+
+        @Bean
+        public ClientHttpMessageConverters exampleHttpMessageConverters(final ObjectMapper mapper) {
+            final StringHttpMessageConverter textConverter = new StringHttpMessageConverter();
+            textConverter.setWriteAcceptCharset(false);
+
+            return new ClientHttpMessageConverters(Arrays.asList(
+                    textConverter,
+                    new MappingJackson2HttpMessageConverter(mapper),
+                    Streams.streamConverter(mapper)
+            ));
+        }
+
     }
 
 }

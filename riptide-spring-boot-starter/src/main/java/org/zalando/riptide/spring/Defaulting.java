@@ -6,10 +6,10 @@ import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
+import org.zalando.riptide.spring.RiptideSettings.ThreadPool;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
@@ -17,6 +17,7 @@ import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.lang.System.getenv;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.zalando.riptide.spring.RiptideSettings.CircuitBreaker;
 import static org.zalando.riptide.spring.RiptideSettings.Retry;
@@ -28,13 +29,21 @@ final class Defaulting {
     }
 
     private static Defaults merge(final Defaults defaults) {
+        final int maxConnectionsPerRoute = either(defaults.getMaxConnectionsPerRoute(), 20);
+        final int maxConnectionsTotal = max(either(defaults.getMaxConnectionsTotal(), 20), maxConnectionsPerRoute);
+
         return new Defaults(
                 either(defaults.getUrlResolution(), UrlResolution.RFC),
                 either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
-                either(defaults.getMaxConnectionsPerRoute(), 20),
-                either(defaults.getMaxConnectionsTotal(), 20),
+                maxConnectionsPerRoute,
+                maxConnectionsTotal,
+                merge(defaults.getThreadPool(), new ThreadPool(
+                                1, maxConnectionsTotal,
+                                TimeSpan.of(1, MINUTES),
+                                0),
+                        Defaulting::merge),
                 either(defaults.getDetectTransientFaults(), false),
                 either(defaults.getPreserveStackTrace(), true),
                 either(defaults.getRecordMetrics(), false),
@@ -67,9 +76,8 @@ final class Defaulting {
     static Client merge(final Client base, final Defaults defaults) {
         final int maxConnectionsPerRoute =
                 either(base.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
-
-        final int maxConnectionsTotal =
-                either(base.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal());
+        final int maxConnectionsTotal = max(maxConnectionsPerRoute,
+                either(base.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal()));
 
         return new Client(
                 base.getBaseUrl(),
@@ -78,7 +86,10 @@ final class Defaulting {
                 either(base.getSocketTimeout(), defaults.getSocketTimeout()),
                 either(base.getConnectionTimeToLive(), defaults.getConnectionTimeToLive()),
                 maxConnectionsPerRoute,
-                max(maxConnectionsPerRoute, maxConnectionsTotal),
+                maxConnectionsTotal,
+                merge(base.getThreadPool(),
+                        merge(new ThreadPool(null, maxConnectionsTotal, null, null), defaults.getThreadPool()),
+                        Defaulting::merge),
                 base.getOauth(),
                 either(base.getDetectTransientFaults(), defaults.getDetectTransientFaults()),
                 either(base.getPreserveStackTrace(), defaults.getPreserveStackTrace()),
@@ -88,6 +99,15 @@ final class Defaulting {
                 either(base.getTimeout(), defaults.getTimeout()),
                 base.isCompressRequest(),
                 base.getKeystore()
+        );
+    }
+
+    private static ThreadPool merge(final ThreadPool base, final ThreadPool defaults) {
+        return new ThreadPool(
+                either(base.getMinSize(), defaults.getMinSize()),
+                either(base.getMaxSize(), defaults.getMaxSize()),
+                either(base.getKeepAlive(), defaults.getKeepAlive()),
+                either(base.getQueueSize(), defaults.getQueueSize())
         );
     }
 
