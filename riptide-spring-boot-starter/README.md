@@ -197,6 +197,11 @@ riptide:
       socket-timeout: 100 milliseconds
       connection-time-to-live: 30 seconds
       max-connections-per-route: 16
+      thread-pool:
+        min-size: 4
+        max-size: 16
+        keep-alive: 1 minnute
+        queue-size: 0
       preserve-stack-trace: true
       detect-transient-faults: true
       retry:
@@ -227,6 +232,11 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── connection-time-to-live`       | `TimeSpan`     | `30 seconds`                                     |
 | `│   ├── max-connections-per-route`     | `int`          | `20`                                             |
 | `│   ├── max-connections-total`         | `int`          | `20` (or at least `max-connections-per-route`)   |
+| `│   ├── thread-pool`                   |                |                                                  |
+| `│   │   ├── min-size`                  | `int`          | `1`                                              |
+| `│   │   ├── max-size`                  | `int`          | same as `max-connections-total`                  |
+| `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
+| `│   │   └── queue-size`                | `int`          | `0`                                              |
 | `│   ├── detect-transient-faults`       | `boolean`      | `false`                                          |
 | `│   ├── preserve-stack-trace`          | `boolean`      | `true`                                           |
 | `│   ├── record-metrics`                | `boolean`      | `false`                                          |
@@ -260,6 +270,11 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── connection-time-to-live`   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── max-connections-per-route` | `int`          | see `defaults`                                   |
 | `        ├── max-connections-total`     | `int`          | see `defaults`                                   |
+| `        └── thread-pool`               |                |                                                  |
+| `            ├── min-size`              | `int`          | see `defaults`                                   |
+| `            ├── max-size`              | `int`          | see `defaults`                                   |
+| `            ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |
+| `            └── queue-size`            | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                | none, disables OAuth2 if omitted                 |
 | `        │   └── scopes`                | `List<String>` | none                                             |
 | `        ├── detect-transient-faults`   | `boolean`      | see `defaults`                                   |

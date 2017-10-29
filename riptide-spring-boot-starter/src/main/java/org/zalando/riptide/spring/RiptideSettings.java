@@ -13,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.System.getenv;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Getter
@@ -36,6 +35,7 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
+        private ThreadPool threadPool;
         private Boolean detectTransientFaults;
         private Boolean preserveStackTrace;
         private Boolean recordMetrics;
@@ -68,6 +68,7 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
+        private ThreadPool threadPool;
         private OAuth oauth;
         private Boolean detectTransientFaults;
         private Boolean preserveStackTrace;
@@ -92,6 +93,17 @@ public final class RiptideSettings {
             private String path;
             private String password;
         }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class ThreadPool {
+        private Integer minSize;
+        private Integer maxSize;
+        private TimeSpan keepAlive;
+        private Integer queueSize;
     }
 
     @Getter
