@@ -35,7 +35,8 @@ public final class TimeoutPlugin implements Plugin {
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
             final CompletableFuture<ClientHttpResponse> future = execution.execute();
-            future.whenComplete(cancel(delay(timeout(future))));
+            final ScheduledFuture<?> scheduledTimeout = delay(timeout(future));
+            future.whenComplete(cancel(scheduledTimeout));
             return future;
         };
     }
@@ -48,7 +49,7 @@ public final class TimeoutPlugin implements Plugin {
         return scheduler.schedule(runnable, timeout, unit);
     }
 
-    private static <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
+    private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
         return (result, throwable) -> future.cancel(false);
     }
 

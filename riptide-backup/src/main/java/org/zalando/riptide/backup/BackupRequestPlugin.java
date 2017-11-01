@@ -44,7 +44,8 @@ public final class BackupRequestPlugin implements Plugin {
         return () -> {
             final CompletableFuture<ClientHttpResponse> original = execution.execute();
             final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
-            original.whenComplete(cancel(delay(backup(execution, backup))));
+            final ScheduledFuture<?> scheduledBackup = delay(backup(execution, backup));
+            original.whenComplete(cancel(scheduledBackup));
             return anyOf(original, backup);
         };
     }
@@ -69,7 +70,7 @@ public final class BackupRequestPlugin implements Plugin {
         return scheduler.schedule(runnable, delay, unit);
     }
 
-    private static <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
+    private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
         return (result, throwable) -> future.cancel(false);
     }
 
