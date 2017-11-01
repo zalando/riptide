@@ -42,7 +42,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
@@ -221,7 +220,7 @@ final class RiptideRegistrar {
             plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
-                plugin.addConstructorArgValue(registerScheduler(id, client));
+                plugin.addConstructorArgValue(registerScheduler(id));
                 plugin.addConstructorArgReference(registerRetryPolicy(id, client));
                 plugin.addConstructorArgReference(registerCircuitBreaker(id, client));
 
@@ -231,7 +230,7 @@ final class RiptideRegistrar {
 
         if (client.getBackupRequest() != null) {
             plugins.add(genericBeanDefinition(BackupRequestPlugin.class)
-                .addConstructorArgValue(registerScheduler(id, client))
+                .addConstructorArgValue(registerScheduler(id))
                 .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                 .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
                 .getBeanDefinition());
@@ -239,7 +238,7 @@ final class RiptideRegistrar {
 
         if (client.getTimeout() != null) {
             plugins.add(genericBeanDefinition(TimeoutPlugin.class)
-                    .addConstructorArgValue(registerScheduler(id, client))
+                    .addConstructorArgValue(registerScheduler(id))
                     .addConstructorArgValue(client.getTimeout().getAmount())
                     .addConstructorArgValue(client.getTimeout().getUnit())
                     .getBeanDefinition());
@@ -279,7 +278,7 @@ final class RiptideRegistrar {
         }
     }
 
-    private BeanMetadataElement registerScheduler(final String id, final Client client) {
+    private BeanMetadataElement registerScheduler(final String id) {
         // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
         return trace(registry.registerIfAbsent(id, ScheduledExecutorService.class,
                 () -> {
@@ -288,7 +287,7 @@ final class RiptideRegistrar {
                     threadFactory.setDaemon(true);
 
                     return genericBeanDefinition(ScheduledThreadPoolExecutor.class)
-                            .addConstructorArgValue(client.getMaxConnectionsTotal() / 5)
+                            .addConstructorArgValue(1)
                             .addConstructorArgValue(threadFactory)
                             .addPropertyValue("removeOnCancelPolicy", true)
                             .setDestroyMethodName("shutdown");
