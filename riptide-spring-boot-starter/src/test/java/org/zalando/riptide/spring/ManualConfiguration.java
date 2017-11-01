@@ -32,6 +32,7 @@ import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.UrlResolution;
+import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
@@ -132,7 +133,8 @@ public class ManualConfiguration {
                                     .withDelay(30, SECONDS)
                                     .withSuccessThreshold(3, 5)
                                     .withTimeout(3, SECONDS)))
-                    .plugin(new TimeoutPlugin(3, SECONDS))
+                    .plugin(new BackupRequestPlugin(scheduler, 10, MILLISECONDS))
+                    .plugin(new TimeoutPlugin(scheduler, 3, SECONDS))
                     .plugin(new OriginalStackTracePlugin())
                     .plugin(new CustomPlugin())
                     .build();

@@ -41,6 +41,7 @@ public final class RiptideSettings {
         private Boolean recordMetrics;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
+        private BackupRequest backupRequest;
         private TimeSpan timeout;
     }
 
@@ -75,6 +76,7 @@ public final class RiptideSettings {
         private Boolean recordMetrics;
         private Retry retry;
         private CircuitBreaker circuitBreaker;
+        private BackupRequest backupRequest;
         private TimeSpan timeout;
         private boolean compressRequest = false;
         private Keystore keystore;
@@ -137,5 +139,13 @@ public final class RiptideSettings {
         private Ratio failureThreshold;
         private TimeSpan delay;
         private Ratio successThreshold;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class BackupRequest {
+        private TimeSpan delay;
     }
 }

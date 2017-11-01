@@ -50,6 +50,12 @@
         <!-- zalando -->
         <dependency>
             <groupId>org.zalando</groupId>
+            <artifactId>riptide-backup</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
             <artifactId>riptide-core</artifactId>
         </dependency>
         <dependency>

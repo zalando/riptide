@@ -28,7 +28,7 @@ public final class AccessTokensFactoryBeanTest {
                     "example", new Client(
                             null, null, null, null, null, null, null, null,
                             new OAuth(singletonList("example")),
-                            null, null, null, null, null, null, false, null)
+                            null, null, null, null, null, null, null, false, null)
             )
     ));
 
@@ -37,7 +37,7 @@ public final class AccessTokensFactoryBeanTest {
     public void shouldDestroy() throws Exception {
         unit.afterPropertiesSet();
         unit.getObject();
-        unit.destroy();;
+        unit.destroy();
     }
 
 }

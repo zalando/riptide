@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.UrlResolution;
+import org.zalando.riptide.spring.RiptideSettings.BackupRequest;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
@@ -49,6 +50,7 @@ final class Defaulting {
                 either(defaults.getRecordMetrics(), false),
                 defaults.getRetry(),
                 defaults.getCircuitBreaker(),
+                defaults.getBackupRequest(),
                 defaults.getTimeout()
         );
     }
@@ -96,6 +98,7 @@ final class Defaulting {
                 either(base.getRecordMetrics(), defaults.getRecordMetrics()),
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
+                merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
                 either(base.getTimeout(), defaults.getTimeout()),
                 base.isCompressRequest(),
                 base.getKeystore()
@@ -135,6 +138,12 @@ final class Defaulting {
                 either(base.getFailureThreshold(), defaults.getFailureThreshold()),
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getSuccessThreshold(), defaults.getSuccessThreshold())
+        );
+    }
+
+    private static BackupRequest merge(final BackupRequest base, final BackupRequest defaults) {
+        return new BackupRequest(
+                either(base.getDelay(), defaults.getDelay())
         );
     }
 

@@ -20,11 +20,12 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -48,9 +49,10 @@ public class FailsafePluginTest {
 
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
-            .requestFactory(new RestAsyncClientHttpRequestFactory(client, new ConcurrentTaskExecutor()))
+            .requestFactory(new RestAsyncClientHttpRequestFactory(client,
+                    new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
+            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withRetryPolicy(new RetryPolicy()
                             .retryOn(SocketTimeoutException.class)
                             .withDelay(500, MILLISECONDS)

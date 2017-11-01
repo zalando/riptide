@@ -1,6 +1,5 @@
 package org.zalando.riptide.timeout;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
@@ -11,7 +10,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -22,29 +20,13 @@ import java.util.function.BiConsumer;
 @ThisWouldBeOneLineIn(language = "Java 9", toWit = "return () -> execution.execute().orTimeout(timeout, unit)")
 public final class TimeoutPlugin implements Plugin {
 
-    // shared across multiple instances of this module, since it's doing minimal work only
-    @VisibleForTesting
-    static final class Delayer {
-        private static final ScheduledExecutorService DELAYER = newDelayer();
-
-        private static ScheduledExecutorService newDelayer() {
-            final ScheduledThreadPoolExecutor delayer = new ScheduledThreadPoolExecutor(1, task -> {
-                final Thread thread = new Thread(task);
-                thread.setName("RiptideTimeoutDelayScheduler");
-                thread.setDaemon(true);
-                return thread;
-            });
-
-            delayer.setRemoveOnCancelPolicy(true);
-
-            return delayer;
-        }
-    }
-
+    private final ScheduledExecutorService scheduler;
     private final long timeout;
     private final TimeUnit unit;
 
-    public TimeoutPlugin(final long timeout, final TimeUnit unit) {
+    public TimeoutPlugin(final ScheduledExecutorService scheduler, final long timeout,
+            final TimeUnit unit) {
+        this.scheduler = scheduler;
         this.timeout = timeout;
         this.unit = unit;
     }
@@ -63,11 +45,11 @@ public final class TimeoutPlugin implements Plugin {
     }
 
     private ScheduledFuture<?> delay(final Runnable runnable) {
-        return Delayer.DELAYER.schedule(runnable, timeout, unit);
+        return scheduler.schedule(runnable, timeout, unit);
     }
 
-    private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
-        return (result, e) -> future.cancel(false);
+    private static <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
+        return (result, throwable) -> future.cancel(false);
     }
 
 }

@@ -7,6 +7,8 @@ riptide:
       failure-threshold: 5
       delay: 1 minute
       success-threshold: 5
+    backup-request:
+      delay: 500 milliseconds
     timeout: 1 second
   clients:
     example:
@@ -20,6 +22,8 @@ riptide:
         failure-threshold: 3 out of 5
         delay: 5 minute
         success-threshold: 2 out of 5
+      backup-request:
+        delay: 250 milliseconds
     ecb:
       base-url: http://www.ecb.europa.eu
       retry:

@@ -29,6 +29,8 @@ riptide:
         path: github.keystore
         password: password
       detect-transient-faults: true
+      backup-request:
+        delay: 100 milliseconds
     github-invalid:
       base-url: https://github.com
       keystore:
