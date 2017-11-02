@@ -29,7 +29,7 @@ Http.builder()
 
 - Java 8
 - Riptide Core
-- Failsafe
+- Spring Boot Actuator
 
 ## Installation
 

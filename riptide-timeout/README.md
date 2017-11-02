@@ -16,7 +16,7 @@ that will be covering any remote communication, socket timeouts and retries.
 
 ```java
 Http.builder()
-    .plugin(new TimeoutPlugin(5, SECONDS))
+    .plugin(new TimeoutPlugin(scheduler, 5, SECONDS))
     .build();
 ```
 
@@ -28,7 +28,6 @@ Http.builder()
 
 - Java 8
 - Riptide Core
-- Failsafe
 
 ## Installation
 
@@ -46,7 +45,7 @@ Add the following dependency to your project:
 
 ```java
 Http.builder()
-    .plugin(new TimeoutPlugin(5, SECONDS))
+    .plugin(new TimeoutPlugin(scheduler, 5, SECONDS))
     .build();
 ```
 
