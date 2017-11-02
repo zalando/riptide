@@ -17,7 +17,7 @@ that will be covering any remote communication, socket timeouts and retries.
 
 ```java
 Http.builder()
-    .plugin(new MetricPlugin(gaugeService, nameGenerator))
+    .plugin(new MetricsPlugin(gaugeService, nameGenerator))
     .build();
 ```
 
@@ -48,7 +48,7 @@ Add the following dependency to your project:
 ```java
 Http.builder()
     .baseUrl("https://www.example.com")
-    .plugin(new MetricPlugin(gaugeService, (arguments, response) ->
+    .plugin(new MetricsPlugin(gaugeService, (arguments, response) ->
             String.format("request.%s.%s", 
                 arguments.getMethod(), 
                 arguments.getRequestUri().getHost()))
