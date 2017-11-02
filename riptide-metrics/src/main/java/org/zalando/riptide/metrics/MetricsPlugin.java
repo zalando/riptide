@@ -25,10 +25,11 @@ public final class MetricsPlugin implements Plugin {
 
     @Override
     public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
-        final Metric metric = new Metric(arguments);
-
-        return () -> execution.execute()
-                .whenComplete(throwingBiConsumer(metric::record));
+        return () -> {
+            final Metric metric = new Metric(arguments);
+            return execution.execute()
+                    .whenComplete(throwingBiConsumer(metric::record));
+        };
     }
 
     @Override
