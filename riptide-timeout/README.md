@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide/master.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-timeout/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-timeout)
+[![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-timeout.svg)](http://www.javadoc.io/doc/org.zalando/riptide-timeout)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-timeout.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-timeout)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
@@ -16,7 +16,7 @@ that will be covering any remote communication, socket timeouts and retries.
 
 ```java
 Http.builder()
-    .plugin(new TimeoutPlugin(5, SECONDS))
+    .plugin(new TimeoutPlugin(scheduler, 5, SECONDS))
     .build();
 ```
 
@@ -28,7 +28,6 @@ Http.builder()
 
 - Java 8
 - Riptide Core
-- Failsafe
 
 ## Installation
 
@@ -46,7 +45,7 @@ Add the following dependency to your project:
 
 ```java
 Http.builder()
-    .plugin(new TimeoutPlugin(5, SECONDS))
+    .plugin(new TimeoutPlugin(scheduler, 5, SECONDS))
     .build();
 ```
 

@@ -24,6 +24,7 @@ import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
@@ -41,8 +42,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
@@ -84,23 +85,27 @@ final class RiptideRegistrar {
             factory.addConstructorArgReference(registerHttpClient(id, client));
             factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
                     // we allow users to use their own ExecutorService, but they don't have to configure tracing
-                    .addConstructorArgValue(trace(registry.registerIfAbsent(id, ExecutorService.class, () -> {
-                        final RiptideSettings.ThreadPool threadPool = client.getThreadPool();
-                        return genericBeanDefinition(ThreadPoolExecutor.class)
-                                .addConstructorArgValue(threadPool.getMinSize())
-                                .addConstructorArgValue(threadPool.getMaxSize())
-                                .addConstructorArgValue(threadPool.getKeepAlive().getAmount())
-                                .addConstructorArgValue(threadPool.getKeepAlive().getUnit())
-                                .addConstructorArgValue(threadPool.getQueueSize() == 0 ?
-                                        new SynchronousQueue<>() :
-                                        new ArrayBlockingQueue<>(threadPool.getQueueSize()))
-                                .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-"))
-                                .setDestroyMethodName("shutdown");
-                    })))
+                    .addConstructorArgValue(registerExecutor(id, client))
                     .getBeanDefinition());
 
             return factory;
         });
+    }
+
+    private BeanMetadataElement registerExecutor(final String id, final Client client) {
+        return trace(registry.registerIfAbsent(id, ExecutorService.class, () -> {
+            final RiptideSettings.ThreadPool threadPool = client.getThreadPool();
+            return genericBeanDefinition(ThreadPoolExecutor.class)
+                    .addConstructorArgValue(threadPool.getMinSize())
+                    .addConstructorArgValue(threadPool.getMaxSize())
+                    .addConstructorArgValue(threadPool.getKeepAlive().getAmount())
+                    .addConstructorArgValue(threadPool.getKeepAlive().getUnit())
+                    .addConstructorArgValue(threadPool.getQueueSize() == 0 ?
+                            new SynchronousQueue<>() :
+                            new ArrayBlockingQueue<>(threadPool.getQueueSize()))
+                    .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-"))
+                    .setDestroyMethodName("shutdown");
+        }));
     }
 
     private BeanDefinition registerHttpMessageConverters(final String id) {
@@ -215,41 +220,25 @@ final class RiptideRegistrar {
             plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
                 final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
 
-                // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
-                plugin.addConstructorArgValue(trace(registry.registerIfAbsent(id, ScheduledExecutorService.class, () ->
-                        genericBeanDefinition(Executors.class)
-                                .setFactoryMethod("newScheduledThreadPool")
-                                .addConstructorArgValue(client.getMaxConnectionsTotal() / 5)
-                                .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-scheduler-"))
-                                .setDestroyMethodName("shutdown"))));
-
-                plugin.addConstructorArgReference(registry.registerIfAbsent(id, RetryPolicy.class, () -> {
-                    final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
-                    @Nullable final RiptideSettings.Retry retry = client.getRetry();
-                    if (retry != null) {
-                        retryPolicy.addPropertyValue("configuration", retry);
-                    }
-                    return retryPolicy;
-                }));
-
-                plugin.addConstructorArgReference(registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
-                    final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
-                    @Nullable final RiptideSettings.CircuitBreaker breaker = client.getCircuitBreaker();
-                    if (client.getTimeout() != null) {
-                        circuitBreaker.addPropertyValue("timeout", client.getTimeout());
-                    }
-                    if (breaker != null) {
-                        circuitBreaker.addPropertyValue("configuration", breaker);
-                    }
-                    return circuitBreaker;
-                }));
+                plugin.addConstructorArgValue(registerScheduler(id));
+                plugin.addConstructorArgReference(registerRetryPolicy(id, client));
+                plugin.addConstructorArgReference(registerCircuitBreaker(id, client));
 
                 return plugin;
             })));
         }
 
+        if (client.getBackupRequest() != null) {
+            plugins.add(genericBeanDefinition(BackupRequestPlugin.class)
+                .addConstructorArgValue(registerScheduler(id))
+                .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
+                .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
+                .getBeanDefinition());
+        }
+
         if (client.getTimeout() != null) {
             plugins.add(genericBeanDefinition(TimeoutPlugin.class)
+                    .addConstructorArgValue(registerScheduler(id))
                     .addConstructorArgValue(client.getTimeout().getAmount())
                     .addConstructorArgValue(client.getTimeout().getUnit())
                     .getBeanDefinition());
@@ -287,6 +276,47 @@ final class RiptideRegistrar {
                         .addConstructorArgValue(predicates);
             });
         }
+    }
+
+    private BeanMetadataElement registerScheduler(final String id) {
+        // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
+        return trace(registry.registerIfAbsent(id, ScheduledExecutorService.class,
+                () -> {
+                    final CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(
+                            "http-" + id + "-scheduler-");
+                    threadFactory.setDaemon(true);
+
+                    return genericBeanDefinition(ScheduledThreadPoolExecutor.class)
+                            .addConstructorArgValue(1)
+                            .addConstructorArgValue(threadFactory)
+                            .addPropertyValue("removeOnCancelPolicy", true)
+                            .setDestroyMethodName("shutdown");
+                }));
+    }
+
+    private String registerRetryPolicy(final String id, final Client client) {
+        return registry.registerIfAbsent(id, RetryPolicy.class, () -> {
+            final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
+            @Nullable final RiptideSettings.Retry retry = client.getRetry();
+            if (retry != null) {
+                retryPolicy.addPropertyValue("configuration", retry);
+            }
+            return retryPolicy;
+        });
+    }
+
+    private String registerCircuitBreaker(final String id, final Client client) {
+        return registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
+            final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
+            @Nullable final RiptideSettings.CircuitBreaker breaker = client.getCircuitBreaker();
+            if (client.getTimeout() != null) {
+                circuitBreaker.addPropertyValue("timeout", client.getTimeout());
+            }
+            if (breaker != null) {
+                circuitBreaker.addPropertyValue("configuration", breaker);
+            }
+            return circuitBreaker;
+        });
     }
 
     private BeanMetadataElement trace(final String executor) {

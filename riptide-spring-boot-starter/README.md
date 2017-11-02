@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide/master.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-spring-boot-starter/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-spring-boot-starter)
+[![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-spring-boot-starter.svg)](http://www.javadoc.io/doc/org.zalando/riptide-spring-boot-starter)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-spring-boot-starter.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-spring-boot-starter)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
@@ -55,6 +55,7 @@ private Http example;
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
+  - Backup requests via [Riptide: Backup](../riptide-backup)
   - HTTP JSON Streaming via [Riptide: Stream](../riptide-stream)
   - Timeouts via [Riptide: Timeout](../riptide-timeout)
 - SSL certificate pinning
@@ -67,6 +68,7 @@ private Http example;
 - Riptide
   - Core
   - (Apache) HTTP Client
+  - Backup (optional)
   - Failsafe (optional)
   - Faults (optional)
   - Metrics (optional)
@@ -111,6 +113,18 @@ Required when `detect-transient-faults` is enabled.
 <dependency>
     <groupId>org.zalando</groupId>
     <artifactId>riptide-faults</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [Backup Requests](../riptide-backup)
+
+Required when `backup-request` is configured:
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-backup</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -213,6 +227,8 @@ riptide:
         failure-threshold: 3 out of 5
         delay: 30 seconds
         success-threshold: 5 out of 5
+      backup-request:
+        delay: 75 milliseconds
       timeout: 500 milliseconds
       oauth.scopes:
         - example.read
@@ -254,6 +270,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
 | `│   │   ├── delay`                     | `TimeSpan`     | no delay                                         |
 | `│   │   └── success-threshold`         | `Ratio`        | `failure-threshold`                              |
+| `│   ├── backup-request`                |                |                                                  |
+| `│   │   └── delay`                     | `TimeSpan`     | no delay                                         |
 | `│   └── timeout`                       | `TimeSpan`     | none                                             |
 | `├── oauth`                             |                |                                                  |
 | `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
@@ -294,6 +312,8 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── failure-threshold`     | `Ratio`        | see `defaults`                                   |
 | `        │   ├── delay`                 | `TimeSpan`     | see `defaults`                                   |
 | `        │   └── success-threshold`     | `Ratio`        | see `defaults`                                   |
+| `        ├── backup-request`            |                |                                                  |
+| `        │   └── delay`                 | `TimeSpan`     | no delay                                         |
 | `        ├── timeout`                   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
 | `        └── keystore`                  |                | disables certificate pinning if omitted          |

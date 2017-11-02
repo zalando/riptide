@@ -16,11 +16,13 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.junit.Assert.fail;
 import static org.zalando.riptide.PassRoute.pass;
 
@@ -37,7 +39,7 @@ public class TimeoutPluginTest {
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
             .converter(createJsonConverter())
-            .plugin(new TimeoutPlugin(1, TimeUnit.SECONDS))
+            .plugin(new TimeoutPlugin(newSingleThreadScheduledExecutor(), 1, TimeUnit.SECONDS))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

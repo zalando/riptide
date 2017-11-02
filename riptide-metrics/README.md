@@ -4,7 +4,7 @@
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide/master.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/org.zalando/riptide-metrics/badge.svg)](http://www.javadoc.io/doc/org.zalando/riptide-metrics)
+[![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-metrics.svg)](http://www.javadoc.io/doc/org.zalando/riptide-metrics)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-metrics.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-metrics)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
@@ -17,7 +17,7 @@ that will be covering any remote communication, socket timeouts and retries.
 
 ```java
 Http.builder()
-    .plugin(new MetricPlugin(gaugeService, nameGenerator))
+    .plugin(new MetricsPlugin(gaugeService, nameGenerator))
     .build();
 ```
 
@@ -29,7 +29,7 @@ Http.builder()
 
 - Java 8
 - Riptide Core
-- Failsafe
+- Spring Boot Actuator
 
 ## Installation
 
@@ -48,7 +48,7 @@ Add the following dependency to your project:
 ```java
 Http.builder()
     .baseUrl("https://www.example.com")
-    .plugin(new MetricPlugin(gaugeService, (arguments, response) ->
+    .plugin(new MetricsPlugin(gaugeService, (arguments, response) ->
             String.format("request.%s.%s", 
                 arguments.getMethod(), 
                 arguments.getRequestUri().getHost()))

@@ -20,6 +20,7 @@ import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
@@ -117,6 +118,7 @@ public final class PluginTest {
         assertThat(getPlugins(github), contains(asList(
                 instanceOf(MetricsPlugin.class),
                 instanceOf(TransientFaultPlugin.class),
+                instanceOf(BackupRequestPlugin.class),
                 instanceOf(CustomPlugin.class))));
     }
 
