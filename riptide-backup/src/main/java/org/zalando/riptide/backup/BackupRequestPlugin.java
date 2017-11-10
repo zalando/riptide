@@ -15,7 +15,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import static java.util.Arrays.stream;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 
 public final class BackupRequestPlugin implements Plugin {
@@ -73,15 +72,17 @@ public final class BackupRequestPlugin implements Plugin {
         final CompletableFuture<T> any = new AbstractCancelableCompletableFuture<T>() {
             @Override
             public boolean cancel(final boolean mayInterruptIfRunning) {
-                stream(futures).forEach(future ->
-                        future.cancel(mayInterruptIfRunning));
+                for (final CompletableFuture<? extends T> future : futures) {
+                    future.cancel(mayInterruptIfRunning);
+                }
 
                 return super.cancel(mayInterruptIfRunning);
             }
         };
 
-        stream(futures).forEach(future ->
-                future.whenComplete(forwardTo(any)));
+        for (final CompletableFuture<? extends T> future : futures) {
+            future.whenComplete(forwardTo(any));
+        }
 
         return any;
     }

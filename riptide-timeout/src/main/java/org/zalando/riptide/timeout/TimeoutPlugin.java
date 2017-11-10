@@ -39,9 +39,13 @@ public final class TimeoutPlugin implements Plugin {
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute();
-            final CompletableFuture<ClientHttpResponse> downstream = cancelUpstreamCompleteDownstream(upstream);
+
+            final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
+            upstream.whenComplete(forwardTo(downstream));
+
             final ScheduledFuture<?> scheduledTimeout = delay(timeout(downstream), cancel(upstream));
             upstream.whenComplete(cancel(scheduledTimeout));
+
             return downstream;
         };
     }
@@ -64,14 +68,6 @@ public final class TimeoutPlugin implements Plugin {
 
     private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
         return (result, throwable) -> future.cancel(true);
-    }
-
-    private static CompletableFuture<ClientHttpResponse> cancelUpstreamCompleteDownstream(
-            final CompletableFuture<ClientHttpResponse> original) {
-
-        final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
-        original.whenComplete(forwardTo(future));
-        return future;
     }
 
 }
