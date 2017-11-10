@@ -8,6 +8,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.hamcrest.MockitoHamcrest;
@@ -28,6 +29,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -84,6 +86,8 @@ public class MetricsPluginTest {
                 .call(pass())
                 .join();
 
+        Thread.sleep(1000); // because the future won't wait for metrics
+
         verify(gaugeService).submit(argThat(equalTo("GET")), doubleThat(is(greaterThan(0d))));
     }
 
@@ -98,18 +102,22 @@ public class MetricsPluginTest {
                 .exceptionally(e -> null)
                 .join();
 
+        Thread.sleep(1000); // because the future won't wait for metrics
+
         verify(gaugeService).submit(argThat(equalTo("GET")), doubleThat(is(greaterThan(0d))));
     }
 
     @Test(expected = SocketTimeoutException.class)
     public void shouldNotRecordMetric() throws Throwable {
         driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(500, TimeUnit.MILLISECONDS));
+                giveEmptyResponse().after(750, TimeUnit.MILLISECONDS));
 
         try {
             unit.get("/foo")
                     .call(pass())
                     .join();
+
+            fail("Expected exception");
         } catch (final CompletionException e) {
             throw e.getCause();
         } finally {
