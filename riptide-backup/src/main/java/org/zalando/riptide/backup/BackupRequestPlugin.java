@@ -1,8 +1,8 @@
 package org.zalando.riptide.backup;
 
-import com.google.gag.annotation.remark.Facepalm;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingRunnable;
+import org.zalando.riptide.AbstractCancelableCompletableFuture;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -15,7 +15,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import static java.util.Objects.nonNull;
+import static java.util.Arrays.stream;
+import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 
 public final class BackupRequestPlugin implements Plugin {
 
@@ -44,41 +45,45 @@ public final class BackupRequestPlugin implements Plugin {
         return () -> {
             final CompletableFuture<ClientHttpResponse> original = execution.execute();
             final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
-            final ScheduledFuture<?> scheduledBackup = delay(backup(execution, backup));
+
+            final Future<?> scheduledBackup = delay(backup(execution, backup));
+
             original.whenComplete(cancel(scheduledBackup));
+            backup.whenComplete(cancel(original));
+
             return anyOf(original, backup);
         };
     }
 
     private ThrowingRunnable<IOException> backup(final RequestExecution execution,
-            final CompletableFuture<ClientHttpResponse> future) {
-        return () -> execution.execute().whenComplete(forwardTo(future));
+            final CompletableFuture<ClientHttpResponse> target) {
+        return () -> execution.execute().whenComplete(forwardTo(target));
     }
 
-    private static <T> BiConsumer<T, Throwable> forwardTo(final CompletableFuture<T> future) {
-        return (response, throwable) -> {
-            if (nonNull(response)) {
-                future.complete(response);
-            }
-            if (nonNull(throwable)) {
-                future.completeExceptionally(throwable);
-            }
-        };
-    }
-
-    private ScheduledFuture<?> delay(final Runnable runnable) {
-        return scheduler.schedule(runnable, delay, unit);
+    private ScheduledFuture<?> delay(final Runnable task) {
+        return scheduler.schedule(task, delay, unit);
     }
 
     private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
-        return (result, throwable) -> future.cancel(false);
+        return (result, throwable) -> future.cancel(true);
     }
 
-    @Facepalm("Not exactly sure who at Oracle thought that the signature of anyOf would be of any use...")
-    @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <T> CompletableFuture<T> anyOf(final CompletableFuture<? extends T>... futures) {
-        return (CompletableFuture) CompletableFuture.anyOf(futures);
+        final CompletableFuture<T> any = new AbstractCancelableCompletableFuture<T>() {
+            @Override
+            public boolean cancel(final boolean mayInterruptIfRunning) {
+                stream(futures).forEach(future ->
+                        future.cancel(mayInterruptIfRunning));
+
+                return super.cancel(mayInterruptIfRunning);
+            }
+        };
+
+        stream(futures).forEach(future ->
+                future.whenComplete(forwardTo(any)));
+
+        return any;
     }
 
 }

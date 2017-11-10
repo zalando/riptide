@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import javax.annotation.Nullable;
@@ -19,6 +20,9 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static java.util.Objects.nonNull;
+import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 public final class Requester extends Dispatcher {
 
@@ -109,7 +113,18 @@ public final class Requester extends Dispatcher {
 
                 // TODO why not return CompletableFuture<ClientHttpResponse> here?
                 // we need a CompletableFuture<Void>
-                return future.thenApply(response -> null);
+
+                // TODO: replace with thenApply call in Java 9
+                final CompletableFuture<Void> result = preserveCancelability(future);
+                future.whenComplete((response, throwable) -> {
+                    if (nonNull(response)) {
+                        result.complete(null);
+                    }
+                    if (nonNull(throwable)) {
+                        result.completeExceptionally(throwable);
+                    }
+                });
+                return result;
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -118,7 +133,11 @@ public final class Requester extends Dispatcher {
         private CompletableFuture<ClientHttpResponse> send() throws IOException {
             final AsyncClientHttpRequest request = createRequest();
             worker.write(request, entity);
-            return new ListenableToCompletableFutureAdapter<>(request.executeAsync());
+            final ListenableFuture<ClientHttpResponse> original = request.executeAsync();
+
+            final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
+            original.addCallback(future::complete, future::completeExceptionally);
+            return future;
         }
 
         private AsyncClientHttpRequest createRequest() throws IOException {

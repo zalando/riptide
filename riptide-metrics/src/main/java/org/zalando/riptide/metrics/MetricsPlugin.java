@@ -9,6 +9,7 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
@@ -26,9 +27,10 @@ public final class MetricsPlugin implements Plugin {
     @Override
     public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
-            final Metric metric = new Metric(arguments);
-            return execution.execute()
-                    .whenComplete(throwingBiConsumer(metric::record));
+            final Measurement measurement = new Measurement(arguments);
+            final CompletableFuture<ClientHttpResponse> future = execution.execute();
+            future.whenComplete(throwingBiConsumer(measurement::record));
+            return future;
         };
     }
 
@@ -38,11 +40,13 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @AllArgsConstructor
-    private final class Metric {
+    private final class Measurement {
         private final Stopwatch stopwatch = Stopwatch.createStarted();
         private final RequestArguments arguments;
 
-        void record(@Nullable final ClientHttpResponse response, @Nullable final Throwable e) throws Exception {
+        void record(@Nullable final ClientHttpResponse response,
+                @SuppressWarnings("unused") @Nullable final Throwable e) throws Exception {
+
             stopwatch.stop();
 
             if (response == null) {
