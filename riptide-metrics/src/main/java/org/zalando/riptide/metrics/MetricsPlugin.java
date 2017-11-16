@@ -28,8 +28,14 @@ public final class MetricsPlugin implements Plugin {
     public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
             final Measurement measurement = new Measurement(arguments);
-            final CompletableFuture<ClientHttpResponse> future = execution.execute();
+
+            // stop measurement early, ...
+            final CompletableFuture<ClientHttpResponse> future = execution.execute()
+                    .whenComplete(throwingBiConsumer(measurement::stop));
+
+            // ... but delay actual recording
             future.whenComplete(throwingBiConsumer(measurement::record));
+
             return future;
         };
     }
@@ -44,10 +50,14 @@ public final class MetricsPlugin implements Plugin {
         private final Stopwatch stopwatch = Stopwatch.createStarted();
         private final RequestArguments arguments;
 
+        @SuppressWarnings("unused")
+        void stop(@Nullable final ClientHttpResponse response,
+                @Nullable final Throwable e) {
+            stopwatch.stop();
+        }
+
         void record(@Nullable final ClientHttpResponse response,
                 @SuppressWarnings("unused") @Nullable final Throwable e) throws Exception {
-
-            stopwatch.stop();
 
             if (response == null) {
                 return;
