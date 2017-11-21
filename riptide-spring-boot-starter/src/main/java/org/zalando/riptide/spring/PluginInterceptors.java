@@ -11,7 +11,6 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.zalando.riptide.ListenableToCompletableFutureAdapter;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -20,6 +19,8 @@ import org.zalando.riptide.capture.Completion;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
+
+import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 final class PluginInterceptors {
 
@@ -65,7 +66,11 @@ final class PluginInterceptors {
 
             final RequestExecution requestExecution = () -> {
                 try {
-                    return new ListenableToCompletableFutureAdapter<>(execution.executeAsync(request, body));
+
+                    final ListenableFuture<ClientHttpResponse> original = execution.executeAsync(request, body);
+                    final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
+                    original.addCallback(future::complete, future::completeExceptionally);
+                    return future;
                 } catch (final Exception e) {
                     // this branch is just for issues inside of executeAsync, not during the actual execution
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();

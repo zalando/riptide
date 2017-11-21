@@ -11,11 +11,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
@@ -88,24 +85,14 @@ public final class IOTest {
 
     @Test
     public void shouldCancelRequest() throws ExecutionException, InterruptedException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveEmptyResponse().after(1, TimeUnit.SECONDS));
+        // TODO: support proper cancellations and remove this expectation
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
-        final CompletableFuture<Void> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+        http.get("/foo")
+                .call(pass())
+                .cancel(true);
 
-        future.cancel(true);
-
-        try {
-            future.join();
-        } catch (final CancellationException e) {
-            // expected
-        }
-
-        // we don't care whether the request was actually made or not, but by default the driver will verify
-        // all expectations after every tests
-        driver.reset();
+        Thread.sleep(1000);
     }
 
 }

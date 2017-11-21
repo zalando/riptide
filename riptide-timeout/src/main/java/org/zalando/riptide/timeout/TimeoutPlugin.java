@@ -14,6 +14,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
+import static java.util.Arrays.stream;
+import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
+import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
+
 /**
  * @see CompletableFuture#orTimeout(long, TimeUnit)
  */
@@ -34,23 +38,36 @@ public final class TimeoutPlugin implements Plugin {
     @Override
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
-            final CompletableFuture<ClientHttpResponse> future = execution.execute();
-            final ScheduledFuture<?> scheduledTimeout = delay(timeout(future));
-            future.whenComplete(cancel(scheduledTimeout));
-            return future;
+            final CompletableFuture<ClientHttpResponse> upstream = execution.execute();
+
+            final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
+            upstream.whenComplete(forwardTo(downstream));
+
+            final ScheduledFuture<?> scheduledTimeout = delay(timeout(downstream), cancel(upstream));
+            upstream.whenComplete(cancel(scheduledTimeout));
+
+            return downstream;
         };
+    }
+
+    private <T> Runnable cancel(final CompletableFuture<T> future) {
+        return () -> future.cancel(true);
     }
 
     private <T> Runnable timeout(final CompletableFuture<T> future) {
         return () -> future.completeExceptionally(new TimeoutException());
     }
 
-    private ScheduledFuture<?> delay(final Runnable runnable) {
-        return scheduler.schedule(runnable, timeout, unit);
+    private ScheduledFuture<?> delay(final Runnable... tasks) {
+        return scheduler.schedule(run(tasks), timeout, unit);
+    }
+
+    private Runnable run(final Runnable... tasks) {
+        return () -> stream(tasks).forEach(Runnable::run);
     }
 
     private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
-        return (result, throwable) -> future.cancel(false);
+        return (result, throwable) -> future.cancel(true);
     }
 
 }

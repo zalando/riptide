@@ -98,6 +98,16 @@ public final class BackupRequestPluginTest {
                 .join();
     }
 
+    @Test
+    public void shouldCancelRequests() throws InterruptedException {
+        // TODO: support proper cancellations and remove this expectation
+        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
 
+        unit.get("/bar")
+                .call(pass())
+                .cancel(true);
+
+        Thread.sleep(1000);
+    }
 
 }
