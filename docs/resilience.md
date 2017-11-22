@@ -1,6 +1,7 @@
 # Resilience
 
-This document aims to provide a convenient overview of all resilience patterns that are supported by Riptide:
+This document aims to provide a convenient overview of all resilience patterns that are supported by Riptide.
+A complete example configuration can be found [here](https://github.com/zalando/riptide/tree/master/riptide-spring-boot-starter#configuration).
 
 ## Bulkheads
 
