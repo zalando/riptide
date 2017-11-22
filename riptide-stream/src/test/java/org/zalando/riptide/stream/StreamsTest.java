@@ -38,7 +38,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.Types.listOf;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
 import static org.zalando.riptide.stream.Streams.forEach;

@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * @see Http#builder()
  * @see DefaultHttpBuilder
  */
-@Deprecated
+@Deprecated//(since = "2.5.0", forRemoval = true)
 public final class RestBuilder implements HttpBuilder {
 
     private final HttpBuilder builder;

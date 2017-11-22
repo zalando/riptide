@@ -31,7 +31,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Route.responseEntityOf;
+import static org.zalando.riptide.Types.responseEntityOf;
 
 public final class CallTest {
 

@@ -34,4 +34,9 @@ public final class EnforceCoverageTest {
         new Navigators();
     }
 
+    @Test
+    public void shouldUseTypesConstructor() {
+        new Types();
+    }
+
 }
