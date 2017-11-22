@@ -18,7 +18,7 @@ riptide.clients:
     thread-pool:
       min-size: 4
       max-size: 16
-      keep-alive: 1 minnute
+      keep-alive: 1 minute
       queue-size: 0
 ```
 
