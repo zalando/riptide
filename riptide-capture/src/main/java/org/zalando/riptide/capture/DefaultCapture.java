@@ -1,7 +1,6 @@
 package org.zalando.riptide.capture;
 
 import javax.annotation.Nullable;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -25,11 +24,10 @@ final class DefaultCapture<T> implements Capture<T> {
 
     @Override
     public T apply(final Void result) {
-        final Optional<T> value = reference.get();
+        @Nullable final Optional<T> value = reference.get();
 
         if (value == null) {
-            // TODO throw specific exception?
-            throw new NoSuchElementException("No value present");
+            throw new CaptureException();
         }
 
         return value.orElse(null);
