@@ -19,8 +19,12 @@ final class DefaultCapture<T> implements Capture<T> {
 
     @Override
     public void tryAccept(@Nullable final T input) {
-        // TODO fail on second capture?
-        reference.compareAndSet(null, Optional.ofNullable(input));
+        final boolean captured = reference.compareAndSet(null, Optional.ofNullable(input));
+        final boolean alreadyCaptured = !captured;
+
+        if (alreadyCaptured) {
+            throw new IllegalStateException("Already captured");
+        }
     }
 
     @Override
