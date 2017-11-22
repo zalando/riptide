@@ -33,9 +33,14 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 [Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
 
 ## Features
-
 - full access to the underlying HTTP client
-- encourages to write more resilient clients, by forcing you to consider
+- [resilience](docs/resilience.md) built into it
+  - isolated thread pools, connection pools and bounded queues
+  - transient fault detection via [riptide-faults](riptide-faults)
+  - retries and circuit breaker via [Failsafe integration](riptide-failsafe)
+  - backup requests via [riptide-backup](riptide-backup)
+  - [timeouts](riptide-timeout)
+- encourages the use of
   - fallbacks
   - content negotiation
   - robust error handling
@@ -43,11 +48,8 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - type-safe
 - asynchronous by default
 - [synchronous return values](riptide-capture) on demand
-- bulkhead pattern through isolated thread and connection pools
-- [Failsafe integration](riptide-failsafe)
 - [`application/problem+json` support](riptide-problem)
 - [streaming](riptide-stream)
-- [timeouts](riptide-timeout)
 
 ## Origin
 
