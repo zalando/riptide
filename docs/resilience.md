@@ -124,18 +124,43 @@ http.get("/me")
 
 ## Timeouts
 
-Some resilience patterns like retries, queuing, backup requests and asynchronous/remote
-fallbacks introduce delays. Configuring connect and socket timeouts in those cases is often not enough.
-You need consider maximum number of retries, exponential backoff delays, jitter, etc. An easy way is to set a *global* 
-timeout that spans all of the things mentioned before. This is provided by [riptide-timeout](../riptide-timeout):
+Some resilience patterns like retries, queuing, backup requests and fallbacks introduce delays. Configuring connect and
+socket timeouts in those cases is often not enough. You need consider maximum number of retries, exponential backoff
+delays, jitter, etc. An easy way is to set a *global* timeout that spans all of the things mentioned before. This 
+feature is provided by [riptide-timeout](../riptide-timeout).
+
+Given the following sample configuration:
 
 ```yaml
 riptide.clients:
   example:
-    connect-timeout: 150 milliseconds
-    socket-timeout: 100 milliseconds
+    connect-timeout: 50 milliseconds
+    socket-timeout: 25 milliseconds
+    retry:
+      fixed-delay: 30 milliseconds
+      max-retries: 5
+      jitter: 15 milliseconds
+    backup-request:
+      delay: 75 milliseconds
     timeout: 500 milliseconds
 ```
+
+Based on the absolute worst-case scenario, one would need to expect:
+
+[`50ms + 25ms + 75ms + 5 × (50ms + 25ms + 30ms + 15ms) = 750ms`](https://www.wolframalpha.com/input/?i=50ms+%2B+25ms+%2B+75ms+%2B+5+%C3%97+(50ms+%2B+25ms+%2B+30ms+%2B+15ms))
+
+This calculation does not factor in delays because of queuing. Neither does it consider the processing time to process
+the response, e.g. deserialization.
+
+Let's assume there is a budget of 500 ms that can be spend on this remote call. The calculation above shows
+that the worst-case scenario would extend way beyond that given budget. But it's very unlikely that you'll hit the
+absolute worst case. If a connection can be established it won't take exactly 50 ms every time. The jitter
+will vary in how long the delay will be, somewhere between 15 and 45 ms and 30 ms on average.
+For example, let's assume you connect within 1 ms, but hit the socket timeout 5 times in a row:
+
+[`1ms + 25ms + 75ms + 5 × (1ms + 25ms + 30ms) = 381ms`](https://www.wolframalpha.com/input/?i=1ms+%2B+25ms+%2B+75ms+%2B+5+%C3%97+(1ms+%2B+25ms+%2B+30ms))
+
+Your budget allows for this, so there is no reason not to use it. Setting a timeout allows you to maximize your budget and minimize the risk of exceeding it.
 
 ## References
 
