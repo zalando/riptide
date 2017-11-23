@@ -98,7 +98,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldFail() {
+    public void shouldFailIfNotCaptured() {
         server.expect(requestTo("https://api.example.com/accounts/123")).andRespond(withSuccess());
 
         final Capture<String> capture = Capture.empty();
@@ -114,6 +114,13 @@ public final class CaptureTest {
         exception.expectCause(instanceOf(NoSuchElementException.class));
 
         future.join();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotAllowSecondCaptures() {
+        final Capture<String> capture = Capture.empty();
+        capture.accept("foo");
+        capture.accept("bar");
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
