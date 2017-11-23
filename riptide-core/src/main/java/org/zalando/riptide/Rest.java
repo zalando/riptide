@@ -8,7 +8,7 @@ import java.net.URI;
  * @see Http
  * @see DefaultHttp
  */
-@Deprecated
+@Deprecated//(since = "2.5.0", forRemoval = true)
 public final class Rest implements Http {
 
     private final Http http;

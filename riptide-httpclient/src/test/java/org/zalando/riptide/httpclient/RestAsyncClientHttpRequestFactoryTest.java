@@ -50,7 +50,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Route.listOf;
+import static org.zalando.riptide.Types.listOf;
 
 public final class RestAsyncClientHttpRequestFactoryTest {
 
