@@ -96,11 +96,10 @@ riptide.clients:
 Provided by [riptide-backup](../riptide-backup)
 
 ```yaml
-riptide:
-  clients:
-    example:
-      backup-request:
-        delay: 75 milliseconds
+riptide.clients:
+  example:
+    backup-request:
+      delay: 75 milliseconds
 ```
 
 ## Fallbacks  
