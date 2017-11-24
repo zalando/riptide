@@ -24,8 +24,9 @@ http.get("/sales-orders")
 - no direct Riptide dependency
   - can be used with a plain `RestTemplate`
 - supports
+  - [`application/json-seq`](https://tools.ietf.org/html/rfc7464)
+  - [`application/stream+json`](https://tools.ietf.org/id/draft-snell-activity-streams-type-01.html)
   - `application/x-json-stream`
-  - `application/json-seq`
 - type-safe
 
 ## Dependencies
