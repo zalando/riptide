@@ -32,6 +32,7 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideSettings.Client;
 import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
+import org.zalando.riptide.spring.testing.ExpectingHttpRequestFactory;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -79,16 +80,23 @@ final class RiptideRegistrar {
         return registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
 
-            final BeanDefinitionBuilder factory =
-                    genericBeanDefinition(RestAsyncClientHttpRequestFactory.class);
+            if (settings.isMocked()) {
+                final BeanDefinitionBuilder factory =
+                        genericBeanDefinition(ExpectingHttpRequestFactory.class);
+                factory.addConstructorArgReference("requestExpectationManager");
+                return factory;
+            } else {
+                final BeanDefinitionBuilder factory =
+                        genericBeanDefinition(RestAsyncClientHttpRequestFactory.class);
 
-            factory.addConstructorArgReference(registerHttpClient(id, client));
-            factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
-                    // we allow users to use their own ExecutorService, but they don't have to configure tracing
-                    .addConstructorArgValue(registerExecutor(id, client))
-                    .getBeanDefinition());
+                factory.addConstructorArgReference(registerHttpClient(id, client));
+                factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
+                        // we allow users to use their own ExecutorService, but they don't have to configure tracing
+                        .addConstructorArgValue(registerExecutor(id, client))
+                        .getBeanDefinition());
 
-            return factory;
+                return factory;
+            }
         });
     }
 

@@ -60,7 +60,8 @@ final class Defaulting {
                 defaults,
                 merge(base.getOauth(), defaults),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(requireNonNull(client), defaults)))
+                        merge(requireNonNull(client), defaults))),
+                base.isMocked()
         );
     }
 

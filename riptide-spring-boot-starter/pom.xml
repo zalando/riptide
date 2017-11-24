@@ -157,7 +157,14 @@
                     <artifactId>hamcrest-library</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
+            <!-- assume artifact is provided in order to support RiptideClientTest -->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <!-- assume artifact is provided in order to support RiptideClientTest -->
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
