@@ -18,6 +18,8 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,37 +44,65 @@ public final class Requester extends Dispatcher {
         this.plugin = Plugin.compound(plugins);
     }
 
-    public final Requester queryParam(final String name, final String value) {
+    public Requester queryParam(final String name, final String value) {
         query.put(name, value);
         return this;
     }
 
-    public final Requester queryParams(final Multimap<String, String> params) {
+    public Requester queryParams(final Multimap<String, String> params) {
         query.putAll(params);
         return this;
     }
 
-    public final Requester header(final String name, final String value) {
-        headers.add(name, value);
-        return this;
-    }
-
-    public final Requester headers(final HttpHeaders headers) {
-        this.headers.putAll(headers);
-        return this;
-    }
-
-    public final Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
+    public Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
         headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
         return this;
     }
 
-    public final Requester contentType(final MediaType contentType) {
+    public Requester contentType(final MediaType contentType) {
         headers.setContentType(contentType);
         return this;
     }
 
-    public final <T> Dispatcher body(@Nullable final T body) {
+    public Requester ifModifiedSince(final OffsetDateTime since) {
+        headers.setIfModifiedSince(since.toInstant().toEpochMilli());
+        return this;
+    }
+
+    public Requester ifUnmodifiedSince(final OffsetDateTime since) {
+        headers.setIfUnmodifiedSince(since.toInstant().toEpochMilli());
+        return this;
+    }
+
+    public Requester ifNoneMatch(final String... entityTags) {
+        return ifNoneMatch(Arrays.asList(entityTags));
+    }
+
+    public Requester ifMatch(final String... entityTags) {
+        return ifMatch(Arrays.asList(entityTags));
+    }
+
+    private Requester ifMatch(final List<String> entityTags) {
+        headers.setIfMatch(entityTags);
+        return this;
+    }
+
+    private Requester ifNoneMatch(final List<String> entityTags) {
+        headers.setIfNoneMatch(entityTags);
+        return this;
+    }
+
+    public Requester header(final String name, final String value) {
+        headers.add(name, value);
+        return this;
+    }
+
+    public Requester headers(final HttpHeaders headers) {
+        this.headers.putAll(headers);
+        return this;
+    }
+
+    public <T> Dispatcher body(@Nullable final T body) {
         return execute(body);
     }
 

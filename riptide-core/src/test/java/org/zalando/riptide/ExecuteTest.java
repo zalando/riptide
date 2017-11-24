@@ -10,6 +10,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
 
+import java.time.OffsetDateTime;
 import java.util.Collections;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -58,10 +59,18 @@ public final class ExecuteTest {
     public void shouldSendHeaders() {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
+                .andExpect(header("If-Modified-Since", "Fri, 24 Nov 2017 11:02:39 GMT"))
+                .andExpect(header("If-Unmodified-Since", "Fri, 17 Nov 2017 11:02:39 GMT"))
+                .andExpect(header("If-Match", "A, B, C"))
+                .andExpect(header("If-None-Match", "X, Y, Z"))
                 .andRespond(withSuccess());
 
         unit.head(url)
                 .header("X-Foo", "bar")
+                .ifModifiedSince(OffsetDateTime.parse("2017-11-24T12:02:39+01:00"))
+                .ifUnmodifiedSince(OffsetDateTime.parse("2017-11-17T12:02:39+01:00"))
+                .ifMatch("A", "B", "C")
+                .ifNoneMatch("X", "Y", "Z")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 
