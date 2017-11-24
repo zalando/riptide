@@ -35,15 +35,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public final class Streams {
 
-    /**
-     * Default singleton {@link MediaType media type} for application/x-json-stream.
-     */
-    public static final MediaType APPLICATION_X_JSON_STREAM = new MediaType("application", "x-json-stream", UTF_8);
-
-    /**
-     * Default singleton {@link MediaType media type} for application/json-seq.
-     */
-    public static final MediaType APPLICATION_JSON_SEQ = new MediaType("application", "json-seq", UTF_8);
+    public static final MediaType APPLICATION_JSON_SEQ = new MediaType("application", "json-seq");
+    public static final MediaType APPLICATION_STREAM_JSON = new MediaType("application", "stream+json");
+    public static final MediaType APPLICATION_X_JSON_STREAM = new MediaType("application", "x-json-stream");
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
@@ -126,7 +120,8 @@ public final class Streams {
      * @return stream converter with customer object mapper.
      */
     public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper) {
-        return streamConverter(mapper, Arrays.asList(APPLICATION_JSON_SEQ, APPLICATION_X_JSON_STREAM));
+        return streamConverter(mapper, Arrays.asList(
+                APPLICATION_JSON_SEQ, APPLICATION_STREAM_JSON, APPLICATION_X_JSON_STREAM));
     }
 
     /**
