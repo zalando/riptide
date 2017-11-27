@@ -18,10 +18,25 @@ class TestRiptideRegistrar implements RiptideRegistrar {
 
     @Override
     public void register() {
-        settings.getClients().forEach((id, client) -> {
-            final String templateId = registerAsyncRestTemplate(id);
-            final String serverId = registerMockRestServiceServer(id, templateId);
-            registerAsyncClientHttpRequestFactory(id, templateId, serverId);
+        final String templateId = registerMockAsyncRestTemplate();
+        final String serverId = registerMockRestServiceServer(templateId);
+        settings.getClients().forEach((id, client) -> registerAsyncClientHttpRequestFactory(id, templateId, serverId));
+    }
+
+    private String registerMockAsyncRestTemplate() {
+        return registry.registerIfAbsent("_mock", AsyncRestTemplate.class, () -> {
+            log.debug("Registering AsyncRestTemplate");
+            return genericBeanDefinition(AsyncRestTemplate.class);
+        });
+    }
+
+    private String registerMockRestServiceServer(final String templateId) {
+        return registry.registerIfAbsent(MockRestServiceServer.class, () -> {
+            log.debug("Registering MockRestServiceServer");
+            final BeanDefinitionBuilder factory = genericBeanDefinition(MockRestServiceServer.class);
+            factory.setFactoryMethod("createServer");
+            factory.addConstructorArgReference(templateId);
+            return factory;
         });
     }
 
@@ -31,23 +46,6 @@ class TestRiptideRegistrar implements RiptideRegistrar {
             final BeanDefinitionBuilder factory = genericBeanDefinition(AsyncClientHttpRequestFactory.class);
             factory.addDependsOn(serverId);
             factory.setFactoryMethodOnBean("getAsyncRequestFactory", templateId);
-            return factory;
-        });
-    }
-
-    private String registerAsyncRestTemplate(final String id) {
-        return registry.registerIfAbsent(id, AsyncRestTemplate.class, () -> {
-            log.debug("Client [{}]: Registering AsyncRestTemplate", id);
-            return genericBeanDefinition(AsyncRestTemplate.class);
-        });
-    }
-
-    private String registerMockRestServiceServer(final String id, final String templateId) {
-        return registry.registerIfAbsent(id, MockRestServiceServer.class, () -> {
-            log.debug("Client [{}]: Registering MockRestServiceServer", id);
-            final BeanDefinitionBuilder factory = genericBeanDefinition(MockRestServiceServer.class);
-            factory.setFactoryMethod("createServer");
-            factory.addConstructorArgReference(templateId);
             return factory;
         });
     }

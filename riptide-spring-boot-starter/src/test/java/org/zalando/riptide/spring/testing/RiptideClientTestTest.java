@@ -3,7 +3,6 @@ package org.zalando.riptide.spring.testing;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,7 +30,6 @@ public class RiptideClientTestTest {
     private TestService client;
 
     @Autowired
-    @Qualifier("example")
     private MockRestServiceServer server;
 
     @Test
