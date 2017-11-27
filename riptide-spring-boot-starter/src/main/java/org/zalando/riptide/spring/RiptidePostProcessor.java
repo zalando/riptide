@@ -10,11 +10,18 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
+import java.util.function.BiFunction;
+
 import static org.zalando.riptide.spring.Defaulting.withDefaults;
 
 final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
     private RiptideSettings settings;
+    private BiFunction<Registry, RiptideSettings, RiptideRegistrar> registarFactory;
+
+    RiptidePostProcessor(BiFunction<Registry, RiptideSettings, RiptideRegistrar> registarFactory) {
+        this.registarFactory = registarFactory;
+    }
 
     @Override
     @SneakyThrows
@@ -33,7 +40,7 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
-        final RiptideRegistrar registrar = new RiptideRegistrar(new Registry(registry), withDefaults(settings));
+        final RiptideRegistrar registrar = registarFactory.apply(new Registry(registry), withDefaults(settings));
         registrar.register();
     }
 

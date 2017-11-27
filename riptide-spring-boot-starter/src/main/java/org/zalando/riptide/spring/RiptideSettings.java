@@ -16,7 +16,6 @@ import java.util.Map;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public final class RiptideSettings {
@@ -24,7 +23,6 @@ public final class RiptideSettings {
     private Defaults defaults = new Defaults();
     private GlobalOAuth oauth = new GlobalOAuth();
     private Map<String, Client> clients = new LinkedHashMap<>();
-    private boolean mocked = false;
 
     @Getter
     @Setter

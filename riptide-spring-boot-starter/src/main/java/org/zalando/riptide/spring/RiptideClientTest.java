@@ -1,11 +1,9 @@
-package org.zalando.riptide.spring.testing;
+package org.zalando.riptide.spring;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.test.context.TestPropertySource;
-import org.zalando.riptide.spring.RiptideAutoConfiguration;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -19,12 +17,9 @@ import java.lang.annotation.Target;
 @Documented
 @Inherited
 @RestClientTest
-@AutoConfigureMockRestServiceServer(enabled = false) // see RiptideClientAutoConfiguration
-@TestPropertySource(properties = {
-        "riptide.mocked: true"
-})
+@AutoConfigureMockRestServiceServer(enabled = false) // will be registered per client
 @ImportAutoConfiguration({
-        RiptideMockRestServiceServerAutoConfiguration.class,
+        RiptideTestAutoConfiguration.class,
         RiptideAutoConfiguration.class
 })
 public @interface RiptideClientTest {

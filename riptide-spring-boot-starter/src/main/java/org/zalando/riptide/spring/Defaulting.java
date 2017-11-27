@@ -60,8 +60,7 @@ final class Defaulting {
                 defaults,
                 merge(base.getOauth(), defaults),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(requireNonNull(client), defaults))),
-                base.isMocked()
+                        merge(requireNonNull(client), defaults)))
         );
     }
 
@@ -76,7 +75,7 @@ final class Defaulting {
         );
     }
 
-    static Client merge(final Client base, final Defaults defaults) {
+    private static Client merge(final Client base, final Defaults defaults) {
         final int maxConnectionsPerRoute =
                 either(base.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
         final int maxConnectionsTotal = max(maxConnectionsPerRoute,

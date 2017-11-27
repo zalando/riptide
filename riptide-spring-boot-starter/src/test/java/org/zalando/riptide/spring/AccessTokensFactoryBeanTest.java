@@ -29,8 +29,7 @@ public final class AccessTokensFactoryBeanTest {
                             null, null, null, null, null, null, null, null,
                             new OAuth(singletonList("example")),
                             null, null, null, null, null, null, null, false, null)
-            ),
-            false
+            )
     ));
 
     // just because spring sometimes fails to destroy properly during tests
