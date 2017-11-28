@@ -75,7 +75,7 @@ final class Defaulting {
         );
     }
 
-    static Client merge(final Client base, final Defaults defaults) {
+    private static Client merge(final Client base, final Defaults defaults) {
         final int maxConnectionsPerRoute =
                 either(base.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
         final int maxConnectionsTotal = max(maxConnectionsPerRoute,

@@ -25,7 +25,7 @@ public class RiptideAutoConfiguration {
 
     @Bean
     public static RiptidePostProcessor restClientPostProcessor() {
-        return new RiptidePostProcessor();
+        return new RiptidePostProcessor(DefaultRiptideRegistrar::new);
     }
 
     @Configuration
@@ -43,6 +43,7 @@ public class RiptideAutoConfiguration {
 
         @AllArgsConstructor
         private static class MetricsGaugeService implements GaugeService {
+
             private final MetricRegistry registry;
 
             @Override

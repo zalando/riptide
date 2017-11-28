@@ -13,7 +13,7 @@ public final class EnforceCoverageTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldTriggerSneakyException() {
-        final RiptidePostProcessor unit = new RiptidePostProcessor();
+        final RiptidePostProcessor unit = new RiptidePostProcessor(DefaultRiptideRegistrar::new);
         unit.setEnvironment(mock(ConfigurableEnvironment.class));
     }
 
