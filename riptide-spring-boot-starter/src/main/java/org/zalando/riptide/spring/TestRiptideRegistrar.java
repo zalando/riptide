@@ -14,9 +14,6 @@ class TestRiptideRegistrar implements RiptideRegistrar {
     private final Registry registry;
     private final RiptideSettings settings;
 
-    private final String asyncRestTemplateName;
-    private final String mockRestServiceServerName;
-
     @Override
     public void register() {
         settings.getClients().forEach((id, client) ->
@@ -27,8 +24,8 @@ class TestRiptideRegistrar implements RiptideRegistrar {
         registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering mocked AsyncClientHttpRequestFactory", id);
             final BeanDefinitionBuilder factory = genericBeanDefinition(AsyncClientHttpRequestFactory.class);
-            factory.addDependsOn(mockRestServiceServerName);
-            factory.setFactoryMethodOnBean("getAsyncRequestFactory", asyncRestTemplateName);
+            factory.addDependsOn(RiptideTestAutoConfiguration.SERVER_BEAN_NAME);
+            factory.setFactoryMethodOnBean("getAsyncRequestFactory", RiptideTestAutoConfiguration.TEMPLATE_BEAN_NAME);
             return factory;
         });
     }

@@ -11,13 +11,12 @@ import org.springframework.web.client.AsyncRestTemplate;
 @AutoConfigureBefore(RiptideAutoConfiguration.class)
 public class RiptideTestAutoConfiguration {
 
-    private static final String SERVER_BEAN_NAME = "mockRestServiceServer";
-    private static final String TEMPLATE_BEAN_NAME = "_mockAsyncRestTemplate";
+    static final String SERVER_BEAN_NAME = "mockRestServiceServer";
+    static final String TEMPLATE_BEAN_NAME = "_mockAsyncRestTemplate";
 
     @Bean
     public static RiptidePostProcessor restClientTestPostProcessor() {
-        return new RiptidePostProcessor((registry, settings) ->
-                new TestRiptideRegistrar(registry, settings, TEMPLATE_BEAN_NAME, SERVER_BEAN_NAME));
+        return new RiptidePostProcessor(TestRiptideRegistrar::new);
     }
 
     @Configuration
@@ -29,7 +28,7 @@ public class RiptideTestAutoConfiguration {
         }
 
         @Bean(name = SERVER_BEAN_NAME)
-        MockRestServiceServer mockRestServiceServer(@Qualifier("_mockAsyncRestTemplate") final AsyncRestTemplate template) {
+        MockRestServiceServer mockRestServiceServer(@Qualifier(TEMPLATE_BEAN_NAME) final AsyncRestTemplate template) {
             return MockRestServiceServer.createServer(template);
         }
 
