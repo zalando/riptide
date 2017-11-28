@@ -6,20 +6,17 @@ import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.metrics.MetricsPlugin;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Configuration
-@AutoConfigureAfter(value = {
-        JacksonAutoConfiguration.class,
-        LogbookAutoConfiguration.class,
-        TracerAutoConfiguration.class,
+@AutoConfigureAfter(name = {
+        "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
+        "org.zalando.logbook.spring.LogbookAutoConfiguration",
+        "org.zalando.tracer.spring.TracerAutoConfiguration",
 })
 public class RiptideAutoConfiguration {
 
