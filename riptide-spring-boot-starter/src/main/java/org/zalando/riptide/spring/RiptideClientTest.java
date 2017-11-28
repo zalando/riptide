@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Documented
 @Inherited
 @RestClientTest
-@AutoConfigureMockRestServiceServer(enabled = false) // will be registered per client
+@AutoConfigureMockRestServiceServer(enabled = false) // will be registered via RiptideTestAutoConfiguration
 @ImportAutoConfiguration({
         RiptideTestAutoConfiguration.class,
         RiptideAutoConfiguration.class

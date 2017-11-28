@@ -14,7 +14,7 @@ import org.zalando.riptide.spring.RiptideClientTest;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-@SpringBootTest
+@SpringBootTest // needed by @RestClientTesT - that's why we are in our own package here
 @RiptideClientTest
 @ActiveProfiles("testing")
 @RunWith(SpringRunner.class)
