@@ -161,7 +161,8 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>22.0</version>
+                <!-- Make sure we are backwards compatible when upgrading to 20.0 or higher. See #306. -->
+                <version>19.0</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
