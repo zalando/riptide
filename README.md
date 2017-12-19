@@ -130,7 +130,7 @@ http.post("/sales-order")
     //...
 ```
 
-Riptide the the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
+Riptide supports the following HTTP methods: `get`, `head`, `post`, `put`, `patch`, `delete`, `options` and `trace`
 respectively. Query parameters can either be provided individually using `queryParam(String, String)` or multiple at 
 once with `queryParams(Multimap<String, String>)`.
 
