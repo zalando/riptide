@@ -64,12 +64,11 @@ Http.builder()
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible
 configurations. Make sure you **check out 
-[zalando/failsafe-actuator](https://github.com/zalando-incubator/failsafe-actuator)** for a seemless integration of
+[zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seemless integration of
 Failsafe and Spring Boot:
 
 ```java
 @Autowired
-@FailsafeBreaker("myBreaker")
 private CircuitBreaker breaker;
 
 Http.builder()
