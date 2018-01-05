@@ -7,14 +7,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -62,28 +58,6 @@ public final class PluginTest {
             return new CustomPlugin();
         }
 
-        @Bean
-        public AsyncRestTemplate template() {
-            return new AsyncRestTemplate();
-        }
-
-        @Bean
-        public MockRestServiceServer server(final AsyncRestTemplate template) {
-            return MockRestServiceServer.createServer(template);
-        }
-
-        @Bean
-        @DependsOn("server")
-        public AsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(final AsyncRestTemplate template) {
-            return template.getAsyncRequestFactory();
-        }
-
-        @Bean
-        @DependsOn("server")
-        public AsyncClientHttpRequestFactory fooAsyncClientHttpRequestFactory(final AsyncRestTemplate template) {
-            return template.getAsyncRequestFactory();
-        }
-
     }
 
     static class CustomPlugin implements Plugin {
@@ -93,9 +67,6 @@ public final class PluginTest {
             return execution;
         }
     }
-
-    @Autowired
-    private MockRestServiceServer server;
 
     @Autowired
     @Qualifier("ecb")
@@ -146,8 +117,7 @@ public final class PluginTest {
         final Field field = http.getClass().getDeclaredField("plugins");
         field.setAccessible(true);
 
-        @SuppressWarnings("unchecked")
-        final List<Plugin> plugins = (List<Plugin>) field.get(http);
+        @SuppressWarnings("unchecked") final List<Plugin> plugins = (List<Plugin>) field.get(http);
 
         return plugins;
     }
