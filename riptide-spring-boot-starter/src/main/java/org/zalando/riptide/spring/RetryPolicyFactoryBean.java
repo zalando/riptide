@@ -13,7 +13,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
 
-    private final RetryPolicy retryPolicy = new RetryPolicy();
+    private final RetryPolicy retryPolicy = new RetryPolicy().withMaxRetries(0);
 
     public void setConfiguration(final Retry config) {
         Optional.ofNullable(config.getFixedDelay())
@@ -33,8 +33,7 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
             }
         });
 
-        Optional.ofNullable(config.getMaxRetries())
-                .ifPresent(retryPolicy::withMaxRetries);
+        retryPolicy.withMaxRetries(Optional.ofNullable(config.getMaxRetries()).orElse(-1));
 
         Optional.ofNullable(config.getMaxDuration())
                 .ifPresent(duration -> duration.applyTo(retryPolicy::withMaxDuration));
@@ -49,7 +48,7 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
     }
 
     @Override
-    public RetryPolicy getObject() throws Exception {
+    public RetryPolicy getObject() {
         return retryPolicy;
     }
 
