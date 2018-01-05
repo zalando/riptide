@@ -39,7 +39,7 @@ public final class BackupRequestPluginTest {
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
-            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS))
+            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
             .build();
 
     @After
