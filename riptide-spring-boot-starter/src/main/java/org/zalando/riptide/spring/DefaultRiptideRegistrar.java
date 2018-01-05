@@ -234,6 +234,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 .addConstructorArgValue(registerScheduler(id))
                 .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                 .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
+                .addConstructorArgValue(registerExecutor(id, client))
                 .getBeanDefinition());
         }
 
@@ -242,6 +243,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(registerScheduler(id))
                     .addConstructorArgValue(client.getTimeout().getAmount())
                     .addConstructorArgValue(client.getTimeout().getUnit())
+                    .addConstructorArgValue(registerExecutor(id, client))
                     .getBeanDefinition());
         }
 

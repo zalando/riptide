@@ -39,7 +39,7 @@ public class TimeoutPluginTest {
             .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
             .converter(createJsonConverter())
-            .plugin(new TimeoutPlugin(newSingleThreadScheduledExecutor(), 1, TimeUnit.SECONDS))
+            .plugin(new TimeoutPlugin(newSingleThreadScheduledExecutor(), 1, TimeUnit.SECONDS, executor))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

@@ -1,12 +1,14 @@
 package org.zalando.riptide.timeout;
 
 import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
+import lombok.AllArgsConstructor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -21,18 +23,17 @@ import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelabil
 /**
  * @see CompletableFuture#orTimeout(long, TimeUnit)
  */
+@AllArgsConstructor
 @ThisWouldBeOneLineIn(language = "Java 9", toWit = "return () -> execution.execute().orTimeout(timeout, unit)")
 public final class TimeoutPlugin implements Plugin {
 
     private final ScheduledExecutorService scheduler;
     private final long timeout;
     private final TimeUnit unit;
+    private final Executor executor;
 
-    public TimeoutPlugin(final ScheduledExecutorService scheduler, final long timeout,
-            final TimeUnit unit) {
-        this.scheduler = scheduler;
-        this.timeout = timeout;
-        this.unit = unit;
+    public TimeoutPlugin(final ScheduledExecutorService scheduler, final long timeout, final TimeUnit unit) {
+        this(scheduler, timeout, unit, Runnable::run);
     }
 
     @Override
@@ -41,10 +42,10 @@ public final class TimeoutPlugin implements Plugin {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute();
 
             final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
-            upstream.whenComplete(forwardTo(downstream));
+            upstream.whenCompleteAsync(forwardTo(downstream), executor);
 
             final ScheduledFuture<?> scheduledTimeout = delay(timeout(downstream), cancel(upstream));
-            upstream.whenComplete(cancel(scheduledTimeout));
+            upstream.whenCompleteAsync(cancel(scheduledTimeout), executor);
 
             return downstream;
         };
@@ -59,7 +60,11 @@ public final class TimeoutPlugin implements Plugin {
     }
 
     private ScheduledFuture<?> delay(final Runnable... tasks) {
-        return scheduler.schedule(run(tasks), timeout, unit);
+        return scheduler.schedule(run(executor, tasks), timeout, unit);
+    }
+
+    private Runnable run(final Executor executor, final Runnable... tasks) {
+        return () -> executor.execute(run(tasks));
     }
 
     private Runnable run(final Runnable... tasks) {
