@@ -62,7 +62,10 @@ public class RiptideAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(Scheduled.class)
-    @AutoConfigureAfter(name = "org.zalando.tracer.spring.TracerAutoConfiguration")
+    @AutoConfigureAfter(name = {
+            "org.zalando.tracer.spring.TracerAutoConfiguration",
+            "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration"
+    })
     @AutoConfigureBefore(name = "org.springframework.scheduling.annotation.SchedulingConfiguration")
     static class SchedulingAutoConfiguration {
 
