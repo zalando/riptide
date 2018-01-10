@@ -24,12 +24,3 @@ riptide:
         success-threshold: 2 out of 5
       backup-request:
         delay: 250 milliseconds
-    ecb:
-      base-url: http://www.ecb.europa.eu
-      retry:
-        backoff:
-          delay: 500 milliseconds
-          max-delay: 3 seconds
-        max-retries: 4
-        max-duration: 10 seconds
-        jitter: 200 milliseconds

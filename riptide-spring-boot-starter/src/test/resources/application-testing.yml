@@ -11,4 +11,10 @@ riptide:
         keep-alive: 5 minutes
         queue-size: 10
     other:
-      base-url: http://example.com
+      retry:
+        backoff:
+          delay: 500 milliseconds
+          max-delay: 3 seconds
+        max-retries: 4
+        max-duration: 10 seconds
+        jitter: 200 milliseconds

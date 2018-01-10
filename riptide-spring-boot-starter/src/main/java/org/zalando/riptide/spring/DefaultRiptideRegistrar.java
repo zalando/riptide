@@ -218,15 +218,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
-            plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
-                final BeanDefinitionBuilder plugin = genericBeanDefinition(FailsafePlugin.class);
-
-                plugin.addConstructorArgValue(registerScheduler(id));
-                plugin.addConstructorArgReference(registerRetryPolicy(id, client));
-                plugin.addConstructorArgReference(registerCircuitBreaker(id, client));
-
-                return plugin;
-            })));
+            plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
+                    genericBeanDefinition(FailsafePlugin.class)
+                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgReference(registerRetryPolicy(id, client))
+                            .addConstructorArgReference(registerCircuitBreaker(id, client)))));
         }
 
         if (client.getBackupRequest() != null) {
