@@ -73,7 +73,7 @@ public final class BackupRequestPluginTest {
 
         unit.get("/bar")
                 .call(pass())
-                .get(2500, TimeUnit.MILLISECONDS);
+                .get(3, SECONDS);
     }
 
     @Test(expected = IllegalStateException.class)
