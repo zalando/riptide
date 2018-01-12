@@ -1,8 +1,8 @@
 package org.zalando.riptide.faults;
 
-import java.util.Objects;
+import com.google.common.base.Throwables;
+
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 final class DefaultFaultClassifier implements FaultClassifier {
 
@@ -14,12 +14,13 @@ final class DefaultFaultClassifier implements FaultClassifier {
 
     @Override
     public Throwable classify(final Throwable throwable) {
-        return Stream.iterate(throwable, Throwable::getCause)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .filter(isTransient)
-                .<Throwable>map(TransientFaultException::new)
-                .orElse(throwable);
+        for (final Throwable cause : Throwables.getCausalChain(throwable)) {
+            if (isTransient.test(cause)) {
+                return new TransientFaultException(throwable);
+            }
+        }
+
+        return throwable;
     }
 
 }
