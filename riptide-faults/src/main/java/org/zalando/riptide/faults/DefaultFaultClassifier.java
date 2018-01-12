@@ -14,10 +14,10 @@ final class DefaultFaultClassifier implements FaultClassifier {
 
     @Override
     public Throwable classify(final Throwable throwable) {
-        final Throwable root = Throwables.getRootCause(throwable);
-
-        if (isTransient.test(root)) {
-            return new TransientFaultException(throwable);
+        for (final Throwable cause : Throwables.getCausalChain(throwable)) {
+            if (isTransient.test(cause)) {
+                return new TransientFaultException(throwable);
+            }
         }
 
         return throwable;

@@ -35,6 +35,20 @@ public final class FaultClassifierTest {
         assertNotTransient(new SSLHandshakeException("No hands, no cookies"));
     }
 
+    @Test
+    public void shouldClassifyAsTransientWithNonTransientRootCause() {
+        final SocketTimeoutException e = new SocketTimeoutException();
+        e.initCause(new NullPointerException());
+        assertTransient(e);
+    }
+
+    @Test
+    public void shouldClassifyAsTransientWithTransientIntermediateCause() {
+        final SocketTimeoutException e = new SocketTimeoutException();
+        e.initCause(new NullPointerException());
+        assertTransient(new IllegalStateException(e));
+    }
+
     private void assertTransient(final Exception e) {
         assertThat(classifier.classify(e), is(instanceOf(TransientFaultException.class)));
     }
