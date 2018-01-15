@@ -24,6 +24,7 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
         "org.zalando.logbook.spring.LogbookAutoConfiguration",
         "org.zalando.tracer.spring.TracerAutoConfiguration",
+        "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration",
 })
 public class RiptideAutoConfiguration {
 
