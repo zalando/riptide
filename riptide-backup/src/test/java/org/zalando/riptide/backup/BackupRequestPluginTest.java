@@ -37,8 +37,8 @@ public final class BackupRequestPluginTest {
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
             .build();
 

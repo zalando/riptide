@@ -48,9 +48,9 @@ public class FailsafePluginTest {
             .build();
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withRetryPolicy(new RetryPolicy()

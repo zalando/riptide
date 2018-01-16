@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
@@ -48,8 +47,8 @@ public final class IOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
+            .simpleRequestFactory(executor)
             .baseUrl(driver.getBaseUrl())
-            .configure(simpleRequestFactory(executor))
             .converter(createJsonConverter())
             .build();
 

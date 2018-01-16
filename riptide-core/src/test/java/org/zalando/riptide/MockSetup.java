@@ -48,7 +48,7 @@ public final class MockSetup {
         return server;
     }
 
-    public HttpBuilder getHttpBuilder() {
+    public Http.ConfigurationStage getHttpBuilder() {
         return Http.builder()
                 .requestFactory(template.getAsyncRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))

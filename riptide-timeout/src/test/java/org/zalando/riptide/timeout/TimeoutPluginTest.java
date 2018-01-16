@@ -36,8 +36,8 @@ public class TimeoutPluginTest {
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new TimeoutPlugin(newSingleThreadScheduledExecutor(), 1, TimeUnit.SECONDS, executor))
             .build();
@@ -59,7 +59,7 @@ public class TimeoutPluginTest {
     }
 
     @Test
-    public void shouldNotTimeout() throws Throwable {
+    public void shouldNotTimeout() {
         driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse());
 

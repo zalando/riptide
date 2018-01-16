@@ -110,9 +110,9 @@ public class ManualConfiguration {
                 final ClientHttpMessageConverters converters, final GaugeService gaugeService,
                 final ScheduledExecutorService scheduler) {
             return Http.builder()
+                    .requestFactory(requestFactory)
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
-                    .requestFactory(requestFactory)
                     .converters(converters.getConverters())
                     .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
                     .plugin(new TransientFaultPlugin(

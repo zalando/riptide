@@ -71,8 +71,8 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http http = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .build();
 
