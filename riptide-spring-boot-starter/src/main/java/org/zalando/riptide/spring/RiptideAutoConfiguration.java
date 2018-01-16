@@ -24,8 +24,9 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
         "org.zalando.logbook.spring.LogbookAutoConfiguration",
         "org.zalando.tracer.spring.TracerAutoConfiguration",
-        "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration",
+        "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration",  // only needed for tracer < 0.12.0
 })
+@AutoConfigureBefore(name = "org.springframework.scheduling.annotation.SchedulingConfiguration")
 public class RiptideAutoConfiguration {
 
     @Bean
@@ -63,11 +64,6 @@ public class RiptideAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(Scheduled.class)
-    @AutoConfigureAfter(name = {
-            "org.zalando.tracer.spring.TracerAutoConfiguration",
-            "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration"
-    })
-    @AutoConfigureBefore(name = "org.springframework.scheduling.annotation.SchedulingConfiguration")
     static class SchedulingAutoConfiguration {
 
         @Bean(name = DEFAULT_TASK_SCHEDULER_BEAN_NAME, destroyMethod = "shutdown")
