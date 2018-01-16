@@ -188,7 +188,7 @@ public final class Requester extends Dispatcher {
                 try {
                     route.execute(response, worker);
                 } catch (final NoWildcardException e) {
-                    throw new NoRouteException(response);
+                    throw new UnexpectedResponseException(response);
                 }
 
                 return response;

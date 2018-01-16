@@ -68,7 +68,7 @@ public final class RouteTest {
                         .contentType(MediaType.TEXT_PLAIN));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoRouteException.class));
+        exception.expectCause(instanceOf(UnexpectedResponseException.class));
         exception.expectCause(
                 hasFeature(Throwable::getMessage, containsString("Content-Type=[" + MediaType.TEXT_PLAIN + "]")));
         exception.expectCause(hasFeature(Throwable::getMessage, containsString("verbose body content")));
@@ -84,7 +84,7 @@ public final class RouteTest {
         server.expect(requestTo(url)).andRespond(withStatus(NO_CONTENT));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoRouteException.class));
+        exception.expectCause(instanceOf(UnexpectedResponseException.class));
 
         unit.get(url)
                 .dispatch(status(),
