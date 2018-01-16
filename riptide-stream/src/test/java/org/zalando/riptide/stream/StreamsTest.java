@@ -207,7 +207,7 @@ public class StreamsTest {
         doCallRealMethod().when(verifier).accept(any());
         doThrow(new IOException()).when(verifier).tryAccept(new AccountBody("1234567892", "Acme GmbH"));
 
-        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<ClientHttpResponse> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 
@@ -233,7 +233,7 @@ public class StreamsTest {
         @SuppressWarnings("unchecked")
         final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
 
-        final CompletableFuture<Void> future = unit.get("/accounts").dispatch(status(),
+        final CompletableFuture<ClientHttpResponse> future = unit.get("/accounts").dispatch(status(),
                 on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
                 anyStatus().call(this::fail));
 

@@ -151,7 +151,7 @@ public final class AsyncTest {
     }
 
     @Test
-    public void shouldIgnoreException() throws ExecutionException, InterruptedException {
+    public void shouldIgnoreException() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         unit.get(url).dispatch(series(),
@@ -174,7 +174,7 @@ public final class AsyncTest {
     public void shouldHandleNoRouteExceptionWithCallback() {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
-        @SuppressWarnings("unchecked") final BiConsumer<Void, Throwable> callback = mock(BiConsumer.class);
+        @SuppressWarnings("unchecked") final BiConsumer<ClientHttpResponse, Throwable> callback = mock(BiConsumer.class);
 
         unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))

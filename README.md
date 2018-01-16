@@ -223,7 +223,7 @@ scheduleRetryLater()
 
 ### Futures
 
-Riptide will return a `CompletableFuture<Void>`. That means you can choose to chain transformations/callbacks or block
+Riptide will return a `CompletableFuture<ClientHttpResponse>`. That means you can choose to chain transformations/callbacks or block
 on it.
 
 If you need proper return values take a look at [Riptide: Capture](riptide-capture).
