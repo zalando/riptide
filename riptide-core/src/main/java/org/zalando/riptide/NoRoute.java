@@ -16,7 +16,7 @@ public final class NoRoute implements Route {
 
     @Override
     public void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception {
-        throw new NoRouteException(response);
+        throw new UnexpectedResponseException(response);
     }
 
     public static Route noRoute() {
