@@ -106,7 +106,7 @@ public final class TransientFaultPluginTest {
                 .join();
     }
 
-    private CompletableFuture<Void> request(final Http unit) {
+    private CompletableFuture<ClientHttpResponse> request(final Http unit) {
         return unit.get("/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));

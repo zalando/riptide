@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -44,7 +45,7 @@ public final class StackTraceTest {
     @Test
     public void shouldKeepOriginalStackTrace() {
         final Http unit = configureRest().build();
-        final CompletableFuture<Void> future = execute(unit.get("/"));
+        final CompletableFuture<ClientHttpResponse> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 
         assertThat(exception, is(instanceOf(CompletionException.class)));
@@ -57,7 +58,7 @@ public final class StackTraceTest {
     @Test
     public void shouldNotKeepOriginalStackTrace() {
         final Http unit = configureRest().plugin((arguments, execution) -> execution).build();
-        final CompletableFuture<Void> future = execute(unit.get("/"));
+        final CompletableFuture<ClientHttpResponse> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 
         assertThat(exception, is(instanceOf(CompletionException.class)));
@@ -73,11 +74,11 @@ public final class StackTraceTest {
                 .baseUrl(driver.getBaseUrl());
     }
 
-    private CompletableFuture<Void> execute(final Requester requester) {
+    private CompletableFuture<ClientHttpResponse> execute(final Requester requester) {
         return requester.dispatch(contentType());
     }
 
-    private Exception perform(final CompletableFuture<Void> future) {
+    private Exception perform(final CompletableFuture<ClientHttpResponse> future) {
         try {
             future.join();
             throw new AssertionError("Expected exception");

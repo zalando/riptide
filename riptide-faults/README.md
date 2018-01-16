@@ -74,7 +74,7 @@ new TransientFaultPlugin(predicates);
 ## Usage
 
 ```java
-CompletableFuture<Void> future = http.post("/")
+CompletableFuture<ClientHttpResponse> future = http.post("/")
         .dispatch(series(),
             on(SUCCESSFUL).call(pass()));
     
