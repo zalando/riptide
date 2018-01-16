@@ -62,9 +62,9 @@ public class FailsafePluginRetriesTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newCachedThreadPool())))
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(new ScheduledThreadPoolExecutor(2))
                     .withRetryPolicy(new RetryPolicy()

@@ -166,9 +166,9 @@ public class RequestUriTest {
 
             try {
                 final Http unit = Http.builder()
+                        .requestFactory(new SimpleClientHttpRequestFactory())
                         .baseUrl(baseUrl)
                         .urlResolution(resolution)
-                        .requestFactory(new SimpleClientHttpRequestFactory())
                         .build();
 
                 tester.accept(unit);

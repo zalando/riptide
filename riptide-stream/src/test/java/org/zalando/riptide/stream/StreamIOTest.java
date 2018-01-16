@@ -35,7 +35,6 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
@@ -61,8 +60,8 @@ public final class StreamIOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
+            .simpleRequestFactory(newSingleThreadExecutor())
             .baseUrl(driver.getBaseUrl())
-            .configure(simpleRequestFactory(newSingleThreadExecutor()))
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
             .build();
 
