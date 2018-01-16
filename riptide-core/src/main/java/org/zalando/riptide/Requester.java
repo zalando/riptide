@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.Objects.nonNull;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 public final class Requester extends Dispatcher {
@@ -107,7 +106,7 @@ public final class Requester extends Dispatcher {
     }
 
     @Override
-    public CompletableFuture<Void> call(final Route route) {
+    public CompletableFuture<ClientHttpResponse> call(final Route route) {
         return execute(null).call(route);
     }
 
@@ -134,27 +133,13 @@ public final class Requester extends Dispatcher {
         }
 
         @Override
-        public CompletableFuture<Void> call(final Route route) {
+        public CompletableFuture<ClientHttpResponse> call(final Route route) {
             try {
                 final RequestExecution original = this::send;
                 final RequestExecution before = plugin.interceptBeforeRouting(arguments, original);
                 final RequestExecution after = plugin.interceptAfterRouting(arguments, dispatch(before, route));
-                final CompletableFuture<ClientHttpResponse> future = after.execute();
 
-                // TODO why not return CompletableFuture<ClientHttpResponse> here?
-                // we need a CompletableFuture<Void>
-
-                // TODO: replace with thenApply call in Java 9
-                final CompletableFuture<Void> result = preserveCancelability(future);
-                future.whenComplete((response, throwable) -> {
-                    if (nonNull(response)) {
-                        result.complete(null);
-                    }
-                    if (nonNull(throwable)) {
-                        result.completeExceptionally(throwable);
-                    }
-                });
-                return result;
+                return after.execute();
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }

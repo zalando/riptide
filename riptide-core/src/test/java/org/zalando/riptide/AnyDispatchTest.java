@@ -7,7 +7,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -41,15 +40,13 @@ public final class AnyDispatchTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        final AtomicReference<ClientHttpResponse> capture = new AtomicReference<>();
 
-        unit.get(url)
+        final ClientHttpResponse response = unit.get(url)
                 .dispatch(status(),
                         on(CREATED).call(pass()),
-                        anyStatus().call(ClientHttpResponse.class, capture::set))
+                        anyStatus().call(pass()))
                 .join();
 
-        final ClientHttpResponse response = capture.get();
         assertThat(response.getStatusCode(), is(OK));
         assertThat(response.getHeaders().getContentType(), is(APPLICATION_JSON));
     }
