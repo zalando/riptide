@@ -67,7 +67,7 @@ public final class CaptureTest {
 
         final Capture<ObjectNode> capture = Capture.empty();
 
-        final CompletableFuture<Void> future = unit.get("/accounts/123")
+        final CompletableFuture<ClientHttpResponse> future = unit.get("/accounts/123")
                 .dispatch(status(),
                         on(OK).call(ObjectNode.class, capture),
                         anyStatus().call(this::fail));
@@ -87,7 +87,7 @@ public final class CaptureTest {
 
         final Capture<String> capture = Capture.empty();
 
-        final CompletableFuture<Void> future = unit.get("/null")
+        final CompletableFuture<ClientHttpResponse> future = unit.get("/null")
                 .dispatch(status(),
                         on(OK).call(String.class, capture),
                         anyStatus().call(this::fail));
