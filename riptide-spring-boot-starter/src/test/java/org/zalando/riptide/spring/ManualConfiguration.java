@@ -119,9 +119,9 @@ public class ManualConfiguration {
                 final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
 
             return Http.builder()
+                    .requestFactory(requestFactory)
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
-                    .requestFactory(requestFactory)
                     .converters(converters.getConverters())
                     .plugins(plugins)
                     .build();

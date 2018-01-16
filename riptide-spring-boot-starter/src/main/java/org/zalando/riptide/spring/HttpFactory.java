@@ -23,9 +23,9 @@ final class HttpFactory {
             final List<Plugin> plugins) {
 
         return Http.builder()
+                .requestFactory(requestFactory)
                 .baseUrl(baseUrl)
                 .urlResolution(urlResolution)
-                .requestFactory(requestFactory)
                 .converters(converters)
                 .plugins(plugins)
                 .build();

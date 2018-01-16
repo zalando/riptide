@@ -2,10 +2,17 @@ package org.zalando.riptide;
 
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static org.apiguardian.api.API.Status.STABLE;
 
@@ -60,8 +67,34 @@ public interface Http {
     Requester execute(HttpMethod method, URI uri);
     Requester execute(HttpMethod method);
 
-    static HttpBuilder builder() {
+    static RequestFactoryStage builder() {
         return new DefaultHttpBuilder();
+    }
+
+    interface RequestFactoryStage {
+        ConfigurationStage requestFactory(AsyncClientHttpRequestFactory requestFactory);
+        default ConfigurationStage simpleRequestFactory(final ExecutorService executor) {
+            final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
+            return requestFactory(factory);
+        }
+    }
+
+    interface ConfigurationStage extends FinalStage {
+        ConfigurationStage defaultConverters();
+        ConfigurationStage converters(Iterable<HttpMessageConverter<?>> converters);
+        ConfigurationStage converter(HttpMessageConverter<?> converter);
+        ConfigurationStage baseUrl(@Nullable String baseUrl);
+        ConfigurationStage baseUrl(@Nullable URI baseUrl);
+        ConfigurationStage baseUrl(Supplier<URI> baseUrlProvider);
+        ConfigurationStage urlResolution(@Nullable UrlResolution resolution);
+        ConfigurationStage defaultPlugins();
+        ConfigurationStage plugins(Iterable<Plugin> plugins);
+        ConfigurationStage plugin(Plugin plugin);
+    }
+
+    interface FinalStage {
+        Http build();
     }
 
 }
