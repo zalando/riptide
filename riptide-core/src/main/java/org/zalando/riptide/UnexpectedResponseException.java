@@ -10,18 +10,10 @@ import java.io.IOException;
  * @see NoRoute#noRoute()
  */
 @SuppressWarnings("serial")
-public final class NoRouteException extends HttpResponseException {
+public final class UnexpectedResponseException extends HttpResponseException {
 
-    private final ClientHttpResponse response;
-
-    public NoRouteException(final ClientHttpResponse response) throws IOException {
+    public UnexpectedResponseException(final ClientHttpResponse response) throws IOException {
         super("Unable to dispatch response", response);
-        this.response = response;
-    }
-
-    // TODO deprecate?
-    public ClientHttpResponse getResponse() {
-        return response;
     }
 
 }
