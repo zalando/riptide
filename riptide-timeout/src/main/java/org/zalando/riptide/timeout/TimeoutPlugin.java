@@ -1,6 +1,5 @@
 package org.zalando.riptide.timeout;
 
-import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
@@ -10,9 +9,6 @@ import org.zalando.riptide.RequestExecution;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -27,55 +23,29 @@ import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelabil
  */
 @API(status = STABLE)
 @AllArgsConstructor
-@ThisWouldBeOneLineIn(language = "Java 9", toWit = "return () -> execution.execute().orTimeout(timeout, unit)")
 public final class TimeoutPlugin implements Plugin {
 
-    private final ScheduledExecutorService scheduler;
     private final long timeout;
     private final TimeUnit unit;
     private final Executor executor;
 
-    public TimeoutPlugin(final ScheduledExecutorService scheduler, final long timeout, final TimeUnit unit) {
-        this(scheduler, timeout, unit, Runnable::run);
+    public TimeoutPlugin(final long timeout, final TimeUnit unit) {
+        this(timeout, unit, Runnable::run);
     }
 
     @Override
     public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute(arguments);
+            final CompletableFuture<ClientHttpResponse> downstream = upstream.orTimeout(timeout, unit);
 
-            final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
-            upstream.whenCompleteAsync(forwardTo(downstream), executor);
-
-            final ScheduledFuture<?> scheduledTimeout = delay(timeout(downstream), cancel(upstream));
-            upstream.whenCompleteAsync(cancel(scheduledTimeout), executor);
-
-            return downstream;
+            return downstream.whenCompleteAsync((response, throwable) -> {
+                // TODO make sure this works with nested exceptions
+                if (throwable instanceof TimeoutException) {
+                    upstream.cancel(true);
+                }
+            }, executor);
         };
-    }
-
-    private <T> Runnable cancel(final CompletableFuture<T> future) {
-        return () -> future.cancel(true);
-    }
-
-    private <T> Runnable timeout(final CompletableFuture<T> future) {
-        return () -> future.completeExceptionally(new TimeoutException());
-    }
-
-    private ScheduledFuture<?> delay(final Runnable... tasks) {
-        return scheduler.schedule(run(executor, tasks), timeout, unit);
-    }
-
-    private Runnable run(final Executor executor, final Runnable... tasks) {
-        return () -> executor.execute(run(tasks));
-    }
-
-    private Runnable run(final Runnable... tasks) {
-        return () -> stream(tasks).forEach(Runnable::run);
-    }
-
-    private <T> BiConsumer<T, Throwable> cancel(final Future<?> future) {
-        return (result, throwable) -> future.cancel(true);
     }
 
 }

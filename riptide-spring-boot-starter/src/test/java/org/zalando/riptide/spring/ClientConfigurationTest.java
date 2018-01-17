@@ -19,9 +19,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = DefaultTestConfiguration.class)
+@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {
     "riptide.defaults.connect-timeout: 1 second",
     "riptide.defaults.socket-timeout: 2 seconds",

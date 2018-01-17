@@ -58,14 +58,8 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(HttpResponseException::extractCharset)
+                .map(MediaType::getCharset)
                 .orElse(ISO_8859_1);
-    }
-
-    @Hack("MediaType#getCharset is not available prior to Spring 4.3")
-    @SuppressWarnings("deprecation")
-    private static Charset extractCharset(final MediaType mediaType) {
-        return mediaType.getCharset();
     }
 
     private static String format(final String message, final byte[] body, final Charset charset,
