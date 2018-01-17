@@ -1,19 +1,10 @@
 package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMessage;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.fauxpas.ThrowingFunction;
 import org.zalando.fauxpas.ThrowingRunnable;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-
-import static com.google.common.base.Throwables.propagateIfPossible;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
 /**
@@ -44,72 +35,6 @@ public interface Route {
             final I body = reader.read(type, response);
             consumer.tryAccept(body);
         };
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
-        return Types.listOf(entityType);
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
-        return Types.listOf(entityType);
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final Class<T> entityType) {
-        return Types.responseEntityOf(TypeToken.of(entityType));
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final TypeToken<T> entityType) {
-        return Types.responseEntityOf(entityType);
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
-        return response -> {
-            // nothing to do!
-        };
-    }
-
-    @Deprecated//(since = "2.5.1", forRemoval = true)
-    static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
-        return HttpMessage::getHeaders;
-    }
-
-    @Deprecated//(since = "2.5.1", forRemoval = true)
-    static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
-        return response ->
-                response.getHeaders().getLocation();
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static ThrowingConsumer<ClientHttpResponse, IOException> noRoute() {
-        return response -> {
-            throw new NoRouteException(response);
-        };
-    }
-
-    @Deprecated//(since = "2.6.0", forRemoval = true)
-    static <X extends Exception> ThrowingConsumer<X, IOException> propagate() {
-        return entity -> {
-            propagateIfPossible(entity, IOException.class);
-            throw new IOException(entity);
-        };
-    }
-
-    @Deprecated//(since = "2.5.1", forRemoval = true)
-    static <T> Adapter<ClientHttpResponse, T> to(
-            final ThrowingFunction<ClientHttpResponse, T, ? extends Exception> function) {
-        return consumer ->
-                response -> consumer.tryAccept(function.tryApply(response));
-    }
-
-    @Deprecated//(since = "2.5.1", forRemoval = true)
-    @FunctionalInterface
-    interface Adapter<T, R> {
-        ThrowingConsumer<T, Exception> andThen(final ThrowingConsumer<R, ? extends Exception> consumer);
     }
 
 }

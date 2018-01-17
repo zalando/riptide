@@ -14,12 +14,6 @@ public final class EnforceCoverageTest {
     }
 
     @Test
-    @Deprecated
-    public void shouldUseCompletionConstructor() {
-        new Completion();
-    }
-
-    @Test
     public void shouldUseDefaultHttpBuilderConvertersConstructor() {
         new DefaultHttpBuilder.Converters();
     }
