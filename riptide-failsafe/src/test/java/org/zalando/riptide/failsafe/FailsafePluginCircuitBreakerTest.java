@@ -11,6 +11,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
@@ -45,9 +46,9 @@ public class FailsafePluginCircuitBreakerTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withCircuitBreaker(new CircuitBreaker()
@@ -87,7 +88,7 @@ public class FailsafePluginCircuitBreakerTest {
         }
     }
 
-    private Void ignore(@SuppressWarnings("unused") final Throwable throwable) {
+    private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {
         return null;
     }
 

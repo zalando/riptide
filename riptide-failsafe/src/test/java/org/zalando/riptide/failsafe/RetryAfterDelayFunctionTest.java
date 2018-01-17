@@ -52,9 +52,9 @@ public class RetryAfterDelayFunctionTest {
     private final Clock clock = Clock.fixed(parse("2018-04-11T22:34:27Z"), UTC);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withRetryPolicy(new RetryPolicy()

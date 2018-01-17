@@ -139,18 +139,18 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
             try {
-                final RequestExecution original = this::send;
-                final RequestExecution before = plugin.interceptBeforeRouting(arguments, original);
-                final RequestExecution after = plugin.interceptAfterRouting(arguments, dispatch(before, route));
+                final RequestExecution before = plugin.beforeSend(arguments, this::send);
+                final RequestExecution after = plugin.beforeDispatch(arguments, dispatch(before, route));
 
-                return after.execute();
+                return after.execute(arguments);
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
 
-        private CompletableFuture<ClientHttpResponse> send() throws IOException {
-            final AsyncClientHttpRequest request = createRequest();
+        private CompletableFuture<ClientHttpResponse> send(final RequestArguments arguments) throws IOException {
+            final AsyncClientHttpRequest request = createRequest(arguments);
+            // TODO do this in the IO thread!
             worker.write(request, entity);
             final ListenableFuture<ClientHttpResponse> original = request.executeAsync();
 
@@ -159,14 +159,14 @@ public final class Requester extends Dispatcher {
             return future;
         }
 
-        private AsyncClientHttpRequest createRequest() throws IOException {
+        private AsyncClientHttpRequest createRequest(final RequestArguments arguments) throws IOException {
             final URI requestUri = arguments.getRequestUri();
             final HttpMethod method = arguments.getMethod();
             return requestFactory.createAsyncRequest(requestUri, method);
         }
 
         private RequestExecution dispatch(final RequestExecution execution, final Route route) {
-            return () -> execution.execute().thenApply(dispatch(route));
+            return arguments -> execution.execute(arguments).thenApply(dispatch(route));
         }
 
         private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {
