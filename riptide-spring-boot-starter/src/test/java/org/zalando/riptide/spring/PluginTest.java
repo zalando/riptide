@@ -14,8 +14,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.FaultClassifier;
@@ -62,10 +60,6 @@ public final class PluginTest {
 
     static class CustomPlugin implements Plugin {
 
-        @Override
-        public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-            return execution;
-        }
     }
 
     @Autowired

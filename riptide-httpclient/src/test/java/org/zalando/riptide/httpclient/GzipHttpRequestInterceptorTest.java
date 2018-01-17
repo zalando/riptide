@@ -56,8 +56,8 @@ public final class GzipHttpRequestInterceptorTest {
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http http = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .build();
 
     @After

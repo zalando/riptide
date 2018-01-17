@@ -127,9 +127,9 @@ public class FailsafePluginRetriesTest {
     @Test
     public void shouldRetryCustomDetectedIdempotentRequest() {
         final Http unit = Http.builder()
-                .baseUrl(driver.getBaseUrl())
                 .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                         new ConcurrentTaskExecutor(newCachedThreadPool())))
+                .baseUrl(driver.getBaseUrl())
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                         .withIdempotentMethodDetector(arguments ->

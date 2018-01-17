@@ -67,19 +67,19 @@ public final class FailsafePlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        @Nullable final SyncFailsafe<Object> failsafe = select(retryPolicy, circuitBreaker, arguments);
+    public RequestExecution beforeDispatch(final RequestArguments origina, final RequestExecution execution) {
+        return arguments -> {
+            @Nullable final SyncFailsafe<Object> failsafe = select(retryPolicy, circuitBreaker, arguments);
 
-        if (failsafe == null) {
-            // TODO https://github.com/zalando/riptide/issues/442
-            return execution;
-        }
+            if (failsafe == null) {
+                // TODO https://github.com/zalando/riptide/issues/442
+                return execution.execute(arguments);
+            }
 
-        return () -> {
             final CompletableFuture<ClientHttpResponse> original = failsafe
                     .with(scheduler)
                     .with(new RetryListenersAdapter(listener, arguments))
-                    .future(execution::execute);
+                    .future(() -> execution.execute(arguments));
 
             final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
             original.whenComplete(forwardTo(cancelable));
