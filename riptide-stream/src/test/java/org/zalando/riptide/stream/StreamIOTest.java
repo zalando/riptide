@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 
 import java.io.IOException;
@@ -60,7 +61,7 @@ public final class StreamIOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
-            .simpleRequestFactory(newSingleThreadExecutor())
+            .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
             .build();
@@ -90,25 +91,14 @@ public final class StreamIOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
-
+    public void shouldCancelRequest() throws InterruptedException {
         final CompletableFuture<ClientHttpResponse> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 
         future.cancel(true);
 
-        try {
-            future.join();
-        } catch (final CancellationException e) {
-            // expected
-        }
-
-        // we don't care whether the request was actually made or not, but by default the driver will verify
-        // all expectations after every tests
-        driver.reset();
+        Thread.sleep(1000);
     }
 
     @Test

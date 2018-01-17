@@ -28,7 +28,6 @@ public class HttpClientFactoryBeanTest {
     @Test
     public void shouldFailOnInvalidKeystore() throws Exception {
         exception.expect(IOException.class);
-        exception.expectMessage("Invalid keystore format");
 
         final Keystore invalidKeystore = new Keystore();
         invalidKeystore.setPath("application-default.yml");
