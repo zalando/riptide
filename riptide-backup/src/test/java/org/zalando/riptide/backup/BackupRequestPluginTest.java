@@ -124,8 +124,8 @@ public final class BackupRequestPluginTest {
     @Test
     public void shouldSendBackupRequestForCustomSafeDetectedRequest() throws Throwable {
         final Http unit = Http.builder()
-                .baseUrl(driver.getBaseUrl())
                 .requestFactory(factory)
+                .baseUrl(driver.getBaseUrl())
                 .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor)
                         .withSafeMethodDetector(
                                 arguments -> arguments.getHeaders().containsEntry("Allow-Backup-Request", "true")))

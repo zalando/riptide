@@ -12,6 +12,6 @@ import static org.apiguardian.api.API.Status.STABLE;
 @FunctionalInterface
 public interface RequestExecution {
 
-    CompletableFuture<ClientHttpResponse> execute() throws IOException;
+    CompletableFuture<ClientHttpResponse> execute(RequestArguments arguments) throws IOException;
 
 }
