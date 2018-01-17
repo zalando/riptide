@@ -25,12 +25,12 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> {
+    public RequestExecution beforeSend(final RequestArguments originalArguments, final RequestExecution execution) {
+        return arguments -> {
             final Measurement measurement = new Measurement(arguments);
 
             // stop measurement early, ...
-            final CompletableFuture<ClientHttpResponse> future = execution.execute()
+            final CompletableFuture<ClientHttpResponse> future = execution.execute(arguments)
                     .whenComplete(throwingBiConsumer(measurement::stop));
 
             // ... but delay actual recording
@@ -38,11 +38,6 @@ public final class MetricsPlugin implements Plugin {
 
             return future;
         };
-    }
-
-    @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return execution;
     }
 
     @AllArgsConstructor

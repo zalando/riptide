@@ -4,7 +4,6 @@ import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.CancelableCompletableFuture;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -48,14 +47,14 @@ public final class FailsafePlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> {
+    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+        return arguments -> {
             final CompletableFuture<ClientHttpResponse> original = Failsafe
                     .with(retryPolicy)
                     .with(circuitBreaker)
                     .with(scheduler)
                     // TODO allow to register listeners
-                    .future(execution::execute);
+                    .future(() -> execution.execute(arguments));
 
             final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
             original.whenComplete(forwardTo(cancelable));

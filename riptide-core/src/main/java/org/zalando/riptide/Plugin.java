@@ -8,19 +8,15 @@ import java.util.List;
  *
  * @see OriginalStackTracePlugin
  */
-@FunctionalInterface // TODO (3.x): remove
 public interface Plugin {
 
-    default RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
+    default RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
         return execution;
     }
 
-    default RequestExecution interceptAfterRouting(final RequestArguments arguments, final RequestExecution execution) {
-        return prepare(arguments, execution);
+    default RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
+        return execution;
     }
-
-    // TODO (3.x): remove
-    RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution);
 
     static Plugin compound(final Plugin... plugins) {
         return compound(Arrays.asList(plugins));

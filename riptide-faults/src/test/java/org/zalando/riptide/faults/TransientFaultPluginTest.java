@@ -12,6 +12,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -88,11 +90,16 @@ public final class TransientFaultPluginTest {
 
     @Test
     public void shouldClassifyExceptionAsTransientAsIs() {
-        final Http unit = newUnit((arguments, execution) -> () -> {
+        final Http unit = newUnit(new Plugin() {
+            @Override
+            public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+                return arguments -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
                     return future;
-                }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
+                };
+            }
+        }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(TransientFaultException.class));
