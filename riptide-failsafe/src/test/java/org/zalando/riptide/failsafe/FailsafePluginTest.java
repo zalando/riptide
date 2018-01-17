@@ -80,7 +80,7 @@ public class FailsafePluginTest {
     }
 
     @Test
-    public void shouldRetrySuccessfully() throws Throwable {
+    public void shouldRetrySuccessfully() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
@@ -104,7 +104,7 @@ public class FailsafePluginTest {
     }
 
     @Test
-    public void shouldRetryOnDemand() throws Throwable {
+    public void shouldRetryOnDemand() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 

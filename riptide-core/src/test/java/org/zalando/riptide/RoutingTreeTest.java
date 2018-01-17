@@ -185,7 +185,7 @@ public class RoutingTreeTest {
     }
 
     private MockClientHttpResponse response(final HttpStatus status) {
-        return new MockClientHttpResponse((byte[]) null, status);
+        return new MockClientHttpResponse(new byte[0], status);
     }
 
 }

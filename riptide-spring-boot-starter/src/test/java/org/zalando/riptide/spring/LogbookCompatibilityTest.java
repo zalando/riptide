@@ -10,8 +10,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = NONE)
 public final class LogbookCompatibilityTest {
 
     @Configuration

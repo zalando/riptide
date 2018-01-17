@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import io.micrometer.core.instrument.MeterRegistry;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
@@ -10,8 +11,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.springframework.boot.actuate.autoconfigure.MetricsDropwizardAutoConfiguration;
-import org.springframework.boot.actuate.metrics.GaugeService;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +24,7 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.httpclient.LogbookHttpRequestInterceptor;
 import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
@@ -100,21 +100,21 @@ public class ManualConfiguration {
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-            MetricsDropwizardAutoConfiguration.class,
+            MetricsAutoConfiguration.class,
             SharedConfiguration.class,
     })
     static class ExampleClientConfiguration {
 
         @Bean
         public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final GaugeService gaugeService,
+                final ClientHttpMessageConverters converters, final MeterRegistry meterRegistry,
                 final ScheduledExecutorService scheduler) {
             return Http.builder()
                     .requestFactory(requestFactory)
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
                     .converters(converters.getConverters())
-                    .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
+                    .plugin(new MetricsPlugin(meterRegistry, new ZMONMetricsNameGenerator()))
                     .plugin(new TransientFaultPlugin(
                             FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                     .addAll(FaultClassifier.defaults())
@@ -134,7 +134,7 @@ public class ManualConfiguration {
                                     .withSuccessThreshold(3, 5)
                                     .withTimeout(3, SECONDS)))
                     .plugin(new BackupRequestPlugin(scheduler, 10, MILLISECONDS))
-                    .plugin(new TimeoutPlugin(scheduler, 3, SECONDS))
+                    .plugin(new TimeoutPlugin(3, SECONDS))
                     .plugin(new OriginalStackTracePlugin())
                     .plugin(new CustomPlugin())
                     .build();
@@ -145,8 +145,7 @@ public class ManualConfiguration {
                 final ClientHttpMessageConverters converters) {
             final RestTemplate template = new RestTemplate();
 
-            final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-            handler.setBaseUrl("https://www.example.com");
+            final DefaultUriBuilderFactory handler = new DefaultUriBuilderFactory("https://www.example.com");
             template.setUriTemplateHandler(handler);
             template.setRequestFactory(requestFactory);
             template.setMessageConverters(converters.getConverters());
@@ -159,8 +158,7 @@ public class ManualConfiguration {
                 final ClientHttpMessageConverters converters) {
             final AsyncRestTemplate template = new AsyncRestTemplate();
 
-            final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-            handler.setBaseUrl("https://www.example.com");
+            final DefaultUriBuilderFactory handler = new DefaultUriBuilderFactory("https://www.example.com");
             template.setUriTemplateHandler(handler);
             template.setAsyncRequestFactory(requestFactory);
             template.setMessageConverters(converters.getConverters());

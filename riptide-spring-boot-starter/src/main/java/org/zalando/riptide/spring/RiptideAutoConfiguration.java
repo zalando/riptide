@@ -1,8 +1,6 @@
 package org.zalando.riptide.spring;
 
-import com.codahale.metrics.MetricRegistry;
-import lombok.AllArgsConstructor;
-import org.springframework.boot.actuate.metrics.GaugeService;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -16,7 +14,6 @@ import org.zalando.riptide.metrics.MetricsPlugin;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor.DEFAULT_TASK_SCHEDULER_BEAN_NAME;
 
 @Configuration
@@ -37,27 +34,14 @@ public class RiptideAutoConfiguration {
     @Configuration
     @ConditionalOnClass(MetricsPlugin.class)
     @ConditionalOnMissingBean(MetricsPlugin.class)
-    @ConditionalOnBean(MetricRegistry.class)
+    @ConditionalOnBean(MeterRegistry.class)
     static class MetricsConfiguration {
 
         @Bean
         @SuppressWarnings("SpringJavaAutowiringInspection")
-        public MetricsPlugin metricsPlugin(final MetricRegistry registry) {
-            final MetricsGaugeService gaugeService = new MetricsGaugeService(registry);
+        public MetricsPlugin metricsPlugin(final MeterRegistry registry) {
             final ZMONMetricsNameGenerator nameGenerator = new ZMONMetricsNameGenerator();
-            return new MetricsPlugin(gaugeService, nameGenerator);
-        }
-
-        @AllArgsConstructor
-        private static class MetricsGaugeService implements GaugeService {
-
-            private final MetricRegistry registry;
-
-            @Override
-            public void submit(final String metricName, final double value) {
-                registry.timer(metricName).update((long) value, MILLISECONDS);
-            }
-
+            return new MetricsPlugin(registry, nameGenerator);
         }
 
     }

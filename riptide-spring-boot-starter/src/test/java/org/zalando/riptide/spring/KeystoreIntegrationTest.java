@@ -14,12 +14,13 @@ import org.zalando.riptide.Http;
 import javax.net.ssl.SSLHandshakeException;
 
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DefaultTestConfiguration.class)
+@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 public class KeystoreIntegrationTest {
 
     @Autowired

@@ -14,7 +14,7 @@ public abstract class AbstractCancelableCompletableFuture<T> extends Completable
      *
      * http://www.baeldung.com/java-9-completablefuture
      */
-    // TODO (Java 9): @Override
+    @Override
     public <U> CompletableFuture<U> newIncompleteFuture() {
         return preserveCancelability(this);
     }

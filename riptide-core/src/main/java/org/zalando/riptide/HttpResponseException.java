@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.io.ByteStreams;
-import com.google.gag.annotation.remark.Hack;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
@@ -41,10 +40,6 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static byte[] readFromBody(final ClientHttpResponse response) throws IOException {
         return tryWith(response.getBody(), stream -> {
-            if (stream == null) {
-                return new byte[0];
-            }
-
             final InputStream input = ByteStreams.limit(stream, MAX_BODY_BYTES_TO_READ);
             final ByteArrayOutputStream output = new ByteArrayOutputStream();
             ByteStreams.copy(input, output);
@@ -54,14 +49,8 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(HttpResponseException::extractCharset)
+                .map(MediaType::getCharset)
                 .orElse(ISO_8859_1);
-    }
-
-    @Hack("MediaType#getCharset is not available prior to Spring 4.3")
-    @SuppressWarnings("deprecation")
-    private static Charset extractCharset(final MediaType mediaType) {
-        return mediaType.getCharSet();
     }
 
     private static String format(final String message, final byte[] body, final Charset charset,

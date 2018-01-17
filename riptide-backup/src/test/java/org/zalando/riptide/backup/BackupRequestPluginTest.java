@@ -7,10 +7,10 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Completion;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -34,10 +34,9 @@ public final class BackupRequestPluginTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor(Executors.newFixedThreadPool(2));
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final Http unit = Http.builder()
-            .requestFactory(factory)
+            .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
             .build();
@@ -48,7 +47,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldNotSendBackupRequestIfFastEnough() throws Throwable {
+    public void shouldNotSendBackupRequestIfFastEnough() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
@@ -77,7 +76,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldUseFailedBackupRequest() throws Throwable {
+    public void shouldUseFailedBackupRequest() {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().withStatus(503));
 
@@ -90,7 +89,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldNotSendBackupRequestForNonIdempotentRequests() throws Throwable {
+    public void shouldNotSendBackupRequestForNonIdempotentRequests() {
         driver.addExpectation(onRequestTo("/baz").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
 
         unit.post("/baz")
@@ -100,9 +99,6 @@ public final class BackupRequestPluginTest {
 
     @Test
     public void shouldCancelRequests() throws InterruptedException {
-        // TODO: support proper cancellations and remove this expectation
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
-
         unit.get("/bar")
                 .call(pass())
                 .cancel(true);
