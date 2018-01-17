@@ -49,7 +49,7 @@ public final class StackTraceTest {
         final Exception exception = perform(future);
 
         assertThat(exception, is(instanceOf(CompletionException.class)));
-        assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
 
         assertThat(getStackTraceAsString(exception), containsString("Requester$ResponseDispatcher.call("));
         assertThat(getStackTraceAsString(exception), containsString("StackTraceTest.execute("));
@@ -62,7 +62,7 @@ public final class StackTraceTest {
         final Exception exception = perform(future);
 
         assertThat(exception, is(instanceOf(CompletionException.class)));
-        assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
 
         assertThat(getStackTraceAsString(exception), not(containsString("Requester$ResponseDispatcher.call(")));
         assertThat(getStackTraceAsString(exception), not(containsString("StackTraceTest.execute(")));

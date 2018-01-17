@@ -163,7 +163,7 @@ public final class AsyncTest {
         server.expect(requestTo(url)).andRespond(withSuccess());
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoRouteException.class));
+        exception.expectCause(instanceOf(UnexpectedResponseException.class));
 
         unit.get(url).dispatch(series(),
                 on(CLIENT_ERROR).call(pass()))
@@ -185,7 +185,7 @@ public final class AsyncTest {
         final Exception exception = captor.getValue();
 
         assertThat(exception, is(instanceOf(CompletionException.class)));
-        assertThat(exception.getCause(), is(instanceOf(NoRouteException.class)));
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
     }
 
     @Test
