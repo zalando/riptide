@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Navigators.contentType;
 
 public final class StackTraceTest {
@@ -31,7 +30,7 @@ public final class StackTraceTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         driver.addExpectation(onRequestTo("/"),
                 giveResponse("", "application/json"));
     }
@@ -43,7 +42,7 @@ public final class StackTraceTest {
     }
 
     @Test
-    public void shouldKeepOriginalStackTrace() throws Exception {
+    public void shouldKeepOriginalStackTrace() {
         final Http unit = configureRest().build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
@@ -56,7 +55,7 @@ public final class StackTraceTest {
     }
 
     @Test
-    public void shouldNotKeepOriginalStackTrace() throws Exception {
+    public void shouldNotKeepOriginalStackTrace() {
         final Http unit = configureRest().plugin((arguments, execution) -> execution).build();
         final CompletableFuture<Void> future = execute(unit.get("/"));
         final Exception exception = perform(future);
@@ -68,10 +67,10 @@ public final class StackTraceTest {
         assertThat(getStackTraceAsString(exception), not(containsString("StackTraceTest.execute(")));
     }
 
-    private HttpBuilder configureRest() {
+    private Http.ConfigurationStage configureRest() {
         return Http.builder()
-                .baseUrl(driver.getBaseUrl())
-                .configure(simpleRequestFactory(executor));
+                .simpleRequestFactory(executor)
+                .baseUrl(driver.getBaseUrl());
     }
 
     private CompletableFuture<Void> execute(final Requester requester) {

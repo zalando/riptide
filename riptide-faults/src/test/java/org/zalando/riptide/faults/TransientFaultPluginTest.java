@@ -130,8 +130,8 @@ public final class TransientFaultPluginTest {
 
     private Http newUnit(final Plugin... plugins) {
         return Http.builder()
-                .baseUrl(driver.getBaseUrl())
                 .requestFactory(factory)
+                .baseUrl(driver.getBaseUrl())
                 .plugins(Arrays.asList(plugins))
                 .build();
     }

@@ -56,8 +56,8 @@ public class MetricsPluginTest {
     private final GaugeService gaugeService = spy(GaugeService.class);
 
     private final Http unit = Http.builder()
-            .baseUrl(driver.getBaseUrl())
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new MetricsPlugin(gaugeService, (arguments, response) -> arguments.getMethod().name()))
             .build();
