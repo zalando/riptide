@@ -142,6 +142,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         request.getBody().write("{}".getBytes(UTF_8));
 
         assertThat(request.getMethod(), is(POST));
+        assertThat(request.getMethodValue(), is("POST"));
         assertThat(request.getURI(), hasToString(endsWith("/repos/zalando/riptide/contributors")));
         assertThat(request.getHeaders().getAccept(), hasItem(APPLICATION_JSON));
 

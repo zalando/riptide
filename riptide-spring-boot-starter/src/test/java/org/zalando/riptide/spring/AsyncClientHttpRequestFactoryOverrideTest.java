@@ -16,10 +16,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.spring.Mocks.isMock;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = NONE)
 @Component
 public final class AsyncClientHttpRequestFactoryOverrideTest {
 

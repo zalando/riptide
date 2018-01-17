@@ -19,9 +19,10 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = DefaultTestConfiguration.class)
+@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @Component
 public final class HttpMessageConvertersTest {
 

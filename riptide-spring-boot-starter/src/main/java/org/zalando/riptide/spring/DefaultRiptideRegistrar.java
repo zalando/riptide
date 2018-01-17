@@ -13,6 +13,7 @@ import org.apache.http.client.HttpClient;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -20,6 +21,7 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
@@ -177,12 +179,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         registry.registerIfAbsent(id, type, () -> {
             log.debug("Client [{}]: Registering AsyncRestTemplate", id);
 
-            final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
-            handler.setBaseUrl(baseUrl);
+            final DefaultUriBuilderFactory factory = baseUrl == null ?
+                    new DefaultUriBuilderFactory() :
+                    new DefaultUriBuilderFactory(baseUrl);
 
             final BeanDefinitionBuilder template = genericBeanDefinition(type);
             template.addConstructorArgReference(factoryId);
-            template.addPropertyValue("uriTemplateHandler", handler);
+            template.addPropertyValue("uriTemplateHandler", factory);
             template.addPropertyValue("messageConverters", converters);
             template.addPropertyValue("interceptors", plugins.stream()
                     .map(plugin -> genericBeanDefinition(PluginInterceptor.class)
