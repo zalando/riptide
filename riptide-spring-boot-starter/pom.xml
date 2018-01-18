@@ -35,6 +35,7 @@
                     <artifactId>spring-jcl</artifactId>
                 </exclusion>
             </exclusions>
+            <optional>true</optional>
         </dependency>
 
         <!-- zalando -->
