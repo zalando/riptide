@@ -3,12 +3,12 @@ language: java
 sudo: false
 
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 
 addons:
   apt:
     packages:
-      - oracle-java8-installer
+      - oracle-java9-installer
 
 cache:
   directories:
