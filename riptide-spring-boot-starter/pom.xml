@@ -21,7 +21,7 @@
 
     <properties>
         <logbook.version>1.5.0</logbook.version>
-        <tracer.version>0.13.0-SNAPSHOT</tracer.version>
+        <tracer.version>0.13.0</tracer.version>
     </properties>
 
     <dependencies>
