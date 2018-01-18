@@ -38,8 +38,7 @@ final class PluginInterceptors {
         public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,
                 final ClientHttpRequestExecution execution) throws IOException {
 
-            final RequestArguments arguments = toArguments(request, body);
-            final RequestExecution requestExecution = () -> {
+            final RequestExecution requestExecution = arguments -> {
                 final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
 
                 try {
@@ -51,20 +50,20 @@ final class PluginInterceptors {
                 return future;
             };
 
-            // since there is no routing to be done, we just call the plugin twice in succession
-            final RequestExecution before = plugin.interceptBeforeRouting(arguments, requestExecution);
-            final RequestExecution after = plugin.interceptAfterRouting(arguments, before);
+            final RequestArguments arguments = toArguments(request, body);
 
-            return Completion.join(after.execute());
+            // since there is no routing to be done, we just call the plugin twice in succession
+            final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
+            final RequestExecution after = plugin.beforeDispatch(arguments, before);
+
+            return Completion.join(after.execute(arguments));
         }
 
         @Override
         public ListenableFuture<ClientHttpResponse> intercept(final HttpRequest request, final byte[] body,
                 final AsyncClientHttpRequestExecution execution) throws IOException {
 
-            final RequestArguments arguments = toArguments(request, body);
-
-            final RequestExecution requestExecution = () -> {
+            final RequestExecution requestExecution = arguments -> {
                 try {
 
                     final ListenableFuture<ClientHttpResponse> original = execution.executeAsync(request, body);
@@ -79,11 +78,13 @@ final class PluginInterceptors {
                 }
             };
 
-            // since there is no routing to be done, we just call the plugin twice in succession
-            final RequestExecution before = plugin.interceptBeforeRouting(arguments, requestExecution);
-            final RequestExecution after = plugin.interceptAfterRouting(arguments, before);
+            final RequestArguments arguments = toArguments(request, body);
 
-            return new CompletableToListenableFutureAdapter<>(after.execute());
+            // since there is no routing to be done, we just call the plugin twice in succession
+            final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
+            final RequestExecution after = plugin.beforeDispatch(arguments, before);
+
+            return new CompletableToListenableFutureAdapter<>(after.execute(arguments));
         }
 
         /**

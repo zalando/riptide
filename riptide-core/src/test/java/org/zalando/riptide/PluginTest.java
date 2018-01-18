@@ -21,17 +21,17 @@ public final class PluginTest {
 
     private final Plugin state = new Plugin() {
         @Override
-        public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
         private RequestExecution applyTo(final RequestExecution execution) {
-            return () -> execution.execute()
+            return arguments -> execution.execute(arguments)
                     .exceptionally(partially(e -> {
                         throw new IllegalStateException(e);
                     }));
@@ -40,17 +40,17 @@ public final class PluginTest {
 
     private final Plugin argument = new Plugin() {
         @Override
-        public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
             return applyTo(execution);
         }
 
         private RequestExecution applyTo(final RequestExecution execution) {
-            return () -> execution.execute()
+            return arguments -> execution.execute(arguments)
                     .exceptionally(partially(e -> {
                         throw new IllegalArgumentException(e);
                     }));
@@ -59,26 +59,26 @@ public final class PluginTest {
 
     @Test
     public void shouldApplyInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::interceptBeforeRouting);
+        shouldRunInCorrectOrder(compound(state, argument)::beforeSend);
     }
 
     @Test
     public void shouldPrepareInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::interceptAfterRouting);
+        shouldRunInCorrectOrder(compound(state, argument)::beforeDispatch);
     }
 
     private void shouldRunInCorrectOrder(
             final BiFunction<RequestArguments, RequestExecution, RequestExecution> function) throws IOException {
 
         try {
-            final RequestArguments arguments = mock(RequestArguments.class);
-            final RequestExecution execution = () -> {
+            final RequestExecution execution = arguments -> {
                 final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                 future.completeExceptionally(new NullPointerException());
                 return future;
             };
 
-            function.apply(arguments, execution).execute().join();
+            final RequestArguments arguments = mock(RequestArguments.class);
+            function.apply(arguments, execution).execute(arguments).join();
 
             fail("Expected exception");
         } catch (final CompletionException e) {
@@ -96,12 +96,12 @@ public final class PluginTest {
         final RequestExecution expected = mock(RequestExecution.class);
 
         {
-            final RequestExecution actual = IdentityPlugin.IDENTITY.interceptBeforeRouting(arguments, expected);
+            final RequestExecution actual = IdentityPlugin.IDENTITY.beforeSend(arguments, expected);
             assertThat(actual, is(sameInstance(expected)));
         }
 
         {
-            final RequestExecution actual = IdentityPlugin.IDENTITY.prepare(arguments, expected);
+            final RequestExecution actual = IdentityPlugin.IDENTITY.beforeDispatch(arguments, expected);
             assertThat(actual, is(sameInstance(expected)));
         }
     }

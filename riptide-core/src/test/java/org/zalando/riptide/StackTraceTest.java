@@ -57,7 +57,7 @@ public final class StackTraceTest {
 
     @Test
     public void shouldNotKeepOriginalStackTrace() {
-        final Http unit = configureRest().plugin((arguments, execution) -> execution).build();
+        final Http unit = configureRest().plugin(IdentityPlugin.IDENTITY).build();
         final CompletableFuture<ClientHttpResponse> future = execute(unit.get("/"));
         final Exception exception = perform(future);
 
