@@ -94,7 +94,7 @@ public final class StreamIOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
-        final CompletableFuture<Void> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final CompletableFuture<ClientHttpResponse> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 
