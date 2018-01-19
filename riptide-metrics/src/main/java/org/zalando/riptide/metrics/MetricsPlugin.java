@@ -52,7 +52,7 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeSend(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeSend(final RequestExecution execution) {
         return arguments -> {
             final Measurement measurement = new Measurement(arguments);
 

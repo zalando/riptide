@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +16,8 @@ import static java.util.Arrays.stream;
 import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
+
+import static org.zalando.fauxpas.FauxPas.failedWith;
 
 /**
  * @see "CompletableFuture#orTimeout(long, TimeUnit)"
@@ -34,17 +35,13 @@ public final class TimeoutPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute(arguments);
             final CompletableFuture<ClientHttpResponse> downstream = upstream.orTimeout(timeout, unit);
 
-            return downstream.whenCompleteAsync((response, throwable) -> {
-                // TODO make sure this works with nested exceptions
-                if (throwable instanceof TimeoutException) {
-                    upstream.cancel(true);
-                }
-            }, executor);
+            return downstream
+                    .whenCompleteAsync(failedWith(TimeoutException.class, e -> upstream.cancel(true)));
         };
     }
 
