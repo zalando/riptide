@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
@@ -19,18 +21,19 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static org.hamcrest.Matchers.equalTo;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.longThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
@@ -51,6 +54,7 @@ public class MetricsPluginTest {
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final MeterRegistry registry = mock(MeterRegistry.class);
+    private final Timer timer = mock(Timer.class);
 
     private final Http unit = Http.builder()
             .requestFactory(factory)
@@ -70,6 +74,11 @@ public class MetricsPluginTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
+    @Before
+    public void setUp() {
+        when(registry.timer(any())).thenReturn(timer);
+    }
+
     @After
     public void tearDown() throws IOException {
         client.close();
@@ -83,9 +92,8 @@ public class MetricsPluginTest {
                 .call(pass())
                 .join();
 
-        Thread.sleep(1000); // because the future won't wait for metrics
-
-        verify(registry).gauge(argThat(equalTo("GET")), longThat(is(greaterThan(0L))));
+        verify(registry).timer("GET");
+        verify(timer).record(longThat(is(greaterThan(0L))), eq(MILLISECONDS));
     }
 
     @Test
@@ -99,15 +107,14 @@ public class MetricsPluginTest {
                 .exceptionally(e -> null)
                 .join();
 
-        Thread.sleep(1000); // because the future won't wait for metrics
-
-        verify(registry).gauge(argThat(equalTo("GET")), longThat(is(greaterThan(0L))));
+        verify(registry).timer("GET");
+        verify(timer).record(longThat(is(greaterThan(0L))), eq(MILLISECONDS));
     }
 
     @Test(expected = SocketTimeoutException.class)
     public void shouldNotRecordMetric() throws Throwable {
         driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(750, TimeUnit.MILLISECONDS));
+                giveEmptyResponse().after(750, MILLISECONDS));
 
         try {
             unit.get("/foo")
