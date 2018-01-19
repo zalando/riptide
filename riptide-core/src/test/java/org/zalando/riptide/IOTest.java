@@ -87,7 +87,7 @@ public final class IOTest {
                 .call(pass())
                 .cancel(true);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
 }
