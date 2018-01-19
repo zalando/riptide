@@ -26,7 +26,10 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
         "org.zalando.tracer.spring.TracerAutoConfiguration",
         "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration",  // only needed for tracer < 0.12.0
 })
-@AutoConfigureBefore(name = "org.springframework.scheduling.annotation.SchedulingConfiguration")
+@AutoConfigureBefore(name = {
+        "org.springframework.scheduling.annotation.SchedulingConfiguration",
+        "org.zalando.failsafeactuator.config.FailsafeInjectionConfiguration"
+})
 public class RiptideAutoConfiguration {
 
     @Bean
