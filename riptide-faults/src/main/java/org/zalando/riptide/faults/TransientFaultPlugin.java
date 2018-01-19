@@ -1,7 +1,6 @@
 package org.zalando.riptide.faults;
 
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import static org.zalando.fauxpas.FauxPas.partially;
@@ -19,7 +18,7 @@ public final class TransientFaultPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         return arguments -> execution.execute(arguments).exceptionally(partially(classifier::classifyExceptionally));
     }
 

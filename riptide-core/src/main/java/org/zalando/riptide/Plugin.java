@@ -10,11 +10,11 @@ import java.util.List;
  */
 public interface Plugin {
 
-    default RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
+    default RequestExecution beforeSend(final RequestExecution execution) {
         return execution;
     }
 
-    default RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
+    default RequestExecution beforeDispatch(final RequestExecution execution) {
         return execution;
     }
 

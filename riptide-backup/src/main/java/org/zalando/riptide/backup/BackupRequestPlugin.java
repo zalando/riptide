@@ -32,28 +32,29 @@ public final class BackupRequestPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
-        switch (arguments.getMethod()) {
-            case GET:
-            case HEAD:
-                return withBackup(execution);
-            default:
-                return execution;
-        }
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> {
+            switch (arguments.getMethod()) {
+                case GET:
+                case HEAD:
+                    return withBackup(execution, arguments);
+                default:
+                    return execution.execute(arguments);
+            }
+        };
     }
 
-    private RequestExecution withBackup(final RequestExecution execution) {
-        return arguments -> {
-            final CompletableFuture<ClientHttpResponse> original = execution.execute(arguments);
-            final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
+    private CompletableFuture<ClientHttpResponse> withBackup(final RequestExecution execution,
+            final RequestArguments arguments) throws IOException {
+        final CompletableFuture<ClientHttpResponse> original = execution.execute(arguments);
+        final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
 
-            final Future<?> scheduledBackup = delay(backup(execution, arguments, backup));
+        final Future<?> scheduledBackup = delay(backup(execution, arguments, backup));
 
-            original.whenComplete(cancel(scheduledBackup));
+        original.whenComplete(cancel(scheduledBackup));
 
-            return anyOf(original, backup)
-                    .whenCompleteAsync(cancel(original), executor);
-        };
+        return anyOf(original, backup)
+                .whenCompleteAsync(cancel(original), executor);
     }
 
     private ThrowingRunnable<IOException> backup(final RequestExecution execution,

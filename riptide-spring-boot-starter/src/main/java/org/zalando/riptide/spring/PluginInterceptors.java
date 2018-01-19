@@ -53,8 +53,8 @@ final class PluginInterceptors {
             final RequestArguments arguments = toArguments(request, body);
 
             // since there is no routing to be done, we just call the plugin twice in succession
-            final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
-            final RequestExecution after = plugin.beforeDispatch(arguments, before);
+            final RequestExecution before = plugin.beforeSend(requestExecution);
+            final RequestExecution after = plugin.beforeDispatch(before);
 
             return Completion.join(after.execute(arguments));
         }
@@ -81,8 +81,8 @@ final class PluginInterceptors {
             final RequestArguments arguments = toArguments(request, body);
 
             // since there is no routing to be done, we just call the plugin twice in succession
-            final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
-            final RequestExecution after = plugin.beforeDispatch(arguments, before);
+            final RequestExecution before = plugin.beforeSend(requestExecution);
+            final RequestExecution after = plugin.beforeDispatch(before);
 
             return new CompletableToListenableFutureAdapter<>(after.execute(arguments));
         }

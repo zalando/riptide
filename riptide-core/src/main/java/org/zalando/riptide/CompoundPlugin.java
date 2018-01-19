@@ -11,13 +11,13 @@ final class CompoundPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
-        return right.beforeSend(arguments, left.beforeSend(arguments, execution));
+    public RequestExecution beforeSend(final RequestExecution execution) {
+        return right.beforeSend(left.beforeSend(execution));
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
-        return right.beforeDispatch(arguments, left.beforeDispatch(arguments, execution));
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return right.beforeDispatch(left.beforeDispatch(execution));
     }
 
 }
