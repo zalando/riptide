@@ -21,7 +21,7 @@ import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.PUT;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -40,7 +40,7 @@ public final class BackupRequestPluginTest {
     private final Http unit = Http.builder()
             .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
-            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
+            .plugin(new BackupRequestPlugin(newScheduledThreadPool(5), 1, SECONDS, executor))
             .build();
 
     @After
@@ -145,7 +145,7 @@ public final class BackupRequestPluginTest {
                 .call(pass())
                 .cancel(true);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
 }

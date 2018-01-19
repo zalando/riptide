@@ -98,7 +98,7 @@ public final class StreamIOTest {
 
         future.cancel(true);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
     @Test
