@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -21,12 +21,12 @@ public final class PluginTest {
 
     private final Plugin state = new Plugin() {
         @Override
-        public RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeSend(final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeDispatch(final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -40,12 +40,12 @@ public final class PluginTest {
 
     private final Plugin argument = new Plugin() {
         @Override
-        public RequestExecution beforeSend(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeSend(final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
+        public RequestExecution beforeDispatch(final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -59,7 +59,7 @@ public final class PluginTest {
 
     @Test
     public void shouldApplyInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::beforeSend);
+        shouldRunInCorrectOrder(arguments -> compound(state, argument).beforeSend(arguments));
     }
 
     @Test
@@ -68,7 +68,7 @@ public final class PluginTest {
     }
 
     private void shouldRunInCorrectOrder(
-            final BiFunction<RequestArguments, RequestExecution, RequestExecution> function) throws IOException {
+            final UnaryOperator<RequestExecution> function) throws IOException {
 
         try {
             final RequestExecution execution = arguments -> {
@@ -78,7 +78,7 @@ public final class PluginTest {
             };
 
             final RequestArguments arguments = mock(RequestArguments.class);
-            function.apply(arguments, execution).execute(arguments).join();
+            function.apply(execution).execute(arguments).join();
 
             fail("Expected exception");
         } catch (final CompletionException e) {

@@ -139,8 +139,8 @@ public final class Requester extends Dispatcher {
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
             try {
-                final RequestExecution before = plugin.beforeSend(arguments, this::send);
-                final RequestExecution after = plugin.beforeDispatch(arguments, dispatch(before, route));
+                final RequestExecution before = plugin.beforeSend(this::send);
+                final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
 
                 return after.execute(arguments);
             } catch (final IOException e) {

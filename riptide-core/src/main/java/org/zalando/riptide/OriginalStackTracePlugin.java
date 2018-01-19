@@ -22,7 +22,7 @@ import static org.zalando.fauxpas.FauxPas.partially;
 public final class OriginalStackTracePlugin implements Plugin {
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> future = execution.execute(arguments);
             // let's do the "heavy" stack trace work while the request is already on its way
