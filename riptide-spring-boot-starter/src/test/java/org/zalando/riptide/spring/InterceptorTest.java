@@ -22,11 +22,12 @@ import org.zalando.riptide.faults.TransientFaultException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutionException;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = NONE)
 @Component
 public final class InterceptorTest {
 

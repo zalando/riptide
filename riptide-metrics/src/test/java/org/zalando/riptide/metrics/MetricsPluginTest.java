@@ -3,16 +3,13 @@ package org.zalando.riptide.metrics;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.hamcrest.MockitoHamcrest;
-import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -30,11 +27,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-import static org.mockito.hamcrest.MockitoHamcrest.doubleThat;
+import static org.mockito.hamcrest.MockitoHamcrest.longThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
@@ -53,13 +50,13 @@ public class MetricsPluginTest {
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
     private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
-    private final GaugeService gaugeService = spy(GaugeService.class);
+    private final MeterRegistry registry = mock(MeterRegistry.class);
 
     private final Http unit = Http.builder()
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new MetricsPlugin(gaugeService, (arguments, response) -> arguments.getMethod().name()))
+            .plugin(new MetricsPlugin(registry, (arguments, response) -> arguments.getMethod().name()))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {
@@ -88,7 +85,7 @@ public class MetricsPluginTest {
 
         Thread.sleep(1000); // because the future won't wait for metrics
 
-        verify(gaugeService).submit(argThat(equalTo("GET")), doubleThat(is(greaterThan(0d))));
+        verify(registry).gauge(argThat(equalTo("GET")), longThat(is(greaterThan(0L))));
     }
 
     @Test
@@ -104,7 +101,7 @@ public class MetricsPluginTest {
 
         Thread.sleep(1000); // because the future won't wait for metrics
 
-        verify(gaugeService).submit(argThat(equalTo("GET")), doubleThat(is(greaterThan(0d))));
+        verify(registry).gauge(argThat(equalTo("GET")), longThat(is(greaterThan(0L))));
     }
 
     @Test(expected = SocketTimeoutException.class)
@@ -121,7 +118,7 @@ public class MetricsPluginTest {
         } catch (final CompletionException e) {
             throw e.getCause();
         } finally {
-            verifyZeroInteractions(gaugeService);
+            verifyZeroInteractions(registry);
         }
     }
 

@@ -22,9 +22,10 @@ import java.lang.reflect.Field;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles(profiles = "credentials-directory", inheritProfiles = false)
 @Component
 public final class AccessTokensCredentialsDirectoryTest {

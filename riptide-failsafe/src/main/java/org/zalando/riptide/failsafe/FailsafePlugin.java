@@ -5,7 +5,6 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +46,7 @@ public final class FailsafePlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> original = Failsafe
                     .with(retryPolicy)

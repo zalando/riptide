@@ -120,7 +120,6 @@ public final class FailedDispatchTest {
                         .contentType(MediaTypes.SUCCESS));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(HttpMessageNotReadableException.class));
 
         unit.get(url)
                 .dispatch(status(),

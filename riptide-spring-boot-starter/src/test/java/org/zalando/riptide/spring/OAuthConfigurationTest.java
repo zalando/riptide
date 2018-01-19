@@ -6,8 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = DefaultTestConfiguration.class)
+@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {
         "riptide.oauth.scheduling-period: 15 seconds",
         "riptide.oauth.connect-timeout: 2 seconds",

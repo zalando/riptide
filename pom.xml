@@ -73,14 +73,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.9</maven.compiler.source>
+        <maven.compiler.target>1.9</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <spring.version>4.3.11.RELEASE</spring.version>
-        <spring-boot.version>1.5.7.RELEASE</spring-boot.version>
+        <spring.version>5.0.2.RELEASE</spring.version>
+        <spring-boot.version>2.0.0.M7</spring-boot.version>
         <jackson.version>2.9.1</jackson.version>
-        <problem.version>0.20.0</problem.version>
-        <fauxpas.version>0.5.0</fauxpas.version>
+        <problem.version>0.20.1</problem.version>
+        <fauxpas.version>0.6.0</fauxpas.version>
     </properties>
 
     <dependencyManagement>
@@ -149,11 +149,6 @@
                 <version>${fauxpas.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
-                <version>3.0.2</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.gag</groupId>
                 <artifactId>gag</artifactId>
                 <version>1.0.1</version>
@@ -167,7 +162,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.16.18</version>
+                <version>1.16.20</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -199,6 +194,10 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-jcl</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -329,10 +328,6 @@
             <artifactId>faux-pas</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.gag</groupId>
             <artifactId>gag</artifactId>
         </dependency>
@@ -399,8 +394,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.ning.maven.plugins</groupId>
-                <artifactId>maven-duplicate-finder-plugin</artifactId>
+                <groupId>org.basepom.maven</groupId>
+                <artifactId>duplicate-finder-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -410,9 +405,9 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.ning.maven.plugins</groupId>
-                    <artifactId>maven-duplicate-finder-plugin</artifactId>
-                    <version>1.0.9</version>
+                    <groupId>org.basepom.maven</groupId>
+                    <artifactId>duplicate-finder-maven-plugin</artifactId>
+                    <version>1.2.1</version>
                     <executions>
                         <execution>
                             <phase>validate</phase>
@@ -422,9 +417,12 @@
                             <configuration>
                                 <failBuildInCaseOfDifferentContentConflict>true</failBuildInCaseOfDifferentContentConflict>
                                 <failBuildInCaseOfEqualContentConflict>false</failBuildInCaseOfEqualContentConflict>
-                                <ignoredResources>
-                                    <ignoredResource>.*</ignoredResource>
-                                </ignoredResources>
+                                <ignoredClassPatterns>
+                                    <ignoredClassPattern>module-info</ignoredClassPattern>
+                                </ignoredClassPatterns>
+                                <ignoredResourcePatterns>
+                                    <ignoredResourcePattern>.*</ignoredResourcePattern>
+                                </ignoredResourcePatterns>
                             </configuration>
                         </execution>
                     </executions>
@@ -440,9 +438,19 @@
                     <version>3.5.1</version>
                     <configuration>
                         <compilerArgs>
-                            <compilerArg>-Xlint:unchecked,deprecation</compilerArg>
+                            <!-- TODO deprecation -->
+                            <compilerArg>-Xlint:unchecked</compilerArg>
                             <compilerArg>-Werror</compilerArg>
                             <compilerArg>-parameters</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</compilerArg>
+                            <compilerArg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</compilerArg>
                         </compilerArgs>
                     </configuration>
                 </plugin>
@@ -461,7 +469,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.7.7.201606060606</version>
+                    <version>0.8.0</version>
                     <executions>
                         <execution>
                             <id>prepare-agent</id>
@@ -506,6 +514,13 @@
                     <groupId>org.eluder.coveralls</groupId>
                     <artifactId>coveralls-maven-plugin</artifactId>
                     <version>4.1.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>javax.xml.bind</groupId>
+                            <artifactId>jaxb-api</artifactId>
+                            <version>2.3.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -526,6 +541,17 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <snapshotRepository>

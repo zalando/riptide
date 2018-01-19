@@ -18,9 +18,10 @@ import org.zalando.stups.tokens.AccessTokens;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = NONE)
 @Component
 public final class AsyncClientHttpRequestFactoryTest {
 

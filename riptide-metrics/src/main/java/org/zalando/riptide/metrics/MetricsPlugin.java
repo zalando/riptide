@@ -1,8 +1,8 @@
 package org.zalando.riptide.metrics;
 
 import com.google.common.base.Stopwatch;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -16,16 +16,16 @@ import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
 public final class MetricsPlugin implements Plugin {
 
-    private final GaugeService gaugeService;
+    private final MeterRegistry registry;
     private final MetricsNameGenerator generator;
 
-    public MetricsPlugin(final GaugeService gaugeService, final MetricsNameGenerator generator) {
-        this.gaugeService = gaugeService;
+    public MetricsPlugin(final MeterRegistry registry, final MetricsNameGenerator generator) {
+        this.registry = registry;
         this.generator = generator;
     }
 
     @Override
-    public RequestExecution beforeSend(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeSend(final RequestExecution execution) {
         return arguments -> {
             final Measurement measurement = new Measurement(arguments);
 
@@ -60,7 +60,8 @@ public final class MetricsPlugin implements Plugin {
 
             final long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             final String metricName = generator.generate(arguments, response);
-            gaugeService.submit(metricName, elapsed);
+
+            registry.gauge(metricName, elapsed);
         }
     }
 

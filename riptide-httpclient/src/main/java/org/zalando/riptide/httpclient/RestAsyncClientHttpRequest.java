@@ -42,6 +42,11 @@ final class RestAsyncClientHttpRequest implements AsyncClientHttpRequest {
     }
 
     @Override
+    public String getMethodValue() {
+        return request.getMethodValue();
+    }
+
+    @Override
     public URI getURI() {
         return request.getURI();
     }

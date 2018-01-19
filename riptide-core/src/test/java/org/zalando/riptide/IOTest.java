@@ -7,16 +7,15 @@ import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
@@ -47,7 +46,7 @@ public final class IOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
-            .simpleRequestFactory(executor)
+            .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .build();
@@ -83,15 +82,12 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws ExecutionException, InterruptedException {
-        // TODO: support proper cancellations and remove this expectation
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-
+    public void shouldCancelRequest() throws InterruptedException {
         http.get("/foo")
                 .call(pass())
                 .cancel(true);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
 }
