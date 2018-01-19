@@ -49,7 +49,7 @@ public final class BackupRequestPlugin implements Plugin {
 
             final Future<?> scheduledBackup = delay(backup(execution, arguments, backup));
 
-            original.whenCompleteAsync(cancel(scheduledBackup), executor);
+            original.whenComplete(cancel(scheduledBackup));
 
             return anyOf(original, backup)
                     .whenCompleteAsync(cancel(original), executor);

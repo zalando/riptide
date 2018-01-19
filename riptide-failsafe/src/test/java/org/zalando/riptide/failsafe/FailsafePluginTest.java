@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -52,7 +52,7 @@ public class FailsafePluginTest {
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+            .plugin(new FailsafePlugin(newScheduledThreadPool(5))
                     .withRetryPolicy(new RetryPolicy()
                             .retryOn(SocketTimeoutException.class)
                             .withDelay(500, MILLISECONDS)
