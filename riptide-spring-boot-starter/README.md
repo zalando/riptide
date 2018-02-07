@@ -374,7 +374,7 @@ overridden by name, **not** by type. As an example, the following code would add
 @Bean
 @Qualifier("example")
 public ClientHttpMessageConverters exampleHttpMessageConverters() {
-    return new ClientHttpMessageConverters(new Jaxb2RootElementHttpMessageConverter());
+    return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
 }
 ```
 
