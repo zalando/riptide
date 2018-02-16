@@ -10,10 +10,6 @@
         <version>2.7.0-SNAPSHOT</version>
     </parent>
 
-    <prerequisites>
-        <maven>3.0.4</maven>
-    </prerequisites>
-
     <artifactId>riptide-stream</artifactId>
 
     <name>Riptide: Stream</name>
