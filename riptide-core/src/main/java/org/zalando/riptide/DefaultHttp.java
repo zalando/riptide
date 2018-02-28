@@ -1,6 +1,8 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -173,7 +175,7 @@ final class DefaultHttp implements Http {
     }
 
     private Requester execute(final RequestArguments arguments) {
-        return new Requester(requestFactory, worker, arguments, plugins);
+        return new Requester(requestFactory, worker, arguments, Plugin.compound(plugins), ImmutableMultimap.of(), HttpHeaders.EMPTY);
     }
 
 }

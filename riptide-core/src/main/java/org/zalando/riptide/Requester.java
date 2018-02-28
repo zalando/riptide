@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.springframework.http.HttpEntity;
@@ -32,45 +31,54 @@ public final class Requester extends Dispatcher {
     private final RequestArguments arguments;
     private final Plugin plugin;
 
-    private final Multimap<String, String> query = LinkedHashMultimap.create();
-    private final HttpHeaders headers = new HttpHeaders();
+    private final ImmutableMultimap<String, String> query;
+    private final HttpHeaders headers;
 
     Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final List<Plugin> plugins) {
+            final RequestArguments arguments, Plugin plugin, ImmutableMultimap<String,String> query, HttpHeaders headers) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
-        this.plugin = Plugin.compound(plugins);
+        this.plugin = plugin;
+        this.query = query;
+        this.headers = headers;
+    }
+
+    private Requester(Requester requester, ImmutableMultimap<String,String> query, HttpHeaders headers) {
+        this(requester.requestFactory, requester.worker, requester.arguments, requester.plugin, query, headers);
     }
 
     public Requester queryParam(final String name, final String value) {
-        query.put(name, value);
-        return this;
+       return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(this.query).put(name, value).build(), this.headers);
     }
 
     public Requester queryParams(final Multimap<String, String> params) {
-        query.putAll(params);
-        return this;
+        return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(this.query).putAll(params).build(), this.headers);
     }
 
     public Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
+        HttpHeaders headers = cloneHeaders();
         headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     public Requester contentType(final MediaType contentType) {
+        HttpHeaders headers = cloneHeaders();
         headers.setContentType(contentType);
-        return this;
+        Requester cloned = new Requester(this, this.query, headers);
+        return cloned;
     }
 
     public Requester ifModifiedSince(final OffsetDateTime since) {
+        HttpHeaders headers = cloneHeaders();
         headers.setIfModifiedSince(since.toInstant().toEpochMilli());
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     public Requester ifUnmodifiedSince(final OffsetDateTime since) {
+        HttpHeaders headers = cloneHeaders();
         headers.setIfUnmodifiedSince(since.toInstant().toEpochMilli());
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     public Requester ifNoneMatch(final String... entityTags) {
@@ -82,23 +90,33 @@ public final class Requester extends Dispatcher {
     }
 
     private Requester ifMatch(final List<String> entityTags) {
+        HttpHeaders headers = cloneHeaders();
         headers.setIfMatch(entityTags);
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     private Requester ifNoneMatch(final List<String> entityTags) {
+        HttpHeaders headers = cloneHeaders();
         headers.setIfNoneMatch(entityTags);
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     public Requester header(final String name, final String value) {
+        HttpHeaders headers = cloneHeaders();
         headers.add(name, value);
-        return this;
+        return new Requester(this, this.query, headers);
     }
 
     public Requester headers(final HttpHeaders headers) {
-        this.headers.putAll(headers);
-        return this;
+        HttpHeaders headersCloned = cloneHeaders();
+        headersCloned.putAll(headers);
+        return new Requester(this, this.query, headersCloned);
+    }
+
+    private HttpHeaders cloneHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.putAll(this.headers);
+        return headers;
     }
 
     public <T> Dispatcher body(@Nullable final T body) {
