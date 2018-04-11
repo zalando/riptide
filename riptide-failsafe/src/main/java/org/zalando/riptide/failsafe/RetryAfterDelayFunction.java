@@ -8,11 +8,14 @@ import org.zalando.riptide.HttpResponseException;
 import javax.annotation.Nullable;
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static java.lang.Long.parseLong;
 import static java.time.Duration.between;
+import static java.time.OffsetDateTime.now;
+import static java.time.OffsetDateTime.parse;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
 /**
@@ -39,27 +42,32 @@ public final class RetryAfterDelayFunction implements DelayFunction<Object, Http
          * Retry-After = HTTP-date / delay-seconds
          */
         @Nullable final String retryAfter = failure.getResponseHeaders().getFirst("Retry-After");
+        return Optional.ofNullable(retryAfter).map(this::parseDelay).map(this::toDuration).orElse(null);
+    }
 
-        if (retryAfter == null) {
-            return null;
-        } else if (onlyDigits(retryAfter)) {
-            return parseDelaySeconds(retryAfter);
-        } else {
-            return parseHttpDate(retryAfter);
-        }
+    private Long parseDelay(final String retryAfter) {
+        return onlyDigits(retryAfter) ?
+                parseSeconds(retryAfter) :
+                secondsUntil(parseDate(retryAfter));
     }
 
     private boolean onlyDigits(final String s) {
         return digit.matcher(s).matches();
     }
 
-    private Duration parseDelaySeconds(final String retryAfter) {
-        return new Duration(parseLong(retryAfter), TimeUnit.SECONDS);
+    private long parseSeconds(final String retryAfter) {
+        return parseLong(retryAfter);
     }
 
-    private Duration parseHttpDate(final String retryAfter) {
-        final OffsetDateTime dateTime = OffsetDateTime.parse(retryAfter, RFC_1123_DATE_TIME);
-        final long seconds = between(OffsetDateTime.now(clock), dateTime).getSeconds();
+    private OffsetDateTime parseDate(final String retryAfter) {
+        return parse(retryAfter, RFC_1123_DATE_TIME);
+    }
+
+    private long secondsUntil(final OffsetDateTime end) {
+        return between(now(clock), end).getSeconds();
+    }
+
+    private Duration toDuration(final long seconds) {
         return new Duration(seconds, TimeUnit.SECONDS);
     }
 
