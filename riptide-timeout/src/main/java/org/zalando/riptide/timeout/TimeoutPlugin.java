@@ -21,7 +21,7 @@ import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 /**
- * @see CompletableFuture#orTimeout(long, TimeUnit)
+ * @see "CompletableFuture#orTimeout(long, TimeUnit)"
  */
 @AllArgsConstructor
 @ThisWouldBeOneLineIn(language = "Java 9", toWit = "return () -> execution.execute().orTimeout(timeout, unit)")

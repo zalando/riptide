@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
  * receive infinite streams using application/x-json-stream and application/json-seq format, as well as simple finite
@@ -19,16 +17,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * (using {@link Streams#streamConverter(ObjectMapper)} and declare a route for your stream that is calling a the stream consumer
  * as follows:
  * 
- * <pre>
+ * <pre>{@code
  * try (Http http = Http.builder().baseUrl("https://api.github.com").converter(streamConverter()).build()) {
  *     http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
  *             .accept(MediaType.APPLICATION_JSON)
  *             .dispatch(series(),
  *                     on(SUCCESSFUL).call(streamOf(User.class),
- *                             forEach(user -> println(user.login + " (" + user.contributions + ")"))))
+ *                             forEach(user -&gt; println(user.login + " (" + user.contributions + ")"))))
  *             .get();
  * }
- * </pre>
+ * }</pre>
  * 
  * <b>Note:</b> The stream converter is an replacement to the default spring JSON converter that does not support
  * streaming, and thus should be not registered together with it.
@@ -41,12 +39,13 @@ public final class Streams {
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
-     * declare the expected stream response {@link TypeToken type token} in Riptide {@link org.zalando.riptide.Route route} as follows:
+     * declare the expected stream response {@link TypeToken type token} in Riptide route as follows:
      * 
      * <pre>
      *     on(...).call(streamOf(Result.class),...)
      * </pre>
-     * 
+     *
+     * @param <T> generic stream element type
      * @param type element class type.
      * @return stream token type.
      */
@@ -56,12 +55,13 @@ public final class Streams {
 
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link TypeToken type token}. Used
-     * to declare the expected stream response {@link TypeToken type token} in Riptide {@link org.zalando.riptide.Route route} as follows:
+     * to declare the expected stream response {@link TypeToken type token} in Riptide org.zalando.riptide.Route route} as follows:
      * 
      * <pre>
      *     on(...).call(streamOf(resultTypeToken),...)
      * </pre>
-     * 
+     *
+     * @param <T> generic stream element type
      * @param type element token type.
      * @return stream token type.
      */
@@ -85,7 +85,9 @@ public final class Streams {
      * <pre>
      *     on(...).call(streamOf(...), forEach(System.out::println))
      * </pre>
-     * 
+     *
+     * @param <I> generic stream element type
+     * @param <X> generic exception type
      * @param consumer element consumer function.
      * @return stream consumer function.
      */
@@ -106,6 +108,7 @@ public final class Streams {
     /**
      * Create default stream converter.
      *
+     * @param <T> generic stream element type
      * @return default stream converter.
      */
     public static <T> StreamConverter<T> streamConverter() {
@@ -113,10 +116,10 @@ public final class Streams {
     }
 
     /**
-     * Create stream converter with custom {@link ObjectMapper object mapper).
-     * 
+     * Create stream converter with custom {@link ObjectMapper object mapper}.
+     *
+     * @param <T> generic stream element type
      * @param mapper custom {@link ObjectMapper object mapper}.
-     * 
      * @return stream converter with customer object mapper.
      */
     public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper) {
@@ -125,12 +128,12 @@ public final class Streams {
     }
 
     /**
-     * Create stream converter with custom {@link ObjectMapper object mapper), and custom list of
+     * Create stream converter with custom {@link ObjectMapper object mapper}, and custom list of
      * {@link MediaType supported media types}.
-     * 
+     *
+     * @param <T> generic stream element type
      * @param mapper custom {@link ObjectMapper object mapper}.
      * @param supportedMediaTypes custom list of {@link MediaType media types}.
-     * 
      * @return stream converter with customer object mapper.
      */
     @SuppressWarnings("unchecked")

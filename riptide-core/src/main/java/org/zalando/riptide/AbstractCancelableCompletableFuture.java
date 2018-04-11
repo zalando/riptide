@@ -13,6 +13,9 @@ public abstract class AbstractCancelableCompletableFuture<T> extends Completable
      * by such methods.
      *
      * http://www.baeldung.com/java-9-completablefuture
+     *
+     * @param <U> generic future return type
+     * @return a new incomplete future to be used when constructing a dependent future
      */
     // TODO (Java 9): @Override
     public <U> CompletableFuture<U> newIncompleteFuture() {

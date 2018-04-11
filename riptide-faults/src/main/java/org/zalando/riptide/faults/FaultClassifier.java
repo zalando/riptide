@@ -30,6 +30,7 @@ public interface FaultClassifier {
      * @param throwable the throwable
      * @param <T> generic return type
      * @return never, always throws
+     * @throws Throwable either argument or wrapped argument
      */
     default <T> T classifyExceptionally(final Throwable throwable) throws Throwable {
         throw classify(throwable);

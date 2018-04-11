@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 /**
- * @see org.zalando.riptide.capture.Completion
+ * @see "org.zalando.riptide.capture.Completion"
  */
 @Deprecated//(since = "2.5.0", forRemoval = true)
 public final class Completion {
