@@ -5,7 +5,7 @@ import org.zalando.riptide.HttpResponseException;
 
 import java.io.IOException;
 
-final class RetryException extends HttpResponseException {
+public final class RetryException extends HttpResponseException {
 
     RetryException(final ClientHttpResponse response) throws IOException {
         super("Retrying response", response);

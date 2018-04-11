@@ -25,7 +25,7 @@ final class CircuitBreakerFactoryBean implements FactoryBean<CircuitBreaker> {
     }
 
     @Override
-    public CircuitBreaker getObject() throws Exception {
+    public CircuitBreaker getObject() {
         return circuitBreaker;
     }
 
