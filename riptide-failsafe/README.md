@@ -53,7 +53,7 @@ Http.builder()
     .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
             .withRetryPolicy(new RetryPolicy()
                     .withDelay(25, TimeUnit.MILLISECONDS)
-                    .withDelay(new RetryAfterDelayFunction(clock), HttpResponseException.class)
+                    .withDelay(new RetryAfterDelayFunction(clock))
                     .withMaxRetries(4))
             .withCircuitBreaker(new CircuitBreaker()
                     .withFailureThreshold(3, 10)
@@ -83,7 +83,7 @@ Http.builder()
     .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
             .withRetryPolicy(new RetryPolicy()
                     .withDelay(25, TimeUnit.MILLISECONDS)
-                    .withDelay(new RetryAfterDelayFunction(clock), HttpResponseException.class))
+                    .withDelay(new RetryAfterDelayFunction(clock)))
     .build();
 ```
 

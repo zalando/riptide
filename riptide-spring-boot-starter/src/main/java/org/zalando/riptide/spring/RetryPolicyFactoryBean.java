@@ -2,7 +2,6 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.beans.factory.FactoryBean;
-import org.zalando.riptide.HttpResponseException;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.TransientFaultException;
@@ -50,7 +49,7 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
 
         retryPolicy.retryOn(TransientFaultException.class);
         retryPolicy.retryOn(RetryException.class);
-        retryPolicy.withDelayOn(new RetryAfterDelayFunction(systemUTC()), HttpResponseException.class);
+        retryPolicy.withDelay(new RetryAfterDelayFunction(systemUTC()));
     }
 
     @Override

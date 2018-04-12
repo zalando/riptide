@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.HttpResponseException;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
@@ -58,7 +57,7 @@ public class RetryAfterDelayFunctionTest {
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withRetryPolicy(new RetryPolicy()
                             .withDelay(2, SECONDS)
-                            .withDelayOn(new RetryAfterDelayFunction(clock), HttpResponseException.class)
+                            .withDelay(new RetryAfterDelayFunction(clock))
                             .withMaxRetries(4))
                     .withCircuitBreaker(new CircuitBreaker()
                             .withFailureThreshold(3, 10)
