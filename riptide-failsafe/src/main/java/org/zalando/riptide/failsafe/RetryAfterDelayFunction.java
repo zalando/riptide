@@ -7,14 +7,13 @@ import org.zalando.riptide.HttpResponseException;
 
 import javax.annotation.Nullable;
 import java.time.Clock;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static java.lang.Long.parseLong;
 import static java.time.Duration.between;
-import static java.time.OffsetDateTime.now;
-import static java.time.OffsetDateTime.parse;
+import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
 /**
@@ -64,11 +63,11 @@ public final class RetryAfterDelayFunction implements DelayFunction<Object, Thro
         return parseLong(retryAfter);
     }
 
-    private OffsetDateTime parseDate(final String retryAfter) {
-        return parse(retryAfter, RFC_1123_DATE_TIME);
+    private Instant parseDate(final String retryAfter) {
+        return Instant.from(RFC_1123_DATE_TIME.parse(retryAfter));
     }
 
-    private long secondsUntil(final OffsetDateTime end) {
+    private long secondsUntil(final Instant end) {
         return between(now(clock), end).getSeconds();
     }
 

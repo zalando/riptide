@@ -19,11 +19,12 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.time.OffsetDateTime.parse;
+import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -47,7 +48,7 @@ public class RetryAfterDelayFunctionTest {
                     .build())
             .build();
 
-    private final Clock clock = Clock.fixed(parse("2018-04-12T00:34:27+02:00").toInstant(), UTC);
+    private final Clock clock = Clock.fixed(parse("2018-04-11T22:34:27Z"), UTC);
 
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
