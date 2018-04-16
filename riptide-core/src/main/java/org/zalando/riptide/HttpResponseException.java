@@ -41,6 +41,7 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static byte[] readFromBody(final ClientHttpResponse response) throws IOException {
         return tryWith(response.getBody(), stream -> {
+            // needed for spring versions prior to 4.3.14
             if (stream == null) {
                 return new byte[0];
             }
