@@ -19,7 +19,6 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -85,6 +84,20 @@ public class RetryAfterDelayFunctionTest {
     @Test
     public void shouldRetryWithoutDynamicDelay() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().dispatch(status(),
+                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
+    }
+
+    @Test
+    public void shouldIgnoreDynamicDelayOnInvalidFormat() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
+                .withHeader("Retry-After", "2018-04-11T22:34:28Z")); // should've been HTTP date
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         unit.get("/baz")

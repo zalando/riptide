@@ -1,5 +1,6 @@
 package org.zalando.riptide.failsafe;
 
+import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.RetryPolicy.DelayFunction;
 import net.jodah.failsafe.util.Duration;
@@ -8,6 +9,7 @@ import org.zalando.riptide.HttpResponseException;
 import javax.annotation.Nullable;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,7 @@ import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 /**
  * @see <a href="https://tools.ietf.org/html/rfc7231#section-7.1.3">RFC 7231, section 7.1.3: Retry-After</a>
  */
+@Slf4j
 public final class RetryAfterDelayFunction implements DelayFunction<Object, Throwable> {
 
     private final Pattern digit = Pattern.compile("\\d");
@@ -49,7 +52,8 @@ public final class RetryAfterDelayFunction implements DelayFunction<Object, Thro
      * @param retryAfter non-null header value
      * @return the parsed delay in seconds
      */
-    private long parseDelay(final String retryAfter) {
+    @Nullable
+    private Long parseDelay(final String retryAfter) {
         return onlyDigits(retryAfter) ?
                 parseSeconds(retryAfter) :
                 secondsUntil(parseDate(retryAfter));
@@ -59,20 +63,28 @@ public final class RetryAfterDelayFunction implements DelayFunction<Object, Thro
         return digit.matcher(s).matches();
     }
 
-    private long parseSeconds(final String retryAfter) {
+    private Long parseSeconds(final String retryAfter) {
         return parseLong(retryAfter);
     }
 
+    @Nullable
     private Instant parseDate(final String retryAfter) {
-        return Instant.from(RFC_1123_DATE_TIME.parse(retryAfter));
+        try {
+            return Instant.from(RFC_1123_DATE_TIME.parse(retryAfter));
+        } catch (final DateTimeParseException e) {
+            log.warn("Received invalid 'Retry-After' header [{}]; will ignore it", retryAfter);
+            return null;
+        }
     }
 
-    private long secondsUntil(final Instant end) {
-        return between(now(clock), end).getSeconds();
+    @Nullable
+    private Long secondsUntil(@Nullable final Instant end) {
+        return end == null ? null : between(now(clock), end).getSeconds();
     }
 
-    private Duration toDuration(final long seconds) {
-        return new Duration(seconds, TimeUnit.SECONDS);
+    @Nullable
+    private Duration toDuration(@Nullable final Long seconds) {
+        return seconds == null ? null : new Duration(seconds, TimeUnit.SECONDS);
     }
 
 }
