@@ -4,7 +4,6 @@ import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.CancelableCompletableFuture;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -36,11 +35,7 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, withRetryExceptionSupport(retryPolicy), circuitBreaker);
-    }
-
-    private RetryPolicy withRetryExceptionSupport(final RetryPolicy retryPolicy) {
-        return new RetryPolicy(retryPolicy).retryOn(RetryException.class);
+        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker);
     }
 
     public FailsafePlugin withCircuitBreaker(final CircuitBreaker circuitBreaker) {

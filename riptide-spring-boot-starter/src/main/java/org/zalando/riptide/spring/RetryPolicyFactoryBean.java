@@ -2,6 +2,8 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.beans.factory.FactoryBean;
+import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
+import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.spring.RiptideSettings.Retry;
 
@@ -9,6 +11,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.Clock.systemUTC;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
@@ -45,6 +48,8 @@ final class RetryPolicyFactoryBean implements FactoryBean<RetryPolicy> {
                 .ifPresent(jitter -> jitter.applyTo(retryPolicy::withJitter));
 
         retryPolicy.retryOn(TransientFaultException.class);
+        retryPolicy.retryOn(RetryException.class);
+        retryPolicy.withDelay(new RetryAfterDelayFunction(systemUTC()));
     }
 
     @Override

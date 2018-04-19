@@ -18,16 +18,16 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.util.concurrent.CompletionException;
+import java.time.Clock;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.time.Instant.parse;
+import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.stream.IntStream.range;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -36,16 +36,18 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-public class FailsafePluginTest {
+public class RetryAfterDelayFunctionTest {
 
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(500)
+                    .setSocketTimeout(1000)
                     .build())
             .build();
+
+    private final Clock clock = Clock.fixed(parse("2018-04-11T22:34:27Z"), UTC);
 
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
@@ -54,7 +56,8 @@ public class FailsafePluginTest {
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
                     .withRetryPolicy(new RetryPolicy()
-                            .withDelay(500, MILLISECONDS)
+                            .withDelay(2, SECONDS)
+                            .withDelay(new RetryAfterDelayFunction(clock))
                             .withMaxRetries(4))
                     .withCircuitBreaker(new CircuitBreaker()
                             .withFailureThreshold(3, 10)
@@ -79,31 +82,7 @@ public class FailsafePluginTest {
     }
 
     @Test
-    public void shouldRetrySuccessfully() throws Throwable {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-
-        unit.get("/foo")
-                .call(pass())
-                .join();
-    }
-
-    @Test(expected = SocketTimeoutException.class)
-    public void shouldRetryUnsuccessfully() throws Throwable {
-        range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
-
-        try {
-            unit.get("/bar")
-                    .call(pass())
-                    .join();
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
-    }
-
-    @Test
-    public void shouldRetryOnDemand() {
+    public void shouldRetryWithoutDynamicDelay() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
@@ -112,6 +91,58 @@ public class FailsafePluginTest {
                         on(SUCCESSFUL).call(pass()),
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
+    }
+
+    @Test
+    public void shouldIgnoreDynamicDelayOnInvalidFormat() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
+                .withHeader("Retry-After", "2018-04-11T22:34:28Z")); // should've been HTTP date
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().dispatch(status(),
+                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
+    }
+
+    @Test(timeout = 1500)
+    public void shouldRetryOnDemandWithDynamicDelay() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
+                .withHeader("Retry-After", "1"));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().dispatch(status(),
+                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
+    }
+
+    @Test(timeout = 1500)
+    public void shouldRetryWithDynamicDelay() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
+                .withHeader("Retry-After", "1"));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()))
+                .join();
+    }
+
+    @Test(timeout = 1500)
+    public void shouldRetryWithDynamicDelayDate() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
+                .withHeader("Retry-After", "Wed, 11 Apr 2018 22:34:28 GMT"));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()))
                 .join();
     }
 

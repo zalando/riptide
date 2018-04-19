@@ -52,8 +52,8 @@ The failsafe plugin will not perform retries nor apply circuit breakers unless t
 Http.builder()
     .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
             .withRetryPolicy(new RetryPolicy()
-                    .retryOn(SocketTimeoutException.class)
                     .withDelay(25, TimeUnit.MILLISECONDS)
+                    .withDelay(new RetryAfterDelayFunction(clock))
                     .withMaxRetries(4))
             .withCircuitBreaker(new CircuitBreaker()
                     .withFailureThreshold(3, 10)
@@ -63,8 +63,32 @@ Http.builder()
 ```
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible
-configurations. Make sure you **check out 
-[zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seemless integration of
+configurations. 
+
+**Beware** when using `retryOn` to retry conditionally on certain exception types.
+You'll need to register `RetryException` in order for the `retry()` route to work:
+
+```java
+new RetryPolicy()
+    .retryOn(SocketTimeoutException.class)
+    .retryOn(RetryException.class);
+```
+
+As of Failsafe version 1.1.0, it's now supported to dynamically compute delays using a custom function.
+Riptide: Failsafe offers a special implementation that understands 
+[`Retry-After` (RFC 7231, section 7.1.3)](https://tools.ietf.org/html/rfc7231#section-7.1.3):
+
+```java
+Http.builder()
+    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
+            .withRetryPolicy(new RetryPolicy()
+                    .withDelay(25, TimeUnit.MILLISECONDS)
+                    .withDelay(new RetryAfterDelayFunction(clock)))
+    .build();
+```
+
+Make sure you **check out 
+[zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of
 Failsafe and Spring Boot:
 
 ```java
@@ -74,7 +98,6 @@ private CircuitBreaker breaker;
 Http.builder()
     .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
             .withRetryPolicy(new RetryPolicy()
-                    .retryOn(SocketTimeoutException.class)
                     .withDelay(25, TimeUnit.MILLISECONDS)
                     .withMaxRetries(4))
             .withCircuitBreaker(breaker))

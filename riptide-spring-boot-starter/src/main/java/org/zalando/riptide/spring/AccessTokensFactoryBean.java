@@ -22,7 +22,6 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
     private AccessTokensBuilder builder;
 
     AccessTokensFactoryBean(final RiptideSettings settings) {
-        final Defaults defaults = settings.getDefaults();
         final GlobalOAuth oAuth = settings.getOauth();
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
@@ -74,7 +73,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
     }
 
     @Override
-    protected AccessTokens createInstance() throws Exception {
+    protected AccessTokens createInstance() {
         return builder.start();
     }
 
@@ -84,7 +83,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
     }
 
     @Override
-    protected void destroyInstance(final AccessTokens tokens) throws Exception {
+    protected void destroyInstance(final AccessTokens tokens) {
         tokens.stop();
     }
 
