@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
-class HttpClientFactoryBean extends AbstractFactoryBean<CloseableHttpClient> {
+final class HttpClientFactoryBean extends AbstractFactoryBean<CloseableHttpClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientFactoryBean.class);
 

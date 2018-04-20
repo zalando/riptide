@@ -2,6 +2,7 @@ package org.zalando.riptide.timeout;
 
 import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
 import lombok.AllArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -17,12 +18,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
 import static java.util.Arrays.stream;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 /**
  * @see "CompletableFuture#orTimeout(long, TimeUnit)"
  */
+@API(status = STABLE)
 @AllArgsConstructor
 @ThisWouldBeOneLineIn(language = "Java 9", toWit = "return () -> execution.execute().orTimeout(timeout, unit)")
 public final class TimeoutPlugin implements Plugin {

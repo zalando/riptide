@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.RetryPolicy.DelayFunction;
 import net.jodah.failsafe.util.Duration;
+import org.apiguardian.api.API;
 import org.zalando.riptide.HttpResponseException;
 
 import javax.annotation.Nullable;
@@ -17,10 +18,12 @@ import static java.lang.Long.parseLong;
 import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
  * @see <a href="https://tools.ietf.org/html/rfc7231#section-7.1.3">RFC 7231, section 7.1.3: Retry-After</a>
  */
+@API(status = EXPERIMENTAL)
 @Slf4j
 public final class RetryAfterDelayFunction implements DelayFunction<Object, Throwable> {
 

@@ -1,6 +1,7 @@
 package org.zalando.riptide.backup;
 
 import lombok.AllArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.AbstractCancelableCompletableFuture;
@@ -17,8 +18,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 
+@API(status = EXPERIMENTAL)
 @AllArgsConstructor
 public final class BackupRequestPlugin implements Plugin {
 

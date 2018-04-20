@@ -2,10 +2,14 @@ package org.zalando.riptide;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
+import org.apiguardian.api.API;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
+@API(status = STABLE)
 public final class Types {
 
     public static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {

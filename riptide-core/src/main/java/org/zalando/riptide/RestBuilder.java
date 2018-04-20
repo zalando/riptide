@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 
@@ -8,10 +9,13 @@ import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import static org.apiguardian.api.API.Status.DEPRECATED;
+
 /**
  * @see Http#builder()
  * @see DefaultHttpBuilder
  */
+@API(status = DEPRECATED, since = "2.5.0")
 @Deprecated//(since = "2.5.0", forRemoval = true)
 public final class RestBuilder implements HttpBuilder {
 

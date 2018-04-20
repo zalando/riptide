@@ -1,6 +1,11 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
+
 import javax.annotation.Nullable;
+
+import static org.apiguardian.api.API.Status.INTERNAL;
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * Bindings are the building blocks of {@link RoutingTree routing trees}. They bind an {@link #getAttribute() attribute}
@@ -9,6 +14,8 @@ import javax.annotation.Nullable;
  *
  * @param <A> generic attribute type
  */
+
+@API(status = STABLE)
 public final class Binding<A> {
 
     private final A attribute;
@@ -38,6 +45,8 @@ public final class Binding<A> {
      * @return a binding of attribute to route
      * @see PartialBinding
      */
+    // TODO package private?
+    @API(status = INTERNAL)
     public static <A> Binding<A> create(@Nullable final A attribute, final Route route) {
         return new Binding<>(attribute, route);
     }

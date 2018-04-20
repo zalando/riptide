@@ -2,6 +2,7 @@ package org.zalando.riptide.metrics;
 
 import com.google.common.base.Stopwatch;
 import lombok.AllArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
@@ -12,8 +13,10 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
+@API(status = EXPERIMENTAL)
 public final class MetricsPlugin implements Plugin {
 
     private final GaugeService gaugeService;

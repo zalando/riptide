@@ -1,13 +1,17 @@
 package org.zalando.riptide;
 
 import lombok.SneakyThrows;
+import org.apiguardian.api.API;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static org.apiguardian.api.API.Status.DEPRECATED;
+
 /**
  * @see "org.zalando.riptide.capture.Completion"
  */
+@API(status = DEPRECATED, since = "2.5.0")
 @Deprecated//(since = "2.5.0", forRemoval = true)
 public final class Completion {
 

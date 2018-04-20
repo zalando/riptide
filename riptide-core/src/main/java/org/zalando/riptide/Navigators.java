@@ -1,14 +1,18 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
+
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * Static factory method for built-in {@link Navigator navigators}.
  *
  * @see Navigator
  */
+@API(status = STABLE)
 public final class Navigators {
 
     Navigators() {

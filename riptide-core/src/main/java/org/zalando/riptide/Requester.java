@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,8 +25,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Objects.nonNull;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
+@API(status = STABLE)
 public final class Requester extends Dispatcher {
 
     private final AsyncClientHttpRequestFactory requestFactory;

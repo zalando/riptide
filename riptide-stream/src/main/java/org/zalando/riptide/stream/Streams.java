@@ -3,12 +3,15 @@ package org.zalando.riptide.stream;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
+import org.apiguardian.api.API;
 import org.springframework.http.MediaType;
 import org.zalando.fauxpas.ThrowingConsumer;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
@@ -31,6 +34,7 @@ import java.util.stream.Stream;
  * <b>Note:</b> The stream converter is an replacement to the default spring JSON converter that does not support
  * streaming, and thus should be not registered together with it.
  */
+@API(status = STABLE)
 public final class Streams {
 
     public static final MediaType APPLICATION_JSON_SEQ = new MediaType("application", "json-seq");
