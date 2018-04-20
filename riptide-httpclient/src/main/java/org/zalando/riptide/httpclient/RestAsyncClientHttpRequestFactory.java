@@ -5,6 +5,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apiguardian.api.API;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.AsyncClientHttpRequest;
@@ -16,6 +17,9 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import java.io.IOException;
 import java.net.URI;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
+@API(status = STABLE)
 public final class RestAsyncClientHttpRequestFactory implements ClientHttpRequestFactory, AsyncClientHttpRequestFactory {
 
     private final ClientHttpRequestFactory factory;

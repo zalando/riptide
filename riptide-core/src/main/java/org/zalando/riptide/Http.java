@@ -1,10 +1,13 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * Central class for actual asynchronous HTTP-based communication. Http is loosely modeled after the HTTP protocol,
@@ -18,6 +21,7 @@ import java.net.URI;
  * @see RestTemplate
  * @see AsyncRestTemplate
  */
+@API(status = STABLE)
 public interface Http {
 
     Requester get(String uriTemplate, Object... urlVariables);

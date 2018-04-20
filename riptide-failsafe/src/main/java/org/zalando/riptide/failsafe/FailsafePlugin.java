@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -11,9 +12,11 @@ import org.zalando.riptide.RequestExecution;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
+@API(status = STABLE)
 public final class FailsafePlugin implements Plugin {
 
     private static final RetryPolicy NEVER = new RetryPolicy().withMaxRetries(0);

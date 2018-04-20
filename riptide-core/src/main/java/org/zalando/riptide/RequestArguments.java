@@ -2,6 +2,7 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -11,9 +12,11 @@ import javax.annotation.Nullable;
 import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 
+@API(status = STABLE)
 public interface RequestArguments {
 
     URI getBaseUrl();

@@ -1,5 +1,6 @@
 package org.zalando.riptide.problem;
 
+import org.apiguardian.api.API;
 import org.springframework.http.MediaType;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.problem.Exceptional;
@@ -7,6 +8,7 @@ import org.zalando.problem.Problem;
 import org.zalando.riptide.Navigators;
 import org.zalando.riptide.Route;
 
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.zalando.riptide.Bindings.anyContentType;
 import static org.zalando.riptide.Bindings.on;
@@ -15,12 +17,13 @@ import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.RoutingTree.dispatch;
 
+@API(status = STABLE)
 public final class ProblemRoute {
 
     private static final MediaType PROBLEM = parseMediaType("application/problem+json");
 
     /**
-     * @see <a href="http://zalando.github.io/restful-api-guidelines/common-data-objects/CommonDataObjects.html#must-use-problem-json">Zalando RESTful API Guidelines</a>
+     * @see <a href="http://zalando.github.io/restful-api-guidelines/#176">Zalando RESTful API Guidelines</a>
      */
     private static final MediaType X_DOT_PROBLEM = parseMediaType("application/x.problem+json");
 

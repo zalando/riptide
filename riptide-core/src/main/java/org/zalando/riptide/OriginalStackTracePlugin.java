@@ -1,11 +1,13 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ObjectArrays.concat;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.fauxpas.FauxPas.partially;
 
 /**
@@ -16,6 +18,7 @@ import static org.zalando.fauxpas.FauxPas.partially;
  * This plugin will modify the stack trace of any thrown exception and appending the stack trace elements of the
  * original stack trace
  */
+@API(status = STABLE)
 public final class OriginalStackTracePlugin implements Plugin {
 
     @Override

@@ -1,13 +1,17 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 
 import java.net.URI;
+
+import static org.apiguardian.api.API.Status.DEPRECATED;
 
 /**
  * @see Http
  * @see DefaultHttp
  */
+@API(status = DEPRECATED, since = "2.5.0")
 @Deprecated//(since = "2.5.0", forRemoval = true)
 public final class Rest implements Http {
 

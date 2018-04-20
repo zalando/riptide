@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -10,6 +11,9 @@ import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
+@API(status = STABLE)
 public interface HttpBuilder {
 
     static HttpConfigurer simpleRequestFactory(final ExecutorService executor) {

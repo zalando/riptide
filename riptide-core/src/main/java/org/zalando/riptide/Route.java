@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +15,15 @@ import java.net.URI;
 import java.util.List;
 
 import static com.google.common.base.Throwables.propagateIfPossible;
+import static org.apiguardian.api.API.Status.DEPRECATED;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
 /**
  *
  * @see RoutingTree
  */
+@API(status = STABLE)
 @FunctionalInterface
 public interface Route {
 
@@ -46,26 +50,31 @@ public interface Route {
         };
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
         return Types.listOf(entityType);
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static <T> TypeToken<List<T>> listOf(final TypeToken<T> entityType) {
         return Types.listOf(entityType);
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final Class<T> entityType) {
         return Types.responseEntityOf(TypeToken.of(entityType));
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static <T> TypeToken<ResponseEntity<T>> responseEntityOf(final TypeToken<T> entityType) {
         return Types.responseEntityOf(entityType);
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static ThrowingConsumer<ClientHttpResponse, RuntimeException> pass() {
         return response -> {
@@ -73,17 +82,20 @@ public interface Route {
         };
     }
 
+    @API(status = DEPRECATED, since = "2.5.1")
     @Deprecated//(since = "2.5.1", forRemoval = true)
     static ThrowingFunction<ClientHttpResponse, HttpHeaders, IOException> headers() {
         return HttpMessage::getHeaders;
     }
 
+    @API(status = DEPRECATED, since = "2.5.1")
     @Deprecated//(since = "2.5.1", forRemoval = true)
     static ThrowingFunction<ClientHttpResponse, URI, IOException> location() {
         return response ->
                 response.getHeaders().getLocation();
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static ThrowingConsumer<ClientHttpResponse, IOException> noRoute() {
         return response -> {
@@ -91,6 +103,7 @@ public interface Route {
         };
     }
 
+    @API(status = DEPRECATED, since = "2.6.0")
     @Deprecated//(since = "2.6.0", forRemoval = true)
     static <X extends Exception> ThrowingConsumer<X, IOException> propagate() {
         return entity -> {
@@ -99,6 +112,7 @@ public interface Route {
         };
     }
 
+    @API(status = DEPRECATED, since = "2.5.1")
     @Deprecated//(since = "2.5.1", forRemoval = true)
     static <T> Adapter<ClientHttpResponse, T> to(
             final ThrowingFunction<ClientHttpResponse, T, ? extends Exception> function) {
@@ -106,6 +120,7 @@ public interface Route {
                 response -> consumer.tryAccept(function.tryApply(response));
     }
 
+    @API(status = DEPRECATED, since = "2.5.1")
     @Deprecated//(since = "2.5.1", forRemoval = true)
     @FunctionalInterface
     interface Adapter<T, R> {

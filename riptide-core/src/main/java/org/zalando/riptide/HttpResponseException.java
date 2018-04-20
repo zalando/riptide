@@ -2,6 +2,7 @@ package org.zalando.riptide;
 
 import com.google.common.io.ByteStreams;
 import com.google.gag.annotation.remark.Hack;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
@@ -14,8 +15,10 @@ import java.nio.charset.Charset;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
+@API(status = STABLE)
 public abstract class HttpResponseException extends RestClientException {
 
     private static final int MAX_BODY_BYTES_TO_READ = 8192;

@@ -1,5 +1,6 @@
 package org.zalando.riptide.spring;
 
+import org.apiguardian.api.API;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
@@ -12,6 +13,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+
+@API(status = EXPERIMENTAL)
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

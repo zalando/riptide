@@ -1,5 +1,6 @@
 package org.zalando.riptide.spring;
 
+import org.apiguardian.api.API;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.context.annotation.Bean;
@@ -7,6 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
 
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+
+@API(status = EXPERIMENTAL)
 @Configuration
 @AutoConfigureBefore(RiptideAutoConfiguration.class)
 public class RiptideTestAutoConfiguration {

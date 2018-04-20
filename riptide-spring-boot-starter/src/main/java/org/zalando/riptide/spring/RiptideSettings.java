@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apiguardian.api.API;
 import org.zalando.riptide.UrlResolution;
 
 import java.net.URI;
@@ -14,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apiguardian.api.API.Status.INTERNAL;
 
+@API(status = INTERNAL)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

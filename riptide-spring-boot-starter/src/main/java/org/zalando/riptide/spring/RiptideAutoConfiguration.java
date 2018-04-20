@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import com.codahale.metrics.MetricRegistry;
 import lombok.AllArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -17,8 +18,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apiguardian.api.API.Status.INTERNAL;
+import static org.apiguardian.api.API.Status.STABLE;
 import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor.DEFAULT_TASK_SCHEDULER_BEAN_NAME;
 
+@API(status = STABLE)
 @Configuration
 @AutoConfigureAfter(name = {
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
@@ -32,6 +36,7 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
 })
 public class RiptideAutoConfiguration {
 
+    @API(status = INTERNAL)
     @Bean
     public static RiptidePostProcessor restClientPostProcessor() {
         return new RiptidePostProcessor(DefaultRiptideRegistrar::new);

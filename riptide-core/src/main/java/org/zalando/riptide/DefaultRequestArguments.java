@@ -8,10 +8,15 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.Wither;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 
 import java.net.URI;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
+
+// TODO package private?
+@API(status = INTERNAL)
 @Getter
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @AllArgsConstructor

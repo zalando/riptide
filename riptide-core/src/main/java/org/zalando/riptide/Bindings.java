@@ -1,14 +1,18 @@
 package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
+import org.apiguardian.api.API;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * Static factories that form entry points to create full {@link Binding bindings}.
  *
  * @see Binding
  */
+@API(status = STABLE)
 public final class Bindings {
 
     Bindings() {

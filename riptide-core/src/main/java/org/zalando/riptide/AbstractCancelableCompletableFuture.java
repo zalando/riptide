@@ -1,9 +1,13 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
+
 import java.util.concurrent.CompletableFuture;
 
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
+@API(status = EXPERIMENTAL)
 public abstract class AbstractCancelableCompletableFuture<T> extends CompletableFuture<T> {
 
     /**

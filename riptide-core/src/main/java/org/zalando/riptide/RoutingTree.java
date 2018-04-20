@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.Collections;
@@ -8,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.STABLE;
 
 /**
  * A routing tree is a nested {@link Route route} that consists of a {@link Navigator navigator} and a set of
@@ -19,6 +22,7 @@ import static java.util.Arrays.asList;
  * @param <A> generic attribute type
  * @see Route
  */
+@API(status = STABLE)
 public interface RoutingTree<A> extends Route {
 
     Navigator<A> getNavigator();
@@ -35,10 +39,12 @@ public interface RoutingTree<A> extends Route {
     @Override
     void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
+    @API(status = EXPERIMENTAL)
     default RoutingTree<A> merge(final Binding<A> binding) {
         return merge(Collections.singletonList(binding));
     }
 
+    @API(status = EXPERIMENTAL)
     RoutingTree<A> merge(final List<Binding<A>> bindings);
 
     @SafeVarargs

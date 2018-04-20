@@ -1,5 +1,7 @@
 package org.zalando.riptide.faults;
 
+import org.apiguardian.api.API;
+
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
@@ -11,6 +13,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static org.apiguardian.api.API.Status.MAINTAINED;
+import static org.apiguardian.api.API.Status.STABLE;
+
+@API(status = STABLE)
 public interface FaultClassifier {
 
     /**
@@ -36,10 +42,12 @@ public interface FaultClassifier {
         throw classify(throwable);
     }
 
+    @API(status = MAINTAINED)
     static FaultClassifier createDefault() {
         return create(defaults());
     }
 
+    @API(status = MAINTAINED)
     static List<Predicate<Throwable>> defaults()  {
         return Collections.unmodifiableList(Arrays.asList(
                 InterruptedIOException.class::isInstance,

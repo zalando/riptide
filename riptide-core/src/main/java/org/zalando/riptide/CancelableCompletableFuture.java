@@ -1,11 +1,15 @@
 package org.zalando.riptide;
 
+import org.apiguardian.api.API;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 
 import static java.util.Objects.nonNull;
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
+@API(status = EXPERIMENTAL)
 public final class CancelableCompletableFuture<T> extends AbstractCancelableCompletableFuture<T> {
 
     private final Future<?> cause;
