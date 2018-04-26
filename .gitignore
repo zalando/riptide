@@ -1,17 +1,9 @@
 ### IntelliJ ###
-/*.iml
-/*/*.iml
-/.idea/
-
-### Eclipse ###
-/.project
-/.classpath
-/.settings/
-/*/.project
-/*/.classpath
-/*/.settings/
-/*/bin/
+*.iml
+.idea/
 
 ### Maven ###
-/target
-/*/target/
+target/
+/.mvn/wrapper/*.jar
+
+*.log
