@@ -15,8 +15,8 @@ import static org.apiguardian.api.API.Status.DEPRECATED;
 @Deprecated//(since = "2.5.0", forRemoval = true)
 public final class Completion {
 
-    Completion() {
-        // package private so we can trick code coverage
+    private Completion() {
+
     }
 
     /**

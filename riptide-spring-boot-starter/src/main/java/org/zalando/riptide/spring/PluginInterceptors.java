@@ -24,6 +24,10 @@ import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelabil
 
 final class PluginInterceptors {
 
+    private PluginInterceptors() {
+
+    }
+
     @SuppressWarnings("unused") // by Spring
     static Adapter adapt(final Plugin plugin) {
         return new Adapter(plugin);

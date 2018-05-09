@@ -15,8 +15,8 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public final class Bindings {
 
-    Bindings() {
-        // package private so we can trick code coverage
+    private Bindings() {
+
     }
 
     public static <A> PartialBinding<A> on(final A attribute) {

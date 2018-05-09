@@ -12,6 +12,10 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public final class Types {
 
+    private Types() {
+
+    }
+
     public static <T> TypeToken<List<T>> listOf(final Class<T> entityType) {
         return listOf(TypeToken.of(entityType));
     }

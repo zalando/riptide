@@ -34,8 +34,8 @@ public final class ProblemRoute {
 
     private static final Route PROPAGATE = problemHandling(Exceptional::propagate);
 
-    ProblemRoute() {
-        // package private so we can trick code coverage
+    private ProblemRoute() {
+
     }
 
     /**

@@ -20,11 +20,19 @@ final class DefaultHttpBuilder implements HttpBuilder {
     static class Converters {
         private static final ImmutableList<HttpMessageConverter<?>> DEFAULT =
                 ImmutableList.copyOf(new RestTemplate().getMessageConverters());
+
+        private Converters() {
+
+        }
     }
 
     static class Plugins {
         private static final ImmutableList<Plugin> DEFAULT =
                 ImmutableList.of(new OriginalStackTracePlugin());
+
+        private Plugins() {
+
+        }
     }
 
     private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;

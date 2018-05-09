@@ -10,6 +10,10 @@ import java.util.List;
 
 final class HttpFactory {
 
+    private HttpFactory() {
+
+    }
+
     @SuppressWarnings("unused")
     public static Http create(
             final String baseUrl,
