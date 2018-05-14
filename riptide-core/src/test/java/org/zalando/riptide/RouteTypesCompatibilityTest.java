@@ -3,7 +3,7 @@ package org.zalando.riptide;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @Deprecated
 public final class RouteTypesCompatibilityTest {

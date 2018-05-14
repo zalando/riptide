@@ -128,7 +128,7 @@ public final class CallTest {
     }
 
     private void validateEntity(final AccountBody account) throws IOException {
-        throw new IOException();
+        throw new IOException("Account " + account + " is invalid");
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

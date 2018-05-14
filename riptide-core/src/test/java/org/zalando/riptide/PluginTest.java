@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
@@ -74,7 +75,7 @@ public final class PluginTest {
             final RequestArguments arguments = mock(RequestArguments.class);
             final RequestExecution execution = () -> {
                 final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
-                future.completeExceptionally(new NullPointerException());
+                future.completeExceptionally(new NoSuchElementException());
                 return future;
             };
 
@@ -86,7 +87,7 @@ public final class PluginTest {
 
             assertThat(throwable, is(instanceOf(IllegalArgumentException.class)));
             assertThat(throwable.getCause(), is(instanceOf(IllegalStateException.class)));
-            assertThat(throwable.getCause().getCause(), is(instanceOf(NullPointerException.class)));
+            assertThat(throwable.getCause().getCause(), is(instanceOf(NoSuchElementException.class)));
         }
     }
 

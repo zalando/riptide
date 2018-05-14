@@ -93,7 +93,7 @@ public final class ContentTypeDispatchTest {
                         .body(new ClassPathResource("error.json"))
                         .contentType(ERROR));
 
-        final Error error = perform(org.zalando.riptide.model.Error.class);
+        final Error error = perform(Error.class);
 
         assertThat(error.getMessage(), is("A problem occurred."));
         assertThat(error.getPath(), is(url));

@@ -136,11 +136,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .getBeanDefinition());
             });
 
-            return BeanDefinitionBuilder.genericBeanDefinition(ClientHttpMessageConverters.class)
+            return genericBeanDefinition(ClientHttpMessageConverters.class)
                     .addConstructorArgValue(list);
         });
 
-        final AbstractBeanDefinition converters = BeanDefinitionBuilder.genericBeanDefinition()
+        final AbstractBeanDefinition converters = genericBeanDefinition()
                 .setFactoryMethod("getConverters")
                 .getBeanDefinition();
         converters.setFactoryBeanName(convertersId);

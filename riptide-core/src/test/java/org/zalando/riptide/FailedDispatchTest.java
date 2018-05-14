@@ -11,7 +11,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.model.MediaTypes;
 import org.zalando.riptide.model.Success;
 
 import java.net.URI;
@@ -103,10 +102,9 @@ public final class FailedDispatchTest {
 
         unit.get(url)
                 .dispatch(status(),
-                        on(HttpStatus.OK)
-                                .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> { }),
-                                        anySeries().call(pass())),
+                        on(OK).dispatch(series(),
+                                on(SUCCESSFUL).call(Success.class, success -> {}),
+                                anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
                 .join();
@@ -117,16 +115,17 @@ public final class FailedDispatchTest {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{")
-                        .contentType(MediaTypes.SUCCESS));
+                        .contentType(SUCCESS));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(HttpMessageNotReadableException.class));
 
         unit.get(url)
                 .dispatch(status(),
-                        on(HttpStatus.OK)
+                        on(OK)
                                 .dispatch(series(),
-                                        on(SUCCESSFUL).call(Success.class, success -> { }),
+                                        on(SUCCESSFUL).call(Success.class, success -> {
+                                        }),
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
@@ -139,17 +138,17 @@ public final class FailedDispatchTest {
         headers.setContentLength(0);
 
         server.expect(requestTo(url))
-                .andRespond(withStatus(HttpStatus.OK)
+                .andRespond(withStatus(OK)
                         .headers(headers)
-                        .contentType(MediaTypes.SUCCESS));
+                        .contentType(SUCCESS));
 
         final AtomicReference<Success> success = new AtomicReference<>();
 
         unit.get(url)
                 .dispatch(status(),
-                        on(HttpStatus.OK)
+                        on(OK)
                                 .dispatch(contentType(),
-                                        on(MediaTypes.SUCCESS).call(Success.class, success::set),
+                                        on(SUCCESS).call(Success.class, success::set),
                                         anyContentType().call(this::fail)),
                         on(HttpStatus.CREATED).call(Success.class, success::set),
                         anyStatus().call(this::fail))
@@ -159,7 +158,7 @@ public final class FailedDispatchTest {
     }
 
     private void fail(final ClientHttpResponse response) {
-        throw new AssertionError("Should not have been executed");
+        throw new AssertionError("Should not have been executed, but received: " + response);
     }
 
     @Test

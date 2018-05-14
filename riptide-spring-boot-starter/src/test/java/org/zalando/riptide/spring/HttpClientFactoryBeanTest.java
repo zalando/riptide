@@ -40,7 +40,7 @@ public class HttpClientFactoryBeanTest {
     public void shouldDestroy() throws Exception {
         unit.afterPropertiesSet();
         unit.getObject();
-        unit.destroy();;
+        unit.destroy();
     }
 
 }

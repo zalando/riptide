@@ -43,7 +43,7 @@ public final class InputStreamTest {
 
         @Override
         public List<MediaType> getSupportedMediaTypes() {
-            return singletonList(MediaType.APPLICATION_OCTET_STREAM);
+            return singletonList(APPLICATION_OCTET_STREAM);
         }
 
         @Override

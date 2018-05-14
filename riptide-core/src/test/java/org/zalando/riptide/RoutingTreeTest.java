@@ -53,8 +53,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUsedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, expected),
-                Binding.create(null, other))
+                create(OK, expected),
+                create(null, other))
                 .execute(response(OK), reader);
 
         verify(expected).execute(any(), any());
@@ -63,8 +63,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUsedWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, other),
-                Binding.create(null, expected))
+                create(OK, other),
+                create(null, expected))
                 .execute(response(CREATED), reader);
 
         verify(expected).execute(any(), any());
@@ -73,8 +73,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUsedAddedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(null, other))
-                .merge(Binding.create(OK, expected))
+                create(null, other))
+                .merge(create(OK, expected))
                 .execute(response(OK), reader);
 
         verify(expected).execute(any(), any());
@@ -83,8 +83,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUsedAddedWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, other))
-                .merge(Binding.create(null, expected))
+                create(OK, other))
+                .merge(create(null, expected))
                 .execute(response(CREATED), reader);
 
         verify(expected).execute(any(), any());
@@ -93,8 +93,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUseLastWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create((HttpStatus) null, other))
-                .merge(Binding.create((HttpStatus) null, expected))
+                create((HttpStatus) null, other))
+                .merge(create((HttpStatus) null, expected))
                 .execute(response(OK), reader);
 
         verify(expected).execute(any(), any());
@@ -103,8 +103,8 @@ public class RoutingTreeTest {
     @Test
     public void shouldUseLastAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, other))
-                .merge(Binding.create(OK, expected))
+                create(OK, other))
+                .merge(create(OK, expected))
                 .execute(response(OK), reader);
 
         verify(expected).execute(any(), any());
@@ -113,10 +113,10 @@ public class RoutingTreeTest {
     @Test
     public void shouldUseLastAddedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, other),
-                Binding.create(null, other))
-                .merge(Binding.create(OK, other))
-                .merge(Binding.create(OK, expected))
+                create(OK, other),
+                create(null, other))
+                .merge(create(OK, other))
+                .merge(create(OK, expected))
                 .execute(response(OK), reader);
 
         verify(expected).execute(any(), any());
@@ -125,10 +125,10 @@ public class RoutingTreeTest {
     @Test
     public void shouldUseLastAddedWildcardeRoute() throws Exception {
         RoutingTree.dispatch(status(),
-                Binding.create(OK, other),
-                Binding.create(null, other))
-                .merge(asList(Binding.create(null, other),
-                        Binding.create(null, expected)))
+                create(OK, other),
+                create(null, other))
+                .merge(asList(create(null, other),
+                        create(null, expected)))
                 .execute(response(CREATED), reader);
 
         verify(expected).execute(any(), any());

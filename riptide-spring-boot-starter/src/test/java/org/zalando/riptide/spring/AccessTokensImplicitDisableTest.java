@@ -11,9 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.stups.tokens.AccessTokens;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;

@@ -37,7 +37,8 @@ public class StreamFilterTest {
         try (final StreamFilter unit = new StreamFilter(stream)) {
             final int filtered = 3;
             final int available = stream.available();
-            int sum = 0, read;
+            int sum = 0;
+            int read;
             final byte[] buffer = new byte[10];
             while ((read = unit.read(buffer, 0, buffer.length)) != -1) {
                 sum += read;
@@ -53,7 +54,8 @@ public class StreamFilterTest {
         try (final StreamFilter unit = new StreamFilter(stream, 5)) {
             final long filtered = 3;
             final long available = stream.available();
-            long sum = 0, skipped;
+            long sum = 0;
+            long skipped;
             while ((skipped = unit.skip(10)) != 0) {
                 sum += skipped;
             }

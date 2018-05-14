@@ -2,7 +2,6 @@ package org.zalando.riptide.spring;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.zalando.riptide.spring.RiptideSettings.Client.OAuth;
-import org.zalando.riptide.spring.RiptideSettings.Defaults;
 import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.AccessTokensBuilder;

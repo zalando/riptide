@@ -5,6 +5,7 @@ import org.junit.Test;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
+import java.util.NoSuchElementException;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -38,7 +39,7 @@ public final class FaultClassifierTest {
     @Test
     public void shouldClassifyAsTransientWithNonTransientRootCause() {
         final SocketTimeoutException e = new SocketTimeoutException();
-        e.initCause(new NullPointerException());
+        e.initCause(new NoSuchElementException());
         assertTransient(e);
     }
 
