@@ -17,7 +17,6 @@ import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.capture.Completion;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
@@ -94,7 +93,7 @@ final class PluginInterceptors {
          * Takes an existing {@link HttpRequest request} and a body and tries to adapts them to
          * {@link RequestArguments arguments}.
          *
-         * @see org.springframework.web.util.AbstractUriTemplateHandler#insertBaseUrl(URI)
+         * @see org.springframework.web.util.AbstractUriTemplateHandler#insertBaseUrl(java.net.URI)
          * @param request original request
          * @param body serialized request body
          * @return derived request arguments

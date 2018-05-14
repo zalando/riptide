@@ -46,7 +46,7 @@ public final class FaultClassifierTest {
     @Test
     public void shouldClassifyAsTransientWithTransientIntermediateCause() {
         final SocketTimeoutException e = new SocketTimeoutException();
-        e.initCause(new NullPointerException());
+        e.initCause(new NoSuchElementException());
         assertTransient(new IllegalStateException(e));
     }
 
