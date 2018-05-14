@@ -17,24 +17,4 @@ public final class EnforceCoverageTest {
         unit.setEnvironment(mock(ConfigurableEnvironment.class));
     }
 
-    @Test
-    public void shouldUseDependenciesConstructor() {
-        new Dependencies();
-    }
-
-    @Test
-    public void shouldUseDefaultingConstructor() {
-        new Defaulting();
-    }
-
-    @Test
-    public void shouldCallHttpFactoryConstructor() {
-        new HttpFactory();
-    }
-
-    @Test
-    public void shouldCallPluginInterceptorsConstructor() {
-        new PluginInterceptors();
-    }
-
 }

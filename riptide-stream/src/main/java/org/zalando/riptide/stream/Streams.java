@@ -41,6 +41,10 @@ public final class Streams {
     public static final MediaType APPLICATION_STREAM_JSON = new MediaType("application", "stream+json");
     public static final MediaType APPLICATION_X_JSON_STREAM = new MediaType("application", "x-json-stream");
 
+    private Streams() {
+
+    }
+
     /**
      * Creates specialized stream {@link TypeToken type token} for the given element {@link Class class type}. Used to
      * declare the expected stream response {@link TypeToken type token} in Riptide route as follows:

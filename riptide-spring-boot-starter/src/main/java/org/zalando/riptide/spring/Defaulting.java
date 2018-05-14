@@ -25,6 +25,10 @@ import static org.zalando.riptide.spring.RiptideSettings.Retry;
 
 final class Defaulting {
 
+    private Defaulting() {
+
+    }
+
     static RiptideSettings withDefaults(final RiptideSettings base) {
         return merge(base, merge(base.getDefaults()));
     }
