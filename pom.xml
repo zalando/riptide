@@ -76,7 +76,7 @@
         <spring-boot.version>1.5.11.RELEASE</spring-boot.version>
         <jackson.version>2.9.5</jackson.version>
         <problem.version>0.20.3</problem.version>
-        <fauxpas.version>0.5.0</fauxpas.version>
+        <fauxpas.version>0.7.0</fauxpas.version>
     </properties>
 
     <dependencyManagement>
