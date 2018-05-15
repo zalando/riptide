@@ -24,15 +24,15 @@ riptide:
       compress-request: true
       timeout: 1 seconds
     github:
-      base-url: https://github.com
+      base-url: https://example.com
       keystore:
-        path: github.keystore
+        path: example.keystore
         password: password
       detect-transient-faults: true
     github-invalid:
-      base-url: https://github.com
+      base-url: https://example.com
       keystore:
-        path: github.keystore
+        path: example.keystore
     foo:
       base-url: http://localhost
       backup-request:

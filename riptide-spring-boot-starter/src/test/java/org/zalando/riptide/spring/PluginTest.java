@@ -96,10 +96,11 @@ public final class PluginTest {
     public void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(asList(
                 instanceOf(MetricsPlugin.class),
-                instanceOf(BackupRequestPlugin.class),
-                instanceOf(FailsafePlugin.class))));
+                instanceOf(FailsafePlugin.class),
+                instanceOf(BackupRequestPlugin.class))));
     }
 
+    @Test
     public void shouldUseTimeoutPlugin() throws Exception {
         assertThat(getPlugins(ecb), contains(asList(
                 instanceOf(MetricsPlugin.class),
