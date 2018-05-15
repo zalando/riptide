@@ -71,7 +71,7 @@ public final class InterceptorTest {
 
     @Test
     public void shouldSucceedToPerformSyncRequest() throws Exception {
-        server.expect(requestTo("https://github.com/foo")).andRespond(withSuccess());
+        server.expect(requestTo("https://example.com/foo")).andRespond(withSuccess());
 
         github.getForEntity("/foo", Object.class);
 
@@ -80,7 +80,7 @@ public final class InterceptorTest {
 
     @Test(expected = TransientFaultException.class)
     public void shouldFailToPerformSyncRequest() throws Exception {
-        server.expect(requestTo("https://github.com/foo")).andRespond(request -> {
+        server.expect(requestTo("https://example.com/foo")).andRespond(request -> {
             throw new SocketTimeoutException();
         });
 
@@ -89,7 +89,7 @@ public final class InterceptorTest {
 
     @Test
     public void shouldSucceedToPerformAsyncRequest() throws Exception {
-        server.expect(requestTo("https://github.com/foo")).andRespond(withSuccess());
+        server.expect(requestTo("https://example.com/foo")).andRespond(withSuccess());
 
         asyncGithub.getForEntity("/foo", Object.class).get();
 
@@ -98,7 +98,7 @@ public final class InterceptorTest {
 
     @Test(expected = TransientFaultException.class)
     public void shouldFailToPerformAsyncRequest() throws Throwable {
-        server.expect(requestTo("https://github.com/foo")).andRespond(request -> {
+        server.expect(requestTo("https://example.com/foo")).andRespond(request -> {
             throw new SocketTimeoutException();
         });
 

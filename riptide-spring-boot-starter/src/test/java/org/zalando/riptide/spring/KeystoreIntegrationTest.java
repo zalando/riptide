@@ -30,8 +30,8 @@ public class KeystoreIntegrationTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void shouldTrustGithub() {
-        http.get("https://github.com").dispatch(series(), anySeries().call(pass())).join();
+    public void shouldTrustExample() {
+        http.get("https://example.com").dispatch(series(), anySeries().call(pass())).join();
     }
 
     @Test
@@ -39,6 +39,6 @@ public class KeystoreIntegrationTest {
         expectedException.expectCause(instanceOf(SSLHandshakeException.class));
         expectedException.expectMessage(Matchers.containsString("unable to find valid certification path to requested target"));
 
-        http.get("https://example.com").dispatch(series(), anySeries().call(pass())).join();
+        http.get("https://github.com").dispatch(series(), anySeries().call(pass())).join();
     }
 }
