@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.zalando.stups</groupId>
             <artifactId>stups-http-components-oauth2</artifactId>
-            <version>1.0.19</version>
+            <version>1.0.21</version>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
