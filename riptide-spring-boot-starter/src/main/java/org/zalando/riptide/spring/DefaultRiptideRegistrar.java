@@ -12,7 +12,6 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -109,9 +108,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }));
     }
 
+    private static final class HttpMessageConverters {
+
+    }
+
     private BeanDefinition registerHttpMessageConverters(final String id) {
         // we use the wrong type here since that's the easiest way to influence the name
         // we want exampleHttpMessageConverters, rather than exampleClientHttpMessageConverters
+
         final String convertersId = registry.registerIfAbsent(id, HttpMessageConverters.class, () -> {
             final List<Object> list = list();
 

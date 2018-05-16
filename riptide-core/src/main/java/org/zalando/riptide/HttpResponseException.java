@@ -65,11 +65,11 @@ public abstract class HttpResponseException extends RestClientException {
     @Hack("MediaType#getCharset is not available prior to Spring 4.3")
     @SuppressWarnings("deprecation")
     private static Charset extractCharset(final MediaType mediaType) {
-        return mediaType.getCharSet();
+        return mediaType.getCharset();
     }
 
     private static String format(final String message, final byte[] body, final Charset charset,
-            final int statusCode, final String reasonPhrase, final HttpHeaders headers) throws IOException {
+            final int statusCode, final String reasonPhrase, final HttpHeaders headers) {
         return String.format("%s: %d - %s\n%s\n%s", message, statusCode, reasonPhrase, headers, new String(body, charset));
     }
 

@@ -8,7 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.zalando.riptide.model.Success;
@@ -118,7 +117,6 @@ public final class FailedDispatchTest {
                         .contentType(SUCCESS));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(HttpMessageNotReadableException.class));
 
         unit.get(url)
                 .dispatch(status(),

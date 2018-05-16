@@ -19,6 +19,7 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 
 @API(status = INTERNAL)
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public final class RiptideSettings {
@@ -85,6 +86,7 @@ public final class RiptideSettings {
         private Keystore keystore;
 
         @Getter
+        @Setter
         @NoArgsConstructor
         @AllArgsConstructor
         public static final class OAuth {
