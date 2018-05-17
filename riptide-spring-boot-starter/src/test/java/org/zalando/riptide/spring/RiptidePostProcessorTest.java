@@ -3,7 +3,6 @@ package org.zalando.riptide.spring;
 import org.junit.Test;
 import org.springframework.mock.env.MockEnvironment;
 
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import static java.util.Arrays.asList;
