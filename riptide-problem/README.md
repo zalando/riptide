@@ -4,6 +4,7 @@
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide.svg)](https://coveralls.io/r/zalando/riptide)
+[![Code Quality](https://img.shields.io/codacy/grade/1fbe3d16ca544c0c8589692632d114de/master.svg)](https://www.codacy.com/app/whiskeysierra/riptide)
 [![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-problem.svg)](http://www.javadoc.io/doc/org.zalando/riptide-problem)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-problem.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-problem)
