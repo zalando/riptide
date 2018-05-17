@@ -1,6 +1,5 @@
 package org.zalando.riptide.spring;
 
-import org.springframework.boot.actuate.autoconfigure.MetricsDropwizardAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,7 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
         JacksonAutoConfiguration.class,
         LogbookAutoConfiguration.class,
         TracerAutoConfiguration.class,
-        MetricsDropwizardAutoConfiguration.class,
+        MetricsTestAutoConfiguration.class,
 })
 @ActiveProfiles("default")
 public class DefaultTestConfiguration {

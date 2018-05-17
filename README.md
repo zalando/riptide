@@ -69,7 +69,7 @@ Go checkout the [concept document](docs/concepts.md) for more details.
 
 ## Dependencies
 
-- Spring 4.3.0 or higher
+- Spring 4.x (4.3.0 or higher) **or 5.x**
 
 ## Installation
 

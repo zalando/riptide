@@ -15,20 +15,19 @@
     <name>Riptide: Metrics</name>
     <description>Client side response routing</description>
 
+    <properties>
+        <micrometer.version>1.0.4</micrometer.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

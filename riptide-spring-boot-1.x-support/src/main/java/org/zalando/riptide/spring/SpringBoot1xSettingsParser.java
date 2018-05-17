@@ -1,0 +1,29 @@
+package org.zalando.riptide.spring;
+
+import lombok.SneakyThrows;
+import org.springframework.boot.bind.PropertiesConfigurationFactory;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.ClassUtils;
+
+public final class SpringBoot1xSettingsParser implements SettingsParser {
+
+    @Override
+    public boolean isApplicable() {
+        return ClassUtils.isPresent("org.springframework.boot.bind.PropertiesConfigurationFactory",
+                SpringBoot1xSettingsParser.class.getClassLoader());
+    }
+
+    @Override
+    @SneakyThrows
+    public RiptideSettings parse(final ConfigurableEnvironment environment) {
+        final PropertiesConfigurationFactory<RiptideSettings> factory =
+                new PropertiesConfigurationFactory<>(RiptideSettings.class);
+
+        factory.setTargetName("riptide");
+        factory.setPropertySources(environment.getPropertySources());
+        factory.setConversionService(environment.getConversionService());
+
+        return factory.getObject();
+    }
+
+}

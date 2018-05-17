@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import io.micrometer.core.instrument.MeterRegistry;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
@@ -10,8 +11,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.springframework.boot.actuate.autoconfigure.MetricsDropwizardAutoConfiguration;
-import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -100,21 +99,21 @@ public class ManualConfiguration {
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-            MetricsDropwizardAutoConfiguration.class,
+            // TODO MetricsAutoConfiguration
             SharedConfiguration.class,
     })
     static class ExampleClientConfiguration {
 
         @Bean
         public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final GaugeService gaugeService,
+                final ClientHttpMessageConverters converters, final MeterRegistry meterRegistry,
                 final ScheduledExecutorService scheduler) {
             return Http.builder()
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
                     .requestFactory(requestFactory)
                     .converters(converters.getConverters())
-                    .plugin(new MetricsPlugin(gaugeService, new ZMONMetricsNameGenerator()))
+                    .plugin(new MetricsPlugin(meterRegistry, new ZMONMetricsNameGenerator()))
                     .plugin(new TransientFaultPlugin(
                             FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                     .addAll(FaultClassifier.defaults())

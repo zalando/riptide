@@ -41,6 +41,11 @@ final class RestAsyncClientHttpRequest implements AsyncClientHttpRequest {
         return request.getMethod();
     }
 
+    // TODO @Override as soon as we no longer support Spring 4
+    public String getMethodValue() {
+        return request.getMethod().toString();
+    }
+
     @Override
     public URI getURI() {
         return request.getURI();

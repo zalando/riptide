@@ -14,8 +14,12 @@ cache:
   directories:
     - $HOME/.m2
 
+env:
+  matrix:
+    -
+    - PROFILE='-P spring5,-spring4-micrometer'
 
-script: ./mvnw clean verify
+script: ./mvnw clean verify $PROFILE
 
 after_success:
   - ./mvnw coveralls:report

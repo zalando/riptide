@@ -64,7 +64,7 @@ private Http example;
 ## Dependencies
 
 - Java 8
-- Spring Boot
+- Spring Boot 1.x **or 2.x**
 - Riptide
   - Core
   - (Apache) HTTP Client
