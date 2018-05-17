@@ -1,10 +1,14 @@
 package org.zalando.riptide.spring;
 
 import lombok.SneakyThrows;
+import org.apiguardian.api.API;
 import org.springframework.boot.bind.PropertiesConfigurationFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ClassUtils;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
+
+@API(status = INTERNAL)
 public final class SpringBoot1xSettingsParser implements SettingsParser {
 
     @Override

@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public final class SpringBoot2xParserTest {
+public final class SpringBoot2xSettingsParserTest {
 
     @Test
     public void shouldBeApplicable() {
