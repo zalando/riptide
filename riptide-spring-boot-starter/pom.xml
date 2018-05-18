@@ -16,7 +16,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <logbook.version>1.7.3</logbook.version>
+        <logbook.version>1.8.0</logbook.version>
         <tracer.version>0.15.1</tracer.version>
     </properties>
 
