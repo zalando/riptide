@@ -17,7 +17,7 @@
 
     <properties>
         <logbook.version>1.8.0</logbook.version>
-        <tracer.version>0.15.1</tracer.version>
+        <tracer.version>0.16.0</tracer.version>
     </properties>
 
     <dependencies>
