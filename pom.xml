@@ -55,6 +55,7 @@
 
     <modules>
         <module>riptide-backup</module>
+        <module>riptide-bom</module>
         <module>riptide-capture</module>
         <module>riptide-core</module>
         <module>riptide-failsafe</module>

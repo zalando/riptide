@@ -85,6 +85,41 @@ Add the following dependency to your project:
 
 Additional modules/artifacts of Riptide always share the same version number.
 
+Alternatively, you can import our *bill of materials*...
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.zalando</groupId>
+      <artifactId>riptide-bom</artifactId>
+      <version>${riptide.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+```
+
+... which allows you to omit versions:
+
+```xml
+<dependencies>
+  <dependency>
+      <groupId>org.zalando</groupId>
+      <artifactId>riptide-core</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.zalando</groupId>
+      <artifactId>riptide-failsafe</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>org.zalando</groupId>
+      <artifactId>riptide-faults</artifactId>
+  </dependency>
+</dependencies>
+```
+
 ## Configuration
 
 Integration of your typical Spring Boot Application with Riptide, [Logbook](https://github.com/zalando/logbook) and

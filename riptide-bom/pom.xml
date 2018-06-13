@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.zalando</groupId>
+        <artifactId>riptide-parent</artifactId>
+        <version>2.9.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>riptide-bom</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Riptide: Bill of Materials</name>
+    <description>Client side response routing</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- riptide -->
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-backup</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-capture</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-core</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-failsafe</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-faults</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-httpclient</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-metrics</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-problem</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-1.x-support</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-2.x-support</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-api</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-starter</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-stream</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-timeout</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
