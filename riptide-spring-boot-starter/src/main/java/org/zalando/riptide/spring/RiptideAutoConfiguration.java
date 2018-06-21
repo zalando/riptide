@@ -50,8 +50,7 @@ public class RiptideAutoConfiguration {
         @Bean
         @SuppressWarnings("SpringJavaAutowiringInspection")
         public MetricsPlugin metricsPlugin(final MeterRegistry registry) {
-            final ZMONMetricsNameGenerator nameGenerator = new ZMONMetricsNameGenerator();
-            return new MetricsPlugin(registry, nameGenerator);
+            return new MetricsPlugin(registry);
         }
 
     }

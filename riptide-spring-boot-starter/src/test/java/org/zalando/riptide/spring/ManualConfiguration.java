@@ -113,7 +113,7 @@ public class ManualConfiguration {
                     .urlResolution(UrlResolution.RFC)
                     .requestFactory(requestFactory)
                     .converters(converters.getConverters())
-                    .plugin(new MetricsPlugin(meterRegistry, new ZMONMetricsNameGenerator()))
+                    .plugin(new MetricsPlugin(meterRegistry))
                     .plugin(new TransientFaultPlugin(
                             FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                     .addAll(FaultClassifier.defaults())

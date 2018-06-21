@@ -52,7 +52,7 @@ private Http example;
   - [Jackson 2](https://github.com/FasterXML/jackson)
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
   - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
-  - [Metrics](http://metrics.dropwizard.io/) via [Riptide: Metrics](../riptide-metrics)
+  - [Metrics](https://micrometer.io) via [Riptide: Metrics](../riptide-metrics)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
@@ -192,6 +192,19 @@ Required when `record-metrics` is enabled.
     <version>${riptide.version}</version>
 </dependency>
 ```
+
+Spring Boot 1.x applications also require:
+
+```xml
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-spring-legacy</artifactId>
+    <version>${micrometer.version}</version>
+</dependency>
+```
+
+Please be aware that Micrometer, by default, doesn't expose to `/metrics`.
+Consult #401 for details how to bypass this.
 
 ## Configuration
 
