@@ -140,4 +140,4 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 ## Getting Involved/Contributing
 
 To contribute, simply open a pull request and add a brief description (1-2 sentences) of your addition or change. For
-more details, check the [contribution guidelines](../CONTRIBUTING.md).
+more details, check the [contribution guidelines](../.github/CONTRIBUTING.md).
