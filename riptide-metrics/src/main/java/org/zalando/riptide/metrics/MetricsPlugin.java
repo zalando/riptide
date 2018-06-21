@@ -12,13 +12,12 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.Iterables.concat;
+import static java.util.Objects.nonNull;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
@@ -59,16 +58,12 @@ public final class MetricsPlugin implements Plugin {
         return () -> {
             final Measurement measurement = new Measurement(arguments);
 
-            final CompletableFuture<ClientHttpResponse> future;
-
-            try {
-                future = execution.execute();
-            } catch (final IOException e) {
-                measurement.record(null, e);
-                throw e;
-            }
-
-            return future.whenComplete(throwingBiConsumer(measurement::record));
+            return execution.execute()
+                    .whenComplete(throwingBiConsumer((response, throwable) -> {
+                        if (nonNull(response)) {
+                            measurement.record(response);
+                        }
+                    }));
         };
     }
 
@@ -83,9 +78,7 @@ public final class MetricsPlugin implements Plugin {
         private final long startTime = clock.monotonicTime();
         private final RequestArguments arguments;
 
-        void record(final @Nullable ClientHttpResponse response,
-                @SuppressWarnings("unused") @Nullable final Throwable e) {
-
+        void record(final ClientHttpResponse response) throws IOException {
             final long endTime = clock.monotonicTime();
 
             final Iterable<Tag> tags = concat(defaultTags, tags(arguments, response));
@@ -97,7 +90,7 @@ public final class MetricsPlugin implements Plugin {
 
     }
 
-    private Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse response) {
+    private Iterable<Tag> tags(final RequestArguments arguments, final ClientHttpResponse response) throws IOException {
         return Arrays.asList(
                 Tag.of("method", method(arguments)),
                 Tag.of("uri", uri(arguments)),
@@ -114,16 +107,8 @@ public final class MetricsPlugin implements Plugin {
         return firstNonNull(arguments.getUriTemplate(), arguments.getRequestUri().getPath());
     }
 
-    private String status(@Nullable final ClientHttpResponse response) {
-        if (response == null) {
-            return "CLIENT_ERROR";
-        }
-
-        try {
-            return String.valueOf(response.getRawStatusCode());
-        } catch (final IOException e) {
-            return "IO_ERROR";
-        }
+    private String status(final ClientHttpResponse response) throws IOException {
+        return String.valueOf(response.getRawStatusCode());
     }
 
     private String client(final RequestArguments arguments) {

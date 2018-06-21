@@ -32,6 +32,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -121,7 +122,7 @@ public class MetricsPluginTest {
     }
 
     @Test(expected = SocketTimeoutException.class)
-    public void shouldRecordFailureMetric() throws Throwable {
+    public void shouldNotRecordFailureMetric() throws Throwable {
         driver.addExpectation(onRequestTo("/err"),
                 giveEmptyResponse().after(750, MILLISECONDS));
 
@@ -135,14 +136,7 @@ public class MetricsPluginTest {
             throw e.getCause();
         } finally {
             @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
-
-            assertThat(timer, is(notNullValue()));
-            assertThat(timer.getId().getTag("method"), is("GET"));
-            assertThat(timer.getId().getTag("uri"), is("/err"));
-            assertThat(timer.getId().getTag("status"), is("CLIENT_ERROR"));
-            assertThat(timer.getId().getTag("clientName"), is("localhost"));
-            assertThat(timer.getId().getTag("client"), is("example"));
-            assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+            assertThat(timer, is(nullValue()));
         }
     }
 
