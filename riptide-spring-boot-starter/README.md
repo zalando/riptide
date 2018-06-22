@@ -204,7 +204,7 @@ Spring Boot 1.x applications also require:
 ```
 
 Please be aware that Micrometer, by default, doesn't expose to `/metrics`.
-Consult #401 for details how to bypass this.
+Consult [#401](https://github.com/zalando/riptide/issues/401) for details how to bypass this.
 
 ## Configuration
 
