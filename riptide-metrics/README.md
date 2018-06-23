@@ -24,13 +24,13 @@ Http.builder()
 
 ## Features
 
-- adds global timeouts to Riptide calls
+- adds metrics to Riptide calls
 
 ## Dependencies
 
 - Java 8
 - Riptide Core
-- Spring Boot Actuator
+- [Micrometer](https://micrometer.io/)
 
 ## Installation
 
@@ -49,24 +49,14 @@ Add the following dependency to your project:
 ```java
 Http.builder()
     .baseUrl("https://www.example.com")
-    .plugin(new MetricsPlugin(gaugeService, (arguments, response) ->
-            String.format("request.%s.%s", 
-                arguments.getMethod(), 
-                arguments.getRequestUri().getHost()))
+    .plugin(new MetricsPlugin(meterRegistry)
     .build();
 ```
 
-The first parameter is a [`GaugeService`](https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/actuate/metrics/GaugeService.html)
-(usually provided by the Spring Boot Actuator)
-and the second one is a `MetricsNameGenerator` that allows you to specify the metrics name under which metrics are
-submitted. It gives you full access to all request arguments as well as the complete response:
+It's also possible to specify a custom metrics name with `http.client.requests` being the default:
 
 ```java
-public interface MetricsNameGenerator {
-
-    String generate(RequestArguments arguments, ClientHttpResponse response);
-
-}
+new MetricsPlugin(meterRegistry, "http.outgoing-requests")
 ```
 
 ## Usage
@@ -81,29 +71,6 @@ http.get("/users/me")
         anySeries().call(problemHandling()))
 ```
 
-If you're using the [Spring Boot Metrics Endpoint](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-metrics.html)
-then you should be able to see the corresponding metrics in the `/metrics` endpoint:
-
-```json
-{
-  "request.GET.www.example.com.count": 0,
-  "request.GET.www.example.com.fifteenMinuteRate": 0.0,
-  "request.GET.www.example.com.fiveMinuteRate": 0.0,
-  "request.GET.www.example.com.meanRate": 0.0,
-  "request.GET.www.example.com.oneMinuteRate": 0.0,
-  "request.GET.www.example.com.snapshot.75thPercentile": 0,
-  "request.GET.www.example.com.snapshot.95thPercentile": 0,
-  "request.GET.www.example.com.snapshot.98thPercentile": 0,
-  "request.GET.www.example.com.snapshot.999thPercentile": 0,
-  "request.GET.www.example.com.snapshot.99thPercentile": 0,
-  "request.GET.www.example.com.snapshot.max": 0,
-  "request.GET.www.example.com.snapshot.mean": 0,
-  "request.GET.www.example.com.snapshot.median": 0,
-  "request.GET.www.example.com.snapshot.min": 0,
-  "request.GET.www.example.com.snapshot.stdDev": 0
-}
-```
-
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
@@ -111,4 +78,4 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 ## Getting Involved/Contributing
 
 To contribute, simply open a pull request and add a brief description (1-2 sentences) of your addition or change. For
-more details, check the [contribution guidelines](../.gith../.github/CONTRIBUTING.md).
+more details, check the [contribution guidelines](../.github/CONTRIBUTING.md).
