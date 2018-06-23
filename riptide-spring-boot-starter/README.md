@@ -321,6 +321,16 @@ For a complete overview of available properties, they type and default value ple
 | `            ├── path`                  | `String`       | none                                             |
 | `            └── password`              | `String`       | none                                             |
 
+**Beware** that starting with Spring Boot 1.5.x the property resolution for environment variables changes and
+properties like `REST_CLIENTS_EXAMPLE_BASEURL` no longer work. As an alternative applications can use the 
+[`SPRING_APPLICATION_JSON`](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html):
+
+```bash
+export SPRING_APPLICATION_JSON='{
+   "riptide.clients.example.base-url": ".."
+}'
+```
+
 ## Usage
 
 After configuring your clients, as shown in the last section, you can now easily inject them:
