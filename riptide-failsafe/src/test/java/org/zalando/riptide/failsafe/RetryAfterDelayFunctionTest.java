@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.base.Stopwatch;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
@@ -19,6 +20,7 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -28,6 +30,8 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -95,9 +99,9 @@ public class RetryAfterDelayFunctionTest {
     }
 
     @Test
-    public void shouldIgnoreDynamicDelayOnInvalidFormat() {
+    public void shouldIgnoreDynamicDelayOnInvalidFormatAndRetryImmediately() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("Retry-After", "2018-04-11T22:34:28Z")); // should've been HTTP date
+                .withHeader("Retry-After", "foo"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         unit.get("/baz")
@@ -114,24 +118,12 @@ public class RetryAfterDelayFunctionTest {
                 .withHeader("Retry-After", "1"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        unit.get("/baz")
+        atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()),
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
-                .join();
-    }
-
-    @Test(timeout = 1500)
-    public void shouldRetryWithDynamicDelay() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("Retry-After", "1"));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
-
-        unit.get("/baz")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()))
-                .join();
+                .join());
     }
 
     @Test(timeout = 1500)
@@ -140,10 +132,22 @@ public class RetryAfterDelayFunctionTest {
                 .withHeader("Retry-After", "Wed, 11 Apr 2018 22:34:28 GMT"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        unit.get("/baz")
+        atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
-                .join();
+                .join());
+    }
+
+    private void atLeast(final Duration minimum, final Runnable runnable) {
+        final Duration actual = time(runnable);
+
+        assertThat(actual, greaterThanOrEqualTo(minimum));
+    }
+
+    private Duration time(final Runnable runnable) {
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        runnable.run();
+        return stopwatch.stop().elapsed();
     }
 
 }
