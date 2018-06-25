@@ -103,7 +103,7 @@ public class FailsafePluginTest {
     }
 
     @Test
-    public void shouldRetryOnDemand() {
+    public void shouldRetryExplicitly() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 

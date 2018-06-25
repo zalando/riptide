@@ -33,6 +33,7 @@ import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
@@ -123,6 +124,7 @@ public class ManualConfiguration {
                     .plugin(new FailsafePlugin(scheduler)
                             .withRetryPolicy(new RetryPolicy()
                                     .retryOn(TransientFaultException.class)
+                                    .retryOn(RetryException.class)
                                     .withBackoff(50, 2000, MILLISECONDS)
                                     .withMaxRetries(10)
                                     .withMaxDuration(2, SECONDS)
