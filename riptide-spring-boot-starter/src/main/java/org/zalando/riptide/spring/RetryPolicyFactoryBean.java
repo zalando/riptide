@@ -5,7 +5,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.riptide.spring.RiptideSettings.Retry;
+import org.zalando.riptide.spring.RiptideProperties.Retry;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

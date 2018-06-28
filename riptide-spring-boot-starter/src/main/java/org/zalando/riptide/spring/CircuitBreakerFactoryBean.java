@@ -13,7 +13,7 @@ final class CircuitBreakerFactoryBean implements FactoryBean<CircuitBreaker> {
         timeout.applyTo(circuitBreaker::withTimeout);
     }
 
-    public void setConfiguration(final RiptideSettings.CircuitBreaker config) {
+    public void setConfiguration(final RiptideProperties.CircuitBreaker config) {
         Optional.ofNullable(config.getFailureThreshold())
                 .ifPresent(threshold -> threshold.applyTo(circuitBreaker::withFailureThreshold));
 

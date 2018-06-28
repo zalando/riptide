@@ -1,8 +1,8 @@
 package org.zalando.riptide.spring;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.zalando.riptide.spring.RiptideSettings.Client.OAuth;
-import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
+import org.zalando.riptide.spring.RiptideProperties.Client.OAuth;
+import org.zalando.riptide.spring.RiptideProperties.GlobalOAuth;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.AccessTokensBuilder;
 import org.zalando.stups.tokens.JsonFileBackedClientCredentialsProvider;
@@ -20,8 +20,8 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
 
     private AccessTokensBuilder builder;
 
-    AccessTokensFactoryBean(final RiptideSettings settings) {
-        final GlobalOAuth oAuth = settings.getOauth();
+    AccessTokensFactoryBean(final RiptideProperties properties) {
+        final GlobalOAuth oAuth = properties.getOauth();
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
         @Nullable final Path directory = oAuth.getCredentialsDirectory();
@@ -36,7 +36,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
                 .connectTimeout((int) connectTimeout.to(TimeUnit.MILLISECONDS))
                 .socketTimeout((int) socketTimeout.to(TimeUnit.MILLISECONDS));
 
-        settings.getClients().forEach((id, client) -> {
+        properties.getClients().forEach((id, client) -> {
             @Nullable final OAuth clientOAuth = client.getOauth();
 
             if (clientOAuth == null) {

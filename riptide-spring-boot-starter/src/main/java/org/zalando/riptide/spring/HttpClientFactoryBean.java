@@ -11,7 +11,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
+import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
 
 import java.io.FileNotFoundException;
 import java.net.URL;

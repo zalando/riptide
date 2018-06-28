@@ -12,11 +12,11 @@ import static org.springframework.beans.factory.support.BeanDefinitionBuilder.ge
 class TestRiptideRegistrar implements RiptideRegistrar {
 
     private final Registry registry;
-    private final RiptideSettings settings;
+    private final RiptideProperties properties;
 
     @Override
     public void register() {
-        settings.getClients().forEach((id, client) ->
+        properties.getClients().forEach((id, client) ->
                 registerAsyncClientHttpRequestFactory(id));
     }
 

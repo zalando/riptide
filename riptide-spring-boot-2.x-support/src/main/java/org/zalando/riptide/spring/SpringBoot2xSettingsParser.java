@@ -19,11 +19,11 @@ public final class SpringBoot2xSettingsParser implements SettingsParser {
     }
 
     @Override
-    public RiptideSettings parse(final ConfigurableEnvironment environment) {
+    public RiptideProperties parse(final ConfigurableEnvironment environment) {
         final Iterable<ConfigurationPropertySource> sources = from(environment.getPropertySources());
         final Binder binder = new Binder(sources);
 
-        return binder.bind("riptide", RiptideSettings.class).orElseCreate(RiptideSettings.class);
+        return binder.bind("riptide", RiptideProperties.class).orElseCreate(RiptideProperties.class);
     }
 
 }

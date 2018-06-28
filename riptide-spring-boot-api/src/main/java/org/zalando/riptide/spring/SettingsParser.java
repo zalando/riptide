@@ -8,5 +8,5 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 @API(status = INTERNAL)
 public interface SettingsParser {
     boolean isApplicable();
-    RiptideSettings parse(ConfigurableEnvironment environment);
+    RiptideProperties parse(ConfigurableEnvironment environment);
 }

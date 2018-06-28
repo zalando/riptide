@@ -19,9 +19,9 @@ public final class SpringBoot1xSettingsParser implements SettingsParser {
 
     @Override
     @SneakyThrows
-    public RiptideSettings parse(final ConfigurableEnvironment environment) {
-        final PropertiesConfigurationFactory<RiptideSettings> factory =
-                new PropertiesConfigurationFactory<>(RiptideSettings.class);
+    public RiptideProperties parse(final ConfigurableEnvironment environment) {
+        final PropertiesConfigurationFactory<RiptideProperties> factory =
+                new PropertiesConfigurationFactory<>(RiptideProperties.class);
 
         factory.setTargetName("riptide");
         factory.setPropertySources(environment.getPropertySources());

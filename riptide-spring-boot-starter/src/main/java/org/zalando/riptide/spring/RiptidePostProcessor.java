@@ -18,21 +18,21 @@ import static org.zalando.riptide.spring.Defaulting.withDefaults;
 
 final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
-    private RiptideSettings settings;
-    private BiFunction<Registry, RiptideSettings, RiptideRegistrar> registrarFactory;
+    private RiptideProperties properties;
+    private BiFunction<Registry, RiptideProperties, RiptideRegistrar> registrarFactory;
 
-    RiptidePostProcessor(final BiFunction<Registry, RiptideSettings, RiptideRegistrar> registrarFactory) {
+    RiptidePostProcessor(final BiFunction<Registry, RiptideProperties, RiptideRegistrar> registrarFactory) {
         this.registrarFactory = registrarFactory;
     }
 
     @Override
     public void setEnvironment(final Environment environment) {
         final Collection<SettingsParser> parsers = Lists.newArrayList(load(SettingsParser.class));
-        this.settings = parse((ConfigurableEnvironment) environment, parsers);
+        this.properties = parse((ConfigurableEnvironment) environment, parsers);
     }
 
     // visible for testing
-    RiptideSettings parse(final ConfigurableEnvironment environment, final Collection<SettingsParser> parsers) {
+    RiptideProperties parse(final ConfigurableEnvironment environment, final Collection<SettingsParser> parsers) {
         final SettingsParser parser = parsers.stream()
                 .filter(SettingsParser::isApplicable)
                 .findFirst()
@@ -43,7 +43,7 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
-        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry), withDefaults(settings));
+        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry), withDefaults(properties));
         registrar.register();
     }
 
