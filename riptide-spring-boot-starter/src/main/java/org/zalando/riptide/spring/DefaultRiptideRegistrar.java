@@ -228,7 +228,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
                             .addConstructorArgReference(registerCircuitBreaker(id, client))
-                            .addConstructorArgValue(registry.registerIfAbsent(id, Listeners.class)))));
+                            .addConstructorArgReference(registry.registerIfAbsent(id, Listeners.class)))));
         }
 
         if (client.getBackupRequest() != null) {
