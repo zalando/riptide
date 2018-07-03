@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
+import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.NoHttpResponseException;
@@ -226,16 +227,17 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     genericBeanDefinition(FailsafePlugin.class)
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
-                            .addConstructorArgReference(registerCircuitBreaker(id, client)))));
+                            .addConstructorArgReference(registerCircuitBreaker(id, client))
+                            .addConstructorArgReference(registry.registerIfAbsent(id, Listeners.class)))));
         }
 
         if (client.getBackupRequest() != null) {
             plugins.add(genericBeanDefinition(BackupRequestPlugin.class)
-                .addConstructorArgValue(registerScheduler(id))
-                .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
-                .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                .addConstructorArgValue(registerExecutor(id, client))
-                .getBeanDefinition());
+                    .addConstructorArgValue(registerScheduler(id))
+                    .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
+                    .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
+                    .addConstructorArgValue(registerExecutor(id, client))
+                    .getBeanDefinition());
         }
 
         if (client.getTimeout() != null) {

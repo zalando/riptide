@@ -59,7 +59,8 @@ Http.builder()
             .withCircuitBreaker(new CircuitBreaker()
                     .withFailureThreshold(3, 10)
                     .withSuccessThreshold(5)
-                    .withDelay(1, TimeUnit.MINUTES)))
+                    .withDelay(1, TimeUnit.MINUTES))
+            .withListeners(myListeners))
     .build();
 ```
 
