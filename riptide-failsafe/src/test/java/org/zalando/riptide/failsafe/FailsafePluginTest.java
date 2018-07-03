@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import net.jodah.failsafe.CircuitBreaker;
+import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -12,6 +13,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
@@ -28,6 +30,10 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -47,6 +53,9 @@ public class FailsafePluginTest {
                     .build())
             .build();
 
+    @SuppressWarnings("unchecked")
+    private final Listeners<ClientHttpResponse> listeners = mock(Listeners.class);
+
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
@@ -59,7 +68,8 @@ public class FailsafePluginTest {
                     .withCircuitBreaker(new CircuitBreaker()
                             .withFailureThreshold(3, 10)
                             .withSuccessThreshold(5)
-                            .withDelay(1, TimeUnit.MINUTES)))
+                            .withDelay(1, TimeUnit.MINUTES))
+                    .withListeners(listeners))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {
@@ -79,7 +89,7 @@ public class FailsafePluginTest {
     }
 
     @Test
-    public void shouldRetrySuccessfully() throws Throwable {
+    public void shouldRetrySuccessfully() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
@@ -113,6 +123,22 @@ public class FailsafePluginTest {
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+    }
+
+    @Test
+    public void shouldInvokeListeners() {
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+
+        unit.get("/baz")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()),
+                        anySeries().dispatch(status(),
+                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                .join();
+
+        verify(listeners).onRetry(isNull(), notNull());
+        verify(listeners).onSuccess(notNull());
     }
 
 }

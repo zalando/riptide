@@ -2,6 +2,7 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
@@ -12,6 +13,7 @@ import org.zalando.riptide.RequestExecution;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
@@ -24,25 +26,32 @@ public final class FailsafePlugin implements Plugin {
     private final ScheduledExecutorService scheduler;
     private final RetryPolicy retryPolicy;
     private final CircuitBreaker circuitBreaker;
+    private final Listeners<ClientHttpResponse> listeners;
 
     public FailsafePlugin(final ScheduledExecutorService scheduler) {
-        this(scheduler, NEVER, new CircuitBreaker());
+        this(scheduler, NEVER, new CircuitBreaker(), new Listeners<>());
     }
 
-    // used by spring-boot-starter
+    // used by riptide-spring-boot-starter
+    @API(status = INTERNAL)
     FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
-            final CircuitBreaker circuitBreaker) {
+            final CircuitBreaker circuitBreaker, final Listeners<ClientHttpResponse> listeners) {
         this.scheduler = scheduler;
         this.retryPolicy = retryPolicy;
         this.circuitBreaker = circuitBreaker;
+        this.listeners = listeners;
     }
 
     public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker);
+        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listeners);
     }
 
     public FailsafePlugin withCircuitBreaker(final CircuitBreaker circuitBreaker) {
-        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker);
+        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listeners);
+    }
+
+    public FailsafePlugin withListeners(final Listeners<ClientHttpResponse> listeners) {
+        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listeners);
     }
 
     @Override
@@ -52,7 +61,7 @@ public final class FailsafePlugin implements Plugin {
                     .with(retryPolicy)
                     .with(circuitBreaker)
                     .with(scheduler)
-                    // TODO allow to register listeners
+                    .with(listeners)
                     .future(execution::execute);
 
             final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
