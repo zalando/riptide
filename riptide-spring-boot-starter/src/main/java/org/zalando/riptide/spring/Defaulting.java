@@ -2,12 +2,12 @@ package org.zalando.riptide.spring;
 
 import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.UrlResolution;
-import org.zalando.riptide.spring.RiptideSettings.BackupRequest;
-import org.zalando.riptide.spring.RiptideSettings.Client;
-import org.zalando.riptide.spring.RiptideSettings.Defaults;
-import org.zalando.riptide.spring.RiptideSettings.GlobalOAuth;
-import org.zalando.riptide.spring.RiptideSettings.Retry.Backoff;
-import org.zalando.riptide.spring.RiptideSettings.ThreadPool;
+import org.zalando.riptide.spring.RiptideProperties.BackupRequest;
+import org.zalando.riptide.spring.RiptideProperties.Client;
+import org.zalando.riptide.spring.RiptideProperties.Defaults;
+import org.zalando.riptide.spring.RiptideProperties.GlobalOAuth;
+import org.zalando.riptide.spring.RiptideProperties.Retry.Backoff;
+import org.zalando.riptide.spring.RiptideProperties.ThreadPool;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -20,8 +20,8 @@ import static java.lang.System.getenv;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.zalando.riptide.spring.RiptideSettings.CircuitBreaker;
-import static org.zalando.riptide.spring.RiptideSettings.Retry;
+import static org.zalando.riptide.spring.RiptideProperties.CircuitBreaker;
+import static org.zalando.riptide.spring.RiptideProperties.Retry;
 
 final class Defaulting {
 
@@ -29,7 +29,7 @@ final class Defaulting {
 
     }
 
-    static RiptideSettings withDefaults(final RiptideSettings base) {
+    static RiptideProperties withDefaults(final RiptideProperties base) {
         return merge(base, merge(base.getDefaults()));
     }
 
@@ -59,8 +59,8 @@ final class Defaulting {
         );
     }
 
-    private static RiptideSettings merge(final RiptideSettings base, final Defaults defaults) {
-        return new RiptideSettings(
+    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
+        return new RiptideProperties(
                 defaults,
                 merge(base.getOauth(), defaults),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->

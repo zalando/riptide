@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apiguardian.api.API;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.zalando.riptide.UrlResolution;
 
 import java.net.URI;
@@ -22,7 +24,8 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public final class RiptideSettings {
+@ConfigurationProperties(prefix = "riptide")
+public final class RiptideProperties {
 
     private Defaults defaults = new Defaults();
     private GlobalOAuth oauth = new GlobalOAuth();
@@ -39,12 +42,16 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
+        @NestedConfigurationProperty
         private ThreadPool threadPool;
         private Boolean detectTransientFaults;
         private Boolean preserveStackTrace;
         private Boolean recordMetrics;
+        @NestedConfigurationProperty
         private Retry retry;
+        @NestedConfigurationProperty
         private CircuitBreaker circuitBreaker;
+        @NestedConfigurationProperty
         private BackupRequest backupRequest;
         private TimeSpan timeout;
     }
@@ -73,13 +80,17 @@ public final class RiptideSettings {
         private TimeSpan connectionTimeToLive;
         private Integer maxConnectionsPerRoute;
         private Integer maxConnectionsTotal;
+        @NestedConfigurationProperty
         private ThreadPool threadPool;
         private OAuth oauth;
         private Boolean detectTransientFaults;
         private Boolean preserveStackTrace;
         private Boolean recordMetrics;
+        @NestedConfigurationProperty
         private Retry retry;
+        @NestedConfigurationProperty
         private CircuitBreaker circuitBreaker;
+        @NestedConfigurationProperty
         private BackupRequest backupRequest;
         private TimeSpan timeout;
         private boolean compressRequest = false;

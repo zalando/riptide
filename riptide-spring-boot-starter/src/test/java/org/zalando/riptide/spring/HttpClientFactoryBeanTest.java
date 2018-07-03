@@ -3,7 +3,7 @@ package org.zalando.riptide.spring;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
+import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

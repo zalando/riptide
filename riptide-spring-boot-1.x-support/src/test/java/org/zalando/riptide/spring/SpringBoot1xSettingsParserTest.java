@@ -22,7 +22,7 @@ public final class SpringBoot1xSettingsParserTest {
                 .withProperty("riptide.clients.example.base-url", "https://example.com");
         final SettingsParser unit = new SpringBoot1xSettingsParser();
 
-        final RiptideSettings settings = unit.parse(environment);
+        final RiptideProperties settings = unit.parse(environment);
 
         assertThat(settings.getClients().values(), hasSize(1));
         assertThat(settings.getClients().get("example").getBaseUrl(), is("https://example.com"));

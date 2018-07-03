@@ -22,12 +22,12 @@ public class RiptidePostProcessorTest {
     @Test
     public void shouldParseUsingOnlyParser() {
         final SettingsParser parser = mock(SettingsParser.class);
-        final RiptideSettings expected = new RiptideSettings();
+        final RiptideProperties expected = new RiptideProperties();
 
         when(parser.isApplicable()).thenReturn(true);
         when(parser.parse(any())).thenReturn(expected);
 
-        final RiptideSettings actual = unit.parse(new MockEnvironment(), singletonList(parser));
+        final RiptideProperties actual = unit.parse(new MockEnvironment(), singletonList(parser));
 
         assertThat(actual, is(sameInstance(expected)));
     }
@@ -36,13 +36,13 @@ public class RiptidePostProcessorTest {
     public void shouldParseUsingSecondParser() {
         final SettingsParser first = mock(SettingsParser.class);
         final SettingsParser second = mock(SettingsParser.class);
-        final RiptideSettings expected = new RiptideSettings();
+        final RiptideProperties expected = new RiptideProperties();
 
         when(first.isApplicable()).thenReturn(false);
         when(second.isApplicable()).thenReturn(true);
         when(second.parse(any())).thenReturn(expected);
 
-        final RiptideSettings actual = unit.parse(new MockEnvironment(), asList(first, second));
+        final RiptideProperties actual = unit.parse(new MockEnvironment(), asList(first, second));
 
         assertThat(actual, is(sameInstance(expected)));
     }

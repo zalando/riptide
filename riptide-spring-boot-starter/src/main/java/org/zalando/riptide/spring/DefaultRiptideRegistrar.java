@@ -30,8 +30,8 @@ import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
-import org.zalando.riptide.spring.RiptideSettings.Client;
-import org.zalando.riptide.spring.RiptideSettings.Client.Keystore;
+import org.zalando.riptide.spring.RiptideProperties.Client;
+import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -60,11 +60,11 @@ import static org.zalando.riptide.spring.Registry.ref;
 final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private final Registry registry;
-    private final RiptideSettings settings;
+    private final RiptideProperties properties;
 
     @Override
     public void register() {
-        settings.getClients().forEach((id, client) -> {
+        properties.getClients().forEach((id, client) -> {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
             final BeanDefinition converters = registerHttpMessageConverters(id);
             final String baseUrl = client.getBaseUrl();
@@ -95,7 +95,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private BeanMetadataElement registerExecutor(final String id, final Client client) {
         return trace(registry.registerIfAbsent(id, ExecutorService.class, () -> {
-            final RiptideSettings.ThreadPool threadPool = client.getThreadPool();
+            final RiptideProperties.ThreadPool threadPool = client.getThreadPool();
             return genericBeanDefinition(ThreadPoolExecutor.class)
                     .addConstructorArgValue(threadPool.getMinSize())
                     .addConstructorArgValue(threadPool.getMaxSize())
@@ -198,7 +198,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.isRegistered(beanName) ? beanName : "jacksonObjectMapper";
     }
 
-    private String registerAccessTokens(final String id, final RiptideSettings settings) {
+    private String registerAccessTokens(final String id, final RiptideProperties settings) {
         return registry.registerIfAbsent(AccessTokens.class, () -> {
             log.debug("Client [{}]: Registering AccessTokens", id);
             final BeanDefinitionBuilder builder = genericBeanDefinition(AccessTokensFactoryBean.class);
@@ -302,7 +302,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerRetryPolicy(final String id, final Client client) {
         return registry.registerIfAbsent(id, RetryPolicy.class, () -> {
             final BeanDefinitionBuilder retryPolicy = genericBeanDefinition(RetryPolicyFactoryBean.class);
-            @Nullable final RiptideSettings.Retry retry = client.getRetry();
+            @Nullable final RiptideProperties.Retry retry = client.getRetry();
             if (retry != null) {
                 retryPolicy.addPropertyValue("configuration", retry);
             }
@@ -313,7 +313,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerCircuitBreaker(final String id, final Client client) {
         return registry.registerIfAbsent(id, CircuitBreaker.class, () -> {
             final BeanDefinitionBuilder circuitBreaker = genericBeanDefinition(CircuitBreakerFactoryBean.class);
-            @Nullable final RiptideSettings.CircuitBreaker breaker = client.getCircuitBreaker();
+            @Nullable final RiptideProperties.CircuitBreaker breaker = client.getCircuitBreaker();
             if (client.getTimeout() != null) {
                 circuitBreaker.addPropertyValue("timeout", client.getTimeout());
             }
@@ -377,7 +377,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             log.debug("Client [{}]: Registering AccessTokensRequestInterceptor", id);
             requestInterceptors.add(genericBeanDefinition(AccessTokensRequestInterceptor.class)
                     .addConstructorArgValue(id)
-                    .addConstructorArgReference(registerAccessTokens(id, settings))
+                    .addConstructorArgReference(registerAccessTokens(id, properties))
                     .getBeanDefinition());
         }
 

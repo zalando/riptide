@@ -17,7 +17,7 @@ public class RetryPolicyFactoryBeanTest {
 
     @Test
     public void shouldRetryAsConfigured() {
-        final RiptideSettings.Retry config = new RiptideSettings.Retry();
+        final RiptideProperties.Retry config = new RiptideProperties.Retry();
         config.setMaxRetries(42);
         unit.setConfiguration(config);
 
@@ -26,7 +26,7 @@ public class RetryPolicyFactoryBeanTest {
 
     @Test
     public void shouldRetryForeverIfNotSpecified() {
-        final RiptideSettings.Retry config = new RiptideSettings.Retry();
+        final RiptideProperties.Retry config = new RiptideProperties.Retry();
         config.setMaxDuration(TimeSpan.of(1, MINUTES));
         unit.setConfiguration(config);
 
