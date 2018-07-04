@@ -32,7 +32,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;

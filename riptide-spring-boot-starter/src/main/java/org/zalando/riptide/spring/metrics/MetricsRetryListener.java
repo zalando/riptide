@@ -3,7 +3,6 @@ package org.zalando.riptide.spring.metrics;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import lombok.SneakyThrows;
 import net.jodah.failsafe.ExecutionContext;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
@@ -13,8 +12,6 @@ import org.zalando.riptide.metrics.DefaultTagGenerator;
 import org.zalando.riptide.metrics.TagGenerator;
 
 import javax.annotation.Nullable;
-
-import java.io.IOException;
 import java.time.Duration;
 
 import static com.google.common.collect.Iterables.concat;

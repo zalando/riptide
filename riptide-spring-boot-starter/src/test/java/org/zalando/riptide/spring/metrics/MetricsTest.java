@@ -19,7 +19,6 @@ import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Completion;
 import org.zalando.riptide.spring.MetricsTestAutoConfiguration;
-import org.zalando.riptide.spring.RiptideAutoConfiguration;
 import org.zalando.riptide.spring.RiptideClientTest;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 

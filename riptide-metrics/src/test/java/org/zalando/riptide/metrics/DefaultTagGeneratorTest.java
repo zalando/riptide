@@ -1,7 +1,6 @@
 package org.zalando.riptide.metrics;
 
 import io.micrometer.core.instrument.Tag;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
@@ -11,9 +10,8 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

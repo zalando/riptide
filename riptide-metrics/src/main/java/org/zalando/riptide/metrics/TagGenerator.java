@@ -6,7 +6,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
