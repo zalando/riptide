@@ -1,47 +1,43 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.spring.url;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.spring.DefaultTestConfiguration;
+import org.zalando.riptide.spring.MetricsTestAutoConfiguration;
+import org.zalando.riptide.spring.RiptideClientTest;
+import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.PassRoute.pass;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest
+@RiptideClientTest
+@ActiveProfiles("default")
 public class UrlResolutionTest {
 
     @Configuration
-    @Import(DefaultTestConfiguration.class)
-    public static class TestConfiguration {
-
-        @Bean
-        public AsyncRestTemplate template() {
-            return new AsyncRestTemplate();
-        }
-
-        @Bean
-        public MockRestServiceServer server(final AsyncRestTemplate template) {
-            return MockRestServiceServer.createServer(template);
-        }
-
-        @Bean
-        @DependsOn("server")
-        public AsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(final AsyncRestTemplate template) {
-            return template.getAsyncRequestFactory();
-        }
+    @ImportAutoConfiguration({
+            JacksonAutoConfiguration.class,
+            LogbookAutoConfiguration.class,
+            TracerAutoConfiguration.class,
+            MetricsTestAutoConfiguration.class,
+    })
+    @ActiveProfiles("default")
+    static class ContextConfiguration {
 
     }
 
@@ -53,7 +49,7 @@ public class UrlResolutionTest {
     private Http unit;
 
     @Test
-    public void shouldAppendUrl() throws Throwable {
+    public void shouldAppendUrl() {
         server.expect(requestTo("https://example.com/foo/bar"))
                 .andRespond(withSuccess());
 

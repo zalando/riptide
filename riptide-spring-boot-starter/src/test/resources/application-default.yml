@@ -34,17 +34,14 @@ riptide:
       keystore:
         path: example.keystore
     foo:
-      base-url: http://localhost
+      base-url: http://foo
+      retry:
+        max-retries: 3
+    bar:
+      base-url: http://bar
+      circuit-breaker:
+        failure-threshold: 1 out of 3
+        success-threshold: 2 out of 3
+    baz:
       backup-request:
         delay: 100 milliseconds
-      retry:
-        fixed-delay: 1 second
-        max-retries: 3
-        max-duration: 5 seconds
-        jitter: 100 milliseconds
-    bar:
-      base-url: http://localhost
-      circuit-breaker:
-        failure-threshold: 5
-        delay: 1 minute
-        success-threshold: 3 out of 5

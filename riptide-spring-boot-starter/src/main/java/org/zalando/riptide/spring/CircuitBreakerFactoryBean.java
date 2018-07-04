@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.CircuitBreaker;
 import org.springframework.beans.factory.FactoryBean;
+import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
 import java.util.Optional;
 
@@ -22,6 +23,13 @@ final class CircuitBreakerFactoryBean implements FactoryBean<CircuitBreaker> {
 
         Optional.ofNullable(config.getSuccessThreshold())
                 .ifPresent(threshold -> threshold.applyTo(circuitBreaker::withSuccessThreshold));
+    }
+
+    public void setListener(final CircuitBreakerListener listener) {
+        circuitBreaker
+                .onOpen(listener::onOpen)
+                .onHalfOpen(listener::onHalfOpen)
+                .onClose(listener::onClose);
     }
 
     @Override

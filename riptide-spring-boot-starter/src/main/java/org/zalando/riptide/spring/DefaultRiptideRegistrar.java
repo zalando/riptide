@@ -1,10 +1,11 @@
 package org.zalando.riptide.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import io.micrometer.core.instrument.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.NoHttpResponseException;
@@ -26,12 +27,14 @@ import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideProperties.Client;
 import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
+import org.zalando.riptide.spring.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -39,7 +42,9 @@ import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
+import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -228,7 +233,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
                             .addConstructorArgReference(registerCircuitBreaker(id, client))
-                            .addConstructorArgReference(registry.registerIfAbsent(id, Listeners.class)))));
+                            .addConstructorArgValue(registerListeners(client)))));
         }
 
         if (client.getBackupRequest() != null) {
@@ -320,8 +325,29 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (breaker != null) {
                 circuitBreaker.addPropertyValue("configuration", breaker);
             }
+
+            circuitBreaker.addPropertyReference("listener", registry.registerIfAbsent(id, RetryListener.class, () -> {
+                if (client.getRecordMetrics()) {
+                    return genericBeanDefinition(MetricsCircuitBreakerListener.class)
+                            .addConstructorArgReference("meterRegistry")
+                            .addConstructorArgValue("http.client.circuit-breakers")
+                            .addConstructorArgValue(ImmutableList.of(
+                                    Tag.of("clientName", Optional.ofNullable(client.getBaseUrl())
+                                            .map(URI::create).map(URI::getHost).orElse(id))
+                            ));
+                } else {
+                    return genericBeanDefinition(CircuitBreakerListeners.class)
+                            .setFactoryMethod("getDefault");
+                }
+            }));
+
             return circuitBreaker;
         });
+    }
+
+    private Object registerListeners(final Client client) {
+        return client.getRetry() != null && client.getRecordMetrics() ?
+                ref("retryMetricsListener") : RetryListener.DEFAULT;
     }
 
     private BeanMetadataElement trace(final String executor) {
