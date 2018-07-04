@@ -24,7 +24,6 @@ public final class DefaultTagGeneratorTest {
             .withRequestUri(URI.create("http://localhost/"));
 
     private final ClientHttpResponse response = mock(ClientHttpResponse.class);
-    private final Throwable throwable = new IllegalStateException();
 
     @Test
     public void shouldGenerateRequestTags() throws IOException {

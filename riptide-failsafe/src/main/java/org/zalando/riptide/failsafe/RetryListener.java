@@ -19,7 +19,7 @@ public interface RetryListener {
     default void onRetry(final RequestArguments arguments,
             @Nullable final ClientHttpResponse result, @Nullable final Throwable failure,
             final ExecutionContext context) {
-
+        // nothing to do
     }
 
 }

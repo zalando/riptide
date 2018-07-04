@@ -12,15 +12,15 @@ public interface CircuitBreakerListener {
     };
 
     default void onOpen() {
-
+        // nothing to do
     }
 
     default void onHalfOpen() {
-
+        // nothing to do
     }
 
     default void onClose() {
-
+        // nothing to do
     }
 
 }
