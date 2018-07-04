@@ -43,27 +43,26 @@ public class RiptideAutoConfiguration {
     }
 
     @Configuration
-    @ConditionalOnClass(MetricsPlugin.class)
     @ConditionalOnBean(MeterRegistry.class)
     static class MetricsConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
-        @SuppressWarnings("SpringJavaAutowiringInspection")
-        public MetricsPlugin metricsPlugin(final MeterRegistry registry) {
-            return new MetricsPlugin(registry);
-        }
-
-    }
-
-    @Configuration
-    @ConditionalOnBean(MeterRegistry.class)
-    static class MConfiguration {
-
-        @Bean
-        @ConditionalOnMissingBean
         public MetricsRetryListener retryMetricsListener(final MeterRegistry registry) {
             return new MetricsRetryListener(registry);
+        }
+
+        @Configuration
+        @ConditionalOnClass(MetricsPlugin.class)
+        static class MetricsPluginConfiguration {
+
+            @Bean
+            @ConditionalOnMissingBean
+            @SuppressWarnings("SpringJavaAutowiringInspection")
+            public MetricsPlugin metricsPlugin(final MeterRegistry registry) {
+                return new MetricsPlugin(registry);
+            }
+
         }
 
     }
