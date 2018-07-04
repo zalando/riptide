@@ -429,7 +429,7 @@ In case you need more than one custom plugin, please use `Plugin.compound(Plugin
 Similar to Spring Boot's [`@RestClientTest`](https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/autoconfigure/web/client/RestClientTest.html),
 `@RiptideClientTest` is provided. This annotation allows for convenient testing of Riptide `Http` clients.
 
-```
+```java
 @Component
 public class GatewayService {
 
