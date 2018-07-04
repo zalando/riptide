@@ -73,7 +73,7 @@ public class FailsafePluginTest {
                             .withFailureThreshold(3, 10)
                             .withSuccessThreshold(5)
                             .withDelay(1, TimeUnit.MINUTES))
-                    .withListeners(listeners))
+                    .withListener(listeners))
             .build();
 
     @SneakyThrows

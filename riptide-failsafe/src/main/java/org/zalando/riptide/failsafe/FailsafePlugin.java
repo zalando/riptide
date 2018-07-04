@@ -51,8 +51,8 @@ public final class FailsafePlugin implements Plugin {
         return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listener);
     }
 
-    public FailsafePlugin withListeners(final RetryListener listeners) {
-        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listeners);
+    public FailsafePlugin withListener(final RetryListener listener) {
+        return new FailsafePlugin(scheduler, retryPolicy, circuitBreaker, listener);
     }
 
     @Override
