@@ -222,7 +222,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             plugins.add(ref(registry.registerIfAbsent(id, MetricsPlugin.class, () ->
                     genericBeanDefinition(MetricsPlugin.class)
                             .addConstructorArgReference("meterRegistry")
-                            .addConstructorArgValue("http.client.requests") // TODO share default
+                            .addConstructorArgValue(MetricsPlugin.METRIC_NAME)
                             .addConstructorArgValue(ImmutableList.of(clientId(id))))));
         }
 
@@ -337,7 +337,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     if (client.getRecordMetrics()) {
                         return genericBeanDefinition(MetricsCircuitBreakerListener.class)
                                 .addConstructorArgReference("meterRegistry")
-                                .addConstructorArgValue("http.client.circuit-breakers") // TODO share default
+                                .addConstructorArgValue(MetricsCircuitBreakerListener.METRIC_NAME)
                                 .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
                     } else {
                         return genericBeanDefinition(CircuitBreakerListeners.class)
@@ -355,7 +355,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (client.getRecordMetrics()) {
                 return genericBeanDefinition(MetricsRetryListener.class)
                         .addConstructorArgReference("meterRegistry")
-                        .addConstructorArgValue("http.client.retries") // TODO share default
+                        .addConstructorArgValue(MetricsRetryListener.METRIC_NAME)
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
                 return genericBeanDefinition(RetryListeners.class)

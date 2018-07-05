@@ -21,13 +21,15 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 @API(status = EXPERIMENTAL)
 public final class MetricsRetryListener implements RetryListener {
 
+    public static final String METRIC_NAME = "http.client.retries";
+
     private final MeterRegistry registry;
     private final String metricName;
     private final ImmutableList<Tag> defaultTags;
     private final TagGenerator generator = new DefaultTagGenerator();
 
     public MetricsRetryListener(final MeterRegistry registry) {
-        this(registry, "http.client.retries", ImmutableList.of());
+        this(registry, METRIC_NAME, ImmutableList.of());
     }
 
     private MetricsRetryListener(final MeterRegistry registry, final String metricName,
