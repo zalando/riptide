@@ -193,10 +193,7 @@
 
     <profiles>
         <profile>
-            <id>spring4-micrometer</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <id>spring4</id>
             <dependencies>
                 <dependency>
                     <groupId>io.micrometer</groupId>
