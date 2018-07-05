@@ -10,6 +10,8 @@ riptide:
         max-size: 100
         keep-alive: 5 minutes
         queue-size: 10
+      circuit-breaker:
+        failure-threshold: 1
     other:
       retry:
         backoff:

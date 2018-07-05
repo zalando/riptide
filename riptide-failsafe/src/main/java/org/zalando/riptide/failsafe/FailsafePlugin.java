@@ -33,9 +33,7 @@ public final class FailsafePlugin implements Plugin {
         this(scheduler, NEVER, new CircuitBreaker(), RetryListener.DEFAULT);
     }
 
-    // used by riptide-spring-boot-starter
-    @API(status = INTERNAL)
-    FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
+    private FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
             final CircuitBreaker circuitBreaker, final RetryListener listener) {
         this.scheduler = scheduler;
         this.retryPolicy = retryPolicy;
