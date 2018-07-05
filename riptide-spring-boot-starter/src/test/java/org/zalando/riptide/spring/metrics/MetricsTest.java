@@ -3,7 +3,6 @@ package org.zalando.riptide.spring.metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +16,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.capture.Completion;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.spring.MetricsTestAutoConfiguration;
 import org.zalando.riptide.spring.RiptideClientTest;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.util.List;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Ordering.from;
@@ -70,6 +67,28 @@ public class MetricsTest {
 
     @Autowired
     private SimpleMeterRegistry registry;
+
+    @Test
+    public void shouldRecordRequests() {
+        server.expect(requestTo("http://foo")).andRespond(withSuccess());
+        server.expect(requestTo("http://bar")).andRespond(withSuccess());
+
+        foo.get().call(pass()).join();
+        bar.get().call(pass()).join();
+
+        final List<Timer> timers = timers("http.client.requests");
+
+        assertEquals(2, timers.size());
+
+        final Timer first = timers.get(0);
+        assertEquals("GET", first.getId().getTag("method"));
+        assertEquals("bar", first.getId().getTag("clientId"));
+
+
+        final Timer second = timers.get(1);
+        assertEquals("GET", second.getId().getTag("method"));
+        assertEquals("foo", second.getId().getTag("clientId"));
+    }
 
     @Test
     public void shouldRecordRetries() {
