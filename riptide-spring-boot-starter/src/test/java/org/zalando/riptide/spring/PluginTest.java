@@ -77,6 +77,10 @@ public final class PluginTest {
     private Http foo;
 
     @Autowired
+    @Qualifier("baz")
+    private Http baz;
+
+    @Autowired
     @Qualifier("github")
     private Http github;
 
@@ -96,7 +100,13 @@ public final class PluginTest {
     public void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(asList(
                 instanceOf(MetricsPlugin.class),
-                instanceOf(FailsafePlugin.class),
+                instanceOf(FailsafePlugin.class))));
+    }
+
+    @Test
+    public void shouldUseBackupRequestPlugin() throws Exception {
+        assertThat(getPlugins(baz), contains(asList(
+                instanceOf(MetricsPlugin.class),
                 instanceOf(BackupRequestPlugin.class))));
     }
 
