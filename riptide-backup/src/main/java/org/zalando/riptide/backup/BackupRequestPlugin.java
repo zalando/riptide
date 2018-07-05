@@ -40,9 +40,20 @@ public final class BackupRequestPlugin implements Plugin {
             case GET:
             case HEAD:
                 return withBackup(execution);
+            case POST:
+                if (isGetWithBody(arguments)) {
+                    return withBackup(execution);
+                }
+
+                return execution;
             default:
                 return execution;
         }
+    }
+
+    private boolean isGetWithBody(final RequestArguments arguments) {
+        // TODO should use case-insensitive comparison
+        return arguments.getHeaders().containsEntry("X-HTTP-Method-Override", "GET");
     }
 
     private RequestExecution withBackup(final RequestExecution execution) {

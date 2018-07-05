@@ -1,6 +1,7 @@
 package org.zalando.riptide.backup;
 
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableMap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
@@ -17,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.PUT;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -48,7 +50,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldNotSendBackupRequestIfFastEnough() throws Throwable {
+    public void shouldNotSendBackupRequestIfFastEnough() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
@@ -77,7 +79,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldUseFailedBackupRequest() throws Throwable {
+    public void shouldUseFailedBackupRequest() {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().withStatus(503));
 
@@ -90,12 +92,34 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldNotSendBackupRequestForNonIdempotentRequests() throws Throwable {
+    public void shouldNotSendBackupRequestForNonSafeRequests() {
+        driver.addExpectation(onRequestTo("/baz").withMethod(PUT), giveEmptyResponse().after(2, SECONDS));
+
+        unit.put("/baz")
+                .call(pass())
+                .join();
+    }
+
+    @Test
+    public void shouldNotSendBackupRequestForGetWithBodyWithoutOverride() {
         driver.addExpectation(onRequestTo("/baz").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
 
         unit.post("/baz")
                 .call(pass())
                 .join();
+    }
+
+    @Test
+    public void shouldSendBackupRequestsForGetWithBody() throws Throwable {
+        driver.addExpectation(onRequestTo("/bar").withMethod(POST).withHeader("X-HTTP-Method-Override", "GET"),
+                giveEmptyResponse().after(2, SECONDS));
+        driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse());
+
+        unit.post("/bar")
+                .header("X-HTTP-Method-Override", "GET")
+                .body(ImmutableMap.of())
+                .call(pass())
+                .get(3, SECONDS);
     }
 
     @Test
