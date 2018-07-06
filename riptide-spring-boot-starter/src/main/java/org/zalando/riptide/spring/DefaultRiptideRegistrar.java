@@ -228,9 +228,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
-            plugins.add(genericBeanDefinition(TransientFaultPlugin.class)
-                    .addConstructorArgReference(findFaultClassifier(id))
-                    .getBeanDefinition());
+            plugins.add(ref(registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
+                    genericBeanDefinition(TransientFaultPlugin.class)
+                            .addConstructorArgReference(findFaultClassifier(id)))));
         }
 
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
@@ -245,22 +245,22 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         if (client.getBackupRequest() != null) {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
-            plugins.add(genericBeanDefinition(BackupRequestPlugin.class)
-                    .addConstructorArgValue(registerScheduler(id))
-                    .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
-                    .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                    .addConstructorArgValue(registerExecutor(id, client))
-                    .getBeanDefinition());
+            plugins.add(ref(registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
+                    genericBeanDefinition(BackupRequestPlugin.class)
+                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
+                            .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
+                            .addConstructorArgValue(registerExecutor(id, client)))));
         }
 
         if (client.getTimeout() != null) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
-            plugins.add(genericBeanDefinition(TimeoutPlugin.class)
-                    .addConstructorArgValue(registerScheduler(id))
-                    .addConstructorArgValue(client.getTimeout().getAmount())
-                    .addConstructorArgValue(client.getTimeout().getUnit())
-                    .addConstructorArgValue(registerExecutor(id, client))
-                    .getBeanDefinition());
+            plugins.add(ref(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
+                    genericBeanDefinition(TimeoutPlugin.class)
+                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgValue(client.getTimeout().getAmount())
+                            .addConstructorArgValue(client.getTimeout().getUnit())
+                            .addConstructorArgValue(registerExecutor(id, client)))));
         }
 
         if (client.getPreserveStackTrace()) {
@@ -333,17 +333,18 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             }
             if (breaker != null) {
                 circuitBreaker.addPropertyValue("configuration", breaker);
-                circuitBreaker.addPropertyReference("listener", registry.registerIfAbsent(id, CircuitBreakerListener.class, () -> {
-                    if (client.getRecordMetrics()) {
-                        return genericBeanDefinition(MetricsCircuitBreakerListener.class)
-                                .addConstructorArgReference("meterRegistry")
-                                .addConstructorArgValue(MetricsCircuitBreakerListener.METRIC_NAME)
-                                .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
-                    } else {
-                        return genericBeanDefinition(CircuitBreakerListeners.class)
-                                .setFactoryMethod("getDefault");
-                    }
-                }));
+                circuitBreaker.addPropertyReference("listener",
+                        registry.registerIfAbsent(id, CircuitBreakerListener.class, () -> {
+                            if (client.getRecordMetrics()) {
+                                return genericBeanDefinition(MetricsCircuitBreakerListener.class)
+                                        .addConstructorArgReference("meterRegistry")
+                                        .addConstructorArgValue(MetricsCircuitBreakerListener.METRIC_NAME)
+                                        .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
+                            } else {
+                                return genericBeanDefinition(CircuitBreakerListeners.class)
+                                        .setFactoryMethod("getDefault");
+                            }
+                        }));
             }
 
             return circuitBreaker;

@@ -381,16 +381,30 @@ You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/jav
 
 ### Customization
 
-For every client that is defined in your configuration the following graph of beans will be created and wired:
+For every client that is defined in your configuration the following beans will be created and wired.
 
-[![Client Dependency Graph](../docs/graph.png)](../docs/graph.png)
-
-Legend
+**Legend**
 - *green*: managed beans
 - *blue*: optionally managed beans
 - *yellow*: managed singleton beans, i.e. shared across clients
 - *red*: mandatory dependency
 - *grey*: optional dependency
+
+#### Bean Graph
+
+[![Client Dependency Graph](../docs/graph.png)](../docs/graph.png)
+
+#### Plugins
+
+[![Client Dependency Graph](../docs/plugins.png)](../docs/plugins.png)
+
+#### Converters
+
+[![Client Dependency Graph](../docs/converters.png)](../docs/converters.png)
+
+#### Interceptors
+
+[![Client Dependency Graph](../docs/interceptors.png)](../docs/interceptors.png)
 
 Every single bean in the graph can optionally be replaced by your own, custom version of it. Beans can only be
 overridden by name, **not** by type. As an example, the following code would add XML support to the `example` client:
@@ -405,20 +419,29 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 
 The following table shows all beans with their respective name (for the `example` client) and type:
 
-| Bean Name                              | Bean Type                                                          | Configures by default       |
-|----------------------------------------|--------------------------------------------------------------------|-----------------------------|
-| `accessToken` (no client prefix!)      | `AccessTokens`                                                     | OAuth settings              |
-| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                                      | Text, JSON and JSON Stream  |
-| `exampleHttpClient`                    | `HttpClient`                                                       | Interceptors and timeouts   |
-| `exampleAsyncClientHttpRequestFactory` | `AsyncClientHttpRequestFactory` **and** `ClientHttpRequestFactory` |                             |
-| `exampleHttp`                          | `Http`                                                             | Base URL                    |
-| `exampleRestTemplate`                  | `RestTemplate`                                                     | Base URL                    |
-| `exampleAsyncRestTemplate`             | `AsyncRestTemplate`                                                | Base URL                    |
-| `exampleScheduledExecutorService`      | `ScheduledExecutorService`                                         | Fixed-size thread pool      |
-| `exampleFailsafePlugin`                | `FailsafePlugin`                                                   | Retries and circuit breaker |
-| `exampleRetryPolicy`                   | `RetryPolicy`                                                      | Retries                     |
-| `exampleCircuitBreaker`                | `CircuitBreaker`                                                   | Circuit breaker             |
-| `examplePlugin`                        | `Plugin`                                                           | n/a                         |
+| Bean Name                              | Bean Type                                                          |
+|----------------------------------------|--------------------------------------------------------------------|
+| `exampleHttp`                          | `Http`                                                             |
+| `exampleAsyncRestTemplate`             | `AsyncRestTemplate`                                                |
+| `exampleRestTemplate`                  | `RestTemplate`                                                     |
+| `exampleAsyncClientHttpRequestFactory` | `AsyncClientHttpRequestFactory` **and** `ClientHttpRequestFactory` |
+| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                                      |
+| `exampleHttpClient`                    | `HttpClient`                                                       |
+| `exampleExecutorService`               | `ExecutorService`                                                  |
+| `exampleBackupRequestPlugin`           | `BackupRequestPlugin`                                              |
+| `exampleFailsafePlugin`                | `FailsafePlugin`                                                   |
+| `exampleMetricsPlugin`                 | `MetricsPlugin`                                                    |
+| `exampleOriginalStackTracePlugin`      | `OriginalStackTracePlugin`                                         |
+| `exampleTimeoutPlugin`                 | `TimeoutPlugin`                                                    |
+| `exampleTransientFaultPlugin`          | `TransientFaultPlugin`                                             |
+| `examplePlugin`                        | `Plugin` (optional, additional custom plugin)                      |
+| `exampleScheduledExecutorService`      | `ScheduledExecutorService`                                         |
+| `exampleRetryPolicy`                   | `RetryPolicy`                                                      |
+| `exampleCircuitBreaker`                | `CircuitBreaker`                                                   |
+| `exampleRetryListener`                 | `RetryListener`                                                    |
+| `exampleFaultClassifier`               | `FaultClassifier`                                                  |
+| `exampleCircuitBreakerListener`        | `CircuitBreakerListener`                                           |
+| `accessToken` (no client prefix!)      | `AccessTokens`                                                     |
 
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.

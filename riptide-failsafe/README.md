@@ -91,20 +91,7 @@ Http.builder()
 
 Make sure you **check out 
 [zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of
-Failsafe and Spring Boot:
-
-```java
-@Autowired
-private CircuitBreaker breaker;
-
-Http.builder()
-    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
-            .withRetryPolicy(new RetryPolicy()
-                    .withDelay(25, TimeUnit.MILLISECONDS)
-                    .withMaxRetries(4))
-            .withCircuitBreaker(breaker))
-    .build();
-```
+Failsafe and Spring Boot.
 
 ## Usage
 

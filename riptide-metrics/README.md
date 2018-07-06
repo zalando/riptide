@@ -10,21 +10,19 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-metrics.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-metrics)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Metrics* adds metrics support to *Riptide*. It allows to measure
- It allows to set a *global* timeout to all remote requests
-that will be covering any remote communication, socket timeouts and retries. 
+*Riptide: Metrics* adds metrics support to *Riptide*. It allows to record metrics for all remote requests. 
 
 ## Example
 
 ```java
 Http.builder()
-    .plugin(new MetricsPlugin(gaugeService, nameGenerator))
+    .plugin(new MetricsPlugin(meterRegistry))
     .build();
 ```
 
 ## Features
 
-- adds metrics to Riptide calls
+- adds request metrics to Riptide
 
 ## Dependencies
 
@@ -53,10 +51,13 @@ Http.builder()
     .build();
 ```
 
-It's also possible to specify a custom metrics name with `http.client.requests` being the default:
+It's also possible to specify a custom metrics name with `http.client.requests` being the default
+and default tags:
 
 ```java
-new MetricsPlugin(meterRegistry, "http.outgoing-requests")
+new MetricsPlugin(meterRegistry)
+    .withMetricName("http.outgoing-requests")
+    .withDefaultTags(Tag.of("aws.region", "eu-central-1"))
 ```
 
 ## Usage
