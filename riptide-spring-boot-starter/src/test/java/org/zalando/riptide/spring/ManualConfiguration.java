@@ -3,6 +3,7 @@ package org.zalando.riptide.spring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
@@ -32,6 +33,7 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.backup.BackupRequestPlugin;
+import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.FaultClassifier;
@@ -40,6 +42,8 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.PluginTest.CustomPlugin;
+import org.zalando.riptide.spring.metrics.MetricsCircuitBreakerListener;
+import org.zalando.riptide.spring.metrics.MetricsRetryListener;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -109,12 +113,17 @@ public class ManualConfiguration {
         public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
                 final ClientHttpMessageConverters converters, final MeterRegistry meterRegistry,
                 final ScheduledExecutorService scheduler) {
+
+            final CircuitBreakerListener circuitBreakerListener = new MetricsCircuitBreakerListener(meterRegistry)
+                    .withDefaultTags(Tag.of("clientId", "example"));
+
             return Http.builder()
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
                     .requestFactory(requestFactory)
                     .converters(converters.getConverters())
-                    .plugin(new MetricsPlugin(meterRegistry))
+                    .plugin(new MetricsPlugin(meterRegistry)
+                            .withDefaultTags(Tag.of("clientId", "example")))
                     .plugin(new TransientFaultPlugin(
                             FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                     .addAll(FaultClassifier.defaults())
@@ -133,7 +142,12 @@ public class ManualConfiguration {
                                     .withFailureThreshold(5, 5)
                                     .withDelay(30, SECONDS)
                                     .withSuccessThreshold(3, 5)
-                                    .withTimeout(3, SECONDS)))
+                                    .withTimeout(3, SECONDS)
+                                    .onOpen(circuitBreakerListener::onOpen)
+                                    .onHalfOpen(circuitBreakerListener::onHalfOpen)
+                                    .onClose(circuitBreakerListener::onClose))
+                            .withListener(new MetricsRetryListener(meterRegistry)
+                                    .withDefaultTags(Tag.of("clientId", "example"))))
                     .plugin(new BackupRequestPlugin(scheduler, 10, MILLISECONDS))
                     .plugin(new TimeoutPlugin(scheduler, 3, SECONDS))
                     .plugin(new OriginalStackTracePlugin())
