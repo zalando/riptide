@@ -381,13 +381,14 @@ You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/jav
 
 ### Customization
 
-For every client that is defined in your configuration the following graph of beans, indicated by the green color, will
-be created:
+For every client that is defined in your configuration the following graph of beans will be created and wired:
 
 [![Client Dependency Graph](../docs/graph.png)](../docs/graph.png)
 
-Regarding the other colors:
-- *yellow*: will be created once and then shared across different clients (if needed)
+Legend
+- *green*: managed beans
+- *blue*: optionally managed beans
+- *yellow*: managed singleton beans, i.e. shared across clients
 - *red*: mandatory dependency
 - *grey*: optional dependency
 
