@@ -1,0 +1,11 @@
+[ClientHttpMessageConverters{bg:greenyellow}]
+[MappingJackson2HttpMessageConverter{bg:greenyellow}]
+[StringHttpMessageConverter{bg:greenyellow}]
+[StreamConverter{bg:greenyellow}]
+[ObjectMapper{bg:tomato}]
+
+[ClientHttpMessageConverters]-.->[MappingJackson2HttpMessageConverter]
+[ClientHttpMessageConverters]-.->[StringHttpMessageConverter]
+[ClientHttpMessageConverters]-.->[StreamConverter]
+[MappingJackson2HttpMessageConverter]-.->[ObjectMapper]
+[StreamConverter]-.->[ObjectMapper]

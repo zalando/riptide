@@ -39,9 +39,11 @@ riptide:
         max-retries: 3
     bar:
       base-url: http://bar
+      retry:
+        max-retries: 4
       circuit-breaker:
-        failure-threshold: 1 out of 3
-        success-threshold: 2 out of 3
+        failure-threshold: 1
+        success-threshold: 1
     baz:
       backup-request:
         delay: 100 milliseconds

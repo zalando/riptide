@@ -22,6 +22,8 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 @API(status = EXPERIMENTAL)
 public final class MetricsCircuitBreakerListener implements CircuitBreakerListener {
 
+    public static final String METRIC_NAME = "http.client.circuit-breakers";
+
     private final MeterRegistry registry;
     private final String metricName;
     private final ImmutableList<Tag> defaultTags;
@@ -30,7 +32,7 @@ public final class MetricsCircuitBreakerListener implements CircuitBreakerListen
     private final AtomicReference<Sample> sample;
 
     public MetricsCircuitBreakerListener(final MeterRegistry registry) {
-        this(registry, "http.client.circuit-breakers", ImmutableList.of());
+        this(registry, METRIC_NAME, ImmutableList.of());
     }
 
     @API(status = INTERNAL)

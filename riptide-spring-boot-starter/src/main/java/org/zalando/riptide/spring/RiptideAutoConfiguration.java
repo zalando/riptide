@@ -1,17 +1,13 @@
 package org.zalando.riptide.spring;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import org.apiguardian.api.API;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.zalando.riptide.metrics.MetricsPlugin;
-import org.zalando.riptide.spring.metrics.MetricsRetryListener;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,31 +36,6 @@ public class RiptideAutoConfiguration {
     @Bean
     public static RiptidePostProcessor restClientPostProcessor() {
         return new RiptidePostProcessor(DefaultRiptideRegistrar::new);
-    }
-
-    @Configuration
-    @ConditionalOnBean(MeterRegistry.class)
-    static class MetricsConfiguration {
-
-        @Bean
-        @ConditionalOnMissingBean
-        public MetricsRetryListener retryMetricsListener(final MeterRegistry registry) {
-            return new MetricsRetryListener(registry);
-        }
-
-        @Configuration
-        @ConditionalOnClass(MetricsPlugin.class)
-        static class MetricsPluginConfiguration {
-
-            @Bean
-            @ConditionalOnMissingBean
-            @SuppressWarnings("SpringJavaAutowiringInspection")
-            public MetricsPlugin metricsPlugin(final MeterRegistry registry) {
-                return new MetricsPlugin(registry);
-            }
-
-        }
-
     }
 
     @Configuration

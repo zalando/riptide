@@ -22,6 +22,8 @@ import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 @API(status = EXPERIMENTAL)
 public final class MetricsPlugin implements Plugin {
 
+    public static final String METRIC_NAME = "http.client.requests";
+
     private final MeterRegistry registry;
     private final String metricName;
     private final ImmutableList<Tag> defaultTags;
@@ -29,7 +31,7 @@ public final class MetricsPlugin implements Plugin {
     private final TagGenerator generator = new DefaultTagGenerator();
 
     public MetricsPlugin(final MeterRegistry registry) {
-        this(registry, "http.client.requests", ImmutableList.of());
+        this(registry, METRIC_NAME, ImmutableList.of());
     }
 
     private MetricsPlugin(final MeterRegistry registry, final String metricName, final ImmutableList<Tag> defaultTags) {
