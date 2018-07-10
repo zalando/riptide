@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 public final class FaultClassifierTest {
 
-    private final FaultClassifier classifier = FaultClassifier.createDefault();
+    private final FaultClassifier unit = FaultClassifier.createDefault();
 
     @Test
     public void shouldClassifyInterruptedIOException() {
@@ -50,12 +50,21 @@ public final class FaultClassifierTest {
         assertTransient(new IllegalStateException(e));
     }
 
+    @Test
+    public void shouldClassifyTransientFaultOnlyOnce() {
+        final Throwable throwable = unit.classify(
+                unit.classify(new TransientFaultException(new InterruptedIOException())));
+
+        assertThat(throwable, is(instanceOf(TransientFaultException.class)));
+        assertThat(throwable.getCause(), is(instanceOf(InterruptedIOException.class)));
+    }
+
     private void assertTransient(final Exception e) {
-        assertThat(classifier.classify(e), is(instanceOf(TransientFaultException.class)));
+        assertThat(unit.classify(e), is(instanceOf(TransientFaultException.class)));
     }
 
     private void assertNotTransient(final Exception e) {
-        assertThat(classifier.classify(e), is(sameInstance(e)));
+        assertThat(unit.classify(e), is(sameInstance(e)));
     }
 
 }
