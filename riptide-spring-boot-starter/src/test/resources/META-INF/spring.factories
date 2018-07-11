@@ -1,7 +1,9 @@
 org.zalando.riptide.spring.MetricsTestAutoConfiguration$Spring4MetricsTestAutoConfiguration = \
   io.micrometer.spring.autoconfigure.MetricsAutoConfiguration,\
+  io.micrometer.spring.autoconfigure.export.simple.SimpleMetricsExportAutoConfiguration,\
   io.micrometer.spring.autoconfigure.CompositeMeterRegistryAutoConfiguration
 
 org.zalando.riptide.spring.MetricsTestAutoConfiguration$Spring5MetricsTestAutoConfiguration = \
   org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration,\
+  org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration,\
   org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration
