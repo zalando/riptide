@@ -45,7 +45,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-public class FailsafePluginTest {
+public class FailsafePluginRetriesTest {
 
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();

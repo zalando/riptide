@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import com.google.common.base.Stopwatch;
-import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -21,7 +20,6 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
@@ -62,11 +60,7 @@ public class RetryAfterDelayFunctionTest {
                     .withRetryPolicy(new RetryPolicy()
                             .withDelay(2, SECONDS)
                             .withDelay(new RetryAfterDelayFunction(clock))
-                            .withMaxRetries(4))
-                    .withCircuitBreaker(new CircuitBreaker()
-                            .withFailureThreshold(3, 10)
-                            .withSuccessThreshold(5)
-                            .withDelay(1, TimeUnit.MINUTES)))
+                            .withMaxRetries(4)))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

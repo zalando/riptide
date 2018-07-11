@@ -2,18 +2,20 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.SyncFailsafe;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static net.jodah.failsafe.Failsafe.with;
 import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
@@ -29,11 +31,11 @@ public final class FailsafePlugin implements Plugin {
     private final RetryListener listener;
 
     public FailsafePlugin(final ScheduledExecutorService scheduler) {
-        this(scheduler, NEVER, new CircuitBreaker(), RetryListener.DEFAULT);
+        this(scheduler, NEVER, null, RetryListener.DEFAULT);
     }
 
     private FailsafePlugin(final ScheduledExecutorService scheduler, final RetryPolicy retryPolicy,
-            final CircuitBreaker circuitBreaker, final RetryListener listener) {
+            @Nullable final CircuitBreaker circuitBreaker, final RetryListener listener) {
         this.scheduler = scheduler;
         this.retryPolicy = retryPolicy;
         this.circuitBreaker = circuitBreaker;
@@ -55,9 +57,8 @@ public final class FailsafePlugin implements Plugin {
     @Override
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
-            final CompletableFuture<ClientHttpResponse> original = Failsafe
-                    .with(retryPolicy)
-                    .with(circuitBreaker)
+            final CompletableFuture<ClientHttpResponse> original =
+                    failsafe()
                     .with(scheduler)
                     .with(new RetryListenersAdapter(listener, arguments))
                     .future(execution::execute);
@@ -66,6 +67,11 @@ public final class FailsafePlugin implements Plugin {
             original.whenComplete(forwardTo(cancelable));
             return cancelable;
         };
+    }
+
+    SyncFailsafe<Object> failsafe() {
+        final SyncFailsafe<Object> failsafe = with(retryPolicy);
+        return circuitBreaker == null ? failsafe : failsafe.with(circuitBreaker);
     }
 
     private static final class RetryListenersAdapter extends Listeners<ClientHttpResponse> {
