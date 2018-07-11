@@ -3,6 +3,8 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import net.jodah.failsafe.CircuitBreaker;
+import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -17,18 +19,19 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class FailsafePluginWithoutCircuitBreakerTest {
+public class FailsafePluginCircuitBreakerTest {
 
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
@@ -47,6 +50,8 @@ public class FailsafePluginWithoutCircuitBreakerTest {
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                    .withCircuitBreaker(new CircuitBreaker()
+                            .withDelay(1, SECONDS))
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();
@@ -67,21 +72,19 @@ public class FailsafePluginWithoutCircuitBreakerTest {
         client.close();
     }
 
-    @Test
-    public void shouldRetrySuccessfully() {
+    @Test(expected = CircuitBreakerOpenException.class)
+    public void shouldOpenCircuit() throws Throwable {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo").call(pass())
-                .exceptionally(this::ignore)
+                .exceptionally(partially(SocketTimeoutException.class, this::ignore))
                 .join();
 
-        final CompletableFuture<Void> timeout = unit.get("/foo").call(pass());
-        final CompletableFuture<Void> last = unit.get("/foo").call(pass());
-
-        timeout.exceptionally(partially(SocketTimeoutException.class, this::ignore)).join();
-        last.join();
+        try {
+            unit.get("/foo").call(pass()).join();
+        } catch (final CompletionException e) {
+            throw e.getCause();
+        }
     }
 
     private Void ignore(@SuppressWarnings("unused") final Throwable throwable) {

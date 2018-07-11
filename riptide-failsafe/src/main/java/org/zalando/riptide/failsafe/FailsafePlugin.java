@@ -58,7 +58,7 @@ public final class FailsafePlugin implements Plugin {
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
             final CompletableFuture<ClientHttpResponse> original =
-                    withCircuitBreaker(with(retryPolicy))
+                    failsafe()
                     .with(scheduler)
                     .with(new RetryListenersAdapter(listener, arguments))
                     .future(execution::execute);
@@ -69,7 +69,8 @@ public final class FailsafePlugin implements Plugin {
         };
     }
 
-    private SyncFailsafe<Object> withCircuitBreaker(final SyncFailsafe<Object> failsafe) {
+    SyncFailsafe<Object> failsafe() {
+        final SyncFailsafe<Object> failsafe = with(retryPolicy);
         return circuitBreaker == null ? failsafe : failsafe.with(circuitBreaker);
     }
 
