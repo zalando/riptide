@@ -16,7 +16,6 @@ import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyMap;
-import static org.hamcrest.Matchers.any;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.PassRoute.pass;
 
