@@ -32,6 +32,7 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideProperties.Client;
@@ -456,7 +457,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         if (client.isCompressRequest()) {
             log.debug("Client [{}]: Registering GzippingHttpRequestInterceptor", id);
-            lastRequestInterceptors.add(new GzippingHttpRequestInterceptor());
+            lastRequestInterceptors.add(new GzipHttpRequestInterceptor());
         }
 
         builder.addPropertyValue("firstRequestInterceptors", requestInterceptors);
