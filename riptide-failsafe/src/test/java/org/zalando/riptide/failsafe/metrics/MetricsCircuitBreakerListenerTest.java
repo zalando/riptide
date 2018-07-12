@@ -1,4 +1,4 @@
-package org.zalando.riptide.spring.metrics;
+package org.zalando.riptide.failsafe.metrics;
 
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
