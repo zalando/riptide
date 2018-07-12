@@ -25,6 +25,7 @@ import org.springframework.web.util.DefaultUriTemplateHandler;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -75,7 +76,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
             final BeanDefinition converters = registerHttpMessageConverters(id);
             final String baseUrl = client.getBaseUrl();
-            final List<BeanMetadataElement> plugins = registerPlugins(id, client);
+            final List<String> plugins = registerPlugins(id, client);
 
             registerHttp(id, client, factoryId, converters, plugins);
             registerTemplate(id, RestTemplate.class, factoryId, baseUrl, converters, plugins);
@@ -161,7 +162,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private void registerHttp(final String id, final Client client, final String factoryId,
-            final BeanDefinition converters, final List<BeanMetadataElement> plugins) {
+            final BeanDefinition converters, final List<String> plugins) {
         registry.registerIfAbsent(id, Http.class, () -> {
             log.debug("Client [{}]: Registering Http", id);
 
@@ -171,14 +172,16 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             http.addConstructorArgValue(client.getUrlResolution());
             http.addConstructorArgReference(factoryId);
             http.addConstructorArgValue(converters);
-            http.addConstructorArgValue(plugins);
+            http.addConstructorArgValue(plugins.stream()
+                    .map(Registry::ref)
+                    .collect(toCollection(Registry::list)));
 
             return http;
         });
     }
 
     private void registerTemplate(final String id, final Class<?> type, final String factoryId,
-            @Nullable final String baseUrl, final BeanDefinition converters, final List<BeanMetadataElement> plugins) {
+            @Nullable final String baseUrl, final BeanDefinition converters, final List<String> plugins) {
         registry.registerIfAbsent(id, type, () -> {
             log.debug("Client [{}]: Registering AsyncRestTemplate", id);
 
@@ -190,9 +193,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             template.addPropertyValue("uriTemplateHandler", handler);
             template.addPropertyValue("messageConverters", converters);
             template.addPropertyValue("interceptors", plugins.stream()
-                    .map(plugin -> genericBeanDefinition(PluginInterceptors.class)
-                            .setFactoryMethod("adapt")
-                            .addConstructorArgValue(plugin)
+                    .map(plugin -> genericBeanDefinition(PluginInterceptor.class)
+                            .addConstructorArgReference(plugin)
                             .getBeanDefinition())
                     .collect(toCollection(Registry::list)));
 
@@ -214,64 +216,64 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
     }
 
-    private List<BeanMetadataElement> registerPlugins(final String id, final Client client) {
-        final List<BeanMetadataElement> plugins = list();
+    private List<String> registerPlugins(final String id, final Client client) {
+        final List<String> plugins = list();
 
         if (client.getRecordMetrics()) {
             log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, MetricsPlugin.class, () ->
+            plugins.add(registry.registerIfAbsent(id, MetricsPlugin.class, () ->
                     genericBeanDefinition(MetricsPlugin.class)
                             .addConstructorArgReference("meterRegistry")
                             .addConstructorArgValue(MetricsPlugin.METRIC_NAME)
-                            .addConstructorArgValue(ImmutableList.of(clientId(id))))));
+                            .addConstructorArgValue(ImmutableList.of(clientId(id)))));
         }
 
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
+            plugins.add(registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
                     genericBeanDefinition(TransientFaultPlugin.class)
-                            .addConstructorArgReference(findFaultClassifier(id)))));
+                            .addConstructorArgReference(findFaultClassifier(id))));
         }
 
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
+            plugins.add(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
                     genericBeanDefinition(FailsafePlugin.class)
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
                             .addConstructorArgReference(registerCircuitBreaker(id, client))
-                            .addConstructorArgReference(registerRetryListener(id, client)))));
+                            .addConstructorArgReference(registerRetryListener(id, client))));
         }
 
         if (client.getBackupRequest() != null) {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
+            plugins.add(registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
                     genericBeanDefinition(BackupRequestPlugin.class)
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                            .addConstructorArgValue(registerExecutor(id, client)))));
+                            .addConstructorArgValue(registerExecutor(id, client))));
         }
 
         if (client.getTimeout() != null) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
+            plugins.add(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
                     genericBeanDefinition(TimeoutPlugin.class)
                             .addConstructorArgValue(registerScheduler(id))
                             .addConstructorArgValue(client.getTimeout().getAmount())
                             .addConstructorArgValue(client.getTimeout().getUnit())
-                            .addConstructorArgValue(registerExecutor(id, client)))));
+                            .addConstructorArgValue(registerExecutor(id, client))));
         }
 
         if (client.getPreserveStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            plugins.add(ref(registry.registerIfAbsent(id, OriginalStackTracePlugin.class)));
+            plugins.add(registry.registerIfAbsent(id, OriginalStackTracePlugin.class));
         }
 
         if (registry.isRegistered(id, Plugin.class)) {
             final String plugin = generateBeanName(id, Plugin.class);
             log.debug("Client [{}]: Registering [{}]", plugin);
-            plugins.add(ref(plugin));
+            plugins.add(plugin);
         }
 
         return plugins;

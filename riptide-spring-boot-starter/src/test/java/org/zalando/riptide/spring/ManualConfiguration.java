@@ -31,6 +31,8 @@ import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
+import org.zalando.riptide.Plugin;
+import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
@@ -59,6 +61,7 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,6 +73,7 @@ import java.util.function.Predicate;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 @Configuration
@@ -111,26 +115,34 @@ public class ManualConfiguration {
 
         @Bean
         public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final MeterRegistry meterRegistry,
-                final ScheduledExecutorService scheduler) {
-
-            final CircuitBreakerListener circuitBreakerListener = new MetricsCircuitBreakerListener(meterRegistry)
-                    .withDefaultTags(Tag.of("clientId", "example"));
+                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
 
             return Http.builder()
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
                     .requestFactory(requestFactory)
                     .converters(converters.getConverters())
-                    .plugin(new MetricsPlugin(meterRegistry)
-                            .withDefaultTags(Tag.of("clientId", "example")))
-                    .plugin(new TransientFaultPlugin(
+                    .plugins(plugins)
+                    .build();
+        }
+
+        @Bean
+        public List<Plugin> examplePlugins(final MeterRegistry meterRegistry,
+                final ScheduledExecutorService scheduler) {
+
+            final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
+                    .withDefaultTags(Tag.of("clientId", "example"));
+
+            return Arrays.asList(
+                    new MetricsPlugin(meterRegistry)
+                            .withDefaultTags(Tag.of("clientId", "example")),
+                    new TransientFaultPlugin(
                             FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
                                     .addAll(FaultClassifier.defaults())
                                     .add(ConnectionClosedException.class::isInstance)
                                     .add(NoHttpResponseException.class::isInstance)
-                                    .build())))
-                    .plugin(new FailsafePlugin(scheduler)
+                                    .build())),
+                    new FailsafePlugin(scheduler)
                             .withRetryPolicy(new RetryPolicy()
                                     .retryOn(TransientFaultException.class)
                                     .retryOn(RetryException.class)
@@ -143,21 +155,20 @@ public class ManualConfiguration {
                                     .withDelay(30, SECONDS)
                                     .withSuccessThreshold(3, 5)
                                     .withTimeout(3, SECONDS)
-                                    .onOpen(circuitBreakerListener::onOpen)
-                                    .onHalfOpen(circuitBreakerListener::onHalfOpen)
-                                    .onClose(circuitBreakerListener::onClose))
+                                    .onOpen(listener::onOpen)
+                                    .onHalfOpen(listener::onHalfOpen)
+                                    .onClose(listener::onClose))
                             .withListener(new MetricsRetryListener(meterRegistry)
-                                    .withDefaultTags(Tag.of("clientId", "example"))))
-                    .plugin(new BackupRequestPlugin(scheduler, 10, MILLISECONDS))
-                    .plugin(new TimeoutPlugin(scheduler, 3, SECONDS))
-                    .plugin(new OriginalStackTracePlugin())
-                    .plugin(new CustomPlugin())
-                    .build();
+                                    .withDefaultTags(Tag.of("clientId", "example"))),
+                    new BackupRequestPlugin(scheduler, 10, MILLISECONDS),
+                    new TimeoutPlugin(scheduler, 3, SECONDS),
+                    new OriginalStackTracePlugin(),
+                    new CustomPlugin());
         }
 
         @Bean
         public RestTemplate exampleRestTemplate(final ClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters) {
+                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
             final RestTemplate template = new RestTemplate();
 
             final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
@@ -165,13 +176,14 @@ public class ManualConfiguration {
             template.setUriTemplateHandler(handler);
             template.setRequestFactory(requestFactory);
             template.setMessageConverters(converters.getConverters());
+            template.setInterceptors(plugins.stream().map(PluginInterceptor::new).collect(toList()));
 
             return template;
         }
 
         @Bean
         public AsyncRestTemplate exampleAsyncRestTemplate(final AsyncClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters) {
+                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
             final AsyncRestTemplate template = new AsyncRestTemplate();
 
             final DefaultUriTemplateHandler handler = new DefaultUriTemplateHandler();
@@ -179,6 +191,7 @@ public class ManualConfiguration {
             template.setUriTemplateHandler(handler);
             template.setAsyncRequestFactory(requestFactory);
             template.setMessageConverters(converters.getConverters());
+            template.setInterceptors(plugins.stream().map(PluginInterceptor::new).collect(toList()));
 
             return template;
         }
