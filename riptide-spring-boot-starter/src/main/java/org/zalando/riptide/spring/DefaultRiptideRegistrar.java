@@ -36,8 +36,6 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideProperties.Client;
 import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
-import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -222,9 +220,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getRecordMetrics()) {
             log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, MetricsPlugin.class, () ->
-                    genericBeanDefinition(MetricsPlugin.class)
+                    genericBeanDefinition(Metrics.class)
+                            .setFactoryMethod("createMetricsPlugin")
                             .addConstructorArgReference("meterRegistry")
-                            .addConstructorArgValue(MetricsPlugin.METRIC_NAME)
                             .addConstructorArgValue(ImmutableList.of(clientId(id)))));
         }
 
@@ -338,13 +336,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 circuitBreaker.addPropertyReference("listener",
                         registry.registerIfAbsent(id, CircuitBreakerListener.class, () -> {
                             if (client.getRecordMetrics()) {
-                                return genericBeanDefinition(MetricsCircuitBreakerListener.class)
+                                return genericBeanDefinition(Metrics.class)
+                                        .setFactoryMethod("createCircuitBreakerListener")
                                         .addConstructorArgReference("meterRegistry")
-                                        .addConstructorArgValue(MetricsCircuitBreakerListener.METRIC_NAME)
                                         .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
                             } else {
-                                return genericBeanDefinition(CircuitBreakerListeners.class)
-                                        .setFactoryMethod("getDefault");
+                                return genericBeanDefinition(Metrics.class)
+                                        .setFactoryMethod("getDefaultCircuitBreakerListener");
                             }
                         }));
             }
@@ -356,13 +354,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerRetryListener(final String id, final Client client) {
         return registry.registerIfAbsent(id, RetryListener.class, () -> {
             if (client.getRecordMetrics()) {
-                return genericBeanDefinition(MetricsRetryListener.class)
+                return genericBeanDefinition(Metrics.class)
+                        .setFactoryMethod("createRetryListener")
                         .addConstructorArgReference("meterRegistry")
-                        .addConstructorArgValue(MetricsRetryListener.METRIC_NAME)
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
-                return genericBeanDefinition(RetryListeners.class)
-                        .setFactoryMethod("getDefault");
+                return genericBeanDefinition(Metrics.class)
+                        .setFactoryMethod("getDefaultRetryListener");
             }
         });
     }
