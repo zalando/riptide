@@ -29,11 +29,13 @@ public final class GzipHttpRequestInterceptor implements HttpRequestInterceptor 
         return Optional.of(request)
                 .filter(HttpEntityEnclosingRequest.class::isInstance)
                 .map(HttpEntityEnclosingRequest.class::cast)
-                .filter(this::hasEntity);
+                .filter(this::hasNonEmptyBody);
     }
 
-    private boolean hasEntity(final HttpEntityEnclosingRequest request) {
-        return request.getEntity() != null;
+    private boolean hasNonEmptyBody(final HttpEntityEnclosingRequest request) {
+        return Optional.ofNullable(request.getEntity())
+                .filter(entity -> entity.getContentLength() > 0)
+                .isPresent();
     }
 
     private HttpEntity compress(final HttpEntity entity) {

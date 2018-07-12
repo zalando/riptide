@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.any;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class GzipHttpRequestInterceptorTest {
+public final class GzipHttpRequestInterceptorTest {
 
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
@@ -65,6 +65,20 @@ public class GzipHttpRequestInterceptorTest {
         http.post("/")
                 .contentType(APPLICATION_JSON)
                 .body(emptyMap())
+                .call(pass())
+                .join();
+    }
+
+    @Test
+    public void shouldNotCompressAbsentBody() {
+        driver.addExpectation(onRequestTo("/").withMethod(POST)
+                        .withoutHeader("Content-Type")
+                        .withHeader("Content-Length", "0")
+                        .withoutHeader("Content-Encoding")
+                        .withoutHeader("Transfer-Encoding"),
+                giveEmptyResponse());
+
+        http.post("/")
                 .call(pass())
                 .join();
     }
