@@ -43,7 +43,6 @@ public final class GzipHttpRequestInterceptor implements HttpRequestInterceptor 
     }
 
     void updateHeaders(final HttpRequest request, final HttpEntity entity) {
-        // no longer correct
         request.removeHeaders(HTTP.CONTENT_LEN);
 
         request.removeHeaders(HTTP.CONTENT_ENCODING);
