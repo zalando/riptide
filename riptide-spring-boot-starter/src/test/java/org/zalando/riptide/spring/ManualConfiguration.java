@@ -41,6 +41,7 @@ import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.PluginTest.CustomPlugin;
@@ -212,7 +213,7 @@ public class ManualConfiguration {
                             .addInterceptorFirst(new AccessTokensRequestInterceptor("example", tokens))
                             .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
                             .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
-                            .addInterceptorLast(new GzippingHttpRequestInterceptor())
+                            .addInterceptorLast(new GzipHttpRequestInterceptor())
                             .addInterceptorLast(new LogbookHttpResponseInterceptor())
                             .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                     SSLContexts.custom()
