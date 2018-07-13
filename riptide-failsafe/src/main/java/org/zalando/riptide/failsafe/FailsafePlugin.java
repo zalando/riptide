@@ -1,5 +1,6 @@
 package org.zalando.riptide.failsafe;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.Listeners;
@@ -74,20 +75,21 @@ public final class FailsafePlugin implements Plugin {
         return circuitBreaker == null ? failsafe : failsafe.with(circuitBreaker);
     }
 
-    private static final class RetryListenersAdapter extends Listeners<ClientHttpResponse> {
+    @VisibleForTesting
+    static final class RetryListenersAdapter extends Listeners<ClientHttpResponse> {
 
         private final RequestArguments arguments;
-        private RetryListener listeners;
+        private RetryListener listener;
 
-        public RetryListenersAdapter(final RetryListener listeners, final RequestArguments arguments) {
+        public RetryListenersAdapter(final RetryListener listener, final RequestArguments arguments) {
             this.arguments = arguments;
-            this.listeners = listeners;
+            this.listener = listener;
         }
 
         @Override
         public void onRetry(final ClientHttpResponse result, final Throwable failure,
                 final ExecutionContext context) {
-            listeners.onRetry(arguments, result, failure, context);
+            listener.onRetry(arguments, result, failure, context);
         }
 
     }
