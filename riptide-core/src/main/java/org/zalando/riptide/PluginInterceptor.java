@@ -13,6 +13,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.zalando.fauxpas.ThrowingSupplier;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -46,17 +47,9 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
     @Override
     public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,
             final ClientHttpRequestExecution execution) {
-        final RequestExecution requestExecution = arguments -> {
-            final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
 
-            try {
-                future.complete(execution.execute(request, body));
-            } catch (final Exception e) {
-                future.completeExceptionally(e);
-            }
-
-            return future;
-        };
+        final RequestExecution requestExecution = arguments ->
+                pack(() -> execution.execute(request, body));
 
 
         final RequestArguments arguments = toArguments(request, body);
@@ -64,6 +57,8 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
         // since there is no routing to be done, we just call the plugin twice in succession
         final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
         final RequestExecution after = plugin.beforeDispatch(arguments, before);
+
+        final RequestArguments arguments = toArguments(request, body);
 
         try {
             return after.execute(arguments).join();
@@ -76,28 +71,43 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
     public ListenableFuture<ClientHttpResponse> intercept(final HttpRequest request, final byte[] body,
             final AsyncClientHttpRequestExecution execution) throws IOException {
 
-        final RequestExecution requestExecution = arguments -> {
-            try {
-
-                final ListenableFuture<ClientHttpResponse> original = execution.executeAsync(request, body);
-                final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
-                original.addCallback(future::complete, future::completeExceptionally);
-                return future;
-            } catch (final Exception e) {
-                // this branch is just for issues inside of executeAsync, not during the actual execution
-                final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
-                future.completeExceptionally(e);
-                return future;
-            }
-        };
-
-        final RequestArguments arguments = toArguments(request, body);
+        final RequestExecution requestExecution = arguments ->
+                packAsync(() -> execution.executeAsync(request, body));
 
         // since there is no routing to be done, we just call the plugin twice in succession
-        final RequestExecution before = plugin.beforeSend(arguments, requestExecution);
-        final RequestExecution after = plugin.beforeDispatch(arguments, before);
+        final RequestExecution before = plugin.beforeSend(requestExecution);
+        final RequestExecution after = plugin.beforeDispatch(before);
 
+        final RequestArguments arguments = toArguments(request, body);
         return new CompletableToListenableFutureAdapter<>(after.execute(arguments));
+    }
+
+    private static <T> CompletableFuture<T> pack(final ThrowingSupplier<T, Exception> supplier) {
+        final CompletableFuture<T> future = new CompletableFuture<>();
+
+        try {
+            future.complete(supplier.tryGet());
+        } catch (final Exception e) {
+            // TODO just throw?
+            future.completeExceptionally(e);
+        }
+
+        return future;
+    }
+
+    private static <T> CompletableFuture<T> packAsync(final ThrowingSupplier<ListenableFuture<T>, Exception> supplier) {
+        try {
+            final ListenableFuture<T> original = supplier.tryGet();
+            final CompletableFuture<T> future = preserveCancelability(original);
+            original.addCallback(future::complete, future::completeExceptionally);
+            return future;
+        } catch (final Exception e) {
+            // TODO can't we just throw here?
+            // for issues that occur before the future was successfully created, i.e. request being sent
+            final CompletableFuture<T> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
     }
 
     /**
