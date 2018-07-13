@@ -8,9 +8,11 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.Objects;
 
 final class RestAsyncClientHttpRequest implements AsyncClientHttpRequest {
 
@@ -42,13 +44,9 @@ final class RestAsyncClientHttpRequest implements AsyncClientHttpRequest {
     }
 
     // TODO @Override as soon as we no longer support Spring 4
+    @Nonnull
     public String getMethodValue() {
-        return request.getMethod().toString();
-    }
-
-    @Override
-    public String getMethodValue() {
-        return request.getMethodValue();
+        return Objects.requireNonNull(request.getMethod(), "method").toString();
     }
 
     @Override
