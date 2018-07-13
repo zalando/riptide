@@ -240,7 +240,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
                     genericBeanDefinition(FailsafePlugin.class)
-                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
                             .addConstructorArgReference(registerCircuitBreaker(id, client))
                             .addConstructorArgReference(registerRetryListener(id, client))));
@@ -250,7 +250,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
                     genericBeanDefinition(BackupRequestPlugin.class)
-                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
                             .addConstructorArgValue(registerExecutor(id, client))));
@@ -260,7 +260,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
                     genericBeanDefinition(TimeoutPlugin.class)
-                            .addConstructorArgValue(registerScheduler(id))
+                            .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getTimeout().getAmount())
                             .addConstructorArgValue(client.getTimeout().getUnit())
                             .addConstructorArgValue(registerExecutor(id, client))));
@@ -300,7 +300,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
     }
 
-    private BeanMetadataElement registerScheduler(final String id) {
+    private BeanMetadataElement registerScheduler(final String id, final Client client) {
         // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
         return trace(registry.registerIfAbsent(id, ScheduledExecutorService.class,
                 () -> {
@@ -309,7 +309,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     threadFactory.setDaemon(true);
 
                     return genericBeanDefinition(ScheduledThreadPoolExecutor.class)
-                            .addConstructorArgValue(1)
+                            .addConstructorArgValue(client.getThreadPool().getMaxSize())
                             .addConstructorArgValue(threadFactory)
                             .addPropertyValue("removeOnCancelPolicy", true)
                             .setDestroyMethodName("shutdown");

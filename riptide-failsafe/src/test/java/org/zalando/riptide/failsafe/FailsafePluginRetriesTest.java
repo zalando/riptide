@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -43,6 +43,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 public class FailsafePluginRetriesTest {
@@ -61,9 +62,9 @@ public class FailsafePluginRetriesTest {
     private final Http unit = Http.builder()
             .baseUrl(driver.getBaseUrl())
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                    new ConcurrentTaskExecutor(newSingleThreadExecutor())))
+                    new ConcurrentTaskExecutor(newCachedThreadPool())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+            .plugin(new FailsafePlugin(new ScheduledThreadPoolExecutor(2))
                     .withRetryPolicy(new RetryPolicy()
                             .withDelay(500, MILLISECONDS)
                             .withMaxRetries(4)
@@ -170,6 +171,17 @@ public class FailsafePluginRetriesTest {
                 .join();
 
         verify(listeners).onRetry(notNull(), isNull(), notNull(), notNull());
+    }
+
+    @Test(timeout = 1000)
+    public void shouldAllowNestedCalls() {
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
+        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+
+        unit.get("/foo")
+                .call(call(() -> unit.get("/bar").call(pass()).join()))
+                .join();
+
     }
 
 }
