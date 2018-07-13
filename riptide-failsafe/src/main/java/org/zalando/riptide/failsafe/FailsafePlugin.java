@@ -17,6 +17,7 @@ import org.zalando.riptide.IdempotencyKeyIdempotentMethodDetector;
 import org.zalando.riptide.MethodDetector;
 import org.zalando.riptide.OverrideSafeMethodDetector;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import javax.annotation.Nullable;
