@@ -12,8 +12,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.http.HttpHeaders.readOnlyHttpHeaders;
+import static org.zalando.riptide.Plugin.compound;
 
 final class DefaultHttp implements Http {
+
+    private static final HttpHeaders EMPTY = readOnlyHttpHeaders(new HttpHeaders());
 
     private final AsyncClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
@@ -175,7 +179,7 @@ final class DefaultHttp implements Http {
     }
 
     private Requester execute(final RequestArguments arguments) {
-        return new Requester(requestFactory, worker, arguments, plugin);
+        return new Requester(requestFactory, worker, arguments, plugins, ImmutableMultimap.of(), EMPTY);
     }
 
 }
