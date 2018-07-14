@@ -5,6 +5,9 @@ import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.AbstractCancelableCompletableFuture;
+import org.zalando.riptide.DefaultSafeMethodDetector;
+import org.zalando.riptide.MethodDetector;
+import org.zalando.riptide.OverrideSafeMethodDetector;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -18,13 +21,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 
 @API(status = EXPERIMENTAL)
-@AllArgsConstructor
+@AllArgsConstructor(access = PRIVATE)
 public final class BackupRequestPlugin implements Plugin {
 
+    private final MethodDetector safe;
     private final ScheduledExecutorService scheduler;
     private final long delay;
     private final TimeUnit unit;
@@ -34,26 +39,24 @@ public final class BackupRequestPlugin implements Plugin {
         this(scheduler, delay, unit, Runnable::run);
     }
 
-    @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        switch (arguments.getMethod()) {
-            case GET:
-            case HEAD:
-                return withBackup(execution);
-            case POST:
-                if (isGetWithBody(arguments)) {
-                    return withBackup(execution);
-                }
-
-                return execution;
-            default:
-                return execution;
-        }
+    // TODO replace with withExecutor(..) method
+    public BackupRequestPlugin(final ScheduledExecutorService scheduler, final long delay, final TimeUnit unit,
+            final Executor executor) {
+        this(MethodDetector.compound(new DefaultSafeMethodDetector(), new OverrideSafeMethodDetector()),
+                scheduler, delay, unit, executor);
     }
 
-    private boolean isGetWithBody(final RequestArguments arguments) {
-        // TODO should use case-insensitive comparison
-        return arguments.getHeaders().containsEntry("X-HTTP-Method-Override", "GET");
+    public BackupRequestPlugin withSafeMethodDetector(final MethodDetector detector) {
+        return new BackupRequestPlugin(detector, scheduler, delay, unit, executor);
+    }
+
+    @Override
+    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
+        if (safe.test(arguments)) {
+            return withBackup(execution);
+        }
+
+        return execution;
     }
 
     private RequestExecution withBackup(final RequestExecution execution) {

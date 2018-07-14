@@ -237,7 +237,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
-                    genericBeanDefinition(FailsafePlugin.class)
+                    genericBeanDefinition(Resilience.class)
+                            .setFactoryMethod("createFailsafePlugin")
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgReference(registerRetryPolicy(id, client))
                             .addConstructorArgReference(registerCircuitBreaker(id, client))

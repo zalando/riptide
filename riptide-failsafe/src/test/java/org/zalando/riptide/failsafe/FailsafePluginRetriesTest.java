@@ -26,9 +26,11 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newCachedThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -104,6 +106,45 @@ public class FailsafePluginRetriesTest {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
+                .call(pass())
+                .join();
+    }
+
+    @Test(expected = SocketTimeoutException.class)
+    public void shouldNotRetryNonIdempotentMethod() throws Throwable {
+        driver.addExpectation(onRequestTo("/foo").withMethod(POST),
+                giveEmptyResponse().after(800, MILLISECONDS));
+
+        try {
+            unit.post("/foo")
+                    .call(pass())
+                    .join();
+        } catch (final CompletionException e) {
+            throw e.getCause();
+        }
+    }
+
+    @Test
+    public void shouldRetryCustomDetectedIdempotentRequest() {
+        final Http unit = Http.builder()
+                .baseUrl(driver.getBaseUrl())
+                .requestFactory(new RestAsyncClientHttpRequestFactory(client,
+                        new ConcurrentTaskExecutor(newCachedThreadPool())))
+                .converter(createJsonConverter())
+                .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                        .withIdempotentMethodDetector(arguments ->
+                            arguments.getHeaders().containsEntry("Idempotent", "true"))
+                        .withRetryPolicy(new RetryPolicy()
+                                .withDelay(500, MILLISECONDS)
+                                .withMaxRetries(1))
+                        .withListener(listeners))
+                .build();
+
+        driver.addExpectation(onRequestTo("/foo").withMethod(POST), giveEmptyResponse().after(800, MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo").withMethod(POST), giveEmptyResponse());
+
+        unit.post("/foo")
+                .header("Idempotent", "true")
                 .call(pass())
                 .join();
     }

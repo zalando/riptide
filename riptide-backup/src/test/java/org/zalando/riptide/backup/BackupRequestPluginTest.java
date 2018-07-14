@@ -111,15 +111,33 @@ public final class BackupRequestPluginTest {
 
     @Test
     public void shouldSendBackupRequestsForGetWithBody() throws Throwable {
-        driver.addExpectation(onRequestTo("/bar").withMethod(POST).withHeader("X-HTTP-Method-Override", "GET"),
-                giveEmptyResponse().after(2, SECONDS));
+        driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse());
 
         unit.post("/bar")
                 .header("X-HTTP-Method-Override", "GET")
                 .body(ImmutableMap.of())
                 .call(pass())
-                .get(3, SECONDS);
+                .join();
+    }
+
+    @Test
+    public void shouldSendBackupRequestForCustomSafeDetectedRequest() throws Throwable {
+        final Http unit = Http.builder()
+                .baseUrl(driver.getBaseUrl())
+                .requestFactory(factory)
+                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor)
+                        .withSafeMethodDetector(
+                                arguments -> arguments.getHeaders().containsEntry("Allow-Backup-Request", "true")))
+                .build();
+
+        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
+        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+
+        unit.get("/bar")
+                .header("Allow-Backup-Request", "true")
+                .call(pass())
+                .get(1500, TimeUnit.MILLISECONDS);
     }
 
     @Test
