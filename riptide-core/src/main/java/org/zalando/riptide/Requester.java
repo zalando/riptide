@@ -40,11 +40,11 @@ public final class Requester extends Dispatcher {
     private final HttpHeaders headers = new HttpHeaders();
 
     Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final List<Plugin> plugins) {
+            final RequestArguments arguments, final Plugin plugin) {
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
-        this.plugin = Plugin.compound(plugins);
+        this.plugin = plugin;
     }
 
     public Requester queryParam(final String name, final String value) {

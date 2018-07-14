@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.zalando.riptide.Plugin.compound;
 
 final class DefaultHttpBuilder implements HttpBuilder {
 
@@ -123,7 +124,7 @@ final class DefaultHttpBuilder implements HttpBuilder {
 
     @Override
     public Http build() {
-        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, plugins());
+        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, compound(plugins()));
     }
 
     private List<HttpMessageConverter<?>> converters() {
