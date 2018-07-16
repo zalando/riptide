@@ -2,6 +2,7 @@ package org.zalando.riptide.spring;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
@@ -24,7 +25,7 @@ final class FailsafePluginFactory {
 
     }
 
-    public static FailsafePlugin createFailsafePlugin(final ScheduledExecutorService scheduler,
+    public static Plugin createFailsafePlugin(final ScheduledExecutorService scheduler,
             @Nullable final RetryPolicy retryPolicy, @Nullable final CircuitBreaker circuitBreaker,
             final RetryListener listener) {
         return new FailsafePlugin(scheduler)
