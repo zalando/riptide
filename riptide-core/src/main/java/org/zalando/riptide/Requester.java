@@ -16,7 +16,6 @@ import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -122,13 +121,13 @@ public final class Requester extends Dispatcher {
         return copy;
     }
 
-    public <T> Dispatcher body(@Nullable final T body) {
-        return execute(body);
-    }
-
     @Override
     public CompletableFuture<ClientHttpResponse> call(final Route route) {
-        return execute(null).call(route);
+        return body(null).call(route);
+    }
+
+    public <T> Dispatcher body(@Nullable final T body) {
+        return execute(body);
     }
 
     private <T> Dispatcher execute(final @Nullable T body) {
@@ -160,8 +159,11 @@ public final class Requester extends Dispatcher {
                 final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
 
                 return after.execute(arguments);
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
+            } catch (final Exception e) {
+                // for issues that occur before the future was successfully created, i.e. request being sent
+                final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
+                future.completeExceptionally(e);
+                return future;
             }
         }
 
