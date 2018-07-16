@@ -6,8 +6,7 @@ import org.junit.rules.ExpectedException;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
+import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -21,8 +20,8 @@ public final class HandlesIOExceptionTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void shouldHandleExceptionDuringRequestCreation() throws URISyntaxException {
-        exception.expect(UncheckedIOException.class);
+    public void shouldHandleExceptionDuringRequestCreation() {
+        exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(IOException.class));
         exception.expectMessage("Could not create request");
 
@@ -33,7 +32,8 @@ public final class HandlesIOExceptionTest {
         Http.builder().requestFactory(factory).defaultConverters().build()
                 .get("http://localhost/")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
 }

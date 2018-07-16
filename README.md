@@ -230,7 +230,7 @@ If you need proper return values take a look at [Riptide: Capture](riptide-captu
 
 ### Exceptions
 
-The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
+The only special custom exception you may get is `UnexpectedResponseException`, if and only if there was no matching condition and
 no wildcard condition either.
 
 ### Plugins

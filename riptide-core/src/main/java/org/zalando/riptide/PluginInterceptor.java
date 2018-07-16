@@ -86,7 +86,6 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
         try {
             future.complete(supplier.tryGet());
         } catch (final Exception e) {
-            // TODO just throw?
             future.completeExceptionally(e);
         }
 
@@ -100,7 +99,6 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
             original.addCallback(future::complete, future::completeExceptionally);
             return future;
         } catch (final Exception e) {
-            // TODO can't we just throw here?
             // for issues that occur before the future was successfully created, i.e. request being sent
             final CompletableFuture<T> future = new CompletableFuture<>();
             future.completeExceptionally(e);
