@@ -132,11 +132,11 @@ public class FailsafePluginRetriesTest {
                 .baseUrl(driver.getBaseUrl())
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                        .withIdempotentMethodDetector(arguments ->
-                            arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withRetryPolicy(new RetryPolicy()
                                 .withDelay(500, MILLISECONDS)
                                 .withMaxRetries(1))
+                        .withIdempotentMethodDetector(arguments ->
+                            arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withListener(listeners))
                 .build();
 

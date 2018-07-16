@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -48,6 +49,7 @@ public class FailsafePluginNoCircuitBreakerTest {
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                    .withRetryPolicy(new RetryPolicy().withMaxRetries(0))
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();
