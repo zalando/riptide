@@ -44,7 +44,6 @@ public final class Requester extends Dispatcher {
         this.worker = worker;
         this.arguments = arguments;
         this.plugin = plugin;
-        this.plugin = plugin;
         this.query = query;
         this.headers = headers;
     }

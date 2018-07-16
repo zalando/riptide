@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.io.ByteStreams;
-import com.google.gag.annotation.remark.Hack;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
