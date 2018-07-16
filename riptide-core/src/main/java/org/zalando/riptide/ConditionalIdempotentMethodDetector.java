@@ -1,11 +1,13 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import org.apiguardian.api.API;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Collections.disjoint;
+import static java.lang.String.CASE_INSENSITIVE_ORDER;
+import static java.util.Arrays.asList;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -14,7 +16,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 @API(status = EXPERIMENTAL)
 public final class ConditionalIdempotentMethodDetector implements MethodDetector {
 
-    private final ImmutableSet<String> conditionals = ImmutableSet.of(
+    private final ImmutableSet<String> conditionals = ImmutableSortedSet.copyOf(CASE_INSENSITIVE_ORDER, asList(
             /*
              * If-Match is most often used with state-changing methods (e.g., POST,
              * PUT, DELETE) to prevent accidental overwrites when multiple user
@@ -46,12 +48,11 @@ public final class ConditionalIdempotentMethodDetector implements MethodDetector
              * https://tools.ietf.org/html/rfc7232#section-3.4
              */
             "If-Unmodified-Since"
-    );
+    ));
 
     @Override
     public boolean test(@Nonnull final RequestArguments arguments) {
-        final ImmutableSet<String> headers = arguments.getHeaders().keySet();
-        return !disjoint(headers, conditionals);
+        return arguments.getHeaders().keySet().stream().anyMatch(conditionals::contains);
     }
 
 }

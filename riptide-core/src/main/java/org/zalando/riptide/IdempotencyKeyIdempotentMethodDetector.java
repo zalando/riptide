@@ -14,7 +14,7 @@ public final class IdempotencyKeyIdempotentMethodDetector implements MethodDetec
 
     @Override
     public boolean test(@Nonnull final RequestArguments arguments) {
-        return arguments.getHeaders().containsKey("Idempotency-Key");
+        return arguments.getHeaders().keySet().stream().anyMatch("Idempotency-Key"::equalsIgnoreCase);
     }
 
 }

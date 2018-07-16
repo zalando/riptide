@@ -19,6 +19,12 @@ public final class IdempotencyKeyIdempotentMethodDetectorTest {
     }
 
     @Test
+    public void shouldDetectIdempotencyKeyCaseInsensitive() {
+        assertTrue(unit.test(RequestArguments.create()
+                .withHeaders(ImmutableMultimap.of("idempotency-key", UUID.randomUUID().toString()))));
+    }
+
+    @Test
     public void shouldNotDetectAbsentIdempotencyKey() {
         assertFalse(unit.test(RequestArguments.create()));
     }
