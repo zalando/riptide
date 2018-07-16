@@ -67,7 +67,7 @@ public final class FailsafePlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments originalArguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         return arguments -> {
             @Nullable final SyncFailsafe<Object> failsafe = select(retryPolicy, circuitBreaker, arguments);
 

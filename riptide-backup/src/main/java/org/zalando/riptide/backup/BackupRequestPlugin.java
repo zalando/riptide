@@ -51,12 +51,14 @@ public final class BackupRequestPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestArguments arguments, final RequestExecution execution) {
-        if (safe.test(arguments)) {
-            return withBackup(execution, arguments);
-        }
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> {
+            if (safe.test(arguments)) {
+                return withBackup(execution, arguments);
+            }
 
-        return execution;
+            return execution.execute(arguments);
+        };
     }
 
     private CompletableFuture<ClientHttpResponse> withBackup(final RequestExecution execution,
