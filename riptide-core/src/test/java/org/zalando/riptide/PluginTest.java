@@ -11,7 +11,6 @@ import java.util.function.BiFunction;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -88,22 +87,6 @@ public final class PluginTest {
             assertThat(throwable, is(instanceOf(IllegalArgumentException.class)));
             assertThat(throwable.getCause(), is(instanceOf(IllegalStateException.class)));
             assertThat(throwable.getCause().getCause(), is(instanceOf(NoSuchElementException.class)));
-        }
-    }
-
-    @Test
-    public void identityShouldReturnAsIs() {
-        final RequestArguments arguments = mock(RequestArguments.class);
-        final RequestExecution expected = mock(RequestExecution.class);
-
-        {
-            final RequestExecution actual = IdentityPlugin.IDENTITY.interceptBeforeRouting(arguments, expected);
-            assertThat(actual, is(sameInstance(expected)));
-        }
-
-        {
-            final RequestExecution actual = IdentityPlugin.IDENTITY.prepare(arguments, expected);
-            assertThat(actual, is(sameInstance(expected)));
         }
     }
 

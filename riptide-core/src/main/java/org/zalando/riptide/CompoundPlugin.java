@@ -1,23 +1,35 @@
 package org.zalando.riptide;
 
+import java.util.Collection;
+
 final class CompoundPlugin implements Plugin {
 
-    private final Plugin left;
-    private final Plugin right;
+    private final Collection<Plugin> plugins;
 
-    public CompoundPlugin(final Plugin left, final Plugin right) {
-        this.left = left;
-        this.right = right;
+    CompoundPlugin(final Collection<Plugin> plugins) {
+        this.plugins = plugins;
     }
 
     @Override
     public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
-        return right.interceptBeforeRouting(arguments, left.interceptBeforeRouting(arguments, execution));
+        RequestExecution result = execution;
+
+        for (final Plugin plugin : plugins) {
+            result = plugin.interceptBeforeRouting(arguments, result);
+        }
+
+        return result;
     }
 
     @Override
     public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return right.prepare(arguments, left.prepare(arguments, execution));
+        RequestExecution result = execution;
+
+        for (final Plugin plugin : plugins) {
+            result = plugin.prepare(arguments, result);
+        }
+
+        return result;
     }
 
 }

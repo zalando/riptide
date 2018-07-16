@@ -32,7 +32,7 @@ public interface Plugin {
     }
 
     static Plugin compound(final List<Plugin> plugins) {
-        return plugins.stream().reduce(CompoundPlugin::new).orElse(IdentityPlugin.IDENTITY);
+        return new CompoundPlugin(plugins);
     }
 
 }

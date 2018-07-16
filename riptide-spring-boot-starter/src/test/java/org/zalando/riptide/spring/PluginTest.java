@@ -125,12 +125,17 @@ public final class PluginTest {
     }
 
     private List<Plugin> getPlugins(final Http http) throws Exception {
-        final Field field = http.getClass().getDeclaredField("plugins");
+        final Field field = http.getClass().getDeclaredField("plugin");
         field.setAccessible(true);
 
-        @SuppressWarnings("unchecked") final List<Plugin> plugins = (List<Plugin>) field.get(http);
+        @SuppressWarnings("unchecked") final Plugin plugin = (Plugin) field.get(http);
 
-        return plugins;
+        final Field plugins = plugin.getClass().getDeclaredField("plugins");
+        plugins.setAccessible(true);
+
+        @SuppressWarnings("unchecked") final List<Plugin> list = (List<Plugin>) plugins.get(plugin);
+
+        return list;
     }
 
 }
