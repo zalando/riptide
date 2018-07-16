@@ -57,9 +57,6 @@
         <module>riptide-httpclient</module>
         <module>riptide-metrics</module>
         <module>riptide-problem</module>
-        <module>riptide-spring-boot-1.x-support</module>
-        <module>riptide-spring-boot-2.x-support</module>
-        <module>riptide-spring-boot-api</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
         <module>riptide-timeout</module>
@@ -118,21 +115,6 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-problem</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-1.x-support</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-2.x-support</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -619,13 +601,6 @@
     </distributionManagement>
 
     <profiles>
-        <profile>
-            <id>spring4</id>
-            <properties>
-                <spring.version>4.3.18.RELEASE</spring.version>
-                <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
-            </properties>
-        </profile>
         <profile>
             <id>release</id>
             <build>
