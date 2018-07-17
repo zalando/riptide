@@ -12,9 +12,9 @@ import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.metrics.MetricsPlugin;
 
-final class Metrics {
+final class MetricsPluginFactory {
 
-    private Metrics() {
+    private MetricsPluginFactory() {
 
     }
 

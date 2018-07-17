@@ -54,11 +54,11 @@ public final class FailsafePlugin implements Plugin {
         return new FailsafePlugin(scheduler, detector, retryPolicy, circuitBreaker, listener);
     }
 
-    public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
+    public FailsafePlugin withRetryPolicy(@Nullable final RetryPolicy retryPolicy) {
         return new FailsafePlugin(scheduler, idempotent, retryPolicy, circuitBreaker, listener);
     }
 
-    public FailsafePlugin withCircuitBreaker(final CircuitBreaker circuitBreaker) {
+    public FailsafePlugin withCircuitBreaker(@Nullable final CircuitBreaker circuitBreaker) {
         return new FailsafePlugin(scheduler, idempotent, retryPolicy, circuitBreaker, listener);
     }
 

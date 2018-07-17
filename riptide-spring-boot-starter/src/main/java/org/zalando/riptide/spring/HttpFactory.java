@@ -8,13 +8,13 @@ import org.zalando.riptide.UrlResolution;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 final class HttpFactory {
 
     private HttpFactory() {
 
     }
 
-    @SuppressWarnings("unused")
     public static Http create(
             final String baseUrl,
             final UrlResolution urlResolution,

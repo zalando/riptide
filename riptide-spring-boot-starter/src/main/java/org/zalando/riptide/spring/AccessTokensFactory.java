@@ -1,8 +1,5 @@
 package org.zalando.riptide.spring;
 
-import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.zalando.riptide.spring.RiptideProperties.Client.OAuth;
-import org.zalando.riptide.spring.RiptideProperties.GlobalOAuth;
 import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.stups.tokens.AccessTokensBuilder;
 import org.zalando.stups.tokens.JsonFileBackedClientCredentialsProvider;
@@ -16,19 +13,22 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
+@SuppressWarnings("unused")
+final class AccessTokensFactory {
 
-    private AccessTokensBuilder builder;
+    private AccessTokensFactory() {
 
-    AccessTokensFactoryBean(final RiptideProperties properties) {
-        final GlobalOAuth oAuth = properties.getOauth();
+    }
+
+    public static AccessTokens createAccessTokens(final RiptideProperties properties) {
+        final RiptideProperties.GlobalOAuth oAuth = properties.getOauth();
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
         @Nullable final Path directory = oAuth.getCredentialsDirectory();
         final TimeSpan connectTimeout = oAuth.getConnectTimeout();
         final TimeSpan socketTimeout = oAuth.getSocketTimeout();
 
-        this.builder = Tokens.createAccessTokensWithUri(accessTokenUrl)
+        final AccessTokensBuilder builder = Tokens.createAccessTokensWithUri(accessTokenUrl)
                 .usingClientCredentialsProvider(getClientCredentialsProvider(directory))
                 .usingUserCredentialsProvider(getUserCredentialsProvider(directory))
                 .schedulingPeriod((int) oAuth.getSchedulingPeriod().getAmount())
@@ -37,7 +37,7 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
                 .socketTimeout((int) socketTimeout.to(TimeUnit.MILLISECONDS));
 
         properties.getClients().forEach((id, client) -> {
-            @Nullable final OAuth clientOAuth = client.getOauth();
+            @Nullable final RiptideProperties.Client.OAuth clientOAuth = client.getOauth();
 
             if (clientOAuth == null) {
                 return;
@@ -47,21 +47,23 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
                     .addScopesTypeSafe(clientOAuth.getScopes())
                     .done();
         });
+
+        return builder.start();
     }
 
-    private JsonFileBackedClientCredentialsProvider getClientCredentialsProvider(@Nullable final Path directory) {
+    private static JsonFileBackedClientCredentialsProvider getClientCredentialsProvider(@Nullable final Path directory) {
         return directory == null ?
                 new JsonFileBackedClientCredentialsProvider() :
                 new JsonFileBackedClientCredentialsProvider(directory.resolve("client.json").toFile());
     }
 
-    private JsonFileBackedUserCredentialsProvider getUserCredentialsProvider(@Nullable final Path directory) {
+    private static JsonFileBackedUserCredentialsProvider getUserCredentialsProvider(@Nullable final Path directory) {
         return directory == null ?
                 new JsonFileBackedUserCredentialsProvider() :
                 new JsonFileBackedUserCredentialsProvider(directory.resolve("user.json").toFile());
     }
 
-    private URI getAccessTokenUrl(final GlobalOAuth oauth) {
+    private static URI getAccessTokenUrl(final RiptideProperties.GlobalOAuth oauth) {
         @Nullable final URI accessTokenUrl = oauth.getAccessTokenUrl();
 
         checkArgument(accessTokenUrl != null, "" +
@@ -69,21 +71,6 @@ final class AccessTokensFactoryBean extends AbstractFactoryBean<AccessTokens> {
                 "but at least one client requires OAuth");
 
         return accessTokenUrl;
-    }
-
-    @Override
-    protected AccessTokens createInstance() {
-        return builder.start();
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return AccessTokens.class;
-    }
-
-    @Override
-    protected void destroyInstance(final AccessTokens tokens) {
-        tokens.stop();
     }
 
 }
