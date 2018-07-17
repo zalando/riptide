@@ -12,7 +12,9 @@ import org.zalando.riptide.model.Success;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
@@ -50,7 +52,8 @@ public final class ExecuteTest {
 
         unit.trace(url)
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
 
         server.verify();
     }
@@ -72,7 +75,8 @@ public final class ExecuteTest {
                 .ifMatch("A", "B", "C")
                 .ifNoneMatch("X", "Y", "Z")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
 
         server.verify();
     }
@@ -85,7 +89,8 @@ public final class ExecuteTest {
 
         unit.post(url)
                 .body(ImmutableMap.of("foo", "bar"))
-                .dispatch(contentType());
+                .call(pass())
+                .join();
 
         server.verify();
     }
@@ -100,14 +105,16 @@ public final class ExecuteTest {
         unit.put(url)
                 .header("X-Foo", "bar")
                 .body(ImmutableMap.of("foo", "bar"))
-                .dispatch(contentType());
+                .call(pass())
+                .join();
 
         server.verify();
     }
 
     @Test
     public void shouldFailIfNoConverterFoundForBody() {
-        exception.expect(RestClientException.class);
+        exception.expect(CompletionException.class);
+        exception.expectCause(instanceOf(RestClientException.class));
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
         exception.expectMessage("application/xml");
@@ -120,7 +127,8 @@ public final class ExecuteTest {
                 .accept(APPLICATION_JSON)
                 .contentType(APPLICATION_XML)
                 .body(new Success(true))
-                .dispatch(contentType());
+                .dispatch(contentType())
+                .join();
     }
 
     @Test
@@ -134,20 +142,21 @@ public final class ExecuteTest {
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
 
-        exception.expect(RestClientException.class);
+        exception.expect(CompletionException.class);
+        exception.expectCause(instanceOf(RestClientException.class));
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
 
         unit.delete(url)
                 .body(new Success(true))
-                .dispatch(contentType());
-
-        server.verify();
+                .dispatch(contentType())
+                .join();
     }
 
     @Test
     public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() {
-        exception.expect(RestClientException.class);
+        exception.expect(CompletionException.class);
+        exception.expectCause(instanceOf(RestClientException.class));
         exception.expectMessage("no suitable HttpMessageConverter found ");
         exception.expectMessage("org.zalando.riptide.model.Success");
 
@@ -158,7 +167,8 @@ public final class ExecuteTest {
         unit.delete(url)
                 .contentType(MediaType.parseMediaType("application/x-json-stream"))
                 .body(new Success(true))
-                .dispatch(contentType());
+                .dispatch(contentType())
+                .join();
     }
 
 }
