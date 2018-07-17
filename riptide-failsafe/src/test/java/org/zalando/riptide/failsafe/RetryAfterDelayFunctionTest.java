@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import com.google.common.base.Stopwatch;
+import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -57,6 +58,7 @@ public class RetryAfterDelayFunctionTest {
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                    .withCircuitBreaker(new CircuitBreaker())
                     .withRetryPolicy(new RetryPolicy()
                             .withDelay(2, SECONDS)
                             .withDelay(new RetryAfterDelayFunction(clock))

@@ -24,86 +24,90 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
-@API(status = STABLE)
-@AllArgsConstructor(access = PRIVATE)
-public final class FailsafePlugin implements Plugin {
+@API(status = MAINTAINED)
+@AllArgsConstructor
+public final class FailsafePlugin {
 
     private final ScheduledExecutorService scheduler;
-    private final MethodDetector idempotent;
-    private final RetryPolicy retryPolicy;
-    private final CircuitBreaker circuitBreaker;
-    private final RetryListener listener;
 
-    public FailsafePlugin(final ScheduledExecutorService scheduler) {
-        this(scheduler, MethodDetector.compound(
-                new DefaultIdempotentMethodDetector(MethodDetector.compound(
-                        new DefaultSafeMethodDetector(),
-                        new OverrideSafeMethodDetector()
-                )),
-                new ConditionalIdempotentMethodDetector(),
-                new IdempotencyKeyIdempotentMethodDetector()
-        ), null, null, RetryListener.DEFAULT);
+    public Implementation withRetryPolicy(final RetryPolicy retryPolicy) {
+        return new Implementation(retryPolicy, null);
     }
 
-    public FailsafePlugin withIdempotentMethodDetector(final MethodDetector detector) {
-        return new FailsafePlugin(scheduler, detector, retryPolicy, circuitBreaker, listener);
+    public Implementation withCircuitBreaker(final CircuitBreaker circuitBreaker) {
+        return new Implementation(null, circuitBreaker);
     }
 
-    public FailsafePlugin withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new FailsafePlugin(scheduler, idempotent, retryPolicy, circuitBreaker, listener);
-    }
+    @AllArgsConstructor(access = PRIVATE)
+    public final class Implementation implements Plugin {
 
-    public FailsafePlugin withCircuitBreaker(final CircuitBreaker circuitBreaker) {
-        return new FailsafePlugin(scheduler, idempotent, retryPolicy, circuitBreaker, listener);
-    }
+        private final MethodDetector idempotent;
+        private final RetryPolicy retryPolicy;
+        private final CircuitBreaker circuitBreaker;
+        private final RetryListener listener;
 
-    public FailsafePlugin withListener(final RetryListener listener) {
-        return new FailsafePlugin(scheduler, idempotent, retryPolicy, circuitBreaker, listener);
-    }
+        private Implementation(@Nullable final RetryPolicy retryPolicy, @Nullable final CircuitBreaker circuitBreaker) {
+            this(MethodDetector.compound(
+                    new DefaultIdempotentMethodDetector(MethodDetector.compound(
+                            new DefaultSafeMethodDetector(),
+                            new OverrideSafeMethodDetector()
+                    )),
+                    new ConditionalIdempotentMethodDetector(),
+                    new IdempotencyKeyIdempotentMethodDetector()
+            ), retryPolicy, circuitBreaker, RetryListener.DEFAULT);
+        }
 
-    @Override
-    public RequestExecution beforeDispatch(final RequestExecution execution) {
-        return arguments -> {
-            @Nullable final SyncFailsafe<Object> failsafe = select(retryPolicy, circuitBreaker, arguments);
+        public Implementation withIdempotentMethodDetector(final MethodDetector idempotent) {
+            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
+        }
 
-            if (failsafe == null) {
-                // TODO https://github.com/zalando/riptide/issues/442
-                return execution.execute(arguments);
+        public Implementation withRetryPolicy(final RetryPolicy retryPolicy) {
+            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
+        }
+
+        public Implementation withCircuitBreaker(final CircuitBreaker circuitBreaker) {
+            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
+        }
+
+        public Implementation withListener(final RetryListener listener) {
+            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
+        }
+
+        @Override
+        public RequestExecution beforeDispatch(final RequestExecution execution) {
+            return arguments -> {
+                final SyncFailsafe<Object> failsafe = select(
+                        idempotent.test(arguments) ? retryPolicy : null, circuitBreaker);
+
+                final CompletableFuture<ClientHttpResponse> original = failsafe
+                        .with(scheduler)
+                        .with(new RetryListenersAdapter(listener, arguments))
+                        .future(() -> execution.execute(arguments));
+
+                final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
+                original.whenComplete(forwardTo(cancelable));
+                return cancelable;
+            };
+        }
+
+        private SyncFailsafe<Object> select(@Nullable final RetryPolicy retryPolicy,
+                @Nullable final CircuitBreaker circuitBreaker) {
+
+            if (retryPolicy == null) {
+                return Failsafe.with(requireNonNull(circuitBreaker));
+            } else if (circuitBreaker == null) {
+                return Failsafe.with(retryPolicy);
+            } else {
+                return Failsafe.with(retryPolicy).with(circuitBreaker);
             }
-
-            final CompletableFuture<ClientHttpResponse> original = failsafe
-                    .with(scheduler)
-                    .with(new RetryListenersAdapter(listener, arguments))
-                    .future(() -> execution.execute(arguments));
-
-            final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
-            original.whenComplete(forwardTo(cancelable));
-            return cancelable;
-        };
-    }
-
-    @Nullable
-    private SyncFailsafe<Object> select(@Nullable final RetryPolicy retryPolicy,
-            @Nullable final CircuitBreaker circuitBreaker, final RequestArguments arguments) {
-
-        if (retryPolicy != null && !idempotent.test(arguments)) {
-            return select(null, circuitBreaker, arguments);
         }
 
-        if (retryPolicy == null && circuitBreaker == null) {
-            return null;
-        } else if (retryPolicy == null) {
-            return Failsafe.with(circuitBreaker);
-        } else if (circuitBreaker == null) {
-            return Failsafe.with(retryPolicy);
-        } else {
-            return Failsafe.with(retryPolicy).with(circuitBreaker);
-        }
     }
 
     @VisibleForTesting
