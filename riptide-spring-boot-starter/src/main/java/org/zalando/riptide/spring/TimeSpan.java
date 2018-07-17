@@ -27,7 +27,6 @@ final class TimeSpan {
     private final long amount;
     private final TimeUnit unit;
 
-    // used by SnakeYAML
     @SuppressWarnings("unused")
     public TimeSpan(final String value) {
         this(TimeSpan.valueOf(value));
