@@ -8,11 +8,11 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Completion;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -37,9 +37,10 @@ public final class BackupRequestPluginTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor(Executors.newFixedThreadPool(2));
-    private final AsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final ClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http unit = Http.builder()
+            .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
@@ -125,6 +126,7 @@ public final class BackupRequestPluginTest {
     @Test
     public void shouldSendBackupRequestForCustomSafeDetectedRequest() throws Throwable {
         final Http unit = Http.builder()
+                .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
                 .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor)

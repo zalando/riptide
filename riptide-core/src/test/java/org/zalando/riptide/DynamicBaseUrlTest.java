@@ -44,11 +44,13 @@ public class DynamicBaseUrlTest {
 
         unit.get("/123")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
 
         unit.get("/123")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
 
         server.verify();
         verify(baseUrlProviderMock, times(2)).get();

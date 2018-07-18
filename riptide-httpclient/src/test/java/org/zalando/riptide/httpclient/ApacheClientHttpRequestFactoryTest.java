@@ -15,7 +15,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
@@ -52,7 +52,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Types.listOf;
 
-public final class RestAsyncClientHttpRequestFactoryTest {
+public final class ApacheClientHttpRequestFactoryTest {
 
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
@@ -68,9 +68,10 @@ public final class RestAsyncClientHttpRequestFactoryTest {
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http http = Http.builder()
+            .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
@@ -104,6 +105,8 @@ public final class RestAsyncClientHttpRequestFactoryTest {
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
                 }).getBody();
 
+        Objects.requireNonNull(users);
+
         final List<String> names = users.stream()
                 .map(User::getLogin)
                 .collect(toList());
@@ -131,12 +134,12 @@ public final class RestAsyncClientHttpRequestFactoryTest {
     }
 
     @Test
-    public void shouldReadContributorsManually() throws IOException, ExecutionException, InterruptedException {
+    public void shouldReadContributorsManually() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors").withMethod(Method.POST),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final URI uri = URI.create(driver.getBaseUrl()).resolve("/repos/zalando/riptide/contributors");
-        final AsyncClientHttpRequest request = factory.createAsyncRequest(uri, POST);
+        final ClientHttpRequest request = factory.createRequest(uri, POST);
 
         request.getHeaders().setAccept(singletonList(APPLICATION_JSON));
         request.getBody().write("{}".getBytes(UTF_8));
@@ -146,7 +149,7 @@ public final class RestAsyncClientHttpRequestFactoryTest {
         assertThat(request.getURI(), hasToString(endsWith("/repos/zalando/riptide/contributors")));
         assertThat(request.getHeaders().getAccept(), hasItem(APPLICATION_JSON));
 
-        final ClientHttpResponse response = request.executeAsync().get();
+        final ClientHttpResponse response = request.execute();
 
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertThat(response.getRawStatusCode(), is(200));
