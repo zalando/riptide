@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -71,7 +72,8 @@ public final class StackTraceTest {
 
     private Http.ConfigurationStage configureRest() {
         return Http.builder()
-                .simpleRequestFactory(executor)
+                .executor(executor)
+                .requestFactory(new SimpleClientHttpRequestFactory())
                 .baseUrl(driver.getBaseUrl());
     }
 

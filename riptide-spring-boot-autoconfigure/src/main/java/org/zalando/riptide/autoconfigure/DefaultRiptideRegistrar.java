@@ -16,6 +16,7 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -34,8 +35,8 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.stream.Streams;
@@ -70,29 +71,19 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         properties.getClients().forEach((id, client) -> {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
             final BeanDefinition converters = registerHttpMessageConverters(id);
-            final String baseUrl = client.getBaseUrl();
             final List<String> plugins = registerPlugins(id, client);
 
             registerHttp(id, client, factoryId, converters, plugins);
-            registerTemplate(id, RestTemplate.class, factoryId, baseUrl, converters, plugins);
-            registerTemplate(id, AsyncRestTemplate.class, factoryId, baseUrl, converters, plugins);
+            registerRestTemplate(id, factoryId, client, converters, plugins);
+            registerAsyncRestTemplate(id, factoryId, client, converters, plugins);
         });
     }
 
     private String registerAsyncClientHttpRequestFactory(final String id, final Client client) {
-        return registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () -> {
+        return registry.registerIfAbsent(id, ClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
-
-            final BeanDefinitionBuilder factory =
-                    genericBeanDefinition(RestAsyncClientHttpRequestFactory.class);
-
-            factory.addConstructorArgReference(registerHttpClient(id, client));
-            factory.addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
-                    // we allow users to use their own ExecutorService, but they don't have to configure tracing
-                    .addConstructorArgValue(registerExecutor(id, client))
-                    .getBeanDefinition());
-
-            return factory;
+            return genericBeanDefinition(ApacheClientHttpRequestFactory.class)
+                    .addConstructorArgReference(registerHttpClient(id, client));
         });
     }
 
@@ -172,9 +163,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             return genericBeanDefinition(HttpFactory.class)
                     .setFactoryMethod("create")
+                    .addConstructorArgValue(registerExecutor(id, client))
+                    .addConstructorArgReference(factoryId)
                     .addConstructorArgValue(client.getBaseUrl())
                     .addConstructorArgValue(client.getUrlResolution())
-                    .addConstructorArgReference(factoryId)
                     .addConstructorArgValue(converters)
                     .addConstructorArgValue(plugins.stream()
                             .map(Registry::ref)
@@ -182,27 +174,51 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
     }
 
-    private void registerTemplate(final String id, final Class<?> type, final String factoryId,
-            @Nullable final String baseUrl, final BeanDefinition converters, final List<String> plugins) {
-        registry.registerIfAbsent(id, type, () -> {
-            log.debug("Client [{}]: Registering AsyncRestTemplate", id);
+    private void registerRestTemplate(final String id, final String factoryId, final Client client,
+            final BeanDefinition converters, final List<String> plugins) {
+        registry.registerIfAbsent(id, RestTemplate.class, () -> {
+            log.debug("Client [{}]: Registering RestTemplate", id);
 
-            final DefaultUriBuilderFactory factory = baseUrl == null ?
-                    new DefaultUriBuilderFactory() :
-                    new DefaultUriBuilderFactory(baseUrl);
-
-            final BeanDefinitionBuilder template = genericBeanDefinition(type);
+            final BeanDefinitionBuilder template = genericBeanDefinition(RestTemplate.class);
             template.addConstructorArgReference(factoryId);
-            template.addPropertyValue("uriTemplateHandler", factory);
-            template.addPropertyValue("messageConverters", converters);
-            template.addPropertyValue("interceptors", plugins.stream()
-                    .map(plugin -> genericBeanDefinition(PluginInterceptor.class)
-                            .addConstructorArgReference(plugin)
-                            .getBeanDefinition())
-                    .collect(toCollection(Registry::list)));
+            configureTemplate(template, client.getBaseUrl(), converters, plugins);
 
             return template;
         });
+    }
+
+    private void registerAsyncRestTemplate(final String id, final String factoryId, final Client client,
+            final BeanDefinition converters, final List<String> plugins) {
+        registry.registerIfAbsent(id, AsyncRestTemplate.class, () -> {
+            log.debug("Client [{}]: Registering AsyncRestTemplate", id);
+
+            final BeanDefinitionBuilder template = genericBeanDefinition(AsyncRestTemplate.class);
+            template.addConstructorArgReference(registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () ->
+                    genericBeanDefinition(ConcurrentClientHttpRequestFactory.class)
+                            .addConstructorArgReference(factoryId)
+                            .addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
+                                    .addConstructorArgValue(registerExecutor(id, client))
+                                    .getBeanDefinition())));
+            template.addConstructorArgReference(factoryId);
+            configureTemplate(template, client.getBaseUrl(), converters, plugins);
+
+            return template;
+        });
+    }
+
+    private void configureTemplate(final BeanDefinitionBuilder template, @Nullable final String baseUrl,
+            final BeanDefinition converters,
+            final List<String> plugins) {
+        final DefaultUriBuilderFactory factory = baseUrl == null ?
+                new DefaultUriBuilderFactory() :
+                new DefaultUriBuilderFactory(baseUrl);
+        template.addPropertyValue("uriTemplateHandler", factory);
+        template.addPropertyValue("messageConverters", converters);
+        template.addPropertyValue("interceptors", plugins.stream()
+                .map(plugin -> genericBeanDefinition(PluginInterceptor.class)
+                        .addConstructorArgReference(plugin)
+                        .getBeanDefinition())
+                .collect(toCollection(Registry::list)));
     }
 
     private String findObjectMapper(final String id) {

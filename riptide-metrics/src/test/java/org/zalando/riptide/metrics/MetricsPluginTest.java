@@ -17,6 +17,7 @@ import org.zalando.riptide.Http;
 import javax.annotation.Nullable;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -43,6 +44,7 @@ public class MetricsPluginTest {
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
     private final Http unit = Http.builder()
+            .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())

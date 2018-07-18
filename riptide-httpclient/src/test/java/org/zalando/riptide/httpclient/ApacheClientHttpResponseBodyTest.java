@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RestAsyncClientHttpResponseBodyTest {
+public class ApacheClientHttpResponseBodyTest {
 
     @Test
     public void shouldCallCloseOnNormalStreams() throws IOException {
@@ -19,7 +19,7 @@ public class RestAsyncClientHttpResponseBodyTest {
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
-        try (RestAsyncClientHttpResponse unit = new RestAsyncClientHttpResponse(response)) {
+        try (ApacheClientHttpResponse unit = new ApacheClientHttpResponse(response)) {
             unit.getBody().close();
         }
 
@@ -32,7 +32,7 @@ public class RestAsyncClientHttpResponseBodyTest {
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
-        try (RestAsyncClientHttpResponse unit = new RestAsyncClientHttpResponse(response)) {
+        try (ApacheClientHttpResponse unit = new ApacheClientHttpResponse(response)) {
             unit.getBody().close();
         }
 

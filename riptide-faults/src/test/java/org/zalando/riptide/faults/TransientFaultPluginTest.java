@@ -13,7 +13,7 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -52,7 +52,7 @@ public final class TransientFaultPluginTest {
             .build();
 
     private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     @After
     public void tearDown() throws IOException {
@@ -136,6 +136,7 @@ public final class TransientFaultPluginTest {
 
     private Http newUnit(final Plugin... plugins) {
         return Http.builder()
+                .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
                 .plugins(Arrays.asList(plugins))

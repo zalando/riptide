@@ -10,7 +10,6 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
@@ -36,7 +35,8 @@ public class RequesterTest {
 
         unit.get("/123")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -45,7 +45,8 @@ public class RequesterTest {
 
         unit.get("/{id}", 123)
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -54,7 +55,8 @@ public class RequesterTest {
 
         unit.get("/{parent}/{child}", 123, "456")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -66,7 +68,8 @@ public class RequesterTest {
 
         unit.get("https://example.com/posts/{id}?filter={filter}", postId, filter)
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -75,7 +78,8 @@ public class RequesterTest {
 
         unit.get("https://ru.wikipedia.org/wiki/{article-name}", "Отбойное_течение")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -84,7 +88,8 @@ public class RequesterTest {
 
         unit.get("https://ru.wiktionary.org/w/index.php?title={title}&bookcmd=book_creator&referer={referer}", "Служебная:Коллекция_книг", "Заглавная страница")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -99,7 +104,8 @@ public class RequesterTest {
                         "bar", "null"
                 ))
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -111,7 +117,8 @@ public class RequesterTest {
                 .queryParam("bookcmd", "book_creator")
                 .queryParam("referer", "Заглавная страница")
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -143,7 +150,8 @@ public class RequesterTest {
         unit.get("/123")
                 .headers(new HttpHeaders())
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
     @Test
@@ -152,7 +160,8 @@ public class RequesterTest {
 
         unit.get("/123")
                 .body("deadbody")
-                .dispatch(contentType());
+                .call(pass())
+                .join();
     }
 
     @Test
@@ -162,7 +171,8 @@ public class RequesterTest {
         unit.get("/123")
                 .headers(new HttpHeaders())
                 .body("deadbody")
-                .dispatch(contentType());
+                .call(pass())
+                .join();
     }
 
     private void expectRequestTo(final String url) {

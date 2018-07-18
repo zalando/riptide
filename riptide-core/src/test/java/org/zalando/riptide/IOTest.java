@@ -9,12 +9,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -50,16 +47,11 @@ public final class IOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
-            .requestFactory(createRequestFactory(executor))
+            .executor(executor)
+            .requestFactory(new SimpleClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .build();
-
-    private static SimpleClientHttpRequestFactory createRequestFactory(final Executor executor) {
-        final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
-        return factory;
-    }
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -92,7 +84,7 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws ExecutionException, InterruptedException {
+    public void shouldCancelRequest() throws InterruptedException {
         // TODO: support proper cancellations and remove this expectation
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 

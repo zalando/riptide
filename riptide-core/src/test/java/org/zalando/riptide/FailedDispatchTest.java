@@ -178,7 +178,8 @@ public final class FailedDispatchTest {
                                         on(TEXT_PLAIN).call(pass())),
                                 on(ACCEPTED).call(pass()),
                                 anyStatus().call(consumer)),
-                        on(CLIENT_ERROR).call(pass()));
+                        on(CLIENT_ERROR).call(pass()))
+                .join();
 
         verify(consumer).tryAccept(any());
     }
@@ -200,7 +201,8 @@ public final class FailedDispatchTest {
                                         on(TEXT_PLAIN).call(pass())),
                                 on(ACCEPTED).call(pass())),
                         on(CLIENT_ERROR).call(pass()),
-                        anySeries().call(consumer));
+                        anySeries().call(consumer))
+                .join();
 
         verify(consumer).tryAccept(any());
     }

@@ -87,7 +87,8 @@ public class UriTemplateArgTest {
 
         this.unit.get(uriTemplate, uriVariables)
                 .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()));
+                        on(SUCCESSFUL).call(pass()))
+                .join();
     }
 
 }

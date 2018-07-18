@@ -8,10 +8,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import javax.annotation.Nullable;
@@ -21,14 +20,17 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
+import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
 @API(status = STABLE)
 public final class Requester extends Dispatcher {
 
-    private final AsyncClientHttpRequestFactory requestFactory;
+    private final Executor executor;
+    private final ClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final RequestArguments arguments;
     private final Plugin plugin;
@@ -36,9 +38,11 @@ public final class Requester extends Dispatcher {
     private final ImmutableMultimap<String, String> query;
     private final HttpHeaders headers;
 
-    Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final Plugin plugin, final ImmutableMultimap<String,String> query,
+    Requester(final Executor executor, final ClientHttpRequestFactory requestFactory,
+            final MessageWorker worker, final RequestArguments arguments, final Plugin plugin,
+            final ImmutableMultimap<String, String> query,
             final HttpHeaders headers) {
+        this.executor = executor;
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
@@ -47,8 +51,10 @@ public final class Requester extends Dispatcher {
         this.headers = headers;
     }
 
-    private Requester(final Requester requester, final ImmutableMultimap<String,String> query, final HttpHeaders headers) {
-        this(requester.requestFactory, requester.worker, requester.arguments, requester.plugin, query, headers);
+    private Requester(final Requester requester, final ImmutableMultimap<String,String> query,
+            final HttpHeaders headers) {
+        this(requester.executor, requester.requestFactory, requester.worker, requester.arguments,
+                requester.plugin, query, headers);
     }
 
     public Requester queryParam(final String name, final String value) {
@@ -154,34 +160,35 @@ public final class Requester extends Dispatcher {
 
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
-            try {
-                final RequestExecution before = plugin.beforeSend(this::send);
-                final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
+            final RequestExecution before = plugin.beforeSend(this::send);
+            final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
 
-                return after.execute(arguments);
-            } catch (final Exception e) {
-                // for issues that occur before the future was successfully created, i.e. request being sent
-                final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
-                future.completeExceptionally(e);
-                return future;
-            }
+            // TODO get rid of this
+            return throwingFunction(after::execute).apply(arguments);
         }
 
-        private CompletableFuture<ClientHttpResponse> send(final RequestArguments arguments) throws IOException {
-            final AsyncClientHttpRequest request = createRequest(arguments);
-            // TODO do this in the IO thread!
-            worker.write(request, entity);
-            final ListenableFuture<ClientHttpResponse> original = request.executeAsync();
+        private CompletableFuture<ClientHttpResponse> send(final RequestArguments arguments) {
+            final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
 
-            final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
-            original.addCallback(future::complete, future::completeExceptionally);
+            executor.execute(throwingRunnable(() -> {
+                try {
+                    final ClientHttpRequest request = createRequest(arguments);
+
+                    worker.write(request, entity);
+
+                    future.complete(request.execute());
+                } catch (final Exception e) {
+                    future.completeExceptionally(e);
+                }
+            }));
+
             return future;
         }
 
-        private AsyncClientHttpRequest createRequest(final RequestArguments arguments) throws IOException {
+        private ClientHttpRequest createRequest(final RequestArguments arguments) throws IOException {
             final URI requestUri = arguments.getRequestUri();
             final HttpMethod method = arguments.getMethod();
-            return requestFactory.createAsyncRequest(requestUri, method);
+            return requestFactory.createRequest(requestUri, method);
         }
 
         private RequestExecution dispatch(final RequestExecution execution, final Route route) {

@@ -103,7 +103,8 @@ public final class RouteTest {
         final AtomicReference<InputStream> body = new AtomicReference<>();
 
         unit.get(url).call(((response, reader) ->
-                body.set(response.getBody())));
+                body.set(response.getBody())))
+                .join();
 
         // read response outside of consumer/callback
         // to make sure the stream is still available
