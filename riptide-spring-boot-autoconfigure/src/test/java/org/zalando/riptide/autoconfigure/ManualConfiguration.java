@@ -17,7 +17,7 @@ import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -39,14 +39,14 @@ import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryException;
+import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
+import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import org.zalando.riptide.metrics.MetricsPlugin;
-import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
@@ -64,6 +64,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -115,10 +116,11 @@ public class ManualConfiguration {
     static class ExampleClientConfiguration {
 
         @Bean
-        public Http exampleHttp(final AsyncClientHttpRequestFactory requestFactory,
+        public Http exampleHttp(final Executor executor, final ClientHttpRequestFactory requestFactory,
                 final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
 
             return Http.builder()
+                    .executor(executor)
                     .requestFactory(requestFactory)
                     .baseUrl("https://www.example.com")
                     .urlResolution(UrlResolution.RFC)
@@ -182,13 +184,14 @@ public class ManualConfiguration {
         }
 
         @Bean
-        public AsyncRestTemplate exampleAsyncRestTemplate(final AsyncClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
+        public AsyncRestTemplate exampleAsyncRestTemplate(final ClientHttpRequestFactory requestFactory,
+                final Executor executor, final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
             final AsyncRestTemplate template = new AsyncRestTemplate();
 
+            final AsyncListenableTaskExecutor taskExecutor = new ConcurrentTaskExecutor(executor);
             final DefaultUriBuilderFactory handler = new DefaultUriBuilderFactory("https://www.example.com");
             template.setUriTemplateHandler(handler);
-            template.setAsyncRequestFactory(requestFactory);
+            template.setAsyncRequestFactory(new ConcurrentClientHttpRequestFactory(requestFactory, taskExecutor));
             template.setMessageConverters(converters.getConverters());
             template.setInterceptors(plugins.stream().map(PluginInterceptor::new).collect(toList()));
 
@@ -196,10 +199,9 @@ public class ManualConfiguration {
         }
 
         @Bean
-        public RestAsyncClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-                final AccessTokens tokens, final Tracer tracer, final Logbook logbook,
-                final ExecutorService executor) throws Exception {
-            return new RestAsyncClientHttpRequestFactory(
+        public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
+                final AccessTokens tokens, final Tracer tracer, final Logbook logbook) throws Exception {
+            return new ApacheClientHttpRequestFactory(
                     HttpClientBuilder.create()
                             .setDefaultRequestConfig(RequestConfig.custom()
                                     .setConnectTimeout(5000)
@@ -220,8 +222,7 @@ public class ManualConfiguration {
                                                     "password".toCharArray())
                                             .build(),
                                     getDefaultHostnameVerifier()))
-                            .build(),
-                    new ConcurrentTaskExecutor(executor));
+                            .build());
         }
 
         @Bean(destroyMethod = "shutdown")

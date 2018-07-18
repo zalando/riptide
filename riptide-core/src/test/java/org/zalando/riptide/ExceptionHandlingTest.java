@@ -32,24 +32,24 @@ public final class ExceptionHandlingTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         server.expect(requestTo("https://api.example.com/"))
                 .andRespond(withSuccess());
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         server.verify();
     }
 
     @Test
     public void shouldNotThrowIOExceptionWhenSettingBody() {
-        unit.get("/").body("body").call(tree);
+        unit.get("/").body("body").call(tree).join();
     }
 
     @Test
     public void shouldNotThrowIOExceptionWhenDispatchingWithoutBody() {
-        unit.get("/").call(tree);
+        unit.get("/").call(tree).join();
     }
 
     @Test

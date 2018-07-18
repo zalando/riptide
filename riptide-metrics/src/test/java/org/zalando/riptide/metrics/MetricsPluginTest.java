@@ -13,16 +13,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -49,13 +48,12 @@ public class MetricsPluginTest {
                     .setSocketTimeout(500)
                     .build())
             .build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
     private final Http unit = Http.builder()
-            .requestFactory(factory)
+            .executor(Executors.newSingleThreadExecutor())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new MetricsPlugin(registry)

@@ -2,16 +2,13 @@ package org.zalando.riptide;
 
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import static org.apiguardian.api.API.Status.STABLE;
@@ -26,7 +23,6 @@ import static org.apiguardian.api.API.Status.STABLE;
  *     .dispatch(..)}</pre>
  *
  * @see RestTemplate
- * @see AsyncRestTemplate
  */
 @API(status = STABLE)
 public interface Http {
@@ -67,17 +63,16 @@ public interface Http {
     Requester execute(HttpMethod method, URI uri);
     Requester execute(HttpMethod method);
 
-    static RequestFactoryStage builder() {
+    static ExecutorStage builder() {
         return new DefaultHttpBuilder();
     }
 
+    interface ExecutorStage {
+        RequestFactoryStage executor(Executor executor);
+    }
+
     interface RequestFactoryStage {
-        ConfigurationStage requestFactory(AsyncClientHttpRequestFactory requestFactory);
-        default ConfigurationStage simpleRequestFactory(final ExecutorService executor) {
-            final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            factory.setTaskExecutor(new ConcurrentTaskExecutor(executor));
-            return requestFactory(factory);
-        }
+        ConfigurationStage requestFactory(ClientHttpRequestFactory requestFactory);
     }
 
     interface ConfigurationStage extends FinalStage {
