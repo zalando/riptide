@@ -1,4 +1,4 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;

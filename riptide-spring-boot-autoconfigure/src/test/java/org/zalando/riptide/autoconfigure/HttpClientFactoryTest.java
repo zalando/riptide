@@ -1,12 +1,12 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.zalando.riptide.spring.RiptideProperties.Client.Keystore;
-import org.zalando.riptide.spring.RiptideProperties.Defaults;
-import org.zalando.riptide.spring.RiptideProperties.GlobalOAuth;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Client.Keystore;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
+import org.zalando.riptide.autoconfigure.RiptideProperties.GlobalOAuth;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

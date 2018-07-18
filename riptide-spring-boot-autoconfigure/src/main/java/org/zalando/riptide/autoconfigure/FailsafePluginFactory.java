@@ -1,4 +1,4 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.autoconfigure;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
