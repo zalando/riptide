@@ -52,6 +52,10 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-autoconfigure</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-spring-boot-starter</artifactId>
             </dependency>
             <dependency>
