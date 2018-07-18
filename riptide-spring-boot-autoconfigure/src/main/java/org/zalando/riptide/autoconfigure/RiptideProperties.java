@@ -99,7 +99,6 @@ public final class RiptideProperties {
         @Getter
         @Setter
         @NoArgsConstructor
-        @AllArgsConstructor
         public static final class OAuth {
             private List<String> scopes = new ArrayList<>();
 

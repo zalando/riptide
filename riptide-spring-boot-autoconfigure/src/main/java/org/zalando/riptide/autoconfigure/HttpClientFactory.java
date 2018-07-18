@@ -1,4 +1,4 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequestInterceptor;
@@ -9,7 +9,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.zalando.riptide.spring.RiptideProperties.Client;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
