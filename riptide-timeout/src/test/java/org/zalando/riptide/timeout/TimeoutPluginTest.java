@@ -8,14 +8,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -31,10 +31,11 @@ public class TimeoutPluginTest {
     public final ClientDriverRule driver = new ClientDriverRule();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final Executor executor = Executors.newCachedThreadPool();
+    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http unit = Http.builder()
+            .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())

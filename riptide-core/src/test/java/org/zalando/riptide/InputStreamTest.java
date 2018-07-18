@@ -9,13 +9,14 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
@@ -132,10 +133,11 @@ public final class InputStreamTest {
     private final MockRestServiceServer server;
 
     public InputStreamTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
+        final RestTemplate template = new RestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Http.builder()
-                .requestFactory(template.getAsyncRequestFactory())
+                .executor(Executors.newSingleThreadExecutor())
+                .requestFactory(template.getRequestFactory())
                 .converter(new InputStreamHttpMessageConverter())
                 .baseUrl("https://api.example.com")
                 .build();

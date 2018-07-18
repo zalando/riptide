@@ -12,12 +12,11 @@ import org.apache.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -52,11 +51,9 @@ public final class GzipHttpRequestInterceptorTest {
             .addInterceptorLast(new NonTextHttpRequestInterceptor(new GzipHttpRequestInterceptor()))
             .build();
 
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
-
     private final Http http = Http.builder()
-            .requestFactory(factory)
+            .executor(Executors.newSingleThreadExecutor())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .build();
 

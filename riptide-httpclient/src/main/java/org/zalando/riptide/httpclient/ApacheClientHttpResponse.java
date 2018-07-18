@@ -9,11 +9,11 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-final class RestAsyncClientHttpResponse implements ClientHttpResponse {
+final class ApacheClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;
 
-    RestAsyncClientHttpResponse(final ClientHttpResponse response) {
+    ApacheClientHttpResponse(final ClientHttpResponse response) {
         this.response = response;
     }
 

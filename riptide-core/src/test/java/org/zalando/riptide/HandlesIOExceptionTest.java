@@ -3,10 +3,11 @@ package org.zalando.riptide;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -25,12 +26,17 @@ public final class HandlesIOExceptionTest {
         exception.expectCause(instanceOf(IOException.class));
         exception.expectMessage("Could not create request");
 
-        final AsyncClientHttpRequestFactory factory = (uri, httpMethod) -> {
+        final ClientHttpRequestFactory factory = (uri, httpMethod) -> {
             throw new IOException("Could not create request");
         };
 
-        Http.builder().requestFactory(factory).defaultConverters().build()
-                .get("http://localhost/")
+        final Http unit = Http.builder()
+                .executor(Executors.newSingleThreadExecutor())
+                .requestFactory(factory)
+                .defaultConverters()
+                .build();
+
+        unit.get("http://localhost/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
                 .join();

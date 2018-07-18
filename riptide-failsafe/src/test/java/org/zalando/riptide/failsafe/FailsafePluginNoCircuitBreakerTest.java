@@ -12,10 +12,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -44,8 +43,8 @@ public class FailsafePluginNoCircuitBreakerTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
-            .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                    new ConcurrentTaskExecutor(newSingleThreadExecutor())))
+            .executor(newSingleThreadExecutor())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())

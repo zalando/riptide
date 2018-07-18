@@ -6,13 +6,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -66,7 +67,8 @@ final class MessageWorker implements MessageReader, MessageWriter {
     }
 
     @Override
-    public <T> void write(final AsyncClientHttpRequest request, final HttpEntity<T> entity) throws IOException {
+    public <T> void write(@Nonnull final ClientHttpRequest request, @Nonnull final HttpEntity<T> entity)
+            throws IOException {
         final HttpHeaders headers = entity.getHeaders();
         request.getHeaders().putAll(headers);
     
