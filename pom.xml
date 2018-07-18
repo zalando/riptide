@@ -57,6 +57,7 @@
         <module>riptide-httpclient</module>
         <module>riptide-metrics</module>
         <module>riptide-problem</module>
+        <module>riptide-spring-boot-autoconfigure</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
         <module>riptide-timeout</module>
@@ -115,6 +116,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-problem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-spring-boot-autoconfigure</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
