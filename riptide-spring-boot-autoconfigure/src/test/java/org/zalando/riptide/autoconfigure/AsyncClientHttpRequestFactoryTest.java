@@ -12,7 +12,7 @@ import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.stups.tokens.AccessTokens;
 
 import static org.hamcrest.Matchers.is;
@@ -46,12 +46,12 @@ public final class AsyncClientHttpRequestFactoryTest {
 
     @Test
     public void shouldAutowireSync() {
-        assertThat(sync.getClass(), is(RestAsyncClientHttpRequestFactory.class));
+        assertThat(sync.getClass(), is(ApacheClientHttpRequestFactory.class));
     }
 
     @Test
     public void shouldAutowireAsync() {
-        assertThat(async.getClass(), is(RestAsyncClientHttpRequestFactory.class));
+        assertThat(async.getClass(), is(ConcurrentClientHttpRequestFactory.class));
     }
 
 }

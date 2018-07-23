@@ -11,13 +11,14 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -42,10 +43,11 @@ public final class CaptureTest {
     private final MockRestServiceServer server;
 
     public CaptureTest() {
-        final AsyncRestTemplate template = new AsyncRestTemplate();
+        final RestTemplate template = new RestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Http.builder()
-                .requestFactory(template.getAsyncRequestFactory())
+                .executor(Executors.newSingleThreadExecutor())
+                .requestFactory(template.getRequestFactory())
                 .converter(createJsonConverter())
                 .converter(new StringHttpMessageConverter())
                 .baseUrl("https://api.example.com")

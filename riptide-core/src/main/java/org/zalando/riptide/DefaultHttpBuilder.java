@@ -1,24 +1,27 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http.ConfigurationStage;
+import org.zalando.riptide.Http.ExecutorStage;
 import org.zalando.riptide.Http.FinalStage;
 import org.zalando.riptide.Http.RequestFactoryStage;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.zalando.riptide.Plugin.compound;
 
-final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStage, FinalStage {
+final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, ConfigurationStage, FinalStage {
 
     // package private so we can trick code coverage
     static class Converters {
@@ -41,7 +44,8 @@ final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStag
 
     private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;
 
-    private AsyncClientHttpRequestFactory requestFactory;
+    private Executor executor;
+    private ClientHttpRequestFactory requestFactory;
     private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
     private Supplier<URI> baseUrlProvider = () -> null;
     private UrlResolution resolution = DEFAULT_RESOLUTION;
@@ -52,7 +56,13 @@ final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStag
     }
 
     @Override
-    public ConfigurationStage requestFactory(final AsyncClientHttpRequestFactory requestFactory) {
+    public RequestFactoryStage executor(final Executor executor) {
+        this.executor = executor;
+        return this;
+    }
+
+    @Override
+    public ConfigurationStage requestFactory(final ClientHttpRequestFactory requestFactory) {
         this.requestFactory = requestFactory;
         return this;
     }
@@ -63,7 +73,7 @@ final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStag
     }
 
     @Override
-    public ConfigurationStage converters(final Iterable<HttpMessageConverter<?>> converters) {
+    public ConfigurationStage converters(@Nonnull final Iterable<HttpMessageConverter<?>> converters) {
         converters.forEach(this::converter);
         return this;
     }
@@ -108,7 +118,7 @@ final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStag
     }
 
     @Override
-    public ConfigurationStage plugins(final Iterable<Plugin> plugins) {
+    public ConfigurationStage plugins(@Nonnull final Iterable<Plugin> plugins) {
         plugins.forEach(this::plugin);
         return this;
     }
@@ -121,7 +131,7 @@ final class DefaultHttpBuilder implements RequestFactoryStage, ConfigurationStag
 
     @Override
     public Http build() {
-        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, compound(plugins()));
+        return new DefaultHttp(executor, requestFactory, converters(), baseUrlProvider, resolution, compound(plugins()));
     }
 
     private List<HttpMessageConverter<?>> converters() {

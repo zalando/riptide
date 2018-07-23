@@ -146,7 +146,8 @@ public final class MethodDelegateTest {
                 .andRespond(withSuccess());
 
         tester.test(unit)
-                .call(pass());
+                .call(pass())
+                .join();
 
         server.verify();
     }

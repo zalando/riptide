@@ -4,31 +4,35 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpHeaders.readOnlyHttpHeaders;
 
 final class DefaultHttp implements Http {
 
     private static final HttpHeaders EMPTY = readOnlyHttpHeaders(new HttpHeaders());
 
-    private final AsyncClientHttpRequestFactory requestFactory;
+    private final Executor executor;
+    private final ClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final Supplier<URI> baseUrlProvider;
     private final RequestArguments arguments;
     private final Plugin plugin;
 
-    DefaultHttp(final AsyncClientHttpRequestFactory requestFactory, final List<HttpMessageConverter<?>> converters,
+    DefaultHttp(final Executor executor, final ClientHttpRequestFactory requestFactory,
+            final List<HttpMessageConverter<?>> converters,
             final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
-        this.requestFactory = checkNotNull(requestFactory, "request factory");
+        this.executor = requireNonNull(executor, "executor");
+        this.requestFactory = requireNonNull(requestFactory, "request factory");
         this.worker = new MessageWorker(converters);
-        this.baseUrlProvider = checkNotNull(baseUrlProvider, "base url provider");
+        this.baseUrlProvider = requireNonNull(baseUrlProvider, "base url provider");
         this.arguments = RequestArguments.create().withUrlResolution(resolution);
         this.plugin = plugin;
     }
@@ -178,7 +182,7 @@ final class DefaultHttp implements Http {
     }
 
     private Requester execute(final RequestArguments arguments) {
-        return new Requester(requestFactory, worker, arguments, plugin, ImmutableMultimap.of(), EMPTY);
+        return new Requester(executor, requestFactory, worker, arguments, plugin, ImmutableMultimap.of(), EMPTY);
     }
 
 }

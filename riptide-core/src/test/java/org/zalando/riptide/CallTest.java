@@ -56,13 +56,14 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        @SuppressWarnings("unchecked")
-        final ThrowingConsumer<AccountBody, Exception> verifier = mock(ThrowingConsumer.class);
+        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+                ThrowingConsumer.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(AccountBody.class, verifier),
-                        anyStatus().call(this::fail));
+                        anyStatus().call(this::fail))
+                .join();
 
         verify(verifier).tryAccept(any(AccountBody.class));
     }
@@ -74,16 +75,17 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        @SuppressWarnings("unchecked")
-        final ThrowingConsumer<ResponseEntity<AccountBody>, Exception> verifier = mock(ThrowingConsumer.class);
+        @SuppressWarnings("unchecked") final ThrowingConsumer<ResponseEntity<AccountBody>, Exception> verifier = mock(
+                ThrowingConsumer.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(responseEntityOf(AccountBody.class), verifier),
-                        anyStatus().call(this::fail));
+                        anyStatus().call(this::fail))
+                .join();
 
-        @SuppressWarnings("unchecked")
-        final ArgumentCaptor<ResponseEntity<AccountBody>> captor = ArgumentCaptor.forClass(ResponseEntity.class);
+        @SuppressWarnings("unchecked") final ArgumentCaptor<ResponseEntity<AccountBody>> captor = ArgumentCaptor.forClass(
+                ResponseEntity.class);
         verify(verifier).tryAccept(captor.capture());
         final ResponseEntity<AccountBody> entity = captor.getValue();
 
@@ -99,13 +101,13 @@ public final class CallTest {
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        @SuppressWarnings("unchecked")
-        final ThrowingRunnable<Exception> verifier = mock(ThrowingRunnable.class);
+        @SuppressWarnings("unchecked") final ThrowingRunnable<Exception> verifier = mock(ThrowingRunnable.class);
 
         unit.get("accounts/123")
                 .dispatch(status(),
                         on(OK).call(verifier),
-                        anyStatus().call(this::fail));
+                        anyStatus().call(this::fail))
+                .join();
 
         verify(verifier).tryRun();
     }
