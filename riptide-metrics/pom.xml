@@ -16,7 +16,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <micrometer.version>1.0.5</micrometer.version>
+        <micrometer.version>1.0.6</micrometer.version>
     </properties>
 
     <dependencies>
