@@ -27,4 +27,16 @@ public final class SpringBoot2xSettingsParserTest {
         assertThat(settings.getClients().get("example").getBaseUrl(), is("https://example.com"));
     }
 
+    @Test
+    public void shouldResolvePlaceHolders() {
+        final ConfigurableEnvironment environment = new MockEnvironment()
+                .withProperty("riptide.clients.example.oauth.scopes", "${SCOPE:service.read}");
+        final SettingsParser unit = new SpringBoot2xSettingsParser();
+
+        final RiptideProperties settings = unit.parse(environment);
+
+        assertThat(settings.getClients().values(), hasSize(1));
+        assertThat(settings.getClients().get("example").getOauth().getScopes(), is(ImmutableList.of("service.read")));
+    }
+
 }
