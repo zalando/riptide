@@ -1,5 +1,6 @@
 package org.zalando.riptide.spring;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mock.env.MockEnvironment;
@@ -35,6 +36,16 @@ public final class SpringBoot1xSettingsParserTest {
         final SettingsParser unit = new SpringBoot1xSettingsParser();
 
         unit.parse(environment);
+    }
+
+    @Test
+    public void shouldResolvePlaceHolders() {
+        final ConfigurableEnvironment environment = new MockEnvironment()
+                .withProperty("riptide.clients.example.oauth.scopes", "${SCOPE:service.read}");
+        final SettingsParser unit = new SpringBoot1xSettingsParser();
+        final RiptideProperties settings = unit.parse(environment);
+        assertThat(settings.getClients().values(), hasSize(1));
+        assertThat(settings.getClients().get("example").getOauth().getScopes(), is(ImmutableList.of("service.read")));
     }
 
 }
