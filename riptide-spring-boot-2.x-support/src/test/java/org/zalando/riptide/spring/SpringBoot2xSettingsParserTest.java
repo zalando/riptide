@@ -1,5 +1,6 @@
 package org.zalando.riptide.spring;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mock.env.MockEnvironment;
