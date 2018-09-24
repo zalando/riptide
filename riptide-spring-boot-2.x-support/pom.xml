@@ -16,7 +16,8 @@
     <description>Client side response routing</description>
 
     <properties>
-        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
+        <spring.version>5.1.0.RELEASE</spring.version>
+        <spring-boot.version>2.0.5.RELEASE</spring-boot.version>
     </properties>
 
     <dependencies>
