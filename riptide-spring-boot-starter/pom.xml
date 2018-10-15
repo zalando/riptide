@@ -198,7 +198,7 @@
                 <dependency>
                     <groupId>io.micrometer</groupId>
                     <artifactId>micrometer-spring-legacy</artifactId>
-                    <version>1.0.6</version>
+                    <version>1.0.7</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
