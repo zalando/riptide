@@ -115,6 +115,16 @@ public class RequesterTest {
     }
 
     @Test
+    public void shouldEncodeAppendedDateTimeQueryParams() {
+        expectRequestTo("https://test.datetimes.org/index.php?from=2018-05-21T10%3A24%3A47.788%2B02%3A00");
+
+        unit.head("https://test.datetimes.org/index.php")
+                .queryParam("from", "2018-05-21T10:24:47.788+02:00")
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
     public void shouldExpandOnGetWithHeaders() {
         expectRequestTo("https://api.example.com/123");
 
