@@ -6,10 +6,12 @@ import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apiguardian.api.API.Status.STABLE;
@@ -95,8 +97,8 @@ public interface RequestArguments {
         {
             final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
             getQueryParams().entries().forEach(entry ->
-                    components.queryParam(entry.getKey(), entry.getValue()));
-            queryParams = components.build().encode().getQueryParams();
+                    components.queryParam(entry.getKey(), UriUtils.encode(entry.getValue(), Charset.defaultCharset())));
+            queryParams = components.build().getQueryParams();
         }
 
         // build request uri

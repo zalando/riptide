@@ -104,7 +104,7 @@ public class RequesterTest {
 
     @Test
     public void shouldEncodeAppendedQueryParams() {
-        expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
+        expectRequestTo("https://ru.wiktionary.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F%3A%D0%9A%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F_%D0%BA%D0%BD%D0%B8%D0%B3&bookcmd=book_creator&referer=%D0%97%D0%B0%D0%B3%D0%BB%D0%B0%D0%B2%D0%BD%D0%B0%D1%8F%20%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86%D0%B0");
 
         unit.head("https://ru.wiktionary.org/w/index.php")
                 .queryParam("title", "Служебная:Коллекция_книг")
@@ -116,10 +116,14 @@ public class RequesterTest {
 
     @Test
     public void shouldEncodeAppendedDateTimeQueryParams() {
-        expectRequestTo("https://test.datetimes.org/index.php?from=2018-05-21T10%3A24%3A47.788%2B02%3A00");
+        expectRequestTo("https://test.datetimes.org/index.php?to=2018-05-21T10%3A24%3A47.788&from=2017-04-20T09%3A23%3A46.787&team_id=1&team_id=2");
 
         unit.head("https://test.datetimes.org/index.php")
-                .queryParam("from", "2018-05-21T10:24:47.788+02:00")
+                .queryParam("to", "2018-05-21T10:24:47.788")
+                .queryParam("from", "2017-04-20T09:23:46.787")
+                //one key, two values testing
+                .queryParam("team_id", "1")
+                .queryParam("team_id", "2")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
