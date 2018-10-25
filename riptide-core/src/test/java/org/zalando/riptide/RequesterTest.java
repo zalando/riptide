@@ -116,11 +116,11 @@ public class RequesterTest {
 
     @Test
     public void shouldAppendedDateTimeQueryParams() {
-        expectRequestTo("https://test.datetimes.org/index.php?to=2018-05-21T10%3A24%3A47.788&from=2017-04-20T09%3A23%3A46.787");
+        expectRequestTo("https://test.datetimes.org/index.php?to=2018-05-21T10%3A24%3A47.788%2B00%3A00&from=2017-04-20T09%3A23%3A46.787Z");
 
         unit.head("https://test.datetimes.org/index.php")
-                .queryParam("to", "2018-05-21T10:24:47.788")
-                .queryParam("from", "2017-04-20T09:23:46.787")
+                .queryParam("to", "2018-05-21T10:24:47.788+00:00")
+                .queryParam("from", "2017-04-20T09:23:46.787Z")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
     }
