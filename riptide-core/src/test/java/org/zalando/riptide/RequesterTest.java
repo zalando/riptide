@@ -126,7 +126,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeAppendedMultiValueQueryParams() {
+    public void shouldAppendMultiValueQueryParams() {
         expectRequestTo("https://test.datetimes.org/index.php?team_id=1&team_id=2");
 
         unit.head("https://test.datetimes.org/index.php")
