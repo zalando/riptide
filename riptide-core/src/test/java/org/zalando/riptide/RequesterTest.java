@@ -115,13 +115,21 @@ public class RequesterTest {
     }
 
     @Test
-    public void shouldEncodeAppendedDateTimeQueryParams() {
-        expectRequestTo("https://test.datetimes.org/index.php?to=2018-05-21T10%3A24%3A47.788&from=2017-04-20T09%3A23%3A46.787&team_id=1&team_id=2");
+    public void shouldAppendedDateTimeQueryParams() {
+        expectRequestTo("https://test.datetimes.org/index.php?to=2018-05-21T10%3A24%3A47.788&from=2017-04-20T09%3A23%3A46.787");
 
         unit.head("https://test.datetimes.org/index.php")
                 .queryParam("to", "2018-05-21T10:24:47.788")
                 .queryParam("from", "2017-04-20T09:23:46.787")
-                //one key, two values testing
+                .dispatch(series(),
+                        on(SUCCESSFUL).call(pass()));
+    }
+
+    @Test
+    public void shouldEncodeAppendedMultiValueQueryParams() {
+        expectRequestTo("https://test.datetimes.org/index.php?team_id=1&team_id=2");
+
+        unit.head("https://test.datetimes.org/index.php")
                 .queryParam("team_id", "1")
                 .queryParam("team_id", "2")
                 .dispatch(series(),
