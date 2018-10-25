@@ -97,8 +97,8 @@ public interface RequestArguments {
         {
             final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
             getQueryParams().entries().forEach(entry ->
-                    components.queryParam(entry.getKey(), UriUtils.encode(entry.getValue(), Charset.defaultCharset())));
-            queryParams = components.build().getQueryParams();
+                    components.queryParam(entry.getKey(), UriUtils.encode(entry.getValue(), "UTF-8")));
+            queryParams = components.build(true).getQueryParams();
         }
 
         // build request uri
