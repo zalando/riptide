@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zalando.fauxpas.FauxPas;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,8 +13,8 @@ import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apiguardian.api.API.Status.STABLE;
-import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
+import static org.springframework.web.util.UriUtils.encode;
 
 @API(status = STABLE)
 public interface RequestArguments {
@@ -90,18 +90,13 @@ public interface RequestArguments {
             resolvedUri = getUrlResolution().resolve(baseUrl, unresolvedUri);
         }
 
+        final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
         // encode query params
-        final MultiValueMap<String, String> queryParams;
-        {
-            final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
-            getQueryParams().entries().forEach(entry ->
-                    components.queryParam(entry.getKey(), entry.getValue()));
-            queryParams = components.build().encode().getQueryParams();
-        }
+        getQueryParams().entries().forEach(FauxPas.throwingConsumer(entry ->
+                components.queryParam(entry.getKey(), encode(entry.getValue(), "UTF-8"))));
 
         // build request uri
-        final URI requestUri = fromUri(resolvedUri)
-                .queryParams(queryParams)
+        final URI requestUri = components.uri(resolvedUri)
                 .build(true).normalize().toUri();
 
         checkArgument(requestUri.isAbsolute(), "Request URI is not absolute");
