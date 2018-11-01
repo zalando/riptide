@@ -182,7 +182,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.2</version>
+                <version>1.18.4</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -489,7 +489,7 @@
                 <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>3.3.2</version>
+                    <version>3.3.4</version>
                     <executions>
                         <execution>
                             <goals>
