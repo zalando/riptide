@@ -70,8 +70,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <spring.version>5.1.1.RELEASE</spring.version>
-        <spring-boot.version>2.0.6.RELEASE</spring-boot.version>
+        <spring.version>5.1.2.RELEASE</spring.version>
+        <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
         <jackson.version>2.9.7</jackson.version>
         <problem.version>0.22.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
@@ -515,6 +515,9 @@
                             <configuration>
                                 <failBuildInCaseOfDifferentContentConflict>true</failBuildInCaseOfDifferentContentConflict>
                                 <failBuildInCaseOfEqualContentConflict>false</failBuildInCaseOfEqualContentConflict>
+                                <ignoredClassPatterns>
+                                    <ignoredClassPattern>.*\.module-info</ignoredClassPattern>
+                                </ignoredClassPatterns>
                                 <ignoredResourcePatterns>
                                     <ignoredResourcePattern>.*</ignoredResourcePattern>
                                 </ignoredResourcePatterns>
@@ -630,7 +633,7 @@
             <id>spring4</id>
             <properties>
                 <spring.version>4.3.20.RELEASE</spring.version>
-                <spring-boot.version>1.5.16.RELEASE</spring-boot.version>
+                <spring-boot.version>1.5.17.RELEASE</spring-boot.version>
             </properties>
         </profile>
         <profile>
