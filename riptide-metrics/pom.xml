@@ -38,9 +38,16 @@
             <artifactId>rest-client-driver</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>riptide-httpclient</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.6</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

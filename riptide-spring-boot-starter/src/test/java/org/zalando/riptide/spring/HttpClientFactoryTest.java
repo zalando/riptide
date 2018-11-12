@@ -11,8 +11,6 @@ import org.zalando.riptide.spring.RiptideProperties.GlobalOAuth;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static java.util.Collections.emptyList;
-
 public class HttpClientFactoryTest {
 
     @Rule
@@ -29,13 +27,12 @@ public class HttpClientFactoryTest {
         final RiptideProperties.Client client = new RiptideProperties.Client();
         client.setKeystore(nonExistingKeystore);
 
-        HttpClientFactory.createHttpClient(withDefaults(client), emptyList(), emptyList(),emptyList(), null);
+        HttpClientFactory.createHttpClientConnectionManager(withDefaults(client));
     }
 
     @Test
     public void shouldFailOnInvalidKeystore() throws Exception {
         exception.expect(IOException.class);
-        exception.expectMessage("Invalid keystore format");
 
         final Keystore invalidKeystore = new Keystore();
         invalidKeystore.setPath("application-default.yml");
@@ -43,7 +40,7 @@ public class HttpClientFactoryTest {
         final RiptideProperties.Client client = new RiptideProperties.Client();
         client.setKeystore(invalidKeystore);
 
-        HttpClientFactory.createHttpClient(withDefaults(client), emptyList(), emptyList(),emptyList(), null);
+        HttpClientFactory.createHttpClientConnectionManager(withDefaults(client));
     }
 
     private RiptideProperties.Client withDefaults(final RiptideProperties.Client client) {
