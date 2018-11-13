@@ -10,7 +10,10 @@ import org.apache.http.pool.PoolStats;
 import org.apiguardian.api.API;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import static com.google.common.base.Suppliers.memoizeWithExpiration;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.apiguardian.api.API.Status.INTERNAL;
 
@@ -47,14 +50,18 @@ public final class HttpConnectionPoolMetrics implements MeterBinder {
 
     @Override
     public void bindTo(final MeterRegistry registry) {
-        gauge(registry, "available", PoolStats::getAvailable);
-        gauge(registry, "leased", PoolStats::getLeased);
-        gauge(registry, "max", PoolStats::getMax);
-        gauge(registry, "pending", PoolStats::getPending);
+        // since getTotalStats locks the connection pool, we cache the value for a minute to reduce possible contention
+        final Supplier<PoolStats> stats = memoizeWithExpiration(manager::getTotalStats, 1, MINUTES);
+
+        gauge(registry, "available", stats, PoolStats::getAvailable);
+        gauge(registry, "leased", stats, PoolStats::getLeased);
+        gauge(registry, "max", stats, PoolStats::getMax);
+        gauge(registry, "pending", stats, PoolStats::getPending);
     }
 
-    private void gauge(final MeterRegistry registry, final String name, final Function<PoolStats, Number> function) {
-        Gauge.builder(metricName + "." + name, () -> function.apply(manager.getTotalStats()))
+    private void gauge(final MeterRegistry registry, final String name, final Supplier<PoolStats> stats,
+            final Function<PoolStats, Number> function) {
+        Gauge.builder(metricName + "." + name, () -> function.apply(stats.get()))
                 .tags(defaultTags)
                 .register(registry);
     }
