@@ -7,20 +7,14 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletionException;
 
@@ -44,13 +38,7 @@ public class MetricsPluginTest {
     @Rule
     public final ClientDriverRule driver = new ClientDriverRule();
 
-    private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(500)
-                    .build())
-            .build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
@@ -74,9 +62,9 @@ public class MetricsPluginTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
-        client.close();
+    public MetricsPluginTest() {
+        this.factory.setReadTimeout(500);
+        this.factory.setTaskExecutor(new ConcurrentTaskExecutor());
     }
 
     @Test

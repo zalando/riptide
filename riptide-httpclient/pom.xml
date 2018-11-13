@@ -17,6 +17,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-metrics</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>

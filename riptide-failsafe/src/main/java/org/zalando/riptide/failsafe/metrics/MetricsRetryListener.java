@@ -58,12 +58,12 @@ public final class MetricsRetryListener implements RetryListener {
         registry.timer(metricName, tags).record(Duration.ofNanos(context.getElapsedTime().toNanos()));
     }
 
-    Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse result,
+    private Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse result,
             @Nullable final Throwable failure, final ExecutionContext context) {
         return concat(tags(arguments, result, failure), tags(context));
     }
 
-    Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse response,
+    private Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse response,
             @Nullable final Throwable failure) {
         return concat(defaultTags, generator.tags(arguments, response, failure));
     }

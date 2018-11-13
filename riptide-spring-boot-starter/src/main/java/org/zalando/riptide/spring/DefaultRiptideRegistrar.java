@@ -10,6 +10,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -33,6 +34,7 @@ import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.spring.RiptideProperties.Client;
 import org.zalando.riptide.stream.Streams;
@@ -351,8 +353,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createCircuitBreakerListener")
                         .addConstructorArgReference("meterRegistry")
-                        .addConstructorArgValue(ImmutableList.of(clientId(id),
-                                clientName(id, client)));
+                        .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
             } else {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("getDefaultCircuitBreakerListener");
@@ -389,12 +390,26 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.registerIfAbsent(id, HttpClient.class, () -> {
             log.debug("Client [{}]: Registering HttpClient", id);
 
+            final String connectionManager = registry.registerIfAbsent(id, HttpClientConnectionManager.class, () ->
+                    genericBeanDefinition(HttpClientFactory.class)
+                            .setFactoryMethod("createHttpClientConnectionManager")
+                            .addConstructorArgValue(client));
+
+            if (client.getRecordMetrics()) {
+                registry.registerIfAbsent(id, HttpConnectionPoolMetrics.class, () ->
+                        genericBeanDefinition(HttpConnectionPoolMetrics.class)
+                                .addConstructorArgReference(connectionManager)
+                                .addConstructorArgValue("http.client.connections")
+                                .addConstructorArgValue(ImmutableList.of(clientId(id))));
+            }
+
             return genericBeanDefinition(HttpClientFactory.class)
                     .setFactoryMethod("createHttpClient")
                     .addConstructorArgValue(client)
                     .addConstructorArgValue(configureFirstRequestInterceptors(id, client))
                     .addConstructorArgValue(configureLastRequestInterceptors(id, client))
                     .addConstructorArgValue(configureLastResponseInterceptors(id))
+                    .addConstructorArgReference(connectionManager)
                     .addConstructorArgValue(registry.isRegistered(id, HttpClientCustomizer.class) ?
                             ref(generateBeanName(id, HttpClientCustomizer.class)) : null)
                     .setDestroyMethodName("close");

@@ -53,7 +53,7 @@ CloseableHttpClient client = HttpClientBuilder.create()
 
 AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
 
-final Http http = Http.builder()
+Http http = Http.builder()
         .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
         .build();
 ```
