@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -22,7 +21,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.zalando.riptide.PassRoute.pass;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
 @RiptideClientTest
 @ActiveProfiles("default")
 public class UrlResolutionTest {
