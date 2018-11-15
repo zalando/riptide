@@ -4,14 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -22,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
-import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 
 @SuppressWarnings("unused")
 @Slf4j
@@ -32,11 +36,32 @@ final class HttpClientFactory {
 
     }
 
+    public static HttpClientConnectionManager createHttpClientConnectionManager(final Client client)
+            throws GeneralSecurityException, IOException {
+
+        final PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager(
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                        .register("https", new SSLConnectionSocketFactory(createSSLContext(client)))
+                        .build(),
+                null, // connection factory
+                null, // scheme port resolver
+                null, // dns resolver
+                client.getConnectionTimeToLive().getAmount(),
+                client.getConnectionTimeToLive().getUnit());
+
+        manager.setMaxTotal(client.getMaxConnectionsTotal());
+        manager.setDefaultMaxPerRoute(client.getMaxConnectionsPerRoute());
+
+        return manager;
+    }
+
     public static CloseableHttpClient createHttpClient(final Client client,
             final List<HttpRequestInterceptor> firstRequestInterceptors,
             final List<HttpRequestInterceptor> lastRequestInterceptors,
             final List<HttpResponseInterceptor> lastResponseInterceptors,
-            @Nullable final HttpClientCustomizer customizer) throws GeneralSecurityException, IOException {
+            final HttpClientConnectionManager connectionManager,
+            @Nullable final HttpClientCustomizer customizer) {
 
         final HttpClientBuilder builder = HttpClientBuilder.create();
         final RequestConfig.Builder config = RequestConfig.custom();
@@ -47,15 +72,8 @@ final class HttpClientFactory {
 
         config.setConnectTimeout((int) client.getConnectTimeout().to(TimeUnit.MILLISECONDS));
         config.setSocketTimeout((int) client.getSocketTimeout().to(TimeUnit.MILLISECONDS));
-        builder.setConnectionTimeToLive(
-                client.getConnectionTimeToLive().getAmount(),
-                client.getConnectionTimeToLive().getUnit());
-        builder.setMaxConnPerRoute(client.getMaxConnectionsPerRoute());
-        builder.setMaxConnTotal(client.getMaxConnectionsTotal());
 
-        if (client.getKeystore() != null) {
-            builder.setSSLSocketFactory(createSSLConnectionFactory(client));
-        }
+        builder.setConnectionManager(connectionManager);
 
         builder.setDefaultRequestConfig(config.build());
         Optional.ofNullable(customizer).ifPresent(customize(builder));
@@ -63,11 +81,12 @@ final class HttpClientFactory {
         return builder.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLConnectionFactory(final Client client)
-            throws GeneralSecurityException, IOException {
-        final Client.Keystore keystore = client.getKeystore();
+    private static SSLContext createSSLContext(final Client client) throws GeneralSecurityException, IOException {
+        @Nullable final Client.Keystore keystore = client.getKeystore();
 
-        final SSLContextBuilder ssl = SSLContexts.custom();
+        if (keystore == null) {
+            return SSLContexts.createDefault();
+        }
 
         final String path = keystore.getPath();
         final String password = keystore.getPassword();
@@ -79,8 +98,9 @@ final class HttpClientFactory {
         }
 
         try {
-            ssl.loadTrustMaterial(resource, password == null ? null : password.toCharArray());
-            return new SSLConnectionSocketFactory(ssl.build(), getDefaultHostnameVerifier());
+            return SSLContexts.custom()
+                    .loadTrustMaterial(resource, password == null ? null : password.toCharArray())
+                    .build();
         } catch (final Exception e) {
             log.error("Error loading keystore [{}]:", path,
                     e); // log full exception, bean initialization code swallows it
