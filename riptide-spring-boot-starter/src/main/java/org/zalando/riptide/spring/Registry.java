@@ -61,9 +61,10 @@ final class Registry {
 
     public <T> String registerIfAbsent(final String id, final Class<T> type,
             final Supplier<BeanDefinitionBuilder> factory) {
+        return registerIfAbsent(id, generateBeanName(id, type), factory);
+    }
 
-        final String name = generateBeanName(id, type);
-
+    public String registerIfAbsent(String id, String name, Supplier<BeanDefinitionBuilder> factory) {
         if (isRegistered(name)) {
             LOG.debug("Bean [{}] is already registered, skipping it.", name);
             return name;
@@ -83,7 +84,12 @@ final class Registry {
     }
 
     public static <T> String generateBeanName(final String id, final Class<T> type) {
-        return LOWER_HYPHEN.to(LOWER_CAMEL, id) + type.getSimpleName();
+        final String suffix = type.getSimpleName();
+        return generateBeanName(id, suffix);
+    }
+
+    public static String generateBeanName(String id, String suffix) {
+        return LOWER_HYPHEN.to(LOWER_CAMEL, id) + suffix;
     }
 
     public static BeanReference ref(final String beanName) {
