@@ -3,6 +3,7 @@ package org.zalando.riptide.spring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
@@ -47,20 +48,13 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toCollection;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.spring.Dependencies.ifPresent;
-import static org.zalando.riptide.spring.Registry.generateBeanName;
-import static org.zalando.riptide.spring.Registry.list;
-import static org.zalando.riptide.spring.Registry.ref;
+import static org.zalando.riptide.spring.Registry.*;
 
 @Slf4j
 @AllArgsConstructor
@@ -101,7 +95,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private BeanMetadataElement registerExecutor(final String id, final Client client) {
-        return trace(registry.registerIfAbsent(id, ExecutorService.class, () -> {
+        final String name = "http-" + id;
+
+        final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () -> {
             final RiptideProperties.ThreadPool threadPool = client.getThreadPool();
             return genericBeanDefinition(ThreadPoolExecutor.class)
                     .addConstructorArgValue(threadPool.getMinSize())
@@ -111,9 +107,19 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(threadPool.getQueueSize() == 0 ?
                             new SynchronousQueue<>() :
                             new ArrayBlockingQueue<>(threadPool.getQueueSize()))
-                    .addConstructorArgValue(new CustomizableThreadFactory("http-" + id + "-"))
+                    .addConstructorArgValue(new CustomizableThreadFactory(name + "-"))
                     .setDestroyMethodName("shutdown");
-        }));
+        });
+
+        if (client.getRecordMetrics()) {
+            registry.registerIfAbsent(id, ExecutorServiceMetrics.class, () ->
+                    genericBeanDefinition(ExecutorServiceMetrics.class)
+                        .addConstructorArgReference(executorId)
+                        .addConstructorArgValue(name)
+                        .addConstructorArgValue(ImmutableList.of(clientId(id))));
+        }
+
+        return trace(executorId);
     }
 
     private static final class HttpMessageConverters {
@@ -297,9 +303,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private BeanMetadataElement registerScheduler(final String id, final Client client) {
         // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
-        return trace(registry.registerIfAbsent(id, ScheduledExecutorService.class, () -> {
-            final CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(
-                    "http-" + id + "-scheduler-");
+        final String name = "http-" + id + "-scheduler";
+
+        final String executorId = registry.registerIfAbsent(id, ScheduledExecutorService.class, () -> {
+            final CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(name + "-");
             threadFactory.setDaemon(true);
 
             return genericBeanDefinition(ScheduledThreadPoolExecutor.class)
@@ -307,7 +314,19 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(threadFactory)
                     .addPropertyValue("removeOnCancelPolicy", true)
                     .setDestroyMethodName("shutdown");
-        }));
+        });
+
+        if (client.getRecordMetrics()) {
+            final String beanName = generateBeanName(id, "ScheduledExecutorServiceMetrics");
+
+            registry.registerIfAbsent(id, beanName, () ->
+                    genericBeanDefinition(ExecutorServiceMetrics.class)
+                        .addConstructorArgReference(executorId)
+                        .addConstructorArgValue(name)
+                        .addConstructorArgValue(ImmutableList.of(clientId(id))));
+        }
+
+        return trace(executorId);
     }
 
     private BeanMetadataElement registerRetryPolicy(final String id, final Client client) {
