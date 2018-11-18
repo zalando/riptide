@@ -133,11 +133,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         final String convertersId = registry.registerIfAbsent(id, HttpMessageConverters.class, () -> {
             final List<Object> list = list();
 
-            log.debug("Client [{}]: Registering StringHttpMessageConverter", id);
-            list.add(genericBeanDefinition(StringHttpMessageConverter.class)
-                    .addPropertyValue("writeAcceptCharset", false)
-                    .getBeanDefinition());
-
             final String objectMapperId = findObjectMapper(id);
 
             log.debug("Client [{}]: Registering MappingJackson2HttpMessageConverter referencing [{}]", id,
@@ -153,6 +148,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgReference(objectMapperId)
                         .getBeanDefinition());
             });
+
+            log.debug("Client [{}]: Registering StringHttpMessageConverter", id);
+            list.add(genericBeanDefinition(StringHttpMessageConverter.class)
+                    .addPropertyValue("writeAcceptCharset", false)
+                    .getBeanDefinition());
 
             return genericBeanDefinition(ClientHttpMessageConverters.class)
                     .addConstructorArgValue(list);
