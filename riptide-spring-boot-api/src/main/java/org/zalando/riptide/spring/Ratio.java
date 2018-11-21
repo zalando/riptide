@@ -8,8 +8,6 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 @AllArgsConstructor
 @Getter
 final class Ratio {
@@ -41,7 +39,10 @@ final class Ratio {
 
     static Ratio valueOf(final String value) {
         final Matcher matcher = PATTERN.matcher(value);
-        checkArgument(matcher.matches(), "'%s' is not a valid ratio", value);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("'" + value + "' is not a valid ratio");
+        }
 
         final int amount = Integer.parseInt(matcher.group(1));
         final int total = Optional.ofNullable(matcher.group(2)).map(Integer::parseInt).orElse(amount);

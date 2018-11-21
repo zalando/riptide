@@ -67,4 +67,9 @@ public final class RatioTest {
         assertThat(consumer, hasEntry(1, 2));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnUnsupportedRatioFormat() {
+        Ratio.valueOf("a lot out of many");
+    }
+
 }
