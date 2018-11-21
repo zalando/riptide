@@ -11,7 +11,6 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -56,7 +55,10 @@ final class TimeSpan {
         }
 
         final Matcher matcher = PATTERN.matcher(value);
-        checkArgument(matcher.matches(), "'%s' is not a valid time span", value);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("'" + value + "' is not a valid time span");
+        }
 
         final long amount = Long.parseLong(matcher.group(1));
         final TimeUnit unit = fromName(matcher.group(2));
@@ -70,7 +72,11 @@ final class TimeSpan {
 
     private static TimeUnit parse(final String name) {
         final TimeUnit unit = UNITS.get(name.endsWith("s") ? name : name + "s");
-        checkArgument(unit != null, "Unknown time unit: [%s]", name);
+
+        if (unit == null) {
+            throw new IllegalArgumentException("Unknown time unit: [" + name + "]");
+        }
+
         return unit;
     }
 

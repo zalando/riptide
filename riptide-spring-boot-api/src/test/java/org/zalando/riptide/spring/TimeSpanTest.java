@@ -47,6 +47,11 @@ public final class TimeSpanTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnUnsupportedTimeSpanFormat() {
+        TimeSpan.valueOf("forever");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnUnknownTimeUnit() {
         TimeSpan.valueOf("1 decade");
     }
