@@ -1,5 +1,8 @@
 package org.zalando.riptide.spring;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import static org.springframework.util.ClassUtils.getDefaultClassLoader;
 import static org.springframework.util.ClassUtils.isPresent;
 
@@ -10,8 +13,17 @@ final class Dependencies {
     }
 
     static void ifPresent(final String name, final Runnable runnable) {
-        if (isPresent(name, getDefaultClassLoader())) {
+        ifPresent(name, () -> {
             runnable.run();
+            return null;
+        });
+    }
+
+    static <T> Optional<T> ifPresent(final String name, final Supplier<T> supplier) {
+        if (isPresent(name, getDefaultClassLoader())) {
+            return Optional.ofNullable(supplier.get());
+        } else {
+            return Optional.empty();
         }
     }
 

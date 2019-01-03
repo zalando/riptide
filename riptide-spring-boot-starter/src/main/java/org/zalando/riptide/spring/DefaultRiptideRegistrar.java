@@ -394,15 +394,20 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private BeanMetadataElement trace(final String executor) {
-        if (registry.isRegistered("tracer")) {
-            return genericBeanDefinition(TracingExecutors.class)
-                    .setFactoryMethod("preserve")
-                    .addConstructorArgReference(executor)
-                    .addConstructorArgReference("tracer")
-                    .getBeanDefinition();
-        } else {
-            return ref(executor);
-        }
+        final Optional<BeanMetadataElement> result = ifPresent("org.zalando.tracer.concurrent.TracingExecutors",
+                () -> {
+                    if (registry.isRegistered("tracer")) {
+                        return genericBeanDefinition(TracingExecutors.class)
+                                .setFactoryMethod("preserve")
+                                .addConstructorArgReference(executor)
+                                .addConstructorArgReference("tracer")
+                                .getBeanDefinition();
+                    } else {
+                        return null;
+                    }
+                });
+
+        return result.orElseGet(() -> ref(executor));
     }
 
     private String registerHttpClient(final String id, final Client client) {
