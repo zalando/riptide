@@ -40,7 +40,7 @@ public final class AccessTokensWithoutTokenInfoUriTest {
     private AccessTokens accessTokens;
 
     @Test
-    public void shouldSetTokenIfoUrl() throws NoSuchFieldException, IllegalAccessException {
+    public void shouldNotSetTokenIfoUrl() throws NoSuchFieldException, IllegalAccessException {
         final TokenRefresherConfiguration configuration = getConfiguration();
 
         assertThat(configuration.getTokenInfoUri(), nullValue());
