@@ -72,6 +72,7 @@ final class Defaulting {
         return new GlobalOAuth(
                 either(base.getAccessTokenUrl(),
                         Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null)),
+                base.getTokenInfoUrl(),
                 base.getCredentialsDirectory(),
                 base.getSchedulingPeriod(),
                 either(base.getConnectTimeout(), defaults.getConnectTimeout()),

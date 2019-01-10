@@ -3,12 +3,14 @@ package org.zalando.riptide.spring;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apiguardian.api.API;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.zalando.riptide.UrlResolution;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -62,6 +64,7 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class GlobalOAuth {
         private URI accessTokenUrl;
+        private URI tokenInfoUrl;
         private Path credentialsDirectory;
         private TimeSpan schedulingPeriod = TimeSpan.of(5, SECONDS);
         private TimeSpan connectTimeout = TimeSpan.of(1, SECONDS);

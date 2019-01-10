@@ -24,6 +24,7 @@ final class AccessTokensFactory {
         final RiptideProperties.GlobalOAuth oAuth = properties.getOauth();
 
         final URI accessTokenUrl = getAccessTokenUrl(oAuth);
+        @Nullable final URI tokenInfoUrl = getTokenInfoUrl(oAuth);
         @Nullable final Path directory = oAuth.getCredentialsDirectory();
         final TimeSpan connectTimeout = oAuth.getConnectTimeout();
         final TimeSpan socketTimeout = oAuth.getSocketTimeout();
@@ -48,7 +49,7 @@ final class AccessTokensFactory {
                     .done();
         });
 
-        return builder.start();
+        return tokenInfoUrl != null ? builder.tokenInfoUri(tokenInfoUrl).start() : builder.start();
     }
 
     private static JsonFileBackedClientCredentialsProvider getClientCredentialsProvider(@Nullable final Path directory) {
@@ -71,6 +72,12 @@ final class AccessTokensFactory {
                 "but at least one client requires OAuth");
 
         return accessTokenUrl;
+    }
+
+    private static URI getTokenInfoUrl(final RiptideProperties.GlobalOAuth oauth) {
+        @Nullable final URI tokenInfoUrl = oauth.getTokenInfoUrl();
+
+        return tokenInfoUrl;
     }
 
 }

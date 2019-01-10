@@ -214,6 +214,7 @@ You can now define new clients and override default configuration in your `appli
 riptide:
   oauth:
     access-token-url: https://auth.example.com
+    token-info-url: https://info.example.com
     credentials-directory: /secrets
     scheduling-period: 10 seconds
     connect-timeout: 1 second
@@ -289,6 +290,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   └── timeout`                       | `TimeSpan`     | none                                             |
 | `├── oauth`                             |                |                                                  |
 | `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
+| `│   ├── token-info-url`                | `URI`          | none                                             |
 | `│   ├── credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
 | `│   ├── scheduling-period`             | `TimeSpan`     | `5 seconds`                                      |
 | `│   ├── connetion-timeout`             | `TimeSpan`     | `1 second`                                       |
