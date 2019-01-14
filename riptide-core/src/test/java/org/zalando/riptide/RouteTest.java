@@ -125,7 +125,7 @@ public final class RouteTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectCause(
-                hasFeature(Throwable::getMessage, containsString("Content-Type=[" + MediaType.TEXT_PLAIN + "]")));
+                hasFeature(Throwable::getMessage, containsString("Content-Type:\"" + MediaType.TEXT_PLAIN + "\"")));
         exception.expectCause(hasFeature(Throwable::getMessage, containsString("verbose body content")));
 
         unit.get(url)

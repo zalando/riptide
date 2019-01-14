@@ -77,7 +77,7 @@ public final class FailedDispatchTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
-        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
+        exception.expectMessage(containsString("Content-Type:\"" + APPLICATION_JSON + "\""));
 
         unit.options(url)
                 .dispatch(contentType(),
@@ -203,6 +203,8 @@ public final class FailedDispatchTest {
         verify(consumer).tryAccept(any());
     }
 
+
+
     @Test
     public void shouldPreserveExceptionIfPropagateFailed() {
         server.expect(requestTo(url))
@@ -213,7 +215,7 @@ public final class FailedDispatchTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
-        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
+        exception.expectMessage(containsString("Content-Type:\"" + APPLICATION_JSON + "\""));
         exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
         exception.expectCause(hasFeature("raw status code", NoRouteException::getRawStatusCode, is(201)));
         exception.expectCause(hasFeature("status text", NoRouteException::getStatusText, is("Created")));
