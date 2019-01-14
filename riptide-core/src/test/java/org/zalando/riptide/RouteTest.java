@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -33,6 +32,8 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -120,12 +121,12 @@ public final class RouteTest {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CONFLICT)
                         .body("verbose body content")
-                        .contentType(MediaType.TEXT_PLAIN));
+                        .contentType(TEXT_PLAIN));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
-        exception.expectCause(
-                hasFeature(Throwable::getMessage, containsString("Content-Type=[" + MediaType.TEXT_PLAIN + "]")));
+        exception.expectCause(hasFeature(Throwable::getMessage, containsString(TEXT_PLAIN_VALUE)));
+        exception.expectCause(hasFeature(Throwable::getMessage, containsString("Content-Type")));
         exception.expectCause(hasFeature(Throwable::getMessage, containsString("verbose body content")));
 
         unit.get(url)

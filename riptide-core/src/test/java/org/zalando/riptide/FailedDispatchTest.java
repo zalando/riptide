@@ -33,6 +33,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -77,7 +78,8 @@ public final class FailedDispatchTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
-        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
+        exception.expectMessage(containsString("Content-Type"));
+        exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
 
         unit.options(url)
                 .dispatch(contentType(),
@@ -203,6 +205,8 @@ public final class FailedDispatchTest {
         verify(consumer).tryAccept(any());
     }
 
+
+
     @Test
     public void shouldPreserveExceptionIfPropagateFailed() {
         server.expect(requestTo(url))
@@ -213,7 +217,8 @@ public final class FailedDispatchTest {
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(NoRouteException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
-        exception.expectMessage(containsString("Content-Type=[" + APPLICATION_JSON + "]"));
+        exception.expectMessage(containsString("Content-Type"));
+        exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
         exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
         exception.expectCause(hasFeature("raw status code", NoRouteException::getRawStatusCode, is(201)));
         exception.expectCause(hasFeature("status text", NoRouteException::getStatusText, is("Created")));
