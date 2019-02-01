@@ -43,6 +43,7 @@ riptide:
         max-retries: 4
       circuit-breaker:
         failure-threshold: 1
+        delay: 0 milliseconds
         success-threshold: 1
     baz:
       backup-request:

@@ -3,7 +3,7 @@ package org.zalando.riptide.failsafe.metrics;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import net.jodah.failsafe.ExecutionContext;
+import net.jodah.failsafe.event.ExecutionEvent;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -52,15 +52,15 @@ public final class MetricsRetryListener implements RetryListener {
 
     @Override
     public void onRetry(final RequestArguments arguments, @Nullable final ClientHttpResponse result,
-            @Nullable final Throwable failure, final ExecutionContext context) {
+            @Nullable final Throwable failure, final ExecutionEvent event) {
 
-        final Iterable<Tag> tags = tags(arguments, result, failure, context);
-        registry.timer(metricName, tags).record(Duration.ofNanos(context.getElapsedTime().toNanos()));
+        final Iterable<Tag> tags = tags(arguments, result, failure, event);
+        registry.timer(metricName, tags).record(Duration.ofNanos(event.getElapsedTime().toNanos()));
     }
 
     private Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse result,
-            @Nullable final Throwable failure, final ExecutionContext context) {
-        return concat(tags(arguments, result, failure), tags(context));
+            @Nullable final Throwable failure, final ExecutionEvent event) {
+        return concat(tags(arguments, result, failure), tags(event));
     }
 
     private Iterable<Tag> tags(final RequestArguments arguments, @Nullable final ClientHttpResponse response,
@@ -68,8 +68,8 @@ public final class MetricsRetryListener implements RetryListener {
         return concat(defaultTags, generator.tags(arguments, response, failure));
     }
 
-    private Iterable<Tag> tags(final ExecutionContext context) {
-        return singleton(Tag.of("retries", String.valueOf(context.getExecutions())));
+    private Iterable<Tag> tags(final ExecutionEvent event) {
+        return singleton(Tag.of("retries", String.valueOf(event.getAttemptCount())));
     }
 
 }

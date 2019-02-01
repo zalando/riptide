@@ -1,6 +1,6 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.ExecutionContext;
+import net.jodah.failsafe.event.ExecutionEvent;
 import org.apiguardian.api.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public final class LoggingRetryListener implements RetryListener {
 
     @Override
     public void onRetry(final RequestArguments arguments, @Nullable final ClientHttpResponse result,
-            @Nullable final Throwable failure, final ExecutionContext context) {
+            @Nullable final Throwable failure, final ExecutionEvent event) {
 
         if (failure != null) {
             logger.warn("Retrying failure", failure);

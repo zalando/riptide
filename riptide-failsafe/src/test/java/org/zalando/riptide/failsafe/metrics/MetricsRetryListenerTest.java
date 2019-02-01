@@ -3,9 +3,7 @@ package org.zalando.riptide.failsafe.metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Listeners;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
@@ -29,24 +27,19 @@ public class MetricsRetryListenerTest {
             .withMetricName("retries")
             .withDefaultTags(Tag.of("test", "true"));
 
-    private final RetryPolicy policy = new RetryPolicy()
-            .withMaxRetries(3);
+    private final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<ClientHttpResponse>().withMaxRetries(3);
 
     @Test
     public void shouldRecordRetries() {
         final AtomicInteger count = new AtomicInteger();
 
         Failsafe
-                .with(policy)
-                .with(new Listeners<ClientHttpResponse>() {
-                    @Override
-                    public void onRetry(final ClientHttpResponse result, final Throwable failure, final ExecutionContext context) {
-                        final RequestArguments arguments = RequestArguments.create()
-                                .withMethod(HttpMethod.GET)
-                                .withRequestUri(URI.create("/"));
-                        unit.onRetry(arguments, result, failure, context);
-                    }
-                })
+                .with(policy.onRetry(event -> {
+                    final RequestArguments arguments = RequestArguments.create()
+                            .withMethod(HttpMethod.GET)
+                            .withRequestUri(URI.create("/"));
+                    unit.onRetry(arguments, event.getLastResult(), event.getLastFailure(), event);
+                }))
                 .run(() -> {
             if (count.incrementAndGet() < 3) {
                 throw new IllegalStateException();

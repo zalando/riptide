@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -12,6 +13,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
@@ -56,11 +58,12 @@ public class RetryAfterDelayFunctionTest {
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                    .withRetryPolicy(new RetryPolicy()
-                            .withDelay(2, SECONDS)
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
+                            .withDelay(Duration.ofSeconds(2))
                             .withDelay(new RetryAfterDelayFunction(clock))
-                            .withMaxRetries(4)))
+                            .withMaxRetries(4)),
+                    newSingleThreadScheduledExecutor()))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
@@ -22,9 +23,9 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -66,21 +67,24 @@ public class FailsafePluginRetriesTest {
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newCachedThreadPool())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(new ScheduledThreadPoolExecutor(2))
-                    .withRetryPolicy(new RetryPolicy()
-                            .withDelay(500, MILLISECONDS)
-                            .withMaxRetries(4)
-                            .retryOn(Exception.class)
-                            .retryIf(this::isBadGateway))
-                    .withCircuitBreaker(new CircuitBreaker()
-                            .withFailureThreshold(3, 10)
-                            .withSuccessThreshold(5)
-                            .withDelay(1, TimeUnit.MINUTES))
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(
+                            new CircuitBreaker<ClientHttpResponse>()
+                                    .withFailureThreshold(3, 10)
+                                    .withSuccessThreshold(5)
+                                    .withDelay(Duration.ofMinutes(1)),
+                            new RetryPolicy<ClientHttpResponse>()
+                                    .withDelay(Duration.ofMillis(500))
+                                    .withMaxRetries(4)
+                                    .handleIf(Exception.class::isInstance)
+                                    .handleIf(this::isBadGateway)),
+                    new ScheduledThreadPoolExecutor(2))
                     .withListener(listeners))
             .build();
 
     @SneakyThrows
-    private boolean isBadGateway(@Nullable final ClientHttpResponse response) {
+    private boolean isBadGateway(@Nullable final ClientHttpResponse response,
+            @SuppressWarnings("unused") @Nullable final Throwable failure) {
         return response != null && response.getStatusCode() == HttpStatus.BAD_GATEWAY;
     }
 
@@ -131,12 +135,15 @@ public class FailsafePluginRetriesTest {
                 .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                         new ConcurrentTaskExecutor(newCachedThreadPool())))
                 .converter(createJsonConverter())
-                .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                .plugin(new FailsafePlugin(
+                        ImmutableList.of(
+                                new RetryPolicy<ClientHttpResponse>()
+                                        .withDelay(Duration.ofMillis(500))
+                                        .withMaxRetries(1)
+                        ),
+                        newSingleThreadScheduledExecutor())
                         .withIdempotentMethodDetector(arguments ->
-                            arguments.getHeaders().containsEntry("Idempotent", "true"))
-                        .withRetryPolicy(new RetryPolicy()
-                                .withDelay(500, MILLISECONDS)
-                                .withMaxRetries(1))
+                                arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withListener(listeners))
                 .build();
 

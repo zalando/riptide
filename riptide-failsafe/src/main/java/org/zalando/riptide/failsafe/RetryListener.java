@@ -1,6 +1,6 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.ExecutionContext;
+import net.jodah.failsafe.event.ExecutionEvent;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -18,7 +18,7 @@ public interface RetryListener {
 
     default void onRetry(final RequestArguments arguments,
             @Nullable final ClientHttpResponse result, @Nullable final Throwable failure,
-            final ExecutionContext context) {
+            final ExecutionEvent event) {
         // nothing to do
     }
 

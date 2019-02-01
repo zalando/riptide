@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableList;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -46,7 +47,7 @@ public class FailsafePluginNoCircuitBreakerTest {
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+            .plugin(new FailsafePlugin(ImmutableList.of(), newSingleThreadScheduledExecutor())
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();

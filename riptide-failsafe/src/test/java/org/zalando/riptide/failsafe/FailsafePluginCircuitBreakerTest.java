@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
@@ -11,6 +12,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
@@ -19,6 +21,7 @@ import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.concurrent.CompletionException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -26,7 +29,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
@@ -49,9 +51,11 @@ public class FailsafePluginCircuitBreakerTest {
             .requestFactory(new RestAsyncClientHttpRequestFactory(client,
                     new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                    .withCircuitBreaker(new CircuitBreaker()
-                            .withDelay(1, SECONDS))
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(
+                            new CircuitBreaker<ClientHttpResponse>()
+                                    .withDelay(Duration.ofSeconds(1))),
+                    newSingleThreadScheduledExecutor())
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();

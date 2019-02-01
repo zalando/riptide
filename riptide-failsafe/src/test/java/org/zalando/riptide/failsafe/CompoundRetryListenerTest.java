@@ -3,8 +3,9 @@ package org.zalando.riptide.failsafe;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenersAdapter;
+import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenerAdapter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,8 +29,9 @@ public final class CompoundRetryListenerTest {
         final RequestArguments arguments = RequestArguments.create();
         final IllegalStateException exception = new IllegalStateException();
 
-        Failsafe.with(new RetryPolicy().withMaxRetries(3))
-                .with(new RetryListenersAdapter(unit, arguments))
+        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+                .withMaxRetries(3)
+                .onRetry(new RetryListenerAdapter(unit, arguments)))
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;
