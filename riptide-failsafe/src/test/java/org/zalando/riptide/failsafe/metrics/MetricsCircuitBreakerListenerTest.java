@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.jodah.failsafe.CircuitBreaker;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public final class MetricsCircuitBreakerListenerTest {
             .withMetricName("circuit-breakers")
             .withDefaultTags(Tag.of("test", "true"));
 
-    private final CircuitBreaker breaker = new CircuitBreaker()
+    private final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<ClientHttpResponse>()
             .onOpen(unit::onOpen)
             .onHalfOpen(unit::onHalfOpen)
             .onClose(unit::onClose);

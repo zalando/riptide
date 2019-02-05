@@ -152,7 +152,7 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class CircuitBreaker {
         private Ratio failureThreshold;
-        private TimeSpan delay;
+        private TimeSpan delay = TimeSpan.of(0, SECONDS);
         private Ratio successThreshold;
     }
 

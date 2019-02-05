@@ -108,7 +108,6 @@ public class MetricsTest {
         assertEquals("1", first.getId().getTag("retries"));
         assertEquals("foo", first.getId().getTag("clientId"));
 
-
         final Timer second = timers.get(1);
         assertEquals("2", second.getId().getTag("retries"));
         assertEquals("foo", second.getId().getTag("clientId"));

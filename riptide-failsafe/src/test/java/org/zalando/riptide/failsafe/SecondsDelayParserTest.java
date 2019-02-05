@@ -1,9 +1,9 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.util.Duration;
 import org.junit.Test;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import java.time.Duration;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -13,12 +13,12 @@ public final class SecondsDelayParserTest {
 
     @Test
     public void shouldParseSingleDigit() {
-        assertEquals(new Duration(1, SECONDS), unit.parse("1"));
+        assertEquals(Duration.ofSeconds(1), unit.parse("1"));
     }
 
     @Test
     public void shouldParseDoubleDigitDelay() {
-        assertEquals(new Duration(17, SECONDS), unit.parse("17"));
+        assertEquals(Duration.ofSeconds(17), unit.parse("17"));
     }
 
     @Test

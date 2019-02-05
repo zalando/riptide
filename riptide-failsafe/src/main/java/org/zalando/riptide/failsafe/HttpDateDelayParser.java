@@ -1,16 +1,14 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.util.Duration;
-
 import javax.annotation.Nullable;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 
 import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 final class HttpDateDelayParser implements DelayParser {
 
@@ -36,7 +34,7 @@ final class HttpDateDelayParser implements DelayParser {
 
     @Nullable
     private Duration until(@Nullable final Instant end) {
-        return end == null ? null : new Duration(between(now(clock), end).getSeconds(), SECONDS);
+        return end == null ? null : between(now(clock), end);
     }
 
 }
