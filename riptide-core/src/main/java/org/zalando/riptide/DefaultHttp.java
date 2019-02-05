@@ -38,127 +38,127 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public final Requester get(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage get(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.GET, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester get(final URI uri) {
+    public final QueryStage get(final URI uri) {
         return execute(HttpMethod.GET, uri);
     }
 
     @Override
-    public final Requester get() {
+    public final QueryStage get() {
         return execute(HttpMethod.GET);
     }
 
     @Override
-    public final Requester head(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage head(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.HEAD, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester head(final URI uri) {
+    public final QueryStage head(final URI uri) {
         return execute(HttpMethod.HEAD, uri);
     }
 
     @Override
-    public final Requester head() {
+    public final QueryStage head() {
         return execute(HttpMethod.HEAD);
     }
 
     @Override
-    public final Requester post(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage post(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.POST, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester post(final URI uri) {
+    public final QueryStage post(final URI uri) {
         return execute(HttpMethod.POST, uri);
     }
 
     @Override
-    public final Requester post() {
+    public final QueryStage post() {
         return execute(HttpMethod.POST);
     }
 
     @Override
-    public final Requester put(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage put(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PUT, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester put(final URI uri) {
+    public final QueryStage put(final URI uri) {
         return execute(HttpMethod.PUT, uri);
     }
 
     @Override
-    public final Requester put() {
+    public final QueryStage put() {
         return execute(HttpMethod.PUT);
     }
 
     @Override
-    public final Requester patch(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage patch(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PATCH, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester patch(final URI uri) {
+    public final QueryStage patch(final URI uri) {
         return execute(HttpMethod.PATCH, uri);
     }
 
     @Override
-    public final Requester patch() {
+    public final QueryStage patch() {
         return execute(HttpMethod.PATCH);
     }
 
     @Override
-    public final Requester delete(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage delete(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.DELETE, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester delete(final URI uri) {
+    public final QueryStage delete(final URI uri) {
         return execute(HttpMethod.DELETE, uri);
     }
 
     @Override
-    public final Requester delete() {
+    public final QueryStage delete() {
         return execute(HttpMethod.DELETE);
     }
 
     @Override
-    public final Requester options(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage options(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.OPTIONS, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester options(final URI uri) {
+    public final QueryStage options(final URI uri) {
         return execute(HttpMethod.OPTIONS, uri);
     }
 
     @Override
-    public final Requester options() {
+    public final QueryStage options() {
         return execute(HttpMethod.OPTIONS);
     }
 
     @Override
-    public final Requester trace(final String uriTemplate, final Object... urlVariables) {
+    public final QueryStage trace(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.TRACE, uriTemplate, urlVariables);
     }
 
     @Override
-    public final Requester trace(final URI uri) {
+    public final QueryStage trace(final URI uri) {
         return execute(HttpMethod.TRACE, uri);
     }
 
     @Override
-    public final Requester trace() {
+    public final QueryStage trace() {
         return execute(HttpMethod.TRACE);
     }
 
     @Override
-    public Requester execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
+    public QueryStage execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get())
@@ -167,7 +167,7 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public Requester execute(final HttpMethod method, final URI uri) {
+    public QueryStage execute(final HttpMethod method, final URI uri) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get())
@@ -175,13 +175,13 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public Requester execute(final HttpMethod method) {
+    public QueryStage execute(final HttpMethod method) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get()));
     }
 
-    private Requester execute(final RequestArguments arguments) {
+    private QueryStage execute(final RequestArguments arguments) {
         return new Requester(executor, requestFactory, worker, arguments, plugin, ImmutableMultimap.of(), EMPTY);
     }
 

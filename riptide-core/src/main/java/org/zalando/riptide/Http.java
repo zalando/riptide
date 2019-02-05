@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import org.apiguardian.api.API;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -25,43 +24,7 @@ import static org.apiguardian.api.API.Status.STABLE;
  * @see RestTemplate
  */
 @API(status = STABLE)
-public interface Http {
-
-    Requester get(String uriTemplate, Object... urlVariables);
-    Requester get(URI uri);
-    Requester get();
-
-    Requester head(String uriTemplate, Object... urlVariables);
-    Requester head(URI uri);
-    Requester head();
-
-    Requester post(String uriTemplate, Object... urlVariables);
-    Requester post(URI uri);
-    Requester post();
-
-    Requester put(String uriTemplate, Object... urlVariables);
-    Requester put(URI uri);
-    Requester put();
-
-    Requester patch(String uriTemplate, Object... urlVariables);
-    Requester patch(URI uri);
-    Requester patch();
-
-    Requester delete(String uriTemplate, Object... urlVariables);
-    Requester delete(URI uri);
-    Requester delete();
-
-    Requester options(String uriTemplate, Object... urlVariables);
-    Requester options(URI uri);
-    Requester options();
-
-    Requester trace(String uriTemplate, Object... urlVariables);
-    Requester trace(URI uri);
-    Requester trace();
-
-    Requester execute(HttpMethod method, String uriTemplate, Object... uriVariables);
-    Requester execute(HttpMethod method, URI uri);
-    Requester execute(HttpMethod method);
+public interface Http extends URIStage {
 
     static ExecutorStage builder() {
         return new DefaultHttpBuilder();

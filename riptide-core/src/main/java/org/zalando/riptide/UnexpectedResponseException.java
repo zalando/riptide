@@ -9,7 +9,7 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.apiguardian.api.API.Status.STABLE;
 
 /**
- * Thrown when no matching {@link Route route} was found during {@link Dispatcher#dispatch(RoutingTree) dispatch}.
+ * Thrown when no matching {@link Route route} was found during {@link DispatchStage#dispatch(RoutingTree) dispatch}.
  *
  * @see NoRoute#noRoute()
  */

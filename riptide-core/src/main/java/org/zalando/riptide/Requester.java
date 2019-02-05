@@ -3,7 +3,6 @@ package org.zalando.riptide;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import org.apiguardian.api.API;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,12 +21,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
-@API(status = STABLE)
-public final class Requester extends Dispatcher {
+final class Requester extends QueryStage {
 
     private final Executor executor;
     private final ClientHttpRequestFactory requestFactory;
@@ -57,65 +54,75 @@ public final class Requester extends Dispatcher {
                 requester.plugin, query, headers);
     }
 
-    public Requester queryParam(final String name, final String value) {
+    @Override
+    public QueryStage queryParam(final String name, final String value) {
        return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(query).put(name, value).build(), headers);
     }
 
-    public Requester queryParams(final Multimap<String, String> params) {
+    @Override
+    public QueryStage queryParams(final Multimap<String, String> params) {
         return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(query).putAll(params).build(), headers);
     }
 
-    public Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
+    @Override
+    public HeaderStage accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
         final HttpHeaders headers = copyHeaders();
         headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
         return new Requester(this, query, headers);
     }
 
-    public Requester contentType(final MediaType contentType) {
+    @Override
+    public HeaderStage contentType(final MediaType contentType) {
         final HttpHeaders headers = copyHeaders();
         headers.setContentType(contentType);
         return new Requester(this, query, headers);
     }
 
-    public Requester ifModifiedSince(final OffsetDateTime since) {
+    @Override
+    public HeaderStage ifModifiedSince(final OffsetDateTime since) {
         final HttpHeaders headers = copyHeaders();
         headers.setIfModifiedSince(since.toInstant().toEpochMilli());
         return new Requester(this, query, headers);
     }
 
-    public Requester ifUnmodifiedSince(final OffsetDateTime since) {
+    @Override
+    public HeaderStage ifUnmodifiedSince(final OffsetDateTime since) {
         final HttpHeaders headers = copyHeaders();
         headers.setIfUnmodifiedSince(since.toInstant().toEpochMilli());
         return new Requester(this, query, headers);
     }
 
-    public Requester ifNoneMatch(final String... entityTags) {
+    @Override
+    public HeaderStage ifNoneMatch(final String... entityTags) {
         return ifNoneMatch(Arrays.asList(entityTags));
     }
 
-    public Requester ifMatch(final String... entityTags) {
+    @Override
+    public HeaderStage ifMatch(final String... entityTags) {
         return ifMatch(Arrays.asList(entityTags));
     }
 
-    private Requester ifMatch(final List<String> entityTags) {
+    private HeaderStage ifMatch(final List<String> entityTags) {
         final HttpHeaders headers = copyHeaders();
         headers.setIfMatch(entityTags);
         return new Requester(this, query, headers);
     }
 
-    private Requester ifNoneMatch(final List<String> entityTags) {
+    private HeaderStage ifNoneMatch(final List<String> entityTags) {
         final HttpHeaders headers = copyHeaders();
         headers.setIfNoneMatch(entityTags);
         return new Requester(this, query, headers);
     }
 
-    public Requester header(final String name, final String value) {
+    @Override
+    public HeaderStage header(final String name, final String value) {
         final HttpHeaders headers = copyHeaders();
         headers.add(name, value);
         return new Requester(this, query, headers);
     }
 
-    public Requester headers(final HttpHeaders headers) {
+    @Override
+    public HeaderStage headers(final HttpHeaders headers) {
         final HttpHeaders copy = copyHeaders();
         copy.putAll(headers);
         return new Requester(this, query, copy);
@@ -132,11 +139,8 @@ public final class Requester extends Dispatcher {
         return body(null).call(route);
     }
 
-    public <T> Dispatcher body(@Nullable final T body) {
-        return execute(body);
-    }
-
-    private <T> Dispatcher execute(final @Nullable T body) {
+    @Override
+    public <T> DispatchStage body(@Nullable final T body) {
         final ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
         headers.forEach(builder::putAll);
 
@@ -148,7 +152,7 @@ public final class Requester extends Dispatcher {
         );
     }
 
-    private final class ResponseDispatcher extends Dispatcher {
+    private final class ResponseDispatcher extends DispatchStage {
 
         private final HttpEntity<?> entity;
         private final RequestArguments arguments;

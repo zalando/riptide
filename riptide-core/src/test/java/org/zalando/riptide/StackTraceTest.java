@@ -77,8 +77,8 @@ public final class StackTraceTest {
                 .baseUrl(driver.getBaseUrl());
     }
 
-    private CompletableFuture<ClientHttpResponse> execute(final Requester requester) {
-        return requester.dispatch(contentType());
+    private CompletableFuture<ClientHttpResponse> execute(final DispatchStage stage) {
+        return stage.dispatch(contentType());
     }
 
     private Exception perform(final CompletableFuture<ClientHttpResponse> future) {

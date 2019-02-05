@@ -5,7 +5,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.time.OffsetDateTime;
 
@@ -20,7 +19,7 @@ public class RequesterImmutabilityTest {
 
     @Test
     public void shouldNotReturnSameInstanceAfterMutation() {
-        Requester original = unit.get();
+        QueryStage original = unit.get();
         Assert.assertNotSame(original, original.accept(MediaType.ALL));
         Assert.assertNotSame(original, original.contentType(MediaType.APPLICATION_JSON));
         Assert.assertNotSame(original, original.header("header","value"));

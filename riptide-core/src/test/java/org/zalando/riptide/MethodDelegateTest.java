@@ -80,15 +80,15 @@ public final class MethodDelegateTest {
     }
 
     private interface Tester {
-        Requester test(final Http unit);
+        HeaderStage test(final Http unit);
     }
 
     @Value
     private static final class NoParam implements Tester {
-        Function<Http, Requester> function;
+        Function<Http, HeaderStage> function;
 
         @Override
-        public Requester test(final Http unit) {
+        public HeaderStage test(final Http unit) {
             return function.apply(unit);
         }
 
@@ -100,11 +100,11 @@ public final class MethodDelegateTest {
 
     @Value
     private static final class UriParam implements Tester {
-        BiFunction<Http, URI, Requester> function;
+        BiFunction<Http, URI, HeaderStage> function;
         URI parameter;
 
         @Override
-        public Requester test(final Http unit) {
+        public HeaderStage test(final Http unit) {
             return function.apply(unit, parameter);
         }
 
@@ -116,11 +116,11 @@ public final class MethodDelegateTest {
 
     @Value
     private static final class UriTemplateParam implements Tester {
-        TriFunction<Http, String, Object[], Requester> function;
+        TriFunction<Http, String, Object[], HeaderStage> function;
         String parameter;
 
         @Override
-        public Requester test(final Http unit) {
+        public HeaderStage test(final Http unit) {
             return function.apply(unit, parameter, new Object[0]);
         }
 
