@@ -3,15 +3,13 @@ package org.zalando.riptide.stream;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -60,19 +58,17 @@ public final class StreamIOTest {
         }
     }
 
-    private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
             .executor(executor)
-            .requestFactory(new ApacheClientHttpRequestFactory(client))
+            .requestFactory(new SimpleClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
             .build();
 
     @After
-    public void shutdownExecutor() throws IOException {
-        client.close();
+    public void shutdownExecutor() {
         executor.shutdown();
     }
 
