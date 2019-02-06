@@ -34,6 +34,9 @@ riptide.clients:
       failure-threshold: 3 out of 5
       delay: 30 seconds
       success-threshold: 5 out of 5
+    caching:
+      shared: false
+      max-cache-entries: 100
 ```
 
 ```java
@@ -206,6 +209,18 @@ Spring Boot 1.x applications also require:
 Please be aware that Micrometer, by default, doesn't expose to `/metrics`.
 Consult [#401](https://github.com/zalando/riptide/issues/401) for details how to bypass this.
 
+#### Caching
+
+Required when `caching` is configured:
+
+```xml
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient-cache</artifactId>
+    <version>${httpclient.version}</version>
+</dependency>
+```
+
 ## Configuration
 
 You can now define new clients and override default configuration in your `application.yml`:
@@ -244,6 +259,14 @@ riptide:
       backup-request:
         delay: 75 milliseconds
       timeout: 500 milliseconds
+      caching:
+        shared: true
+        directory: /var/cache/http
+        max-object-size: 8192 # kilobytes
+        max-cache-entries: 1000
+        heuristic:
+          coefficient: 0.1
+          default-life-time: 10 minutes
       oauth.scopes:
         - example.read
 ```
@@ -286,7 +309,15 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── success-threshold`         | `Ratio`        | `failure-threshold`                              |
 | `│   ├── backup-request`                |                |                                                  |
 | `│   │   └── delay`                     | `TimeSpan`     | no delay                                         |
-| `│   └── timeout`                       | `TimeSpan`     | none                                             |
+| `│   ├── timeout`                       | `TimeSpan`     | none                                             |
+| `│   └── caching`                       |                |                                                  |
+| `│       ├── shared`                    | `boolean`      | `true`                                           |
+| `│       ├── directory`                 | `String`       | none, *in-memory* caching by default             |
+| `│       ├── max-object-size`           | `int`          | `8192`                                           |
+| `│       ├── max-cache-entries`         | `int`          | `1000`                                           |
+| `│       └── heuristic`                 |                | If max age was not specified by the server       |
+| `│           ├── coefficient`           | `double`       | `0.1`                                            |
+| `│           └── default-life-time`     | `TimeSpan`     | `0 seconds`, disabled                            |
 | `├── oauth`                             |                |                                                  |
 | `│   ├── access-token-url`              | `URI`          | env var `ACCESS_TOKEN_URL`                       |
 | `│   ├── credentials-directory`         | `Path`         | env var `CREDENTIALS_DIR`                        |
@@ -330,9 +361,10 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── delay`                 | `TimeSpan`     | no delay                                         |
 | `        ├── timeout`                   | `TimeSpan`     | see `defaults`                                   |
 | `        ├── compress-request`          | `boolean`      | `false`                                          |
-| `        └── keystore`                  |                | disables certificate pinning if omitted          |
-| `            ├── path`                  | `String`       | none                                             |
-| `            └── password`              | `String`       | none                                             |
+| `        ├── keystore`                  |                | disables certificate pinning if omitted          |
+| `        │   ├── path`                  | `String`       | none                                             |
+| `        │   └── password`              | `String`       | none                                             |
+| `        └── caching`                   |                | see `defaults`                                   |
 
 **Beware** that starting with Spring Boot 1.5.x the property resolution for environment variables changes and
 properties like `REST_CLIENTS_EXAMPLE_BASEURL` no longer work. As an alternative applications can use the 

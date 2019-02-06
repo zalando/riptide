@@ -73,6 +73,8 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-cache</artifactId>
             <version>4.5.7</version>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
