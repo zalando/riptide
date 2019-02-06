@@ -57,9 +57,7 @@
         <module>riptide-httpclient</module>
         <module>riptide-metrics</module>
         <module>riptide-problem</module>
-        <module>riptide-spring-boot-1.x-support</module>
-        <module>riptide-spring-boot-2.x-support</module>
-        <module>riptide-spring-boot-api</module>
+        <module>riptide-spring-boot-autoconfigure</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
         <module>riptide-timeout</module>
@@ -122,17 +120,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-1.x-support</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-2.x-support</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-api</artifactId>
+                <artifactId>riptide-spring-boot-autoconfigure</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

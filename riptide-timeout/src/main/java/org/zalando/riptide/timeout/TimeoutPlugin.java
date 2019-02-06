@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.concurrent.CompletableFuture;
@@ -40,9 +39,9 @@ public final class TimeoutPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> {
-            final CompletableFuture<ClientHttpResponse> upstream = execution.execute();
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> {
+            final CompletableFuture<ClientHttpResponse> upstream = execution.execute(arguments);
 
             final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
             upstream.whenCompleteAsync(forwardTo(downstream), executor);

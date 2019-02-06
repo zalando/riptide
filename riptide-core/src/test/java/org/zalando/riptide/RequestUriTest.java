@@ -12,9 +12,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.web.client.MockRestServiceServer;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -119,7 +122,8 @@ public class RequestUriTest {
     }
 
     private interface Result {
-        void execute(final String baseUrl, final UrlResolution resolution, final String uri, final HttpMethod method, final Consumer<Http> tester);
+        void execute(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
+                final HttpMethod method, final Consumer<Http> tester);
     }
 
     @Value
@@ -128,8 +132,8 @@ public class RequestUriTest {
         String requestUri;
 
         @Override
-        public void execute(final String baseUrl, final UrlResolution resolution, final String uri,
-                final HttpMethod method, final Consumer<Http> tester) {
+        public void execute(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
+                final HttpMethod method, @Nonnull final Consumer<Http> tester) {
 
             final MockSetup setup = new MockSetup(baseUrl);
             final Http unit = setup.getHttpBuilder().urlResolution(resolution).build();
@@ -161,14 +165,15 @@ public class RequestUriTest {
         String message;
 
         @Override
-        public void execute(final String baseUrl, final UrlResolution resolution, final String uri,
+        public void execute(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
                 final HttpMethod method, final Consumer<Http> tester) {
 
             try {
                 final Http unit = Http.builder()
+                        .executor(Executors.newSingleThreadExecutor())
+                        .requestFactory(new SimpleClientHttpRequestFactory())
                         .baseUrl(baseUrl)
                         .urlResolution(resolution)
-                        .requestFactory(new SimpleClientHttpRequestFactory())
                         .build();
 
                 tester.accept(unit);
@@ -194,8 +199,8 @@ public class RequestUriTest {
     public void shouldIgnoreEmptyUri() {
         assumeThat(uri, is(nullValue()));
 
-        result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method).call(pass()));
+        result.execute(baseUrl, resolution, null, method, http ->
+                http.execute(method).call(pass()).join());
     }
 
     @Test
@@ -203,7 +208,7 @@ public class RequestUriTest {
         assumeThat(uri, is(notNullValue()));
 
         result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method, URI.create(uri)).call(pass()));
+                http.execute(method, URI.create(uri)).call(pass()).join());
     }
 
     @Test
@@ -211,7 +216,7 @@ public class RequestUriTest {
         assumeThat(uri, is(notNullValue()));
 
         result.execute(baseUrl, resolution, uri, method, http ->
-                http.execute(method, uri).call(pass()));
+                http.execute(method, uri).call(pass()).join());
     }
 
     /**

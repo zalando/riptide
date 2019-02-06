@@ -3,17 +3,18 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -42,11 +43,12 @@ public class FailsafePluginNoCircuitBreakerTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
+            .executor(newSingleThreadExecutor())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
-            .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                    new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                    .withRetryPolicy(new RetryPolicy().withMaxRetries(0))
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();
@@ -77,14 +79,14 @@ public class FailsafePluginNoCircuitBreakerTest {
                 .exceptionally(this::ignore)
                 .join();
 
-        final CompletableFuture<Void> timeout = unit.get("/foo").call(pass());
-        final CompletableFuture<Void> last = unit.get("/foo").call(pass());
+        final CompletableFuture<ClientHttpResponse> timeout = unit.get("/foo").call(pass());
+        final CompletableFuture<ClientHttpResponse> last = unit.get("/foo").call(pass());
 
         timeout.exceptionally(partially(SocketTimeoutException.class, this::ignore)).join();
         last.join();
     }
 
-    private Void ignore(@SuppressWarnings("unused") final Throwable throwable) {
+    private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {
         return null;
     }
 

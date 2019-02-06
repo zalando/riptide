@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import com.google.common.base.Stopwatch;
+import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -13,9 +14,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -52,11 +52,12 @@ public class RetryAfterDelayFunctionTest {
     private final Clock clock = Clock.fixed(parse("2018-04-11T22:34:27Z"), UTC);
 
     private final Http unit = Http.builder()
+            .executor(newSingleThreadExecutor())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
-            .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                    new ConcurrentTaskExecutor(newSingleThreadExecutor())))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
+                    .withCircuitBreaker(new CircuitBreaker())
                     .withRetryPolicy(new RetryPolicy()
                             .withDelay(2, SECONDS)
                             .withDelay(new RetryAfterDelayFunction(clock))

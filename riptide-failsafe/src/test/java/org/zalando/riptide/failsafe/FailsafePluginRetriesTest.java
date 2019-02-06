@@ -15,9 +15,8 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -62,9 +61,9 @@ public class FailsafePluginRetriesTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
+            .executor(newCachedThreadPool())
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
-            .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                    new ConcurrentTaskExecutor(newCachedThreadPool())))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(new ScheduledThreadPoolExecutor(2))
                     .withRetryPolicy(new RetryPolicy()
@@ -127,16 +126,16 @@ public class FailsafePluginRetriesTest {
     @Test
     public void shouldRetryCustomDetectedIdempotentRequest() {
         final Http unit = Http.builder()
+                .executor(newCachedThreadPool())
+                .requestFactory(new ApacheClientHttpRequestFactory(client))
                 .baseUrl(driver.getBaseUrl())
-                .requestFactory(new RestAsyncClientHttpRequestFactory(client,
-                        new ConcurrentTaskExecutor(newCachedThreadPool())))
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                        .withIdempotentMethodDetector(arguments ->
-                            arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withRetryPolicy(new RetryPolicy()
                                 .withDelay(500, MILLISECONDS)
                                 .withMaxRetries(1))
+                        .withIdempotentMethodDetector(arguments ->
+                            arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withListener(listeners))
                 .build();
 

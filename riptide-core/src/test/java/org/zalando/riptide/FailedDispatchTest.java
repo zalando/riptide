@@ -76,7 +76,7 @@ public final class FailedDispatchTest {
                         .contentType(APPLICATION_JSON));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoRouteException.class));
+        exception.expectCause(instanceOf(UnexpectedResponseException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
         exception.expectMessage(containsString("Content-Type"));
         exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
@@ -178,7 +178,8 @@ public final class FailedDispatchTest {
                                         on(TEXT_PLAIN).call(pass())),
                                 on(ACCEPTED).call(pass()),
                                 anyStatus().call(consumer)),
-                        on(CLIENT_ERROR).call(pass()));
+                        on(CLIENT_ERROR).call(pass()))
+                .join();
 
         verify(consumer).tryAccept(any());
     }
@@ -200,7 +201,8 @@ public final class FailedDispatchTest {
                                         on(TEXT_PLAIN).call(pass())),
                                 on(ACCEPTED).call(pass())),
                         on(CLIENT_ERROR).call(pass()),
-                        anySeries().call(consumer));
+                        anySeries().call(consumer))
+                .join();
 
         verify(consumer).tryAccept(any());
     }
@@ -215,15 +217,14 @@ public final class FailedDispatchTest {
                         .contentType(APPLICATION_JSON));
 
         exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoRouteException.class));
+        exception.expectCause(instanceOf(UnexpectedResponseException.class));
         exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
         exception.expectMessage(containsString("Content-Type"));
         exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
-        exception.expectCause(hasFeature("response", NoRouteException::getResponse, notNullValue()));
-        exception.expectCause(hasFeature("raw status code", NoRouteException::getRawStatusCode, is(201)));
-        exception.expectCause(hasFeature("status text", NoRouteException::getStatusText, is("Created")));
-        exception.expectCause(hasFeature("response headers", NoRouteException::getResponseHeaders, is(notNullValue())));
-        exception.expectCause(hasFeature("response body", NoRouteException::getResponseBody, is(notNullValue())));
+        exception.expectCause(hasFeature("raw status code", UnexpectedResponseException::getRawStatusCode, is(201)));
+        exception.expectCause(hasFeature("status text", UnexpectedResponseException::getStatusText, is("Created")));
+        exception.expectCause(hasFeature("response headers", UnexpectedResponseException::getResponseHeaders, is(notNullValue())));
+        exception.expectCause(hasFeature("response body", UnexpectedResponseException::getResponseBody, is(notNullValue())));
 
         unit.post(url)
                 .dispatch(series(),

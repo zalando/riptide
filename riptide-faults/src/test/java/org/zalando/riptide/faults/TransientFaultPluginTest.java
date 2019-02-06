@@ -12,7 +12,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -51,7 +52,7 @@ public final class TransientFaultPluginTest {
             .build();
 
     private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     @After
     public void tearDown() throws IOException {
@@ -88,11 +89,16 @@ public final class TransientFaultPluginTest {
 
     @Test
     public void shouldClassifyExceptionAsTransientAsIs() {
-        final Http unit = newUnit((arguments, execution) -> () -> {
+        final Http unit = newUnit(new Plugin() {
+            @Override
+            public RequestExecution beforeDispatch(final RequestExecution execution) {
+                return arguments -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
                     return future;
-                }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
+                };
+            }
+        }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(TransientFaultException.class));
@@ -106,7 +112,7 @@ public final class TransientFaultPluginTest {
                 .join();
     }
 
-    private CompletableFuture<Void> request(final Http unit) {
+    private CompletableFuture<ClientHttpResponse> request(final Http unit) {
         return unit.get("/")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
@@ -130,8 +136,9 @@ public final class TransientFaultPluginTest {
 
     private Http newUnit(final Plugin... plugins) {
         return Http.builder()
-                .baseUrl(driver.getBaseUrl())
+                .executor(executor)
                 .requestFactory(factory)
+                .baseUrl(driver.getBaseUrl())
                 .plugins(Arrays.asList(plugins))
                 .build();
     }

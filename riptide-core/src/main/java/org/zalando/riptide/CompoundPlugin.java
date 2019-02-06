@@ -11,22 +11,22 @@ final class CompoundPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
+    public RequestExecution beforeSend(final RequestExecution execution) {
         RequestExecution result = execution;
 
         for (final Plugin plugin : plugins) {
-            result = plugin.interceptBeforeRouting(arguments, result);
+            result = plugin.beforeSend(result);
         }
 
         return result;
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
         RequestExecution result = execution;
 
         for (final Plugin plugin : plugins) {
-            result = plugin.prepare(arguments, result);
+            result = plugin.beforeDispatch(result);
         }
 
         return result;

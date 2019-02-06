@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 
 import java.io.IOException;
@@ -35,7 +36,6 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
@@ -61,8 +61,9 @@ public final class StreamIOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
+            .executor(executor)
+            .requestFactory(new SimpleClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
-            .configure(simpleRequestFactory(newSingleThreadExecutor()))
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES), singletonList(APPLICATION_JSON)))
             .build();
 
@@ -70,7 +71,6 @@ public final class StreamIOTest {
     public void shutdownExecutor() {
         executor.shutdown();
     }
-
 
     @Test
     public void shouldReadContributors() throws IOException {
@@ -95,7 +95,7 @@ public final class StreamIOTest {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
-        final CompletableFuture<Void> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
+        final CompletableFuture<ClientHttpResponse> future = http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()));
 

@@ -2,7 +2,6 @@ package org.zalando.riptide.faults;
 
 import org.apiguardian.api.API;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import static org.apiguardian.api.API.Status.STABLE;
@@ -22,8 +21,8 @@ public final class TransientFaultPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> execution.execute().exceptionally(partially(classifier::classifyExceptionally));
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> execution.execute(arguments).exceptionally(partially(classifier::classifyExceptionally));
     }
 
 }

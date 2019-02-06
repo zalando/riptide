@@ -51,31 +51,32 @@ public final class BackupRequestPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        if (safe.test(arguments)) {
-            return withBackup(execution);
-        }
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> {
+            if (safe.test(arguments)) {
+                return withBackup(execution, arguments);
+            }
 
-        return execution;
-    }
-
-    private RequestExecution withBackup(final RequestExecution execution) {
-        return () -> {
-            final CompletableFuture<ClientHttpResponse> original = execution.execute();
-            final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
-
-            final Future<?> scheduledBackup = delay(backup(execution, backup));
-
-            original.whenCompleteAsync(cancel(scheduledBackup), executor);
-            backup.whenCompleteAsync(cancel(original), executor);
-
-            return anyOf(original, backup);
+            return execution.execute(arguments);
         };
     }
 
+    private CompletableFuture<ClientHttpResponse> withBackup(final RequestExecution execution,
+            final RequestArguments arguments) throws IOException {
+        final CompletableFuture<ClientHttpResponse> original = execution.execute(arguments);
+        final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
+
+        final Future<?> scheduledBackup = delay(backup(execution, arguments, backup));
+
+        original.whenCompleteAsync(cancel(scheduledBackup), executor);
+        backup.whenCompleteAsync(cancel(original), executor);
+
+        return anyOf(original, backup);
+    }
+
     private ThrowingRunnable<IOException> backup(final RequestExecution execution,
-            final CompletableFuture<ClientHttpResponse> target) {
-        return () -> execution.execute().whenCompleteAsync(forwardTo(target), executor);
+            final RequestArguments arguments, final CompletableFuture<ClientHttpResponse> target) {
+        return () -> execution.execute(arguments).whenCompleteAsync(forwardTo(target), executor);
     }
 
     private ScheduledFuture<?> delay(final Runnable task) {

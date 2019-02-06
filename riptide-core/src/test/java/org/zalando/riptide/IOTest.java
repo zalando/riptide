@@ -7,11 +7,11 @@ import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.HttpBuilder.simpleRequestFactory;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
@@ -48,12 +47,13 @@ public final class IOTest {
     private final ExecutorService executor = newSingleThreadExecutor();
 
     private final Http http = Http.builder()
+            .executor(executor)
+            .requestFactory(new SimpleClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
-            .configure(simpleRequestFactory(executor))
             .converter(createJsonConverter())
             .build();
 
-    private MappingJackson2HttpMessageConverter createJsonConverter() {
+    private static MappingJackson2HttpMessageConverter createJsonConverter() {
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES));
@@ -84,7 +84,7 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws ExecutionException, InterruptedException {
+    public void shouldCancelRequest() throws InterruptedException {
         // TODO: support proper cancellations and remove this expectation
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
@@ -92,7 +92,7 @@ public final class IOTest {
                 .call(pass())
                 .cancel(true);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
 }

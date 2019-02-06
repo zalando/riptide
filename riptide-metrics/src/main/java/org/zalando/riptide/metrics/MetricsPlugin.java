@@ -52,18 +52,13 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> {
+    public RequestExecution beforeSend(final RequestExecution execution) {
+        return arguments -> {
             final Measurement measurement = new Measurement(arguments);
 
-            return execution.execute()
+            return execution.execute(arguments)
                     .whenComplete(throwingBiConsumer(measurement::record));
         };
-    }
-
-    @Override
-    public RequestExecution prepare(final RequestArguments arguments, final RequestExecution execution) {
-        return execution;
     }
 
     @AllArgsConstructor

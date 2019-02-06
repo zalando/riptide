@@ -70,7 +70,7 @@ Go checkout the [concept document](docs/concepts.md) for more details.
 
 ## Dependencies
 
-- Spring 4.x (4.3.0 or higher) **or 5.x**
+- Spring 5
 
 ## Installation
 
@@ -223,14 +223,14 @@ scheduleRetryLater()
 
 ### Futures
 
-Riptide will return a `CompletableFuture<Void>`. That means you can choose to chain transformations/callbacks or block
+Riptide will return a `CompletableFuture<ClientHttpResponse>`. That means you can choose to chain transformations/callbacks or block
 on it.
 
 If you need proper return values take a look at [Riptide: Capture](riptide-capture).
 
 ### Exceptions
 
-The only special custom exception you may get is `NoRouteException`, if and only if there was no matching condition and
+The only special custom exception you may get is `UnexpectedResponseException`, if and only if there was no matching condition and
 no wildcard condition either.
 
 ### Plugins

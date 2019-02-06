@@ -1,120 +1,146 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import org.apiguardian.api.API;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
-import static java.util.Objects.nonNull;
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
+import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
-@API(status = STABLE)
-public final class Requester extends Dispatcher {
+final class Requester extends QueryStage {
 
-    private final AsyncClientHttpRequestFactory requestFactory;
+    private final Executor executor;
+    private final ClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
     private final RequestArguments arguments;
     private final Plugin plugin;
 
-    private final Multimap<String, String> query = LinkedHashMultimap.create();
-    private final HttpHeaders headers = new HttpHeaders();
+    private final ImmutableMultimap<String, String> query;
+    private final HttpHeaders headers;
 
-    Requester(final AsyncClientHttpRequestFactory requestFactory, final MessageWorker worker,
-            final RequestArguments arguments, final Plugin plugin) {
+    Requester(final Executor executor, final ClientHttpRequestFactory requestFactory,
+            final MessageWorker worker, final RequestArguments arguments, final Plugin plugin,
+            final ImmutableMultimap<String, String> query,
+            final HttpHeaders headers) {
+        this.executor = executor;
         this.requestFactory = requestFactory;
         this.worker = worker;
         this.arguments = arguments;
         this.plugin = plugin;
+        this.query = query;
+        this.headers = headers;
     }
 
-    public Requester queryParam(final String name, final String value) {
-        query.put(name, value);
-        return this;
-    }
-
-    public Requester queryParams(final Multimap<String, String> params) {
-        query.putAll(params);
-        return this;
-    }
-
-    public Requester accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
-        headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
-        return this;
-    }
-
-    public Requester contentType(final MediaType contentType) {
-        headers.setContentType(contentType);
-        return this;
-    }
-
-    public Requester ifModifiedSince(final OffsetDateTime since) {
-        headers.setIfModifiedSince(since.toInstant().toEpochMilli());
-        return this;
-    }
-
-    public Requester ifUnmodifiedSince(final OffsetDateTime since) {
-        headers.setIfUnmodifiedSince(since.toInstant().toEpochMilli());
-        return this;
-    }
-
-    public Requester ifNoneMatch(final String... entityTags) {
-        return ifNoneMatch(Arrays.asList(entityTags));
-    }
-
-    public Requester ifMatch(final String... entityTags) {
-        return ifMatch(Arrays.asList(entityTags));
-    }
-
-    private Requester ifMatch(final List<String> entityTags) {
-        headers.setIfMatch(entityTags);
-        return this;
-    }
-
-    private Requester ifNoneMatch(final List<String> entityTags) {
-        headers.setIfNoneMatch(entityTags);
-        return this;
-    }
-
-    public Requester header(final String name, final String value) {
-        headers.add(name, value);
-        return this;
-    }
-
-    public Requester headers(final HttpHeaders headers) {
-        this.headers.putAll(headers);
-        return this;
-    }
-
-    public <T> Dispatcher body(@Nullable final T body) {
-        return execute(body);
+    private Requester(final Requester requester, final ImmutableMultimap<String,String> query,
+            final HttpHeaders headers) {
+        this(requester.executor, requester.requestFactory, requester.worker, requester.arguments,
+                requester.plugin, query, headers);
     }
 
     @Override
-    public CompletableFuture<Void> call(final Route route) {
-        return execute(null).call(route);
+    public QueryStage queryParam(final String name, final String value) {
+       return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(query).put(name, value).build(), headers);
     }
 
-    private <T> Dispatcher execute(final @Nullable T body) {
+    @Override
+    public QueryStage queryParams(final Multimap<String, String> params) {
+        return new Requester(this, ImmutableMultimap.<String, String>builder().putAll(query).putAll(params).build(), headers);
+    }
+
+    @Override
+    public HeaderStage accept(final MediaType acceptableMediaType, final MediaType... acceptableMediaTypes) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setAccept(Lists.asList(acceptableMediaType, acceptableMediaTypes));
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage contentType(final MediaType contentType) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setContentType(contentType);
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage ifModifiedSince(final OffsetDateTime since) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setIfModifiedSince(since.toInstant().toEpochMilli());
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage ifUnmodifiedSince(final OffsetDateTime since) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setIfUnmodifiedSince(since.toInstant().toEpochMilli());
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage ifNoneMatch(final String... entityTags) {
+        return ifNoneMatch(Arrays.asList(entityTags));
+    }
+
+    @Override
+    public HeaderStage ifMatch(final String... entityTags) {
+        return ifMatch(Arrays.asList(entityTags));
+    }
+
+    private HeaderStage ifMatch(final List<String> entityTags) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setIfMatch(entityTags);
+        return new Requester(this, query, headers);
+    }
+
+    private HeaderStage ifNoneMatch(final List<String> entityTags) {
+        final HttpHeaders headers = copyHeaders();
+        headers.setIfNoneMatch(entityTags);
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage header(final String name, final String value) {
+        final HttpHeaders headers = copyHeaders();
+        headers.add(name, value);
+        return new Requester(this, query, headers);
+    }
+
+    @Override
+    public HeaderStage headers(final HttpHeaders headers) {
+        final HttpHeaders copy = copyHeaders();
+        copy.putAll(headers);
+        return new Requester(this, query, copy);
+    }
+
+    private HttpHeaders copyHeaders() {
+        final HttpHeaders copy = new HttpHeaders();
+        copy.putAll(headers);
+        return copy;
+    }
+
+    @Override
+    public CompletableFuture<ClientHttpResponse> call(final Route route) {
+        return body(null).call(route);
+    }
+
+    @Override
+    public <T> DispatchStage body(@Nullable final T body) {
         final ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
         headers.forEach(builder::putAll);
 
@@ -126,7 +152,7 @@ public final class Requester extends Dispatcher {
         );
     }
 
-    private final class ResponseDispatcher extends Dispatcher {
+    private final class ResponseDispatcher extends DispatchStage {
 
         private final HttpEntity<?> entity;
         private final RequestArguments arguments;
@@ -137,50 +163,40 @@ public final class Requester extends Dispatcher {
         }
 
         @Override
-        public CompletableFuture<Void> call(final Route route) {
-            try {
-                final RequestExecution original = this::send;
-                final RequestExecution before = plugin.interceptBeforeRouting(arguments, original);
-                final RequestExecution after = plugin.interceptAfterRouting(arguments, dispatch(before, route));
-                final CompletableFuture<ClientHttpResponse> future = after.execute();
+        public CompletableFuture<ClientHttpResponse> call(final Route route) {
+            final RequestExecution before = plugin.beforeSend(this::send);
+            final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
 
-                // TODO why not return CompletableFuture<ClientHttpResponse> here?
-                // we need a CompletableFuture<Void>
-
-                // TODO: replace with thenApply call in Java 9
-                final CompletableFuture<Void> result = preserveCancelability(future);
-                future.whenComplete((response, throwable) -> {
-                    if (nonNull(response)) {
-                        result.complete(null);
-                    }
-                    if (nonNull(throwable)) {
-                        result.completeExceptionally(throwable);
-                    }
-                });
-                return result;
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            // TODO get rid of this
+            return throwingFunction(after::execute).apply(arguments);
         }
 
-        private CompletableFuture<ClientHttpResponse> send() throws IOException {
-            final AsyncClientHttpRequest request = createRequest();
-            worker.write(request, entity);
-            final ListenableFuture<ClientHttpResponse> original = request.executeAsync();
+        private CompletableFuture<ClientHttpResponse> send(final RequestArguments arguments) {
+            final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
 
-            final CompletableFuture<ClientHttpResponse> future = preserveCancelability(original);
-            original.addCallback(future::complete, future::completeExceptionally);
+            executor.execute(throwingRunnable(() -> {
+                try {
+                    final ClientHttpRequest request = createRequest(arguments);
+
+                    worker.write(request, entity);
+
+                    future.complete(request.execute());
+                } catch (final Exception e) {
+                    future.completeExceptionally(e);
+                }
+            }));
+
             return future;
         }
 
-        private AsyncClientHttpRequest createRequest() throws IOException {
+        private ClientHttpRequest createRequest(final RequestArguments arguments) throws IOException {
             final URI requestUri = arguments.getRequestUri();
             final HttpMethod method = arguments.getMethod();
-            return requestFactory.createAsyncRequest(requestUri, method);
+            return requestFactory.createRequest(requestUri, method);
         }
 
         private RequestExecution dispatch(final RequestExecution execution, final Route route) {
-            return () -> execution.execute().thenApply(dispatch(route));
+            return arguments -> execution.execute(arguments).thenApply(dispatch(route));
         }
 
         private ThrowingUnaryOperator<ClientHttpResponse, Exception> dispatch(final Route route) {
@@ -188,7 +204,7 @@ public final class Requester extends Dispatcher {
                 try {
                     route.execute(response, worker);
                 } catch (final NoWildcardException e) {
-                    throw new NoRouteException(response);
+                    throw new UnexpectedResponseException(response);
                 }
 
                 return response;

@@ -12,10 +12,12 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.RestAsyncClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 
@@ -37,11 +39,12 @@ public final class HttpConnectionPoolMetricsTest {
             .build();
 
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final RestAsyncClientHttpRequestFactory factory = new RestAsyncClientHttpRequestFactory(client, executor);
+    private final ClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http http = Http.builder()
-            .baseUrl(driver.getBaseUrl())
+            .executor(executor)
             .requestFactory(factory)
+            .baseUrl(driver.getBaseUrl())
             .build();
 
     private final MeterRegistry meterRegistry = new SimpleMeterRegistry();

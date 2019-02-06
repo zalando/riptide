@@ -52,15 +52,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-1.x-support</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-2.x-support</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-spring-boot-api</artifactId>
+                <artifactId>riptide-spring-boot-autoconfigure</artifactId>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>

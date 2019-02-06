@@ -16,14 +16,13 @@
 
 ```java
 final Http http = Http.builder()
-        .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
+        .requestFactory(new ApacheClientHttpRequestFactory(client))
         .build();
 ```
 
 ## Features
 
 - independent from *Riptide: Core*, i.e. it can be used with a plain [`RestTemplate`](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
-- allows to use a plain [`HttpClient`](https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/org/apache/http/client/HttpClient.html) [asynchronously](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/AsyncClientHttpRequestFactory.html)
 - fixes several issues with Spring's [`HttpComponentsClientHttpRequestFactory`](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html):
     - preserve the underlying client's request config
     - releasing connections back to the pool after closing streams
@@ -51,10 +50,8 @@ CloseableHttpClient client = HttpClientBuilder.create()
         // TODO configure client here
         .build();
 
-AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-
-Http http = Http.builder()
-        .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
+final Http http = Http.builder()
+        .requestFactory(new ApacheClientHttpRequestFactory(client))
         .build();
 ```
 
