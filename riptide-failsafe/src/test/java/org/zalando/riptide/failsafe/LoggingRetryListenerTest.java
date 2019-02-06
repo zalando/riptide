@@ -5,8 +5,9 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.Test;
 import org.slf4j.Logger;
+import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenersAdapter;
+import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenerAdapter;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,8 +30,9 @@ public final class LoggingRetryListenerTest {
         final RequestArguments arguments = RequestArguments.create();
         final IllegalStateException exception = new IllegalStateException();
 
-        Failsafe.with(new RetryPolicy().withMaxRetries(3))
-                .with(new RetryListenersAdapter(unit, arguments))
+        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+                .withMaxRetries(3)
+                .onRetry(new RetryListenerAdapter(unit, arguments)))
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;
@@ -46,16 +48,16 @@ public final class LoggingRetryListenerTest {
 
         final RequestArguments arguments = RequestArguments.create();
 
-        Failsafe.with(new RetryPolicy()
-                    .withMaxRetries(3)
-                    .retryIf(Objects::isNull))
-                .with(new RetryListenersAdapter(unit, arguments))
+        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+                .withMaxRetries(3)
+                .handleResultIf(Objects::isNull)
+                .onRetry(new RetryListenerAdapter(unit, arguments)))
                 .get(() -> {
                     if (!success.getAndSet(true)) {
                         return null;
                     }
 
-                    return "not null";
+                    return mock(ClientHttpResponse.class);
                 });
 
         verifyNoMoreInteractions(logger);

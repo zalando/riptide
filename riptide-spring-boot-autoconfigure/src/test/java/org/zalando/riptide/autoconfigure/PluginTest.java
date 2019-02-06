@@ -95,7 +95,7 @@ public final class PluginTest {
     public void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(asList(
                 instanceOf(MetricsPlugin.class),
-                instanceOf(FailsafePlugin.Implementation.class))));
+                instanceOf(FailsafePlugin.class))));
     }
 
     @Test

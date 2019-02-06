@@ -1,11 +1,10 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.util.Duration;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.Arrays;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -20,23 +19,23 @@ public final class CompoundDelayParserTest {
 
     @Test
     public void shouldUseFirstNonNullDelay() {
-        when(first.parse("1")).thenReturn(new Duration(1, SECONDS));
-        when(second.parse("2")).thenReturn(new Duration(2, SECONDS));
+        when(first.parse("1")).thenReturn(Duration.ofSeconds(1));
+        when(second.parse("2")).thenReturn(Duration.ofSeconds(2));
 
-        assertEquals(new Duration(1, SECONDS), unit.parse("1"));
+        assertEquals(Duration.ofSeconds(1), unit.parse("1"));
     }
 
     @Test
     public void shouldIgnoreNullDelay() {
-        when(second.parse("2")).thenReturn(new Duration(2, SECONDS));
+        when(second.parse("2")).thenReturn(Duration.ofSeconds(2));
 
-        assertEquals(new Duration(2, SECONDS), unit.parse("2"));
+        assertEquals(Duration.ofSeconds(2), unit.parse("2"));
     }
 
     @Test
     public void shouldFallbackToNullDelay() {
-        when(first.parse("1")).thenReturn(new Duration(1, SECONDS));
-        when(second.parse("2")).thenReturn(new Duration(2, SECONDS));
+        when(first.parse("1")).thenReturn(Duration.ofSeconds(1));
+        when(second.parse("2")).thenReturn(Duration.ofSeconds(2));
 
         assertNull(unit.parse("3"));
     }

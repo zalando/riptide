@@ -17,9 +17,7 @@ and a circuit breaker to every remote call.
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(scheduler)
-            .withRetryPolicy(retryPolicy)
-            .withCircuitBreaker(circuitBreaker))
+    .plugin(new FailsafePlugin(ImmutableList.of(circuitBreaker, retryPolicy), scheduler))
     .build();
 ```
 
@@ -51,15 +49,18 @@ The failsafe plugin will not perform retries nor apply circuit breakers unless t
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
-            .withRetryPolicy(new RetryPolicy()
-                    .withDelay(25, TimeUnit.MILLISECONDS)
-                    .withDelay(new RetryAfterDelayFunction(clock))
-                    .withMaxRetries(4))
-            .withCircuitBreaker(new CircuitBreaker()
-                    .withFailureThreshold(3, 10)
-                    .withSuccessThreshold(5)
-                    .withDelay(1, TimeUnit.MINUTES))
+    .plugin(new FailsafePlugin(
+            ImmutableList.of(
+                   new RetryPolicy<ClientHttpResponse>()
+                           .withDelay(Duration.ofMillis(25))
+                           .withDelay(new RetryAfterDelayFunction(clock))
+                           .withMaxRetries(4),
+                   new CircuitBreaker<ClientHttpResponse>()
+                           .withFailureThreshold(3, 10)
+                           .withSuccessThreshold(5)
+                           .withDelay(Duration.ofMinutes(1))
+            ),
+            Executors.newScheduledThreadPool(20))
             .withListeners(myListeners))
     .build();
 ```
@@ -71,9 +72,9 @@ configurations.
 You'll need to register `RetryException` in order for the `retry()` route to work:
 
 ```java
-new RetryPolicy()
-    .retryOn(SocketTimeoutException.class)
-    .retryOn(RetryException.class);
+new RetryPolicy<ClientHttpResponse>()
+    .handle(SocketTimeoutException.class)
+    .handle(RetryException.class);
 ```
 
 As of Failsafe version 1.1.0, it's now supported to dynamically compute delays using a custom function.
@@ -82,10 +83,11 @@ Riptide: Failsafe offers a special implementation that understands
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(Executors.newScheduledThreadPool(20))
-            .withRetryPolicy(new RetryPolicy()
-                    .withDelay(25, TimeUnit.MILLISECONDS)
-                    .withDelay(new RetryAfterDelayFunction(clock)))
+    .plugin(new FailsafePlugin(
+            ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
+                     .withDelay(Duration.ofMillis(25))
+                     .withDelay(new RetryAfterDelayFunction(clock))),
+            Executors.newScheduledThreadPool(20)))
     .build();
 ```
 

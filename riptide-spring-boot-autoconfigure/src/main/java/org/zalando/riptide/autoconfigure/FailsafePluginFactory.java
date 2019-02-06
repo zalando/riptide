@@ -1,7 +1,10 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
+import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
+import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -16,6 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.Clock.systemUTC;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("unused")
@@ -25,17 +29,28 @@ final class FailsafePluginFactory {
 
     }
 
-    public static Plugin createFailsafePlugin(final ScheduledExecutorService scheduler,
-            @Nullable final RetryPolicy retryPolicy, @Nullable final CircuitBreaker circuitBreaker,
+    public static Plugin createFailsafePlugin(
+            final ScheduledExecutorService scheduler,
+            @Nullable final RetryPolicy<ClientHttpResponse> retryPolicy,
+            @Nullable final CircuitBreaker<ClientHttpResponse> circuitBreaker,
             final RetryListener listener) {
-        return new FailsafePlugin(scheduler)
-                .withRetryPolicy(retryPolicy)
-                .withCircuitBreaker(circuitBreaker)
+
+        final ImmutableList.Builder<Policy<ClientHttpResponse>> policies = ImmutableList.builder();
+
+        if (retryPolicy != null) {
+            policies.add(retryPolicy);
+        }
+
+        if (circuitBreaker != null) {
+            policies.add(circuitBreaker);
+        }
+
+        return new FailsafePlugin(policies.build(), scheduler)
                 .withListener(listener);
     }
 
-    public static RetryPolicy createRetryPolicy(final RiptideProperties.Retry config) {
-        final RetryPolicy policy = new RetryPolicy();
+    public static RetryPolicy<ClientHttpResponse> createRetryPolicy(final RiptideProperties.Retry config) {
+        final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
         Optional.ofNullable(config.getFixedDelay())
                 .ifPresent(delay -> delay.applyTo(policy::withDelay));
@@ -49,9 +64,9 @@ final class FailsafePluginFactory {
                     @Nullable final Double delayFactor = backoff.getDelayFactor();
 
                     if (delayFactor == null) {
-                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), unit);
+                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS);
                     } else {
-                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), unit, delayFactor);
+                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS, delayFactor);
                     }
                 });
 
@@ -67,16 +82,16 @@ final class FailsafePluginFactory {
         Optional.ofNullable(config.getJitter())
                 .ifPresent(jitter -> jitter.applyTo(policy::withJitter));
 
-        policy.retryOn(TransientFaultException.class);
-        policy.retryOn(RetryException.class);
+        policy.handle(TransientFaultException.class);
+        policy.handle(RetryException.class);
         policy.withDelay(new RetryAfterDelayFunction(systemUTC()));
 
         return policy;
     }
 
-    public static CircuitBreaker createCircuitBreaker(final RiptideProperties.Client client,
+    public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(final RiptideProperties.Client client,
             final CircuitBreakerListener listener) {
-        final CircuitBreaker breaker = new CircuitBreaker();
+        final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
 
         Optional.ofNullable(client.getTimeout())
                 .ifPresent(timeout -> timeout.applyTo(breaker::withTimeout));

@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -61,6 +62,7 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.io.File;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -72,6 +74,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.function.Predicate;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -145,22 +148,25 @@ public class ManualConfiguration {
                                     .add(ConnectionClosedException.class::isInstance)
                                     .add(NoHttpResponseException.class::isInstance)
                                     .build())),
-                    new FailsafePlugin(scheduler)
-                            .withRetryPolicy(new RetryPolicy()
-                                    .retryOn(TransientFaultException.class)
-                                    .retryOn(RetryException.class)
-                                    .withBackoff(50, 2000, MILLISECONDS)
-                                    .withMaxRetries(10)
-                                    .withMaxDuration(2, SECONDS)
-                                    .withJitter(0.2))
-                            .withCircuitBreaker(new CircuitBreaker()
-                                    .withFailureThreshold(5, 5)
-                                    .withDelay(30, SECONDS)
-                                    .withSuccessThreshold(3, 5)
-                                    .withTimeout(3, SECONDS)
-                                    .onOpen(listener::onOpen)
-                                    .onHalfOpen(listener::onHalfOpen)
-                                    .onClose(listener::onClose))
+                    new FailsafePlugin(
+                            ImmutableList.of(
+                                    new RetryPolicy<ClientHttpResponse>()
+                                            .handle(TransientFaultException.class)
+                                            .handle(RetryException.class)
+                                            .withBackoff(50, 2000, MILLIS)
+                                            .withMaxRetries(10)
+                                            .withMaxDuration(Duration.ofSeconds(2))
+                                            .withJitter(0.2),
+                                    new CircuitBreaker<ClientHttpResponse>()
+                                            .withFailureThreshold(5, 5)
+                                            .withDelay(Duration.ofSeconds(30))
+                                            .withSuccessThreshold(3, 5)
+                                            .withTimeout(Duration.ofSeconds(3))
+                                            .onOpen(listener::onOpen)
+                                            .onHalfOpen(listener::onHalfOpen)
+                                            .onClose(listener::onClose)
+                            ),
+                            scheduler)
                             .withListener(new MetricsRetryListener(meterRegistry)
                                     .withDefaultTags(Tag.of("clientId", "example"))),
                     new BackupRequestPlugin(scheduler, 10, MILLISECONDS),

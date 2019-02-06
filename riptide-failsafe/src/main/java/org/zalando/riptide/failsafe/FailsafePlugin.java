@@ -1,13 +1,13 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Listeners;
+import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.SyncFailsafe;
+import net.jodah.failsafe.event.ExecutionAttemptedEvent;
+import net.jodah.failsafe.function.CheckedConsumer;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.ConditionalIdempotentMethodDetector;
@@ -20,113 +20,105 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
-import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 @API(status = MAINTAINED)
-@AllArgsConstructor
-public final class FailsafePlugin {
+@AllArgsConstructor(access = PRIVATE)
+public final class FailsafePlugin implements Plugin {
 
+    private final ImmutableList<? extends Policy<ClientHttpResponse>> policies;
     private final ScheduledExecutorService scheduler;
+    private final MethodDetector idempotent;
+    private final RetryListener listener;
 
-    public Implementation withRetryPolicy(final RetryPolicy retryPolicy) {
-        return new Implementation(retryPolicy, null);
+    public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies,
+            final ScheduledExecutorService scheduler) {
+        this(policies, scheduler, MethodDetector.compound(
+                new DefaultIdempotentMethodDetector(MethodDetector.compound(
+                        new DefaultSafeMethodDetector(),
+                        new OverrideSafeMethodDetector()
+                )),
+                new ConditionalIdempotentMethodDetector(),
+                new IdempotencyKeyIdempotentMethodDetector()
+        ), RetryListener.DEFAULT);
     }
 
-    public Implementation withCircuitBreaker(final CircuitBreaker circuitBreaker) {
-        return new Implementation(null, circuitBreaker);
+    public FailsafePlugin withIdempotentMethodDetector(final MethodDetector idempotent) {
+        return new FailsafePlugin(policies, scheduler, idempotent, listener);
     }
 
-    @AllArgsConstructor(access = PRIVATE)
-    public final class Implementation implements Plugin {
+    public FailsafePlugin withListener(final RetryListener listener) {
+        return new FailsafePlugin(policies, scheduler, idempotent, listener);
+    }
 
-        private final MethodDetector idempotent;
-        private final RetryPolicy retryPolicy;
-        private final CircuitBreaker circuitBreaker;
-        private final RetryListener listener;
+    @Override
+    public RequestExecution beforeDispatch(final RequestExecution execution) {
+        return arguments -> {
+            final Policy<ClientHttpResponse>[] policies = select(arguments);
 
-        private Implementation(@Nullable final RetryPolicy retryPolicy, @Nullable final CircuitBreaker circuitBreaker) {
-            this(MethodDetector.compound(
-                    new DefaultIdempotentMethodDetector(MethodDetector.compound(
-                            new DefaultSafeMethodDetector(),
-                            new OverrideSafeMethodDetector()
-                    )),
-                    new ConditionalIdempotentMethodDetector(),
-                    new IdempotencyKeyIdempotentMethodDetector()
-            ), retryPolicy, circuitBreaker, RetryListener.DEFAULT);
-        }
-
-        public Implementation withIdempotentMethodDetector(final MethodDetector idempotent) {
-            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
-        }
-
-        public Implementation withRetryPolicy(@Nullable final RetryPolicy retryPolicy) {
-            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
-        }
-
-        public Implementation withCircuitBreaker(@Nullable final CircuitBreaker circuitBreaker) {
-            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
-        }
-
-        public Implementation withListener(final RetryListener listener) {
-            return new Implementation(idempotent, retryPolicy, circuitBreaker, listener);
-        }
-
-        @Override
-        public RequestExecution beforeDispatch(final RequestExecution execution) {
-            return arguments -> {
-                final SyncFailsafe<Object> failsafe = select(
-                        idempotent.test(arguments) ? retryPolicy : null, circuitBreaker);
-
-                final CompletableFuture<ClientHttpResponse> original = failsafe
-                        .with(scheduler)
-                        .with(new RetryListenersAdapter(listener, arguments))
-                        .future(() -> execution.execute(arguments));
-
-                final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
-                original.whenComplete(forwardTo(cancelable));
-                return cancelable;
-            };
-        }
-
-        private SyncFailsafe<Object> select(@Nullable final RetryPolicy retryPolicy,
-                @Nullable final CircuitBreaker circuitBreaker) {
-
-            if (retryPolicy == null) {
-                return Failsafe.with(requireNonNull(circuitBreaker));
-            } else if (circuitBreaker == null) {
-                return Failsafe.with(retryPolicy);
-            } else {
-                return Failsafe.with(retryPolicy).with(circuitBreaker);
+            if (policies.length == 0) {
+                return execution.execute(arguments);
             }
-        }
 
+            final CompletableFuture<ClientHttpResponse> original = Failsafe.with(select(arguments))
+                    .with(scheduler)
+                    .getStageAsync(() -> execution.execute(arguments));
+
+            final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
+            original.whenComplete(forwardTo(cancelable));
+            return cancelable;
+        };
+    }
+
+
+    private Policy<ClientHttpResponse>[] select(final RequestArguments arguments) {
+        final Stream<Policy<ClientHttpResponse>> stream = policies.stream()
+                .filter(skipNonIdempotentRetries(arguments))
+                .map(withRetryListener(arguments));
+
+        @SuppressWarnings("unchecked")
+        final Policy<ClientHttpResponse>[] policies = stream.toArray(Policy[]::new);
+
+        return policies;
+    }
+
+    private Predicate<Policy<ClientHttpResponse>> skipNonIdempotentRetries(final RequestArguments arguments) {
+        return idempotent.test(arguments) ?
+                policy -> true :
+                policy -> !(policy instanceof RetryPolicy);
+    }
+
+    private UnaryOperator<Policy<ClientHttpResponse>> withRetryListener(final RequestArguments arguments) {
+        return policy -> {
+            if (policy instanceof RetryPolicy) {
+                final RetryPolicy<ClientHttpResponse> retryPolicy = (RetryPolicy<ClientHttpResponse>) policy;
+                return retryPolicy.copy()
+                        .onRetry(new RetryListenerAdapter(listener, arguments));
+            } else {
+                return policy;
+            }
+        };
     }
 
     @VisibleForTesting
-    static final class RetryListenersAdapter extends Listeners<ClientHttpResponse> {
-
+    @AllArgsConstructor
+    static final class RetryListenerAdapter implements CheckedConsumer<ExecutionAttemptedEvent<ClientHttpResponse>> {
+        private final RetryListener listener;
         private final RequestArguments arguments;
-        private RetryListener listener;
-
-        public RetryListenersAdapter(final RetryListener listener, final RequestArguments arguments) {
-            this.arguments = arguments;
-            this.listener = listener;
-        }
 
         @Override
-        public void onRetry(final ClientHttpResponse result, final Throwable failure,
-                final ExecutionContext context) {
-            listener.onRetry(arguments, result, failure, context);
+        public void accept(final ExecutionAttemptedEvent<ClientHttpResponse> event) {
+            listener.onRetry(arguments, event);
         }
-
     }
 
 }

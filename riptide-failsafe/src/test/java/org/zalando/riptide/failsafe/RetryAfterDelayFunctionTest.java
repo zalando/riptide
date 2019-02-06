@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
@@ -13,6 +14,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -27,7 +29,6 @@ import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -56,12 +57,14 @@ public class RetryAfterDelayFunctionTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                    .withCircuitBreaker(new CircuitBreaker())
-                    .withRetryPolicy(new RetryPolicy()
-                            .withDelay(2, SECONDS)
-                            .withDelay(new RetryAfterDelayFunction(clock))
-                            .withMaxRetries(4)))
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(
+                            new CircuitBreaker<ClientHttpResponse>(),
+                            new RetryPolicy<ClientHttpResponse>()
+                                    .withDelay(Duration.ofSeconds(2))
+                                    .withDelay(new RetryAfterDelayFunction(clock))
+                                    .withMaxRetries(4)),
+                    newSingleThreadScheduledExecutor()))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

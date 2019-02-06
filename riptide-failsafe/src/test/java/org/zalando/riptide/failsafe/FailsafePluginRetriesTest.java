@@ -3,9 +3,11 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -21,9 +23,9 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -32,10 +34,13 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
@@ -65,16 +70,19 @@ public class FailsafePluginRetriesTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(new ScheduledThreadPoolExecutor(2))
-                    .withRetryPolicy(new RetryPolicy()
-                            .withDelay(500, MILLISECONDS)
-                            .withMaxRetries(4)
-                            .retryOn(Exception.class)
-                            .retryIf(this::isBadGateway))
-                    .withCircuitBreaker(new CircuitBreaker()
-                            .withFailureThreshold(3, 10)
-                            .withSuccessThreshold(5)
-                            .withDelay(1, TimeUnit.MINUTES))
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(
+                            new RetryPolicy<ClientHttpResponse>()
+                                    .withDelay(Duration.ofMillis(500))
+                                    .withMaxRetries(4)
+                                    .handle(Exception.class)
+                                    .handleResultIf(this::isBadGateway),
+                            new CircuitBreaker<ClientHttpResponse>()
+                                    .withFailureThreshold(3, 10)
+                                    .withSuccessThreshold(5)
+                                    .withDelay(Duration.ofMinutes(1))
+                    ),
+                    new ScheduledThreadPoolExecutor(2))
                     .withListener(listeners))
             .build();
 
@@ -130,12 +138,15 @@ public class FailsafePluginRetriesTest {
                 .requestFactory(new ApacheClientHttpRequestFactory(client))
                 .baseUrl(driver.getBaseUrl())
                 .converter(createJsonConverter())
-                .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                        .withRetryPolicy(new RetryPolicy()
-                                .withDelay(500, MILLISECONDS)
-                                .withMaxRetries(1))
+                .plugin(new FailsafePlugin(
+                        ImmutableList.of(
+                                new RetryPolicy<ClientHttpResponse>()
+                                        .withDelay(Duration.ofMillis(500))
+                                        .withMaxRetries(1)
+                        ),
+                        newSingleThreadScheduledExecutor())
                         .withIdempotentMethodDetector(arguments ->
-                            arguments.getHeaders().containsEntry("Idempotent", "true"))
+                                arguments.getHeaders().containsEntry("Idempotent", "true"))
                         .withListener(listeners))
                 .build();
 
@@ -184,7 +195,7 @@ public class FailsafePluginRetriesTest {
                 .call(pass())
                 .join();
 
-        verify(listeners).onRetry(notNull(), isNull(), notNull(), notNull());
+        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
     }
 
     @Test
@@ -196,7 +207,7 @@ public class FailsafePluginRetriesTest {
                 .call(pass())
                 .join();
 
-        verify(listeners).onRetry(notNull(), notNull(), isNull(), notNull());
+        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, notNullValue())));
     }
 
     @Test
@@ -210,7 +221,7 @@ public class FailsafePluginRetriesTest {
                         anyStatus().call(pass()))
                 .join();
 
-        verify(listeners).onRetry(notNull(), isNull(), notNull(), notNull());
+        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
     }
 
     @Test(timeout = 1000)

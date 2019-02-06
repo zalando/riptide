@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
 import lombok.extern.slf4j.Slf4j;
-import net.jodah.failsafe.util.Duration;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Objects;
 

@@ -1,13 +1,18 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +25,18 @@ final class TimeSpan {
 
     private static final Pattern PATTERN = Pattern.compile("(\\d+) (\\w+)");
 
-    private static final Map<String, TimeUnit> UNITS = Arrays.stream(TimeUnit.values())
+    private static final Map<String, TimeUnit> UNIT_NAMES = Arrays.stream(TimeUnit.values())
             .collect(toMap(TimeSpan::toName, identity()));
+
+    private static final BiMap<TimeUnit, ChronoUnit> UNIT_MAPPING = ImmutableBiMap.<TimeUnit, ChronoUnit>builder()
+            .put(TimeUnit.NANOSECONDS, ChronoUnit.NANOS)
+            .put(TimeUnit.MICROSECONDS, ChronoUnit.MICROS)
+            .put(TimeUnit.MILLISECONDS, ChronoUnit.MILLIS)
+            .put(TimeUnit.SECONDS, ChronoUnit.SECONDS)
+            .put(TimeUnit.MINUTES, ChronoUnit.MINUTES)
+            .put(TimeUnit.HOURS, ChronoUnit.HOURS)
+            .put(TimeUnit.DAYS, ChronoUnit.DAYS)
+            .build();
 
     private final long amount;
     private final TimeUnit unit;
@@ -41,6 +56,10 @@ final class TimeSpan {
 
     void applyTo(final BiConsumer<Long, TimeUnit> consumer) {
         consumer.accept(amount, unit);
+    }
+
+    void applyTo(final Consumer<Duration> consumer) {
+        consumer.accept(Duration.of(amount, UNIT_MAPPING.get(unit)));
     }
 
     @Override
@@ -70,7 +89,7 @@ final class TimeSpan {
     }
 
     private static TimeUnit parse(final String name) {
-        final TimeUnit unit = UNITS.get(name.endsWith("s") ? name : name + "s");
+        final TimeUnit unit = UNIT_NAMES.get(name.endsWith("s") ? name : name + "s");
 
         if (unit == null) {
             throw new IllegalArgumentException("Unknown time unit: [" + name + "]");

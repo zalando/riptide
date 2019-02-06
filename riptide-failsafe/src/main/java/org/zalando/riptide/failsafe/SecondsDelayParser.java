@@ -1,10 +1,10 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.common.base.CharMatcher;
-import net.jodah.failsafe.util.Duration;
+
+import java.time.Duration;
 
 import static java.lang.Long.parseLong;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 final class SecondsDelayParser implements DelayParser {
 
@@ -13,7 +13,7 @@ final class SecondsDelayParser implements DelayParser {
     @Override
     public Duration parse(final String value) {
         if (isInteger(value)) {
-            return new Duration(parseLong(value), SECONDS);
+            return Duration.ofSeconds(parseLong(value));
         }
 
         return null;

@@ -2,17 +2,20 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import org.junit.Test;
+import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenersAdapter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public final class CompoundRetryListenerTest {
 
@@ -28,16 +31,19 @@ public final class CompoundRetryListenerTest {
         final RequestArguments arguments = RequestArguments.create();
         final IllegalStateException exception = new IllegalStateException();
 
-        Failsafe.with(new RetryPolicy().withMaxRetries(3))
-                .with(new RetryListenersAdapter(unit, arguments))
+        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+                .withMaxRetries(3)
+                .onRetry(new FailsafePlugin.RetryListenerAdapter(unit, arguments)))
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;
                     }
                 });
 
-        verify(first).onRetry(eq(arguments), isNull(), eq(exception), any());
-        verify(second).onRetry(eq(arguments), isNull(), eq(exception), any());
+        verify(first).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
+        verify(first).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastFailure, notNullValue())));
+        verify(second).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
+        verify(second).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastFailure, notNullValue())));
     }
 
 }

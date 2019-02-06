@@ -1,13 +1,12 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.util.Duration;
 import org.junit.Test;
 
 import java.time.Clock;
+import java.time.Duration;
 
 import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -17,7 +16,7 @@ public final class HttpDateDelayParserTest {
 
     @Test
     public void shouldParseHttpDate() {
-        assertEquals(new Duration(17, SECONDS), unit.parse("Sun, 24 Jun 2018 01:19:54 GMT"));
+        assertEquals(Duration.ofSeconds(17), unit.parse("Sun, 24 Jun 2018 01:19:54 GMT"));
     }
 
     @Test

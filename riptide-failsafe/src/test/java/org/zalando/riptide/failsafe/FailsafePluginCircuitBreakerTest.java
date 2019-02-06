@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
@@ -19,6 +20,7 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.util.concurrent.CompletionException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -49,9 +51,10 @@ public class FailsafePluginCircuitBreakerTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(newSingleThreadScheduledExecutor())
-                    .withCircuitBreaker(new CircuitBreaker()
-                            .withDelay(1, SECONDS))
+            .plugin(new FailsafePlugin(
+                    ImmutableList.of(new CircuitBreaker<ClientHttpResponse>()
+                            .withDelay(Duration.ofSeconds(1))),
+                    newSingleThreadScheduledExecutor())
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();
