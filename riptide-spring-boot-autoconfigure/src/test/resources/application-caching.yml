@@ -1,0 +1,13 @@
+riptide:
+  clients:
+    public:
+      caching:
+        shared: true
+    private:
+      caching:
+        shared: false
+    heuristic:
+      caching:
+        heuristic:
+          default-life-time: 5 minutes
+

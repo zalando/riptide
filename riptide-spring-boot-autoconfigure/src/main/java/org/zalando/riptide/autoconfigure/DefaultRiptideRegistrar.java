@@ -11,6 +11,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -455,6 +456,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgReference(connectionManager)
                     .addConstructorArgValue(registry.isRegistered(id, HttpClientCustomizer.class) ?
                             ref(generateBeanName(id, HttpClientCustomizer.class)) : null)
+                    .addConstructorArgValue(registry.isRegistered(id, HttpCacheStorage.class) ?
+                            ref(generateBeanName(id, HttpCacheStorage.class)) : null)
                     .setDestroyMethodName("close");
         });
     }
