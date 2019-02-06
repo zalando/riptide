@@ -10,8 +10,13 @@
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-timeout.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-timeout)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Timeout* adds timeout support to *Riptide*. It allows to set a *global* timeout to all remote requests
-that will be covering any remote communication, socket timeouts and retries. 
+*Riptide: Timeout* adds timeout support to *Riptide*. It allows to enforce an overall timeout to all remote requests
+that will be covering
+- waiting for available thread
+- waiting for available connection
+- socket IO
+- retries including delays in-between
+- backup requests
 
 ## Example
 
