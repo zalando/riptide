@@ -19,9 +19,7 @@ public class ApacheClientHttpResponseBodyTest {
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
-        try (ApacheClientHttpResponse unit = new ApacheClientHttpResponse(response)) {
-            unit.getBody().close();
-        }
+        new ApacheClientHttpResponse(response).close();
 
         verify(stream).close();
     }
@@ -32,9 +30,7 @@ public class ApacheClientHttpResponseBodyTest {
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
-        try (ApacheClientHttpResponse unit = new ApacheClientHttpResponse(response)) {
-            unit.getBody().close();
-        }
+        new ApacheClientHttpResponse(response).close();
 
         verify(stream).abortConnection();
         verify(stream).close();

@@ -8,6 +8,7 @@ import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
 import com.github.restdriver.clientdriver.ClientDriverRule;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +22,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.PassRoute;
 import org.zalando.riptide.capture.Capture;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
+import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
+import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
@@ -50,6 +54,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 
 public final class ApacheClientHttpRequestFactoryTest {
@@ -66,7 +71,10 @@ public final class ApacheClientHttpRequestFactoryTest {
         }
     }
 
-    private final CloseableHttpClient client = HttpClientBuilder.create().build();
+    private final CloseableHttpClient client = HttpClientBuilder.create()
+            .setMaxConnTotal(1)
+            .setMaxConnPerRoute(1)
+            .build();
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
@@ -164,6 +172,15 @@ public final class ApacheClientHttpRequestFactoryTest {
                 .collect(toList());
 
         assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+    }
+
+    @Test(timeout = 250)
+    public void shouldReleaseConnection() {
+        driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
+        driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
+
+        http.get("/").call(pass()).join();
+        http.get("/").call(pass()).join();
     }
 
 }

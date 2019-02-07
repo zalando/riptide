@@ -16,7 +16,7 @@ public final class PassRoute implements Route {
 
     @Override
     public void execute(final ClientHttpResponse response, final MessageReader reader) {
-        // nothing to do here
+        response.close();
     }
 
     public static Route pass() {
