@@ -5,9 +5,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
 final class ApacheClientHttpResponse implements ClientHttpResponse {
 
@@ -34,17 +35,22 @@ final class ApacheClientHttpResponse implements ClientHttpResponse {
 
     @Override
     public InputStream getBody() throws IOException {
-        final InputStream body = response.getBody();
-        return new FilterInputStream(body) {
-            @Override
-            public void close() throws IOException {
-                if (body instanceof ConnectionReleaseTrigger) {
-                    // effectively releasing the connection back to the pool in order to prevent starvation
-                    ConnectionReleaseTrigger.class.cast(body).abortConnection();
+        return new EndOfStreamDetectingInputStream(response.getBody(), (body, ended) -> {
+            if (body instanceof ConnectionReleaseTrigger) {
+                // effectively releasing the connection back to the pool in order to prevent starvation
+                final ConnectionReleaseTrigger trigger = (ConnectionReleaseTrigger) body;
+
+                if (ended) {
+                    // Stream was fully consumed, connection can therefore be reused.
+                    trigger.releaseConnection();
+                } else {
+                    // Stream was not fully consumed, connection needs to be discarded.
+                    // We can't just consume the remaining bytes since the stream could be endless.
+                    trigger.abortConnection();
                 }
-                super.close();
             }
-        };
+            body.close();
+        });
     }
 
     @Override
@@ -54,6 +60,8 @@ final class ApacheClientHttpResponse implements ClientHttpResponse {
 
     @Override
     public void close() {
+        // no clue why ClientHttpResponse#close doesn't allow IOExceptions to be thrown...
+        throwingRunnable(() -> getBody().close()).run();
         response.close();
     }
 
