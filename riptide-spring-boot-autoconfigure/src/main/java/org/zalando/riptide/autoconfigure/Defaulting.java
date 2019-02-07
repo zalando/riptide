@@ -1,7 +1,10 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.UrlResolution;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -14,6 +17,13 @@ import static java.lang.System.getenv;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.CircuitBreaker;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Client;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.GlobalOAuth;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.ThreadPool;
 
 final class Defaulting {
 
@@ -25,18 +35,18 @@ final class Defaulting {
         return merge(base, merge(base.getDefaults()));
     }
 
-    private static RiptideProperties.Defaults merge(final RiptideProperties.Defaults defaults) {
+    private static Defaults merge(final Defaults defaults) {
         final int maxConnectionsPerRoute = either(defaults.getMaxConnectionsPerRoute(), 20);
         final int maxConnectionsTotal = max(either(defaults.getMaxConnectionsTotal(), 20), maxConnectionsPerRoute);
 
-        return new RiptideProperties.Defaults(
+        return new Defaults(
                 either(defaults.getUrlResolution(), UrlResolution.RFC),
                 either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
                 either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
                 maxConnectionsPerRoute,
                 maxConnectionsTotal,
-                merge(defaults.getThreadPool(), new RiptideProperties.ThreadPool(
+                merge(defaults.getThreadPool(), new ThreadPool(
                                 1, maxConnectionsTotal,
                                 TimeSpan.of(1, MINUTES),
                                 0),
@@ -47,11 +57,12 @@ final class Defaulting {
                 defaults.getRetry(),
                 defaults.getCircuitBreaker(),
                 defaults.getBackupRequest(),
-                defaults.getTimeout()
+                defaults.getTimeout(),
+                defaults.getCaching()
         );
     }
 
-    private static RiptideProperties merge(final RiptideProperties base, final RiptideProperties.Defaults defaults) {
+    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
         return new RiptideProperties(
                 defaults,
                 merge(base.getOauth(), defaults),
@@ -60,8 +71,8 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties.GlobalOAuth merge(final RiptideProperties.GlobalOAuth base, final RiptideProperties.Defaults defaults) {
-        return new RiptideProperties.GlobalOAuth(
+    private static GlobalOAuth merge(final GlobalOAuth base, final Defaults defaults) {
+        return new GlobalOAuth(
                 either(base.getAccessTokenUrl(),
                         Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null)),
                 base.getCredentialsDirectory(),
@@ -71,13 +82,13 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties.Client merge(final RiptideProperties.Client base, final RiptideProperties.Defaults defaults) {
+    private static Client merge(final Client base, final Defaults defaults) {
         final int maxConnectionsPerRoute =
                 either(base.getMaxConnectionsPerRoute(), defaults.getMaxConnectionsPerRoute());
         final int maxConnectionsTotal = max(maxConnectionsPerRoute,
                 either(base.getMaxConnectionsTotal(), defaults.getMaxConnectionsTotal()));
 
-        return new RiptideProperties.Client(
+        return new Client(
                 base.getBaseUrl(),
                 either(base.getUrlResolution(), defaults.getUrlResolution()),
                 either(base.getConnectTimeout(), defaults.getConnectTimeout()),
@@ -86,7 +97,7 @@ final class Defaulting {
                 maxConnectionsPerRoute,
                 maxConnectionsTotal,
                 merge(base.getThreadPool(),
-                        merge(new RiptideProperties.ThreadPool(null, maxConnectionsTotal, null, null), defaults.getThreadPool()),
+                        merge(new ThreadPool(null, maxConnectionsTotal, null, null), defaults.getThreadPool()),
                         Defaulting::merge),
                 base.getOauth(),
                 either(base.getDetectTransientFaults(), defaults.getDetectTransientFaults()),
@@ -97,12 +108,13 @@ final class Defaulting {
                 merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
                 either(base.getTimeout(), defaults.getTimeout()),
                 base.isCompressRequest(),
-                base.getKeystore()
+                base.getKeystore(),
+                merge(base.getCaching(), defaults.getCaching(), Defaulting::merge)
         );
     }
 
-    private static RiptideProperties.ThreadPool merge(final RiptideProperties.ThreadPool base, final RiptideProperties.ThreadPool defaults) {
-        return new RiptideProperties.ThreadPool(
+    private static ThreadPool merge(final ThreadPool base, final ThreadPool defaults) {
+        return new ThreadPool(
                 either(base.getMinSize(), defaults.getMinSize()),
                 either(base.getMaxSize(), defaults.getMaxSize()),
                 either(base.getKeepAlive(), defaults.getKeepAlive()),
@@ -110,8 +122,8 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties.Retry merge(final RiptideProperties.Retry base, final RiptideProperties.Retry defaults) {
-        return new RiptideProperties.Retry(
+    private static Retry merge(final Retry base, final Retry defaults) {
+        return new Retry(
                 either(base.getFixedDelay(), defaults.getFixedDelay()),
                 merge(base.getBackoff(), defaults.getBackoff(), Defaulting::merge),
                 either(base.getMaxRetries(), defaults.getMaxRetries()),
@@ -121,25 +133,43 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties.Retry.Backoff merge(final RiptideProperties.Retry.Backoff base, final RiptideProperties.Retry.Backoff defaults) {
-        return new RiptideProperties.Retry.Backoff(
+    private static Retry.Backoff merge(final Retry.Backoff base, final Retry.Backoff defaults) {
+        return new Retry.Backoff(
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getMaxDelay(), defaults.getMaxDelay()),
                 either(base.getDelayFactor(), defaults.getDelayFactor())
         );
     }
 
-    private static RiptideProperties.CircuitBreaker merge(final RiptideProperties.CircuitBreaker base, final RiptideProperties.CircuitBreaker defaults) {
-        return new RiptideProperties.CircuitBreaker(
+    private static CircuitBreaker merge(final CircuitBreaker base, final CircuitBreaker defaults) {
+        return new CircuitBreaker(
                 either(base.getFailureThreshold(), defaults.getFailureThreshold()),
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getSuccessThreshold(), defaults.getSuccessThreshold())
         );
     }
 
-    private static RiptideProperties.BackupRequest merge(final RiptideProperties.BackupRequest base, final RiptideProperties.BackupRequest defaults) {
-        return new RiptideProperties.BackupRequest(
+    private static BackupRequest merge(final BackupRequest base, final BackupRequest defaults) {
+        return new BackupRequest(
                 either(base.getDelay(), defaults.getDelay())
+        );
+    }
+
+    @VisibleForTesting
+    static Caching merge(final Caching base, final Caching defaults) {
+        return new Caching(
+                either(base.getShared(), defaults.getShared()),
+                either(base.getDirectory(), defaults.getDirectory()),
+                either(base.getMaxObjectSize(), defaults.getMaxObjectSize()),
+                either(base.getMaxCacheEntries(), defaults.getMaxCacheEntries()),
+                merge(base.getHeuristic(), defaults.getHeuristic(), Defaulting::merge)
+        );
+    }
+
+    private static Heuristic merge(final Heuristic base, final Heuristic defaults) {
+        return new Heuristic(
+                either(base.getCoefficient(), defaults.getCoefficient()),
+                either(base.getDefaultLifeTime(), defaults.getDefaultLifeTime())
         );
     }
 

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.http.impl.client.cache.CacheConfig;
 import org.apiguardian.api.API;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -54,6 +55,8 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private BackupRequest backupRequest;
         private TimeSpan timeout;
+        @NestedConfigurationProperty
+        private Caching caching;
     }
 
     @Getter
@@ -95,6 +98,8 @@ public final class RiptideProperties {
         private TimeSpan timeout;
         private boolean compressRequest = false;
         private Keystore keystore;
+        @NestedConfigurationProperty
+        private Caching caching;
 
         @Getter
         @Setter
@@ -162,5 +167,26 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class BackupRequest {
         private TimeSpan delay;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Caching {
+        private Boolean shared = Boolean.TRUE;
+        private Path directory;
+        private Integer maxObjectSize = CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES;
+        private Integer maxCacheEntries = CacheConfig.DEFAULT_MAX_CACHE_ENTRIES;
+        private Heuristic heuristic;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class Heuristic {
+            private Float coefficient = CacheConfig.DEFAULT_HEURISTIC_COEFFICIENT;
+            private TimeSpan defaultLifeTime = TimeSpan.of(CacheConfig.DEFAULT_HEURISTIC_LIFETIME, SECONDS);
+        }
     }
 }

@@ -3,6 +3,7 @@ package org.zalando.riptide.autoconfigure;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -11,8 +12,13 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
+import org.apache.http.impl.client.cache.CachingHttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 
 import javax.annotation.Nullable;
@@ -20,6 +26,7 @@ import javax.net.ssl.SSLContext;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
@@ -61,9 +68,14 @@ final class HttpClientFactory {
             final List<HttpRequestInterceptor> lastRequestInterceptors,
             final List<HttpResponseInterceptor> lastResponseInterceptors,
             final HttpClientConnectionManager connectionManager,
-            @Nullable final HttpClientCustomizer customizer) {
+            @Nullable final HttpClientCustomizer customizer,
+            @Nullable final HttpCacheStorage cacheStorage) {
 
-        final HttpClientBuilder builder = HttpClientBuilder.create();
+        @Nullable final Caching caching = client.getCaching();
+        final HttpClientBuilder builder = caching == null ?
+                HttpClientBuilder.create() :
+                configureCaching(caching, cacheStorage);
+
         final RequestConfig.Builder config = RequestConfig.custom();
 
         firstRequestInterceptors.forEach(builder::addInterceptorFirst);
@@ -79,6 +91,29 @@ final class HttpClientFactory {
         Optional.ofNullable(customizer).ifPresent(customize(builder));
 
         return builder.build();
+    }
+
+    private static CachingHttpClientBuilder configureCaching(final Caching caching,
+            @Nullable final HttpCacheStorage cacheStorage) {
+        @Nullable final Heuristic heuristic = caching.getHeuristic();
+
+        final CacheConfig.Builder config = CacheConfig.custom()
+                .setSharedCache(caching.getShared())
+                .setMaxObjectSize(caching.getMaxObjectSize())
+                .setMaxCacheEntries(caching.getMaxCacheEntries());
+
+        if (heuristic != null) {
+            config.setHeuristicCachingEnabled(true);
+            config.setHeuristicCoefficient(heuristic.getCoefficient());
+            config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));
+        }
+
+        return CachingHttpClients.custom()
+                .setCacheConfig(config.build())
+                .setHttpCacheStorage(cacheStorage)
+                .setCacheDir(Optional.ofNullable(caching.getDirectory())
+                        .map(Path::toFile)
+                        .orElse(null));
     }
 
     private static SSLContext createSSLContext(final Client client) throws GeneralSecurityException, IOException {
