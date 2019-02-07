@@ -49,6 +49,7 @@ public interface Route {
 
     static <I> Route call(final TypeToken<I> type, final ThrowingConsumer<I, ? extends Exception> consumer) {
         return (response, reader) -> {
+
             final I body = reader.read(type, response);
             consumer.tryAccept(body);
         };

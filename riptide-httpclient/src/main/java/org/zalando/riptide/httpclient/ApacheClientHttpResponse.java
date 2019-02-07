@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -13,9 +14,26 @@ import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 final class ApacheClientHttpResponse implements ClientHttpResponse {
 
     private final ClientHttpResponse response;
+    private final InputStream body;
 
-    ApacheClientHttpResponse(final ClientHttpResponse response) {
+    ApacheClientHttpResponse(final ClientHttpResponse response) throws IOException {
         this.response = response;
+        this.body = new EndOfStreamAwareInputStream(response.getBody(), (body, endOfStreamDetected) -> {
+            if (body instanceof ConnectionReleaseTrigger) {
+                // effectively releasing the connection back to the pool in order to prevent starvation
+                final ConnectionReleaseTrigger trigger = (ConnectionReleaseTrigger) body;
+
+                if (endOfStreamDetected) {
+                    // Stream was fully consumed, connection can therefore be reused.
+                    trigger.releaseConnection();
+                } else {
+                    // Stream was not fully consumed, connection needs to be discarded.
+                    // We can't just consume the remaining bytes since the stream could be endless.
+                    trigger.abortConnection();
+                }
+            }
+            body.close();
+        });
     }
 
     @Override
@@ -33,24 +51,10 @@ final class ApacheClientHttpResponse implements ClientHttpResponse {
         return response.getStatusText();
     }
 
+    @Nonnull
     @Override
-    public InputStream getBody() throws IOException {
-        return new EndOfStreamDetectingInputStream(response.getBody(), (body, ended) -> {
-            if (body instanceof ConnectionReleaseTrigger) {
-                // effectively releasing the connection back to the pool in order to prevent starvation
-                final ConnectionReleaseTrigger trigger = (ConnectionReleaseTrigger) body;
-
-                if (ended) {
-                    // Stream was fully consumed, connection can therefore be reused.
-                    trigger.releaseConnection();
-                } else {
-                    // Stream was not fully consumed, connection needs to be discarded.
-                    // We can't just consume the remaining bytes since the stream could be endless.
-                    trigger.abortConnection();
-                }
-            }
-            body.close();
-        });
+    public InputStream getBody() {
+        return body;
     }
 
     @Override

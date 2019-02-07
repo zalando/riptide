@@ -1,7 +1,7 @@
 package org.zalando.riptide.httpclient;
 
 import org.junit.jupiter.api.Test;
-import org.zalando.fauxpas.ThrowingBiConsumer;
+import org.zalando.riptide.httpclient.EndOfStreamAwareInputStream.Closer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,20 +11,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-final class EndOfStreamDetectingInputStreamTest {
+final class EndOfStreamAwareInputStreamTest {
 
-    @SuppressWarnings("unchecked")
-    private final ThrowingBiConsumer<InputStream, Boolean, IOException> closer = mock(ThrowingBiConsumer.class);
+    private final Closer closer = mock(Closer.class);
 
     private final ByteArrayInputStream original = new ByteArrayInputStream(new byte[]{0});
-    private final InputStream unit = new EndOfStreamDetectingInputStream(original, closer);
+    private final InputStream unit = new EndOfStreamAwareInputStream(original, closer);
 
     @Test
     void shouldReadBeforeEndOfStream() throws IOException {
         unit.read();
         unit.close();
 
-        verify(closer).tryAccept(original, false);
+        verify(closer).close(original, false);
     }
 
     @Test
@@ -33,7 +32,7 @@ final class EndOfStreamDetectingInputStreamTest {
         unit.read();
         unit.close();
 
-        verify(closer).tryAccept(original, true);
+        verify(closer).close(original, true);
     }
 
     @Test
@@ -41,7 +40,7 @@ final class EndOfStreamDetectingInputStreamTest {
         unit.read(new byte[1]);
         unit.close();
 
-        verify(closer).tryAccept(original, false);
+        verify(closer).close(original, false);
     }
 
     @Test
@@ -49,7 +48,7 @@ final class EndOfStreamDetectingInputStreamTest {
         unit.read(new byte[2]);
         unit.close();
 
-        verify(closer).tryAccept(original, true);
+        verify(closer).close(original, true);
     }
 
     @Test
@@ -57,7 +56,7 @@ final class EndOfStreamDetectingInputStreamTest {
         unit.read(new byte[1], 0, 1);
         unit.close();
 
-        verify(closer).tryAccept(original, false);
+        verify(closer).close(original, false);
     }
 
     @Test
@@ -65,7 +64,7 @@ final class EndOfStreamDetectingInputStreamTest {
         unit.read(new byte[2], 0, 2);
         unit.close();
 
-        verify(closer).tryAccept(original, true);
+        verify(closer).close(original, true);
     }
 
 }
