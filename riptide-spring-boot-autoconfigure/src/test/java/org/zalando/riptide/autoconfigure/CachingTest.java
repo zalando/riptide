@@ -41,7 +41,7 @@ public class CachingTest {
     public static class TestConfiguration {
 
         @Bean
-        public HttpCacheStorage sharedHttpCacheStorage() {
+        public HttpCacheStorage publicHttpCacheStorage() {
             return new BasicHttpCacheStorage(CacheConfig.DEFAULT);
         }
 
