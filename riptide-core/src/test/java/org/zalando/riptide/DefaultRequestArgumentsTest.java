@@ -3,64 +3,59 @@ package org.zalando.riptide;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import lombok.Value;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
 
-@RunWith(Parameterized.class)
-public final class DefaultRequestArgumentsTest<T> {
-
-    @Parameter
-    public Assertion<T> assertion;
+final class DefaultRequestArgumentsTest {
 
     private final RequestArguments unit = RequestArguments.create();
 
     @Value
-    public static final class Assertion<T> {
+    private static final class Assertion<T> {
         BiFunction<RequestArguments, T, RequestArguments> wither;
         T argument;
         Function<RequestArguments, T> getter;
     }
 
-    @Parameters
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {new Assertion<>(RequestArguments::withBaseUrl, URI.create("https://api.example.com"), RequestArguments::getBaseUrl)},
-                {new Assertion<>(RequestArguments::withUrlResolution, UrlResolution.APPEND, RequestArguments::getUrlResolution)},
-                {new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod)},
-                {new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate)},
-                {new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables)},
-                {new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri)},
-                {new Assertion<>(RequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), RequestArguments::getQueryParams)},
-                {new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri)},
-                {new Assertion<>(RequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), RequestArguments::getHeaders)},
-                {new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody)},
-        });
+    static List<Assertion<?>> data() {
+        return Arrays.asList(
+                new Assertion<>(RequestArguments::withBaseUrl, URI.create("https://api.example.com"), RequestArguments::getBaseUrl),
+                new Assertion<>(RequestArguments::withUrlResolution, UrlResolution.APPEND, RequestArguments::getUrlResolution),
+                new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod),
+                new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
+                new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables),
+                new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
+                new Assertion<>(RequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), RequestArguments::getQueryParams),
+                new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
+                new Assertion<>(RequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), RequestArguments::getHeaders),
+                new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody)
+        );
     }
 
-    @Test
-    public void shouldOptimizeForReapplyingSameValue() {
+    @ParameterizedTest
+    @MethodSource("data")
+    <T> void shouldOptimizeForReapplyingSameValue(final Assertion<T> assertion) {
         final RequestArguments applied = assertion.wither.apply(unit, assertion.argument);
         final RequestArguments appliedAgain = assertion.wither.apply(applied, assertion.argument);
 
         assertThat(appliedAgain, is(sameInstance(applied)));
     }
 
-    @Test
-    public void shouldModifyValue() {
+    @ParameterizedTest
+    @MethodSource("data")
+    <T> void shouldModifyValue(final Assertion<T> assertion) {
         final RequestArguments applied = assertion.wither.apply(unit, assertion.argument);
 
         assertThat(applied, is(not(sameInstance(unit))));

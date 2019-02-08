@@ -2,9 +2,7 @@ package org.zalando.riptide.capture;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
@@ -20,10 +18,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -34,15 +33,12 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class CaptureTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class CaptureTest {
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public CaptureTest() {
+    CaptureTest() {
         final RestTemplate template = new RestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Http.builder()
@@ -61,7 +57,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCapture() {
+    void shouldCapture() {
         server.expect(requestTo("https://api.example.com/accounts/123")).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("message.json"))
@@ -80,7 +76,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldCaptureNull() {
+    void shouldCaptureNull() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentLength(0);
 
@@ -100,7 +96,7 @@ public final class CaptureTest {
     }
 
     @Test
-    public void shouldFailIfNotCaptured() {
+    void shouldFailIfNotCaptured() {
         server.expect(requestTo("https://api.example.com/accounts/123")).andRespond(withSuccess());
 
         final Capture<String> capture = Capture.empty();
@@ -112,17 +108,17 @@ public final class CaptureTest {
                         anyStatus().call(this::fail))
                 .thenApply(capture);
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(NoSuchElementException.class));
+        final CompletionException exception = assertThrows(CompletionException.class, future::join);
 
-        future.join();
+        assertThat(exception.getCause(), is(instanceOf(NoSuchElementException.class)));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldNotAllowSecondCaptures() {
+    @Test
+    void shouldNotAllowSecondCaptures() {
         final Capture<String> capture = Capture.empty();
         capture.accept("foo");
-        capture.accept("bar");
+
+        assertThrows(IllegalStateException.class, () -> capture.accept("bar"));
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {

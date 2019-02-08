@@ -1,49 +1,47 @@
 package org.zalando.riptide;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.net.URI;
 
-public class NoBaseUrlTest {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class NoBaseUrlTest {
 
     private final ClientHttpRequestFactory requestFactory = Mockito.mock(ClientHttpRequestFactory.class);
 
     @Test
-    public void shouldFailOnNonAbsoluteBaseUrl() {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Base URL is not absolute");
+    void shouldFailOnNonAbsoluteBaseUrl() {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                Http.builder().executor(Runnable::run).requestFactory(requestFactory).baseUrl(""));
 
-        Http.builder().executor(Runnable::run).requestFactory(requestFactory).baseUrl("");
+        assertThat(exception.getMessage(), containsString("Base URL is not absolute"));
     }
 
     @Test
-    public void shouldFailOnNonAbsoluteBaseUri() {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Base URL is not absolute");
+    void shouldFailOnNonAbsoluteBaseUri() {
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        Http.builder().executor(Runnable::run).requestFactory(requestFactory).baseUrl(URI.create("")));
 
-        Http.builder().executor(Runnable::run).requestFactory(requestFactory).baseUrl(URI.create(""));
+        assertThat(exception.getMessage(), containsString("Base URL is not absolute"));
     }
 
     @Test
-    public void shouldFailOnProvisioningOfNonAbsoluteBaseUri() {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Base URL is not absolute");
-
+    void shouldFailOnProvisioningOfNonAbsoluteBaseUri() {
         final Http unit = Http.builder()
                 .executor(Runnable::run)
                 .requestFactory(new SimpleClientHttpRequestFactory())
                 .baseUrl(() -> URI.create(""))
                 .build();
 
-        unit.get();
+        final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, unit::get);
+
+        assertThat(exception.getMessage(), containsString("Base URL is not absolute"));
     }
 
 }

@@ -2,7 +2,7 @@ package org.zalando.riptide.spring;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,13 +13,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.zalando.riptide.Http;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.zalando.riptide.Route.call;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = DefaultTestConfiguration.class)
 @ActiveProfiles("default")
-public class NetworkMetricsTest {
+final class NetworkMetricsTest {
 
     @Autowired
     @Qualifier("foo")
@@ -29,7 +29,7 @@ public class NetworkMetricsTest {
     private SimpleMeterRegistry registry;
 
     @Test
-    public void shouldRecordConnectionPools() {
+    void shouldRecordConnectionPools() {
         foo.get("https://example.org").call(call(ClientHttpResponse.class, response -> {
             // not closing to keep the connection leased
         }));

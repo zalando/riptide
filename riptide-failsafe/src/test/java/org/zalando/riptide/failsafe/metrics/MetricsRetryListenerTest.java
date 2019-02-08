@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 
 import static com.google.common.collect.Ordering.from;
 import static java.util.Comparator.comparing;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MetricsRetryListenerTest {
+final class MetricsRetryListenerTest {
 
     private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
     private final RetryListener unit = new MetricsRetryListener(registry)
@@ -31,7 +31,7 @@ public class MetricsRetryListenerTest {
             .withMaxRetries(3);
 
     @Test
-    public void shouldRecordRetries() {
+    void shouldRecordRetries() {
         final AtomicInteger count = new AtomicInteger();
 
         Failsafe

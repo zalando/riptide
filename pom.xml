@@ -73,6 +73,7 @@
         <jackson.version>2.9.8</jackson.version>
         <problem.version>0.22.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
+        <junit-jupiter.version>5.4.0</junit-jupiter.version>
     </properties>
 
     <dependencyManagement>
@@ -174,6 +175,15 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- must be listed before spring-framework-bom, otherwise we get the wrong junit platform version -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- spring -->
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -257,20 +267,26 @@
 
             <!-- testing: common -->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit-jupiter.version}</version>
                 <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-core</artifactId>
-                    </exclusion>
-                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-junit</artifactId>
+                <artifactId>java-hamcrest</artifactId>
                 <version>2.0.0.0</version>
                 <scope>test</scope>
             </dependency>
@@ -289,6 +305,12 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
+                <version>2.24.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
                 <version>2.24.0</version>
                 <scope>test</scope>
             </dependency>
@@ -398,12 +420,20 @@
 
         <!-- testing: common -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-junit</artifactId>
+            <artifactId>java-hamcrest</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hobsoft.hamcrest</groupId>
@@ -412,6 +442,10 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
         </dependency>
 
         <!-- jackson -->
@@ -624,13 +658,6 @@
     </distributionManagement>
 
     <profiles>
-        <profile>
-            <id>spring4</id>
-            <properties>
-                <spring.version>4.3.22.RELEASE</spring.version>
-                <spring-boot.version>1.5.19.RELEASE</spring-boot.version>
-            </properties>
-        </profile>
         <profile>
             <id>release</id>
             <build>

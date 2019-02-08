@@ -1,15 +1,15 @@
 package org.zalando.riptide;
 
 import lombok.Value;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -37,46 +37,35 @@ import static org.zalando.riptide.PassRoute.pass;
  * @see Http#get(String, Object...)
  * @see Http#execute(HttpMethod, String, Object...)
  */
-@RunWith(Parameterized.class)
-public final class MethodDelegateTest {
+final class MethodDelegateTest {
 
-    private final HttpMethod method;
-    private final Tester tester;
-
-    public MethodDelegateTest(final HttpMethod method, final Tester tester) {
-        this.method = method;
-        this.tester = tester;
-    }
-
-    @Parameterized.Parameters(name = "{0} {1}")
-    @SuppressWarnings("unchecked")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {GET, new NoParam(Http::get)},
-                {HEAD, new NoParam(Http::head)},
-                {POST, new NoParam(Http::post)},
-                {PUT, new NoParam(Http::put)},
-                {PATCH, new NoParam(Http::patch)},
-                {DELETE, new NoParam(Http::delete)},
-                {OPTIONS, new NoParam(Http::options)},
-                {TRACE, new NoParam(Http::trace)},
-                {GET, new UriParam(Http::get, URI.create("https://example.com"))},
-                {HEAD, new UriParam(Http::head, URI.create("https://example.com"))},
-                {POST, new UriParam(Http::post, URI.create("https://example.com"))},
-                {PUT, new UriParam(Http::put, URI.create("https://example.com"))},
-                {PATCH, new UriParam(Http::patch, URI.create("https://example.com"))},
-                {DELETE, new UriParam(Http::delete, URI.create("https://example.com"))},
-                {OPTIONS, new UriParam(Http::options, URI.create("https://example.com"))},
-                {TRACE, new UriParam(Http::trace, URI.create("https://example.com"))},
-                {GET, new UriTemplateParam(Http::get, "https://example.com")},
-                {HEAD, new UriTemplateParam(Http::head, "https://example.com")},
-                {POST, new UriTemplateParam(Http::post, "https://example.com")},
-                {PUT, new UriTemplateParam(Http::put, "https://example.com")},
-                {PATCH, new UriTemplateParam(Http::patch, "https://example.com")},
-                {DELETE, new UriTemplateParam(Http::delete, "https://example.com")},
-                {OPTIONS, new UriTemplateParam(Http::options, "https://example.com")},
-                {TRACE, new UriTemplateParam(Http::trace, "https://example.com")},
-        });
+    static List<Arguments> data() {
+        return Arrays.asList(
+                Arguments.of(GET, new NoParam(Http::get)),
+                Arguments.of(HEAD, new NoParam(Http::head)),
+                Arguments.of(POST, new NoParam(Http::post)),
+                Arguments.of(PUT, new NoParam(Http::put)),
+                Arguments.of(PATCH, new NoParam(Http::patch)),
+                Arguments.of(DELETE, new NoParam(Http::delete)),
+                Arguments.of(OPTIONS, new NoParam(Http::options)),
+                Arguments.of(TRACE, new NoParam(Http::trace)),
+                Arguments.of(GET, new UriParam(Http::get, URI.create("https://example.com"))),
+                Arguments.of(HEAD, new UriParam(Http::head, URI.create("https://example.com"))),
+                Arguments.of(POST, new UriParam(Http::post, URI.create("https://example.com"))),
+                Arguments.of(PUT, new UriParam(Http::put, URI.create("https://example.com"))),
+                Arguments.of(PATCH, new UriParam(Http::patch, URI.create("https://example.com"))),
+                Arguments.of(DELETE, new UriParam(Http::delete, URI.create("https://example.com"))),
+                Arguments.of(OPTIONS, new UriParam(Http::options, URI.create("https://example.com"))),
+                Arguments.of(TRACE, new UriParam(Http::trace, URI.create("https://example.com"))),
+                Arguments.of(GET, new UriTemplateParam(Http::get, "https://example.com")),
+                Arguments.of(HEAD, new UriTemplateParam(Http::head, "https://example.com")),
+                Arguments.of(POST, new UriTemplateParam(Http::post, "https://example.com")),
+                Arguments.of(PUT, new UriTemplateParam(Http::put, "https://example.com")),
+                Arguments.of(PATCH, new UriTemplateParam(Http::patch, "https://example.com")),
+                Arguments.of(DELETE, new UriTemplateParam(Http::delete, "https://example.com")),
+                Arguments.of(OPTIONS, new UriTemplateParam(Http::options, "https://example.com")),
+                Arguments.of(TRACE, new UriTemplateParam(Http::trace, "https://example.com"))
+        );
     }
 
     private interface Tester {
@@ -131,12 +120,13 @@ public final class MethodDelegateTest {
     }
 
     @FunctionalInterface
-    public interface TriFunction<T, U, V, R> {
+    interface TriFunction<T, U, V, R> {
         R apply(T t, U u, V v);
     }
 
-    @Test
-    public void shouldDelegate() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldDelegate(final HttpMethod method, final Tester tester) {
         final MockSetup setup = new MockSetup("https://example.com");
         final Http unit = setup.getHttp();
         final MockRestServiceServer server = setup.getServer();

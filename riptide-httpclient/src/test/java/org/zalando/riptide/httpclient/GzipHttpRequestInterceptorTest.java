@@ -1,6 +1,7 @@
 package org.zalando.riptide.httpclient;
 
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import lombok.Value;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
@@ -9,9 +10,8 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.zalando.riptide.Http;
 
 import javax.annotation.Nullable;
@@ -28,10 +28,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class GzipHttpRequestInterceptorTest {
+final class GzipHttpRequestInterceptorTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     @Value
     private static final class NonTextHttpRequestInterceptor implements HttpRequestInterceptor {
@@ -57,13 +56,13 @@ public final class GzipHttpRequestInterceptorTest {
             .baseUrl(driver.getBaseUrl())
             .build();
 
-    @After
-    public void closeClient() throws IOException {
+    @AfterEach
+    void closeClient() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldSkipRequestWithoutBody() {
+    void shouldSkipRequestWithoutBody() {
         driver.addExpectation(onRequestTo("/")
                         .withoutHeader("Content-Type")
                         .withoutHeader("Content-Length")
@@ -75,7 +74,7 @@ public final class GzipHttpRequestInterceptorTest {
     }
 
     @Test
-    public void shouldCompressBody() {
+    void shouldCompressBody() {
         driver.addExpectation(onRequestTo("/").withMethod(POST)
                         .withHeader("Content-Type", "application/json")
                         .withoutHeader("Content-Length")
@@ -92,7 +91,7 @@ public final class GzipHttpRequestInterceptorTest {
     }
 
     @Test
-    public void shouldNotCompressBody() {
+    void shouldNotCompressBody() {
         driver.addExpectation(onRequestTo("/").withMethod(POST)
                         .withHeader("Content-Type", "text/plain")
                         .withHeader("Content-Length", any(String.class))
@@ -109,7 +108,7 @@ public final class GzipHttpRequestInterceptorTest {
     }
 
     @Test
-    public void shouldNotCompressAbsentBody() {
+    void shouldNotCompressAbsentBody() {
         driver.addExpectation(onRequestTo("/").withMethod(POST)
                         .withoutHeader("Content-Type")
                         .withHeader("Content-Length", "0")

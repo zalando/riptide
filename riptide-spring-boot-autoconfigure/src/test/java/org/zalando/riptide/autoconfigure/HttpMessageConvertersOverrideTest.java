@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,18 +9,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = NONE)
 @Component
-public final class HttpMessageConvertersOverrideTest {
+final class HttpMessageConvertersOverrideTest {
 
     @Configuration
     @Import(DefaultTestConfiguration.class)
@@ -40,7 +37,7 @@ public final class HttpMessageConvertersOverrideTest {
     private ClientHttpMessageConverters unit;
 
     @Test
-    public void shouldOverride() {
+    void shouldOverride() {
         assertThat(unit.getConverters(), contains(instanceOf(Jaxb2RootElementHttpMessageConverter.class)));
     }
 

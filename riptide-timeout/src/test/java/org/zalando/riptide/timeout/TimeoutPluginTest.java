@@ -2,12 +2,12 @@ package org.zalando.riptide.timeout;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -22,13 +22,15 @@ import java.util.concurrent.TimeoutException;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class TimeoutPluginTest {
+final class TimeoutPluginTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final Executor executor = Executors.newCachedThreadPool();
@@ -53,13 +55,13 @@ public class TimeoutPluginTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldNotTimeout() {
+    void shouldNotTimeout() {
         driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse());
 
@@ -68,19 +70,16 @@ public class TimeoutPluginTest {
                 .join();
     }
 
-    @Test(expected = TimeoutException.class)
-    public void shouldTimeout() throws Throwable {
+    @Test
+    void shouldTimeout() {
         driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().after(1, TimeUnit.SECONDS));
 
-        try {
-            unit.get("/foo")
-                    .call(pass())
-                    .join();
-            fail("Expecting exception");
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/foo")
+                        .call(pass())::join);
+
+        assertThat(exception.getCause(), is(instanceOf(TimeoutException.class)));
     }
 
 }

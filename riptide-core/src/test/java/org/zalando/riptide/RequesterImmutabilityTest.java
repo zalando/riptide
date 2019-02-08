@@ -1,34 +1,35 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.LinkedHashMultimap;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.time.OffsetDateTime;
 
-public class RequesterImmutabilityTest {
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+
+final class RequesterImmutabilityTest {
 
     private final Http unit;
 
-    public RequesterImmutabilityTest() {
+    RequesterImmutabilityTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
     }
 
     @Test
-    public void shouldNotReturnSameInstanceAfterMutation() {
+    void shouldNotReturnSameInstanceAfterMutation() {
         QueryStage original = unit.get();
-        Assert.assertNotSame(original, original.accept(MediaType.ALL));
-        Assert.assertNotSame(original, original.contentType(MediaType.APPLICATION_JSON));
-        Assert.assertNotSame(original, original.header("header","value"));
-        Assert.assertNotSame(original, original.headers(new HttpHeaders()));
-        Assert.assertNotSame(original, original.queryParam("p","v"));
-        Assert.assertNotSame(original, original.queryParams(LinkedHashMultimap.create()));
-        Assert.assertNotSame(original, original.ifMatch(""));
-        Assert.assertNotSame(original, original.ifModifiedSince(OffsetDateTime.now()));
-        Assert.assertNotSame(original, original.ifNoneMatch(""));
-        Assert.assertNotSame(original, original.ifUnmodifiedSince(OffsetDateTime.now()));
+        assertNotSame(original, original.accept(MediaType.ALL));
+        assertNotSame(original, original.contentType(MediaType.APPLICATION_JSON));
+        assertNotSame(original, original.header("header","value"));
+        assertNotSame(original, original.headers(new HttpHeaders()));
+        assertNotSame(original, original.queryParam("p","v"));
+        assertNotSame(original, original.queryParams(LinkedHashMultimap.create()));
+        assertNotSame(original, original.ifMatch(""));
+        assertNotSame(original, original.ifModifiedSince(OffsetDateTime.now()));
+        assertNotSame(original, original.ifNoneMatch(""));
+        assertNotSame(original, original.ifUnmodifiedSince(OffsetDateTime.now()));
     }
 }

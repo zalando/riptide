@@ -3,37 +3,28 @@ package org.zalando.riptide.stream;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.SimpleType;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
-public final class StreamSpliteratorTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class StreamSpliteratorTest {
 
     private final JavaType type = SimpleType.constructUnsafe(List.class);
 
-    @Mock
-    private JsonParser parser;
+    private final JsonParser parser = mock(JsonParser.class);
 
     @Test
-    public void shouldNotSupportParallelExecution() {
+    void shouldNotSupportParallelExecution() {
         assertNull( new StreamSpliterator<>(type, parser).trySplit());
     }
 
     @Test
-    public void shouldNotPredictEstimateSize() {
+    void shouldNotPredictEstimateSize() {
         assertThat(new StreamSpliterator<>(type, parser).estimateSize(), is(Long.MAX_VALUE));
     }
 }

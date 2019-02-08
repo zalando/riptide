@@ -1,11 +1,9 @@
 package org.zalando.riptide.problem;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -18,7 +16,10 @@ import org.zalando.riptide.Route;
 import java.net.URI;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -32,11 +33,8 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.problem.ProblemRoute.problemHandling;
 
-@RunWith(MockitoJUnitRunner.class)
-public final class ProblemRouteTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+@ExtendWith(MockitoExtension.class)
+final class ProblemRouteTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
@@ -49,24 +47,24 @@ public final class ProblemRouteTest {
     @Mock
     private Route fallback;
 
-    public ProblemRouteTest() {
+    ProblemRouteTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getRest();
         this.server = setup.getServer();
     }
 
     @Test
-    public void shouldPropagateProblem() {
+    void shouldPropagateProblem() {
         perform("application/problem+json");
     }
 
     @Test
-    public void shouldPropagateLegacyProblem() {
+    void shouldPropagateLegacyProblem() {
         perform("application/x.problem+json");
     }
 
     @Test
-    public void shouldPropagateLegacyProblemWithAlternativeSpelling() {
+    void shouldPropagateLegacyProblemWithAlternativeSpelling() {
         perform("application/x-problem+json");
     }
 
@@ -76,18 +74,17 @@ public final class ProblemRouteTest {
                         .body(new ClassPathResource("problem.json"))
                         .contentType(MediaType.parseMediaType(mediaType)));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(ThrowableProblem.class));
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get(url)
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(pass()),
+                                anySeries().call(problemHandling()))::join);
 
-        unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().call(problemHandling()))
-                .join();
+        assertThat(exception.getCause(), is(instanceOf(ThrowableProblem.class)));
     }
 
     @Test
-    public void shouldDelegateProblemHandling() {
+    void shouldDelegateProblemHandling() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(BAD_REQUEST)
                         .body(new ClassPathResource("problem.json"))
@@ -103,7 +100,7 @@ public final class ProblemRouteTest {
     }
 
     @Test
-    public void shouldUseFallback() throws Exception {
+    void shouldUseFallback() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withStatus(BAD_REQUEST)
                         .body("Error!"));
@@ -118,7 +115,7 @@ public final class ProblemRouteTest {
     }
 
     @Test
-    public void shouldNotDelegateProblemHandlingAndUseFallback() throws Exception {
+    void shouldNotDelegateProblemHandlingAndUseFallback() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withStatus(BAD_REQUEST)
                         .body("Error!"));
@@ -134,7 +131,7 @@ public final class ProblemRouteTest {
     }
 
     @Test
-    public void shouldDelegateProblemHandlingAndNotUseFallback() throws Exception {
+    void shouldDelegateProblemHandlingAndNotUseFallback() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(BAD_REQUEST)
                         .body(new ClassPathResource("problem.json"))

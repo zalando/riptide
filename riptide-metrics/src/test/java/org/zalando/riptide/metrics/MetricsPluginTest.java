@@ -2,13 +2,13 @@ package org.zalando.riptide.metrics;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -24,23 +24,22 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class MetricsPluginTest {
+final class MetricsPluginTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
     private final Http unit = Http.builder()
@@ -64,13 +63,13 @@ public class MetricsPluginTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    public MetricsPluginTest() {
+    MetricsPluginTest() {
         this.factory.setReadTimeout(500);
         this.factory.setTaskExecutor(new ConcurrentTaskExecutor());
     }
 
     @Test
-    public void shouldRecordSuccessResponseMetric() {
+    void shouldRecordSuccessResponseMetric() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().withStatus(200));
 
         unit.get("/foo")
@@ -89,7 +88,7 @@ public class MetricsPluginTest {
     }
 
     @Test
-    public void shouldRecordErrorResponseMetric() {
+    void shouldRecordErrorResponseMetric() {
         driver.addExpectation(onRequestTo("/bar").withMethod(POST),
                 giveEmptyResponse().withStatus(503));
 
@@ -110,29 +109,24 @@ public class MetricsPluginTest {
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
     }
 
-    @Test(expected = SocketTimeoutException.class)
-    public void shouldNotRecordFailureMetric() throws Throwable {
+    @Test
+    void shouldNotRecordFailureMetric() {
         driver.addExpectation(onRequestTo("/err"),
                 giveEmptyResponse().after(750, MILLISECONDS));
 
-        try {
-            unit.get("/err")
-                    .call(pass())
-                    .join();
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/err").call(pass())::join);
 
-            fail("Expected exception");
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        } finally {
-            @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
+        assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
 
-            assertThat(timer, is(notNullValue()));
-            assertThat(timer.getId().getTag("method"), is("GET"));
-            assertThat(timer.getId().getTag("uri"), is("/err"));
-            assertThat(timer.getId().getTag("status"), is("CLIENT_ERROR"));
-            assertThat(timer.getId().getTag("clientName"), is("localhost"));
-            assertThat(timer.getId().getTag("client"), is("example"));
-        }
+        @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
+
+        assertThat(timer, is(notNullValue()));
+        assertThat(timer.getId().getTag("method"), is("GET"));
+        assertThat(timer.getId().getTag("uri"), is("/err"));
+        assertThat(timer.getId().getTag("status"), is("CLIENT_ERROR"));
+        assertThat(timer.getId().getTag("clientName"), is("localhost"));
+        assertThat(timer.getId().getTag("client"), is("example"));
     }
 
 }

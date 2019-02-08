@@ -1,36 +1,33 @@
 package org.zalando.riptide.capture;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.riptide.capture.Completion.join;
 
-public final class CompletionTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class CompletionTest {
 
     @Test
-    public void shouldJoinSuccessfully() {
+    void shouldJoinSuccessfully() {
         assertThat(join(completedFuture("test")), is("test"));
     }
 
     @Test
-    public void shouldPropagateCause() {
+    void shouldPropagateCause() {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         final IOException e = new IOException();
         future.completeExceptionally(e);
 
-        exception.expect(sameInstance(e));
-        join(future);
+        final Exception exception = assertThrows(Exception.class, () -> join(future));
+
+        assertThat(exception, is(sameInstance(e)));
     }
 
 }

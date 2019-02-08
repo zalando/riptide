@@ -33,7 +33,7 @@ public abstract class HttpResponseException extends RestClientException {
     }
 
     private HttpResponseException(final String message, final int rawStatusCode, final String statusText,
-            final HttpHeaders headers, final Charset charset, final byte[] responseBody) throws IOException {
+            final HttpHeaders headers, final Charset charset, final byte[] responseBody) {
         super(format(message, responseBody, charset, rawStatusCode, statusText, headers));
         this.rawStatusCode = rawStatusCode;
         this.statusText = statusText;

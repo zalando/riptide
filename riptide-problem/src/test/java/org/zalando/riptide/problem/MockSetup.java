@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-public final class MockSetup {
+final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
             Arrays.asList(new StringHttpMessageConverter(),
@@ -41,7 +41,7 @@ public final class MockSetup {
         this(baseUrl, null);
     }
 
-    public MockSetup(@Nullable final String baseUrl, @Nullable final Iterable<HttpMessageConverter<?>> converters) {
+    private MockSetup(@Nullable final String baseUrl, @Nullable final Iterable<HttpMessageConverter<?>> converters) {
         this.baseUrl = baseUrl;
         this.converters = converters;
         this.template = new RestTemplate();
@@ -52,7 +52,7 @@ public final class MockSetup {
         return server;
     }
 
-    public Http.ConfigurationStage getRestBuilder() {
+    private Http.ConfigurationStage getRestBuilder() {
         return Http.builder()
                 .executor(Executors.newSingleThreadExecutor())
                 .requestFactory(template.getRequestFactory())

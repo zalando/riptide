@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 
@@ -10,16 +10,16 @@ import java.io.IOException;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
 
-public final class ForwardingClientHttpResponseTest {
+final class ForwardingClientHttpResponseTest {
 
     @Test
-    public void shouldDelegateAccessors() throws IOException {
+    void shouldDelegateAccessors() throws IOException {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getRawStatusCode()).thenReturn(200);
         when(response.getStatusCode()).thenReturn(OK);
@@ -43,7 +43,7 @@ public final class ForwardingClientHttpResponseTest {
     }
 
     @Test
-    public void shouldDelegateClose() {
+    void shouldDelegateClose() {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         final ForwardingClientHttpResponse unit = new ForwardingClientHttpResponse() {
             @Override

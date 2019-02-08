@@ -7,7 +7,7 @@ import org.zalando.riptide.Http;
 
 import java.util.concurrent.Executors;
 
-public final class MockSetup {
+final class MockSetup {
 
     private final MockRestServiceServer server;
     private final Http http;

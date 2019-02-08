@@ -1,9 +1,8 @@
 package org.zalando.riptide;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 
@@ -17,78 +16,61 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-@RunWith(Parameterized.class)
-public class UriTemplateArgTest {
+final class UriTemplateArgTest {
 
-    private final Http unit;
-    private final MockRestServiceServer server;
-
-    private final String uriTemplate;
-    private final Object[] uriVariables;
-    private final String requestUrl;
-
-    public UriTemplateArgTest(final String baseUrl, final String uriTemplate, final Object[] uriVariables,
-            final String requestUrl) {
-        final MockSetup setup = new MockSetup(baseUrl);
-        this.unit = setup.getHttp();
-        this.server = setup.getServer();
-
-        this.uriTemplate = uriTemplate;
-        this.uriVariables = uriVariables;
-        this.requestUrl = requestUrl;
-    }
-
-    @Parameterized.Parameters(name = "{1}")
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {
+    static Iterable<Arguments> data() {
+        return Arrays.asList(
+                Arguments.of(
                         null,
                         "https://api.example.com/pages/{page}",
                         new Object[]{2},
-                        "https://api.example.com/pages/2",
-                },
-                {
+                        "https://api.example.com/pages/2"
+                ),
+                Arguments.of(
                         "https://api.example.org/",
                         "/pages/{page}",
                         new Object[]{3},
-                        "https://api.example.org/pages/3",
-                },
-                {
+                        "https://api.example.org/pages/3"
+                ),
+                Arguments.of(
                         "https://api.example.org/",
                         "https://api.example.com/pages/{page}",
                         new Object[]{4},
-                        "https://api.example.com/pages/4",
-                },
-                {
+                        "https://api.example.com/pages/4"
+                ),
+                Arguments.of(
                         "https://api.example.org/books/",
                         "./pages/{page}",
                         new Object[]{5},
-                        "https://api.example.org/books/pages/5",
-                },
-                {
+                        "https://api.example.org/books/pages/5"
+                ),
+                Arguments.of(
                         "https://api.example.org/books/",
                         "../pages/{page}",
                         new Object[]{6},
-                        "https://api.example.org/pages/6",
-                }
-        });
+                        "https://api.example.org/pages/6"
+                ));
     }
 
-    @After
-    public void tearDown() {
-        server.verify();
-    }
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldExpand(final String baseUrl, final String uriTemplate, final Object[] uriVariables,
+            final String requestUrl) {
 
-    @Test
-    public void shouldExpand() {
+        final MockSetup setup = new MockSetup(baseUrl);
+        final MockRestServiceServer server = setup.getServer();
+        final Http unit = setup.getHttp();
+
         server.expect(requestTo(requestUrl))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess());
 
-        this.unit.get(uriTemplate, uriVariables)
+        unit.get(uriTemplate, uriVariables)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
                 .join();
+
+        server.verify();
     }
 
 }

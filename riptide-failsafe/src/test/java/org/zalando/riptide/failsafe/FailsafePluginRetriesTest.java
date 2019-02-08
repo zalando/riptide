@@ -2,7 +2,8 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import net.jodah.failsafe.CircuitBreaker;
@@ -11,9 +12,8 @@ import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -34,9 +34,14 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,10 +57,9 @@ import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-public class FailsafePluginRetriesTest {
+final class FailsafePluginRetriesTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -102,13 +106,13 @@ public class FailsafePluginRetriesTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldRetrySuccessfully() {
+    void shouldRetrySuccessfully() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
@@ -117,22 +121,19 @@ public class FailsafePluginRetriesTest {
                 .join();
     }
 
-    @Test(expected = SocketTimeoutException.class)
-    public void shouldNotRetryNonIdempotentMethod() throws Throwable {
+    @Test
+    void shouldNotRetryNonIdempotentMethod() {
         driver.addExpectation(onRequestTo("/foo").withMethod(POST),
                 giveEmptyResponse().after(800, MILLISECONDS));
 
-        try {
-            unit.post("/foo")
-                    .call(pass())
-                    .join();
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.post("/foo").call(pass())::join);
+
+        assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
     }
 
     @Test
-    public void shouldRetryCustomDetectedIdempotentRequest() {
+    void shouldRetryCustomDetectedIdempotentRequest() {
         final Http unit = Http.builder()
                 .executor(newCachedThreadPool())
                 .requestFactory(new ApacheClientHttpRequestFactory(client))
@@ -159,22 +160,19 @@ public class FailsafePluginRetriesTest {
                 .join();
     }
 
-    @Test(expected = SocketTimeoutException.class)
-    public void shouldRetryUnsuccessfully() throws Throwable {
+    @Test
+    void shouldRetryUnsuccessfully() {
         range(0, 5).forEach(i ->
                 driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
 
-        try {
-            unit.get("/bar")
-                    .call(pass())
-                    .join();
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/bar").call(pass())::join);
+
+        assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
     }
 
     @Test
-    public void shouldRetryExplicitly() {
+    void shouldRetryExplicitly() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
@@ -187,7 +185,7 @@ public class FailsafePluginRetriesTest {
     }
 
     @Test
-    public void shouldInvokeListenersOnFailure() {
+    void shouldInvokeListenersOnFailure() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
@@ -199,7 +197,7 @@ public class FailsafePluginRetriesTest {
     }
 
     @Test
-    public void shouldInvokeListenersOnRetryableResult() {
+    void shouldInvokeListenersOnRetryableResult() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(502));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
@@ -207,11 +205,12 @@ public class FailsafePluginRetriesTest {
                 .call(pass())
                 .join();
 
-        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, notNullValue())));
+        verify(listeners).onRetry(notNull(),
+                argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, notNullValue())));
     }
 
     @Test
-    public void shouldInvokeListenersOnExplicitRetry() {
+    void shouldInvokeListenersOnExplicitRetry() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
@@ -224,15 +223,14 @@ public class FailsafePluginRetriesTest {
         verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
     }
 
-    @Test(timeout = 1000)
-    public void shouldAllowNestedCalls() {
+    @Test
+    void shouldAllowNestedCalls() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
 
-        unit.get("/foo")
-                .call(call(() -> unit.get("/bar").call(pass()).join()))
-                .join();
-
+        assertTimeout(Duration.ofSeconds(1),
+                unit.get("/foo")
+                        .call(call(() -> unit.get("/bar").call(pass()).join()))::join);
     }
 
 }

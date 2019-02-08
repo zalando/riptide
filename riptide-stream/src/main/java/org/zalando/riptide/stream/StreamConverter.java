@@ -61,14 +61,14 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
 
     @Override
     public Stream<T> read(final Class<? extends Stream<T>> clazz, final HttpInputMessage inputMessage)
-            throws IOException, HttpMessageNotReadableException {
+            throws HttpMessageNotReadableException {
         // we only support generics
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Stream<T> read(final Type type, final Class<?> contextClass, final HttpInputMessage inputMessage)
-            throws IOException, HttpMessageNotReadableException {
+            throws HttpMessageNotReadableException {
         final JavaType javaType = getJavaType(type, contextClass);
         return read(javaType, inputMessage);
     }

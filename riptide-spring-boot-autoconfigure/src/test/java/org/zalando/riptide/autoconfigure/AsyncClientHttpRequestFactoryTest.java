@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,19 +10,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.stups.tokens.AccessTokens;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = NONE)
 @Component
-public final class AsyncClientHttpRequestFactoryTest {
+final class AsyncClientHttpRequestFactoryTest {
 
     @Configuration
     @Import(DefaultTestConfiguration.class)
@@ -45,12 +42,12 @@ public final class AsyncClientHttpRequestFactoryTest {
     private AsyncClientHttpRequestFactory async;
 
     @Test
-    public void shouldAutowireSync() {
+    void shouldAutowireSync() {
         assertThat(sync.getClass(), is(ApacheClientHttpRequestFactory.class));
     }
 
     @Test
-    public void shouldAutowireAsync() {
+    void shouldAutowireAsync() {
         assertThat(async.getClass(), is(ConcurrentClientHttpRequestFactory.class));
     }
 

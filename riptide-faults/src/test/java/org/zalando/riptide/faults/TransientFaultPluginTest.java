@@ -1,13 +1,12 @@
 package org.zalando.riptide.faults;
 
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
@@ -25,25 +24,22 @@ import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.faults.FaultClassifier.create;
 
-public final class TransientFaultPluginTest {
+final class TransientFaultPluginTest {
 
     private static final int SOCKET_TIMEOUT = 1000;
     private static final int DELAY = 2000;
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
-
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -54,41 +50,37 @@ public final class TransientFaultPluginTest {
     private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldClassifyAsTransient() {
+    void shouldClassifyAsTransient() {
         final Http unit = newUnit(new TransientFaultPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(TransientFaultException.class));
-        // not second level of CompletionException!
-        exception.expectCause(hasFeature(Throwable::getCause, is(instanceOf(SocketTimeoutException.class))));
+        final CompletionException exception = assertThrows(CompletionException.class, () -> execute(unit));
 
-        execute(unit);
+        assertThat(exception.getCause(), is(instanceOf(TransientFaultException.class)));
+        assertThat(exception.getCause().getCause(), is(instanceOf(SocketTimeoutException.class)));
     }
 
     @Test
-    public void shouldNotClassifyAsTransientIfNotMatching() {
+    void shouldNotClassifyAsTransientIfNotMatching() {
         final Http unit = newUnit(new TransientFaultPlugin(create()));
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(SocketTimeoutException.class));
-
-        execute(unit);
+        final CompletionException exception = assertThrows(CompletionException.class, () -> execute(unit));
+        assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
     }
 
     @Test
-    public void shouldClassifyExceptionAsTransientAsIs() {
+    void shouldClassifyExceptionAsTransientAsIs() {
         final Http unit = newUnit(new Plugin() {
             @Override
             public RequestExecution beforeDispatch(final RequestExecution execution) {
@@ -100,11 +92,10 @@ public final class TransientFaultPluginTest {
             }
         }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(TransientFaultException.class));
-        exception.expectCause(hasFeature(Throwable::getCause, is(instanceOf(IllegalArgumentException.class))));
+        final CompletionException exception = assertThrows(CompletionException.class, request(unit)::join);
 
-        request(unit).join();
+        assertThat(exception.getCause(), is(instanceOf(TransientFaultException.class)));
+        assertThat(exception.getCause().getCause(), is(instanceOf(IllegalArgumentException.class)));
     }
 
     private void execute(final Http unit) {
@@ -119,19 +110,20 @@ public final class TransientFaultPluginTest {
     }
 
     @Test
-    public void shouldClassifyAsPermanent() {
+    void shouldClassifyAsPermanent() {
         final Http unit = newUnit(new TransientFaultPlugin());
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse());
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(MalformedURLException.class));
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/")
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(() -> {
+                                    throw new MalformedURLException();
+                                }))::join);
 
-        unit.get("/")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(() -> {throw new MalformedURLException();}))
-                .join();
+        assertThat(exception.getCause(), is(instanceOf(MalformedURLException.class)));
     }
 
     private Http newUnit(final Plugin... plugins) {

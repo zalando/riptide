@@ -3,10 +3,10 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
@@ -22,24 +22,23 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 
-public final class IOTest {
+final class IOTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
     static class User {
         String login;
 
-        public String getLogin() {
+        String getLogin() {
             return login;
         }
     }
@@ -60,13 +59,13 @@ public final class IOTest {
         return converter;
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         executor.shutdown();
     }
 
     @Test
-    public void shouldReadContributors() throws IOException {
+    void shouldReadContributors() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
@@ -84,7 +83,7 @@ public final class IOTest {
     }
 
     @Test
-    public void shouldCancelRequest() throws InterruptedException {
+    void shouldCancelRequest() throws InterruptedException {
         // TODO: support proper cancellations and remove this expectation
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 

@@ -1,13 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 import lombok.Value;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -15,8 +14,9 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -24,13 +24,12 @@ import java.util.stream.Stream;
 import static java.util.EnumSet.allOf;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -38,87 +37,59 @@ import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.UrlResolution.APPEND;
 import static org.zalando.riptide.UrlResolution.RFC;
 
-@RunWith(Parameterized.class)
-public class RequestUriTest {
+final class RequestUriTest {
 
-    private final String baseUrl;
-    private final UrlResolution resolution;
-    private final HttpMethod method;
-    private final String uri;
-    private final Result result;
+    static List<Arguments> data() {
+        final Set<Arguments> methods = allOf(HttpMethod.class).stream()
+                .map(Arguments::of)
+                .collect(toSet());
 
-    public RequestUriTest(final TestCase test, final HttpMethod method) {
-        this.baseUrl = test.getBaseUrl();
-        this.resolution = test.getResolution();
-        this.method = method;
-        this.uri = test.getUri();
-        this.result = test.getResult();
-    }
-
-    @Parameters(name = "{1} {0}")
-    @SuppressWarnings("unchecked")
-    public static Collection<Object[]> data() {
-        return Sets.cartesianProduct(getCases(), allOf(HttpMethod.class)).stream()
-                .map(Collection::toArray)
+        return Sets.cartesianProduct(getCases(), methods).stream()
+                .map(arguments -> arguments.stream().map(Arguments::get)
+                        .reduce((l, r) -> ObjectArrays.concat(l, r, Object.class))
+                        .map(Arguments::of)
+                        .orElseThrow(IllegalArgumentException::new))
                 .collect(toList());
     }
 
-    private static ImmutableSet<TestCase> getCases() {
+    private static Set<Arguments> getCases() {
         return ImmutableSet.of(
-                new TestCase("https://example.com", RFC, null, uri("https://example.com")),
-                new TestCase("https://example.com/", RFC, null, uri("https://example.com/")),
-                new TestCase("https://example.com", RFC, "", uri("https://example.com")),
-                new TestCase("https://example.com/", RFC, "", uri("https://example.com/")),
-                new TestCase("https://example.com", RFC, "/", uri("https://example.com/")),
-                new TestCase("https://example.com/", RFC, "/", uri("https://example.com/")),
-                new TestCase("https://example.com", RFC, "https://example.org/foo", uri("https://example.org/foo")),
-                new TestCase("https://example.com", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com", RFC, "foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com/api", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com/api", RFC, "foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com/api/", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com/api/", RFC, "foo/bar", uri("https://example.com/api/foo/bar")),
-                new TestCase(null, RFC, "https://example.com/foo", uri("https://example.com/foo")),
-                new TestCase("/foo", RFC, "/", error("Base URL is not absolute")),
-                new TestCase(null, RFC, null, error("Either Base URL or absolute Request URI is required")),
-                new TestCase(null, RFC, "/foo", error("Request URI is not absolute")),
-                new TestCase(null, RFC, "foo", error("Request URI is not absolute")),
-                new TestCase("https://example.com", APPEND, null, uri("https://example.com")),
-                new TestCase("https://example.com/", APPEND, null, uri("https://example.com/")),
-                new TestCase("https://example.com", APPEND, "", uri("https://example.com")),
-                new TestCase("https://example.com/", APPEND, "", uri("https://example.com/")),
-                new TestCase("https://example.com", APPEND, "/", uri("https://example.com/")),
-                new TestCase("https://example.com/", APPEND, "/", uri("https://example.com/")),
-                new TestCase("https://example.com", APPEND, "https://example.org/foo", uri("https://example.org/foo")),
-                new TestCase("https://example.com", APPEND, "/foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com", APPEND, "foo/bar", uri("https://example.com/foo/bar")),
-                new TestCase("https://example.com/api", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
-                new TestCase("https://example.com/api", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
-                new TestCase("https://example.com/api/", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
-                new TestCase("https://example.com/api/", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
-                new TestCase(null, APPEND, "https://example.com/foo", uri("https://example.com/foo")),
-                new TestCase("/foo", APPEND, "/", error("Base URL is not absolute")),
-                new TestCase(null, APPEND, null, error("Either Base URL or absolute Request URI is required")),
-                new TestCase(null, APPEND, "/foo", error("Request URI is not absolute")),
-                new TestCase(null, APPEND, "foo", error("Request URI is not absolute")));
-    }
-
-    @Value
-    private static final class TestCase {
-        String baseUrl;
-        UrlResolution resolution;
-        String uri;
-        Result result;
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper("")
-                    .addValue(baseUrl)
-                    .addValue(resolution)
-                    .addValue(uri)
-                    .addValue(result)
-                    .toString();
-        }
+                Arguments.of("https://example.com", RFC, null, uri("https://example.com")),
+                Arguments.of("https://example.com/", RFC, null, uri("https://example.com/")),
+                Arguments.of("https://example.com", RFC, "", uri("https://example.com")),
+                Arguments.of("https://example.com/", RFC, "", uri("https://example.com/")),
+                Arguments.of("https://example.com", RFC, "/", uri("https://example.com/")),
+                Arguments.of("https://example.com/", RFC, "/", uri("https://example.com/")),
+                Arguments.of("https://example.com", RFC, "https://example.org/foo", uri("https://example.org/foo")),
+                Arguments.of("https://example.com", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com", RFC, "foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com/api", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com/api", RFC, "foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com/api/", RFC, "/foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com/api/", RFC, "foo/bar", uri("https://example.com/api/foo/bar")),
+                Arguments.of(null, RFC, "https://example.com/foo", uri("https://example.com/foo")),
+                Arguments.of("/foo", RFC, "/", error("Base URL is not absolute")),
+                Arguments.of(null, RFC, null, error("Either Base URL or absolute Request URI is required")),
+                Arguments.of(null, RFC, "/foo", error("Request URI is not absolute")),
+                Arguments.of(null, RFC, "foo", error("Request URI is not absolute")),
+                Arguments.of("https://example.com", APPEND, null, uri("https://example.com")),
+                Arguments.of("https://example.com/", APPEND, null, uri("https://example.com/")),
+                Arguments.of("https://example.com", APPEND, "", uri("https://example.com")),
+                Arguments.of("https://example.com/", APPEND, "", uri("https://example.com/")),
+                Arguments.of("https://example.com", APPEND, "/", uri("https://example.com/")),
+                Arguments.of("https://example.com/", APPEND, "/", uri("https://example.com/")),
+                Arguments.of("https://example.com", APPEND, "https://example.org/foo", uri("https://example.org/foo")),
+                Arguments.of("https://example.com", APPEND, "/foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com", APPEND, "foo/bar", uri("https://example.com/foo/bar")),
+                Arguments.of("https://example.com/api", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
+                Arguments.of("https://example.com/api", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
+                Arguments.of("https://example.com/api/", APPEND, "/foo/bar", uri("https://example.com/api/foo/bar")),
+                Arguments.of("https://example.com/api/", APPEND, "foo/bar", uri("https://example.com/api/foo/bar")),
+                Arguments.of(null, APPEND, "https://example.com/foo", uri("https://example.com/foo")),
+                Arguments.of("/foo", APPEND, "/", error("Base URL is not absolute")),
+                Arguments.of(null, APPEND, null, error("Either Base URL or absolute Request URI is required")),
+                Arguments.of(null, APPEND, "/foo", error("Request URI is not absolute")),
+                Arguments.of(null, APPEND, "foo", error("Request URI is not absolute")));
     }
 
     private interface Result {
@@ -195,25 +166,31 @@ public class RequestUriTest {
         return new Failure(message);
     }
 
-    @Test
-    public void shouldIgnoreEmptyUri() {
-        assumeThat(uri, is(nullValue()));
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldIgnoreEmptyUri(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
+            final Result result, final HttpMethod method) {
+        assumeTrue(uri == null);
 
         result.execute(baseUrl, resolution, null, method, http ->
                 http.execute(method).call(pass()).join());
     }
 
-    @Test
-    public void shouldResolveUri() {
-        assumeThat(uri, is(notNullValue()));
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldResolveUri(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
+            final Result result, final HttpMethod method) {
+        assumeTrue(uri != null);
 
         result.execute(baseUrl, resolution, uri, method, http ->
                 http.execute(method, URI.create(uri)).call(pass()).join());
     }
 
-    @Test
-    public void shouldResolveUriTemplate() {
-        assumeThat(uri, is(notNullValue()));
+    @ParameterizedTest
+    @MethodSource("data")
+    void shouldResolveUriTemplate(final String baseUrl, final UrlResolution resolution, @Nullable final String uri,
+            final Result result, final HttpMethod method) {
+        assumeTrue(uri != null);
 
         result.execute(baseUrl, resolution, uri, method, http ->
                 http.execute(method, uri).call(pass()).join());
@@ -224,14 +201,10 @@ public class RequestUriTest {
      *
      * @param args ignored
      */
-    public static void main(final String[] args) {
+    static void main(final String[] args) {
         getCases().stream()
                 .map(test -> {
-                    final Stream<String> row = Stream.of(
-                            test.getBaseUrl(),
-                            test.getResolution().name(),
-                            test.getUri(),
-                            test.getResult().toString());
+                    final Stream<String> row = Stream.of(test.get()).map(String::valueOf);
 
                     return row
                             .map(Objects::toString)

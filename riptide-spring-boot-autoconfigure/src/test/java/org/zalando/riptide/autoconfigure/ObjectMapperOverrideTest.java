@@ -1,8 +1,7 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,17 +10,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.autoconfigure.Mocks.isMock;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = NONE)
 @Component
-public final class ObjectMapperOverrideTest {
+final class ObjectMapperOverrideTest {
 
     @Configuration
     @Import(DefaultTestConfiguration.class)
@@ -46,7 +43,7 @@ public final class ObjectMapperOverrideTest {
     private ObjectMapper unit;
 
     @Test
-    public void shouldOverride() {
+    void shouldOverride() {
         // TODO verify that it's actually used!
         assertThat(unit, isMock());
     }

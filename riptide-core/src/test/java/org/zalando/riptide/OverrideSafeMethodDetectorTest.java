@@ -1,45 +1,45 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMultimap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
-public final class OverrideSafeMethodDetectorTest {
+final class OverrideSafeMethodDetectorTest {
 
     private final MethodDetector unit = new OverrideSafeMethodDetector();
 
     @Test
     // TODO test this with all safe methods, when migrating to JUnit 5
-    public void shouldDetectOverriddenSafeMethod() {
+    void shouldDetectOverriddenSafeMethod() {
         assertTrue(unit.test(arguments(POST, GET)));
     }
 
     @Test
-    public void shouldNotDetectOverriddenMethod() {
+    void shouldNotDetectOverriddenMethod() {
         assertFalse(unit.test(RequestArguments.create().withMethod(POST)));
     }
 
     @Test
-    public void shouldNotDetectUnrecognizedOverriddenMethod() {
+    void shouldNotDetectUnrecognizedOverriddenMethod() {
         assertFalse(unit.test(arguments(POST, "UNKNOWN")));
     }
 
     @Test
-    public void shouldNotDetectOverriddenUnsafeMethod() {
+    void shouldNotDetectOverriddenUnsafeMethod() {
         assertFalse(unit.test(arguments(POST, DELETE)));
     }
 
     @Test
     // TODO test this with all other methods, when migrating to JUnit 5
-    public void shouldOnlyDetectForPostMethod() {
+    void shouldOnlyDetectForPostMethod() {
         assertFalse(unit.test(arguments(PATCH, PUT)));
     }
 

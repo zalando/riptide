@@ -2,7 +2,8 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
@@ -10,9 +11,8 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -29,8 +29,9 @@ import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -39,10 +40,9 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-public class RetryAfterDelayFunctionTest {
+final class RetryAfterDelayFunctionTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -78,13 +78,13 @@ public class RetryAfterDelayFunctionTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldRetryWithoutDynamicDelay() {
+    void shouldRetryWithoutDynamicDelay() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
@@ -97,7 +97,7 @@ public class RetryAfterDelayFunctionTest {
     }
 
     @Test
-    public void shouldIgnoreDynamicDelayOnInvalidFormatAndRetryImmediately() {
+    void shouldIgnoreDynamicDelayOnInvalidFormatAndRetryImmediately() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
                 .withHeader("Retry-After", "foo"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
@@ -110,30 +110,32 @@ public class RetryAfterDelayFunctionTest {
                 .join();
     }
 
-    @Test(timeout = 1500)
-    public void shouldRetryOnDemandWithDynamicDelay() {
+    @Test
+    void shouldRetryOnDemandWithDynamicDelay() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
                 .withHeader("Retry-After", "1"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().dispatch(status(),
-                                on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
-                .join());
+        assertTimeout(Duration.ofMillis(1500), () ->
+                atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(pass()),
+                                anySeries().dispatch(status(),
+                                        on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
+                        .join()));
     }
 
-    @Test(timeout = 1500)
-    public void shouldRetryWithDynamicDelayDate() {
+    @Test
+    void shouldRetryWithDynamicDelayDate() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
                 .withHeader("Retry-After", "Wed, 11 Apr 2018 22:34:28 GMT"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()))
-                .join());
+        assertTimeout(Duration.ofMillis(1500), () ->
+                atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(pass()))
+                        .join()));
     }
 
     private void atLeast(final Duration minimum, final Runnable runnable) {

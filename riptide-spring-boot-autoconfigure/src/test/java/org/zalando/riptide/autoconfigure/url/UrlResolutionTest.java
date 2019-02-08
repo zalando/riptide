@@ -1,14 +1,12 @@
 package org.zalando.riptide.autoconfigure.url;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
@@ -20,10 +18,9 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.PassRoute.pass;
 
-@RunWith(SpringRunner.class)
 @RiptideClientTest
 @ActiveProfiles("default")
-public class UrlResolutionTest {
+final class UrlResolutionTest {
 
     @Configuration
     @ImportAutoConfiguration({
@@ -45,7 +42,7 @@ public class UrlResolutionTest {
     private Http unit;
 
     @Test
-    public void shouldAppendUrl() {
+    void shouldAppendUrl() {
         server.expect(requestTo("https://example.com/foo/bar"))
                 .andRespond(withSuccess());
 

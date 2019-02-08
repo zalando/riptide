@@ -1,20 +1,17 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = NONE)
-public final class LogbookCompatibilityTest {
+final class LogbookCompatibilityTest {
 
     @Configuration
     @Import(DefaultTestConfiguration.class)
@@ -27,7 +24,7 @@ public final class LogbookCompatibilityTest {
     }
 
     @Test
-    public void shouldUseInterceptors() {
+    void shouldUseInterceptors() {
         // TODO implement
     }
 

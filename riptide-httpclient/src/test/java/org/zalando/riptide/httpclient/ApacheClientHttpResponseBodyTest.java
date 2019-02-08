@@ -1,7 +1,7 @@
 package org.zalando.riptide.httpclient;
 
 import org.apache.http.conn.EofSensorInputStream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -11,10 +11,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ApacheClientHttpResponseBodyTest {
+final class ApacheClientHttpResponseBodyTest {
 
     @Test
-    public void shouldCallCloseOnNormalStreams() throws IOException {
+    void shouldCallCloseOnNormalStreams() throws IOException {
         InputStream stream = mock(InputStream.class);
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
@@ -25,7 +25,7 @@ public class ApacheClientHttpResponseBodyTest {
     }
 
     @Test
-    public void shouldCallAbortAndCloseOnConnectionReleaseTrigger() throws IOException {
+    void shouldCallAbortAndCloseOnConnectionReleaseTrigger() throws IOException {
         EofSensorInputStream stream = mock(EofSensorInputStream.class);
         ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);

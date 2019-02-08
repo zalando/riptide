@@ -1,12 +1,12 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.impl.client.cache.BasicHttpCacheStorage;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -15,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
@@ -25,10 +24,9 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("caching")
-public class CachingTest {
+final class CachingTest {
 
     @Configuration
     @ImportAutoConfiguration({
@@ -47,8 +45,7 @@ public class CachingTest {
 
     }
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     @Autowired
     @Qualifier("public")
@@ -62,8 +59,13 @@ public class CachingTest {
     @Qualifier("heuristic")
     private Http heuristic;
 
+    @AfterEach
+    void verify() {
+        driver.verify();
+    }
+
     @Test
-    public void shouldCacheInSharedCacheMode() {
+    void shouldCacheInSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "max-age=300, s-maxage=300"));
 
@@ -72,7 +74,7 @@ public class CachingTest {
     }
 
     @Test
-    public void shouldNotCacheWithAuthorizationInSharedCacheMode() {
+    void shouldNotCacheWithAuthorizationInSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
         driver.addExpectation(onRequestTo("/"),
@@ -88,7 +90,7 @@ public class CachingTest {
     }
 
     @Test
-    public void shouldCacheWithAuthorizationInSharedCacheModeWithPublicDirective() {
+    void shouldCacheWithAuthorizationInSharedCacheModeWithPublicDirective() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "public, s-maxage=300"));
 
@@ -102,7 +104,7 @@ public class CachingTest {
     }
 
     @Test
-    public void shouldCacheInNonSharedCacheMode() {
+    void shouldCacheInNonSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
 
@@ -111,7 +113,7 @@ public class CachingTest {
     }
 
     @Test
-    public void shouldCacheWithAuthorizationInNonSharedCacheMode() {
+    void shouldCacheWithAuthorizationInNonSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
 
@@ -125,7 +127,7 @@ public class CachingTest {
     }
 
     @Test
-    public void shouldCacheWithHeuristic() {
+    void shouldCacheWithHeuristic() {
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().withHeader("Cache-Control", "public"));
 

@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -20,15 +20,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.contentType;
 
-public final class InputStreamTest {
+final class InputStreamTest {
 
     static class InputStreamHttpMessageConverter implements HttpMessageConverter<InputStream> {
 
@@ -54,7 +54,7 @@ public final class InputStreamTest {
         }
 
         @Override
-        public void write(final InputStream t, final MediaType contentType, final HttpOutputMessage outputMessage) throws IOException,
+        public void write(final InputStream t, final MediaType contentType, final HttpOutputMessage outputMessage) throws
                 HttpMessageNotWritableException {
             throw new IllegalStateException();
         }
@@ -65,11 +65,11 @@ public final class InputStreamTest {
         private final InputStream inputStream;
         private boolean isClosed;
 
-        public CloseOnceInputStream(final InputStream inputStream) {
+        CloseOnceInputStream(final InputStream inputStream) {
             this.inputStream = inputStream;
         }
 
-        public CloseOnceInputStream(final byte[] buf) {
+        CloseOnceInputStream(final byte[] buf) {
             this(new ByteArrayInputStream(buf));
         }
 
@@ -132,7 +132,7 @@ public final class InputStreamTest {
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public InputStreamTest() {
+    InputStreamTest() {
         final RestTemplate template = new RestTemplate();
         this.server = MockRestServiceServer.createServer(template);
         this.unit = Http.builder()
@@ -144,7 +144,7 @@ public final class InputStreamTest {
     }
 
     @Test
-    public void shouldAllowCloseOnce() throws IOException {
+    void shouldAllowCloseOnce() throws IOException {
         final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
         content.close();
         try {
@@ -156,7 +156,7 @@ public final class InputStreamTest {
     }
 
     @Test
-    public void shouldNotAllowReadAfterClose() throws IOException {
+    void shouldNotAllowReadAfterClose() throws IOException {
         final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
         content.close();
         try {
@@ -169,7 +169,7 @@ public final class InputStreamTest {
     }
 
     @Test
-    public void shouldExtractOriginalBody() throws IOException {
+    void shouldExtractOriginalBody() throws IOException {
         final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
 
         server.expect(requestTo(url)).andRespond(

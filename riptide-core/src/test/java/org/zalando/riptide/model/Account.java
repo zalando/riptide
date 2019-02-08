@@ -1,6 +1,6 @@
 package org.zalando.riptide.model;
 
-public final class Account {
+final class Account {
 
     private final String id;
     private final String revision;

@@ -1,12 +1,12 @@
 package org.zalando.riptide.backup;
 
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -24,16 +24,16 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class BackupRequestPluginTest {
+final class BackupRequestPluginTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor(Executors.newFixedThreadPool(2));
@@ -46,13 +46,13 @@ public final class BackupRequestPluginTest {
             .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
             .build();
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldNotSendBackupRequestIfFastEnough() {
+    void shouldNotSendBackupRequestIfFastEnough() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
 
         unit.get("/foo")
@@ -61,7 +61,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldUseBackupRequest() throws Throwable {
+    void shouldUseBackupRequest() throws Throwable {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
 
@@ -71,7 +71,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldUseOriginalRequest() throws Throwable {
+    void shouldUseOriginalRequest() throws Throwable {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(3, SECONDS));
 
@@ -80,21 +80,22 @@ public final class BackupRequestPluginTest {
                 .get(3, SECONDS);
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldUseFailedBackupRequest() {
+    @Test
+    void shouldUseFailedBackupRequest() {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().withStatus(503));
 
+        assertThrows(IllegalStateException.class, () ->
         Completion.join(unit.get("/bar")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()),
                         on(SERVER_ERROR).call(() -> {
                             throw new IllegalStateException();
-                        })));
+                        }))));
     }
 
     @Test
-    public void shouldNotSendBackupRequestForNonSafeRequests() {
+    void shouldNotSendBackupRequestForNonSafeRequests() {
         driver.addExpectation(onRequestTo("/baz").withMethod(PUT), giveEmptyResponse().after(2, SECONDS));
 
         unit.put("/baz")
@@ -103,7 +104,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldNotSendBackupRequestForGetWithBodyWithoutOverride() {
+    void shouldNotSendBackupRequestForGetWithBodyWithoutOverride() {
         driver.addExpectation(onRequestTo("/baz").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
 
         unit.post("/baz")
@@ -112,7 +113,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldSendBackupRequestsForGetWithBody() throws Throwable {
+    void shouldSendBackupRequestsForGetWithBody() {
         driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse());
 
@@ -124,7 +125,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldSendBackupRequestForCustomSafeDetectedRequest() throws Throwable {
+    void shouldSendBackupRequestForCustomSafeDetectedRequest() throws Throwable {
         final Http unit = Http.builder()
                 .executor(executor)
                 .requestFactory(factory)
@@ -144,7 +145,7 @@ public final class BackupRequestPluginTest {
     }
 
     @Test
-    public void shouldCancelRequests() throws InterruptedException {
+    void shouldCancelRequests() throws InterruptedException {
         // TODO: support proper cancellations and remove this expectation
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
 

@@ -1,18 +1,18 @@
 package org.zalando.riptide.httpclient;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ApacheClientHttpRequestTest {
+final class ApacheClientHttpRequestTest {
 
     @Test
-    public void getMethodValue() {
+    void getMethodValue() {
         final ClientHttpRequest request = mock(ClientHttpRequest.class);
         final ApacheClientHttpRequest unit = new ApacheClientHttpRequest(request);
         when(request.getMethod()).thenReturn(HttpMethod.POST);
