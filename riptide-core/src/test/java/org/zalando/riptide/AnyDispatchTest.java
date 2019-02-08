@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -8,8 +8,8 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import java.io.IOException;
 import java.net.URI;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -20,21 +20,21 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class AnyDispatchTest {
+final class AnyDispatchTest {
 
     private final URI url = URI.create("http://localhost");
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public AnyDispatchTest() {
+    AnyDispatchTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 
     @Test
-    public void shouldDispatchAny() throws IOException {
+    void shouldDispatchAny() throws IOException {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))

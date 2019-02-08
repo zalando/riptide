@@ -1,6 +1,6 @@
 package org.zalando.riptide.httpclient;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.zalando.fauxpas.ThrowingBiConsumer;
 
 import java.io.ByteArrayInputStream;
@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public final class EndOfStreamDetectingInputStreamTest {
+final class EndOfStreamDetectingInputStreamTest {
 
     @SuppressWarnings("unchecked")
     private final ThrowingBiConsumer<InputStream, Boolean, IOException> closer = mock(ThrowingBiConsumer.class);
@@ -20,7 +20,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     private final InputStream unit = new EndOfStreamDetectingInputStream(original, closer);
 
     @Test
-    public void shouldReadBeforeEndOfStream() throws IOException {
+    void shouldReadBeforeEndOfStream() throws IOException {
         unit.read();
         unit.close();
 
@@ -28,7 +28,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     }
 
     @Test
-    public void shouldReadUntilEndOfStream() throws IOException {
+    void shouldReadUntilEndOfStream() throws IOException {
         unit.read();
         unit.read();
         unit.close();
@@ -37,7 +37,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     }
 
     @Test
-    public void shouldReadBytesBeforeEndOfStream() throws IOException {
+    void shouldReadBytesBeforeEndOfStream() throws IOException {
         unit.read(new byte[1]);
         unit.close();
 
@@ -45,7 +45,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     }
 
     @Test
-    public void shouldReadBytesUntilEndOfStream() throws IOException {
+    void shouldReadBytesUntilEndOfStream() throws IOException {
         unit.read(new byte[2]);
         unit.close();
 
@@ -53,7 +53,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     }
 
     @Test
-    public void shouldReadBytesOffsetBeforeEndOfStream() throws IOException {
+    void shouldReadBytesOffsetBeforeEndOfStream() throws IOException {
         unit.read(new byte[1], 0, 1);
         unit.close();
 
@@ -61,7 +61,7 @@ public final class EndOfStreamDetectingInputStreamTest {
     }
 
     @Test
-    public void shouldReadBytesOffsetUntilEndOfStream() throws IOException {
+    void shouldReadBytesOffsetUntilEndOfStream() throws IOException {
         unit.read(new byte[2], 0, 2);
         unit.close();
 

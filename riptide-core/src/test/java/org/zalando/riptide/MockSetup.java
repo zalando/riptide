@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-public final class MockSetup {
+final class MockSetup {
 
     private static final List<HttpMessageConverter<?>> DEFAULT_CONVERTERS =
             Arrays.asList(new StringHttpMessageConverter(), defaultJsonConverter());

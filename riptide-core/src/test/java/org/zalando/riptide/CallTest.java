@@ -1,8 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +14,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,24 +32,21 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.Types.responseEntityOf;
 
-public final class CallTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class CallTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public CallTest() {
+    CallTest() {
         final MockSetup setup = new MockSetup("https://api.example.com/");
         this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 
     @Test
-    public void shouldCallEntity() throws Exception {
+    void shouldCallEntity() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -69,7 +65,7 @@ public final class CallTest {
     }
 
     @Test
-    public void shouldCallResponseEntity() throws Exception {
+    void shouldCallResponseEntity() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -95,7 +91,7 @@ public final class CallTest {
     }
 
     @Test
-    public void shouldCallWithoutParameters() throws Exception {
+    void shouldCallWithoutParameters() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
@@ -113,20 +109,20 @@ public final class CallTest {
     }
 
     @Test
-    public void shouldThrowCheckedExceptionOnEntity() {
+    void shouldThrowCheckedExceptionOnEntity() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(IOException.class));
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.get("accounts/123")
+                        .dispatch(status(),
+                                on(OK).call(AccountBody.class, this::validateEntity),
+                                anyStatus().call(this::fail))
+                        .join());
 
-        unit.get("accounts/123")
-                .dispatch(status(),
-                        on(OK).call(AccountBody.class, this::validateEntity),
-                        anyStatus().call(this::fail))
-                .join();
+        assertThat(exception.getCause(), is(instanceOf(IOException.class)));
     }
 
     private void validateEntity(final AccountBody account) throws IOException {

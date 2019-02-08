@@ -1,22 +1,17 @@
 package org.zalando.riptide.stream;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
-public class StreamFilterTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class StreamFilterTest {
 
     @Test
-    public void shouldFilterOnReadInteger() throws Exception {
+    void shouldFilterOnReadInteger() throws Exception {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream)) {
@@ -31,7 +26,7 @@ public class StreamFilterTest {
     }
 
     @Test
-    public void shouldFilterOnReadBuffer() throws Exception {
+    void shouldFilterOnReadBuffer() throws Exception {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream)) {
@@ -48,7 +43,7 @@ public class StreamFilterTest {
     }
 
     @Test
-    public void shouldFilterOnSkip() throws Exception {
+    void shouldFilterOnSkip() throws Exception {
         final InputStream stream = new ClassPathResource("account-sequence.json").getInputStream();
 
         try (final StreamFilter unit = new StreamFilter(stream, 5)) {

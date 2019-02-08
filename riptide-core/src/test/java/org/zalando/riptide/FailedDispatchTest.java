@@ -1,8 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +21,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,75 +51,71 @@ import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS;
 
-public final class FailedDispatchTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class FailedDispatchTest {
 
     private final String url = "https://api.example.com";
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public FailedDispatchTest() {
+    FailedDispatchTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 
     @Test
-    public void shouldThrowIfNoMatch() {
+    void shouldThrowIfNoMatch() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("")
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UnexpectedResponseException.class));
-        exception.expectMessage(containsString("Unable to dispatch response: 200 - OK"));
-        exception.expectMessage(containsString("Content-Type"));
-        exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
-
-        unit.options(url)
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.options(url)
                 .dispatch(contentType(),
                         // note that we don't match on application/json explicitly
                         on(SUCCESS).call(pass()),
                         on(PROBLEM).call(pass()),
                         on(ERROR).call(pass()))
-                .join();
+                .join());
+
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
+        assertThat(exception.getMessage(), containsString("Unable to dispatch response: 200 - OK"));
+        assertThat(exception.getMessage(), containsString("Content-Type"));
+        assertThat(exception.getMessage(), containsString(APPLICATION_JSON_VALUE));
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfUnknownContentType() {
+    void shouldThrowOnFailedConversionBecauseOfUnknownContentType() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{}")
                         .contentType(MediaType.APPLICATION_ATOM_XML));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(RestClientException.class));
-        exception.expectMessage("no suitable HttpMessageConverter found for response type");
-
-        unit.get(url)
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.get(url)
                 .dispatch(status(),
                         on(OK).dispatch(series(),
                                 on(SUCCESSFUL).call(Success.class, success -> {}),
                                 anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
-                .join();
+                .join());
+
+        assertThat(exception.getCause(), is(instanceOf(RestClientException.class)));
+        assertThat(exception.getMessage(), containsString("no suitable HttpMessageConverter found for response type"));
     }
 
     @Test
-    public void shouldThrowOnFailedConversionBecauseOfFaultyBody() {
+    void shouldThrowOnFailedConversionBecauseOfFaultyBody() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{")
                         .contentType(SUCCESS));
 
-        exception.expect(CompletionException.class);
-
-        unit.get(url)
+        assertThrows(CompletionException.class, () ->
+                unit.get(url)
                 .dispatch(status(),
                         on(OK)
                                 .dispatch(series(),
@@ -129,11 +124,11 @@ public final class FailedDispatchTest {
                                         anySeries().call(pass())),
                         on(HttpStatus.CREATED).call(pass()),
                         anyStatus().call(this::fail))
-                .join();
+                .join());
     }
 
     @Test
-    public void shouldHandleNoBodyAtAll() {
+    void shouldHandleNoBodyAtAll() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentLength(0);
 
@@ -162,7 +157,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPropagateIfNoMatch() throws Exception {
+    void shouldPropagateIfNoMatch() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -185,7 +180,7 @@ public final class FailedDispatchTest {
     }
 
     @Test
-    public void shouldPropagateMultipleLevelsIfNoMatch() throws Exception {
+    void shouldPropagateMultipleLevelsIfNoMatch() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -210,23 +205,14 @@ public final class FailedDispatchTest {
 
 
     @Test
-    public void shouldPreserveExceptionIfPropagateFailed() {
+    void shouldPreserveExceptionIfPropagateFailed() {
         server.expect(requestTo(url))
                 .andRespond(withCreatedEntity(URI.create("about:blank"))
                         .body(new ClassPathResource("success.json"))
                         .contentType(APPLICATION_JSON));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UnexpectedResponseException.class));
-        exception.expectMessage(containsString("Unable to dispatch response: 201 - Created"));
-        exception.expectMessage(containsString("Content-Type"));
-        exception.expectMessage(containsString(APPLICATION_JSON_VALUE));
-        exception.expectCause(hasFeature("raw status code", UnexpectedResponseException::getRawStatusCode, is(201)));
-        exception.expectCause(hasFeature("status text", UnexpectedResponseException::getStatusText, is("Created")));
-        exception.expectCause(hasFeature("response headers", UnexpectedResponseException::getResponseHeaders, is(notNullValue())));
-        exception.expectCause(hasFeature("response body", UnexpectedResponseException::getResponseBody, is(notNullValue())));
-
-        unit.post(url)
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.post(url)
                 .dispatch(series(),
                         on(SUCCESSFUL).dispatch(contentType(),
                                 on(APPLICATION_JSON).dispatch(status(),
@@ -236,7 +222,17 @@ public final class FailedDispatchTest {
                                 on(APPLICATION_XML).call(pass()),
                                 on(TEXT_PLAIN).call(pass())),
                         on(CLIENT_ERROR).call(pass()))
-                .join();
+                .join());
+
+        assertThat(exception.getMessage(), containsString("Unable to dispatch response: 201 - Created"));
+        assertThat(exception.getMessage(), containsString("Content-Type"));
+        assertThat(exception.getMessage(), containsString(APPLICATION_JSON_VALUE));
+
+        final UnexpectedResponseException cause = (UnexpectedResponseException) exception.getCause();
+        assertThat(cause, hasFeature("raw status code", UnexpectedResponseException::getRawStatusCode, is(201)));
+        assertThat(cause, hasFeature("status text", UnexpectedResponseException::getStatusText, is("Created")));
+        assertThat(cause, hasFeature("response headers", UnexpectedResponseException::getResponseHeaders, is(notNullValue())));
+        assertThat(cause, hasFeature("response body", UnexpectedResponseException::getResponseBody, is(notNullValue())));
     }
 
 }

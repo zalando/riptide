@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -21,11 +19,12 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
@@ -51,17 +50,14 @@ import static org.zalando.riptide.Types.listOf;
 import static org.zalando.riptide.model.MediaTypes.ERROR;
 import static org.zalando.riptide.model.MediaTypes.PROBLEM;
 
-public final class NestedDispatchTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class NestedDispatchTest {
 
     private final URI url = URI.create("http://localhost");
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public NestedDispatchTest() {
+    NestedDispatchTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
@@ -109,7 +105,7 @@ public final class NestedDispatchTest {
             this.status = status;
         }
 
-        public HttpStatus getStatus() {
+        HttpStatus getStatus() {
             return status;
         }
     }
@@ -119,18 +115,17 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelOne() {
+    void shouldDispatchLevelOne() {
         server.expect(requestTo(url)).andRespond(withStatus(MOVED_PERMANENTLY));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(Failure.class));
-        exception.expectCause(hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
+        final CompletionException exception = assertThrows(CompletionException.class, () -> perform(Void.class));
 
-        perform(Void.class);
+        final Failure cause = (Failure) exception.getCause();
+        assertThat(cause, hasFeature("status", Failure::getStatus, equalTo(MOVED_PERMANENTLY)));
     }
 
     @Test
-    public void shouldDispatchLevelTwo() {
+    void shouldDispatchLevelTwo() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CREATED)
                         .body(new ClassPathResource("messages.json"))
@@ -144,7 +139,7 @@ public final class NestedDispatchTest {
     }
 
     @Test
-    public void shouldDispatchLevelThree() {
+    void shouldDispatchLevelThree() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -152,7 +147,7 @@ public final class NestedDispatchTest {
 
         try {
             perform(Problem.class);
-            Assert.fail("Expected exception");
+            Assertions.fail("Expected exception");
         } catch (final CompletionException e) {
             assertThat(e.getCause(), is(instanceOf(ThrowableProblem.class)));
             final ThrowableProblem problem = (ThrowableProblem) e.getCause();

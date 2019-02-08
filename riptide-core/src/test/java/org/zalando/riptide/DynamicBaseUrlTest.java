@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.net.URI;
@@ -17,7 +17,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class DynamicBaseUrlTest {
+final class DynamicBaseUrlTest {
 
     private final Http unit;
     private final MockRestServiceServer server;
@@ -25,7 +25,7 @@ public class DynamicBaseUrlTest {
     @SuppressWarnings("unchecked")
     private final Supplier<URI> baseUrlProviderMock = mock(Supplier.class);
 
-    public DynamicBaseUrlTest() {
+    DynamicBaseUrlTest() {
         final MockSetup setup = new MockSetup();
 
         this.unit = setup.getHttpBuilder().baseUrl(baseUrlProviderMock).build();
@@ -33,7 +33,7 @@ public class DynamicBaseUrlTest {
     }
 
     @Test
-    public void shouldUseDynamicBaseUrl() {
+    void shouldUseDynamicBaseUrl() {
         server.expect(requestTo("https://host1.example.com/123"))
                 .andRespond(withSuccess());
         server.expect(requestTo("https://host2.example.com/123"))

@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -14,7 +12,11 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
@@ -28,24 +30,21 @@ import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class ExecuteTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class ExecuteTest {
 
     private final String url = "https://api.example.com";
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public ExecuteTest() {
+    ExecuteTest() {
         final MockSetup setup = new MockSetup();
         this.server = setup.getServer();
         this.unit = setup.getHttp();
     }
 
     @Test
-    public void shouldSendNoBody() {
+    void shouldSendNoBody() {
         server.expect(requestTo(url))
                 .andExpect(content().string(""))
                 .andRespond(withSuccess());
@@ -59,7 +58,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeaders() {
+    void shouldSendHeaders() {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andExpect(header("If-Modified-Since", "Fri, 24 Nov 2017 11:02:39 GMT"))
@@ -82,7 +81,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendBody() {
+    void shouldSendBody() {
         server.expect(requestTo(url))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
                 .andRespond(withSuccess());
@@ -96,7 +95,7 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldSendHeadersAndBody() {
+    void shouldSendHeadersAndBody() {
         server.expect(requestTo(url))
                 .andExpect(header("X-Foo", "bar"))
                 .andExpect(content().string("{\"foo\":\"bar\"}"))
@@ -112,27 +111,27 @@ public final class ExecuteTest {
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBody() {
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(RestClientException.class));
-        exception.expectMessage("no suitable HttpMessageConverter found ");
-        exception.expectMessage("org.zalando.riptide.model.Success");
-        exception.expectMessage("application/xml");
-
+    void shouldFailIfNoConverterFoundForBody() {
         server.expect(requestTo(url))
                 // actually we don't expect anything
                 .andRespond(withServerError());
 
-        unit.patch(url)
-                .accept(APPLICATION_JSON)
-                .contentType(APPLICATION_XML)
-                .body(new Success(true))
-                .dispatch(contentType())
-                .join();
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.patch(url)
+                        .accept(APPLICATION_JSON)
+                        .contentType(APPLICATION_XML)
+                        .body(new Success(true))
+                        .dispatch(contentType())
+                        .join());
+
+        assertThat(exception.getCause(), is(instanceOf(RestClientException.class)));
+        assertThat(exception.getMessage(), containsString("no suitable HttpMessageConverter found"));
+        assertThat(exception.getMessage(), containsString("org.zalando.riptide.model.Success"));
+        assertThat(exception.getMessage(), containsString("application/xml"));
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
+    void shouldFailIfNoConverterFoundForBodyOfUnknownContentType() {
         final MockSetup setup = new MockSetup("https://api.example.com", Collections.emptyList());
         final MockRestServiceServer server = setup.getServer();
         final Http unit = setup.getHttpBuilder()
@@ -142,33 +141,33 @@ public final class ExecuteTest {
         server.expect(requestTo(url))
                 .andRespond(withSuccess());
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(RestClientException.class));
-        exception.expectMessage("no suitable HttpMessageConverter found ");
-        exception.expectMessage("org.zalando.riptide.model.Success");
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.delete(url)
+                        .body(new Success(true))
+                        .dispatch(contentType())
+                        .join());
 
-        unit.delete(url)
-                .body(new Success(true))
-                .dispatch(contentType())
-                .join();
+        assertThat(exception.getCause(), is(instanceOf(RestClientException.class)));
+        assertThat(exception.getMessage(), containsString("no suitable HttpMessageConverter found"));
+        assertThat(exception.getMessage(), containsString("org.zalando.riptide.model.Success"));
     }
 
     @Test
-    public void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() {
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(RestClientException.class));
-        exception.expectMessage("no suitable HttpMessageConverter found ");
-        exception.expectMessage("org.zalando.riptide.model.Success");
-
+    void shouldFailIfNoConverterFoundForBodyOfUnsupportedContentType() {
         server.expect(requestTo(url))
                 // actually we don't expect anything
                 .andRespond(withServerError());
 
-        unit.delete(url)
-                .contentType(MediaType.parseMediaType("application/x-json-stream"))
-                .body(new Success(true))
-                .dispatch(contentType())
-                .join();
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.delete(url)
+                        .contentType(MediaType.parseMediaType("application/x-json-stream"))
+                        .body(new Success(true))
+                        .dispatch(contentType())
+                        .join());
+
+        assertThat(exception.getCause(), is(instanceOf(RestClientException.class)));
+        assertThat(exception.getMessage(), containsString("no suitable HttpMessageConverter found"));
+        assertThat(exception.getMessage(), containsString("org.zalando.riptide.model.Success"));
     }
 
 }

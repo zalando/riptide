@@ -3,7 +3,7 @@ package org.zalando.riptide.failsafe;
 import com.google.gag.annotation.remark.Hack;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -18,13 +18,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public final class LoggingRetryListenerTest {
+final class LoggingRetryListenerTest {
 
     private final Logger logger = mock(Logger.class);
     private final RetryListener unit = new LoggingRetryListener(logger);
 
     @Test
-    public void shouldLogFailure() {
+    void shouldLogFailure() {
         final AtomicBoolean success = new AtomicBoolean(false);
 
         final RequestArguments arguments = RequestArguments.create();
@@ -43,7 +43,7 @@ public final class LoggingRetryListenerTest {
     }
 
     @Test
-    public void shouldNotLogResults() {
+    void shouldNotLogResults() {
         final AtomicBoolean success = new AtomicBoolean(false);
 
         final RequestArguments arguments = RequestArguments.create();
@@ -65,7 +65,7 @@ public final class LoggingRetryListenerTest {
 
     @Hack("We're not really testing anything here, since we don't want to clutter the logs.")
     @Test
-    public void shouldUseDefaultLogger() {
+    void shouldUseDefaultLogger() {
         new LoggingRetryListener();
     }
 

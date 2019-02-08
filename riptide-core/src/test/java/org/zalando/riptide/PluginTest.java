@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -9,15 +9,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.UnaryOperator;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.Plugin.compound;
 
-public final class PluginTest {
+final class PluginTest {
 
     private final Plugin state = new Plugin() {
         @Override
@@ -58,12 +58,12 @@ public final class PluginTest {
     };
 
     @Test
-    public void shouldApplyInCorrectOrder() throws IOException {
+    void shouldApplyInCorrectOrder() throws IOException {
         shouldRunInCorrectOrder(arguments -> compound(state, argument).beforeSend(arguments));
     }
 
     @Test
-    public void shouldPrepareInCorrectOrder() throws IOException {
+    void shouldPrepareInCorrectOrder() throws IOException {
         shouldRunInCorrectOrder(compound(state, argument)::beforeDispatch);
     }
 

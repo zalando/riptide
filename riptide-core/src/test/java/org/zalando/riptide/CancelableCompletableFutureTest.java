@@ -1,22 +1,23 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureTask;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
 import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
-public final class CancelableCompletableFutureTest {
+final class CancelableCompletableFutureTest {
 
     @Test
-    public void shouldCancel() {
+    void shouldCancel() {
         final ListenableFuture<Void> original = new ListenableFutureTask<>(() -> {}, null);
         final CompletableFuture<Void> unit = preserveCancelability(original);
         original.addCallback(unit::complete, unit::completeExceptionally);
@@ -28,7 +29,7 @@ public final class CancelableCompletableFutureTest {
 
     // TODO: this test is actually fake and should be rewritten for Java 9
     @Test
-    public void shouldPreserveCancelability() {
+    void shouldPreserveCancelability() {
         final AbstractCancelableCompletableFuture<String> unit = new AbstractCancelableCompletableFuture<String>() {
         };
 
@@ -36,7 +37,7 @@ public final class CancelableCompletableFutureTest {
     }
 
     @Test
-    public void shouldForwardResult() {
+    void shouldForwardResult() {
         final CompletableFuture<String> future = new CompletableFuture<>();
         final CompletableFuture<String> spy = new CompletableFuture<>();
 
@@ -46,19 +47,17 @@ public final class CancelableCompletableFutureTest {
         assertThat(spy.join(), is("foo"));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldForwardException() throws Throwable {
+    @Test
+    void shouldForwardException() {
         final CompletableFuture<String> future = new CompletableFuture<>();
         final CompletableFuture<String> spy = new CompletableFuture<>();
 
         future.whenComplete(forwardTo(spy));
         future.completeExceptionally(new IllegalStateException());
 
-        try {
-            spy.join();
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        final CompletionException exception = assertThrows(CompletionException.class, spy::join);
+
+        assertThat(exception.getCause(), is(instanceOf(IllegalStateException.class)));
     }
 
 }

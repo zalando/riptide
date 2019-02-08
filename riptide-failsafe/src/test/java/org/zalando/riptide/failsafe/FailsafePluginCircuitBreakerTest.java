@@ -2,16 +2,16 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
@@ -28,15 +28,17 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class FailsafePluginCircuitBreakerTest {
+final class FailsafePluginCircuitBreakerTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -70,24 +72,23 @@ public class FailsafePluginCircuitBreakerTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
-    @Test(expected = CircuitBreakerOpenException.class)
-    public void shouldOpenCircuit() throws Throwable {
+    @Test
+    void shouldOpenCircuit() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
 
         unit.get("/foo").call(pass())
                 .exceptionally(partially(SocketTimeoutException.class, this::ignore))
                 .join();
 
-        try {
-            unit.get("/foo").call(pass()).join();
-        } catch (final CompletionException e) {
-            throw e.getCause();
-        }
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/foo").call(pass())::join);
+
+        assertThat(exception.getCause(), is(instanceOf(CircuitBreakerOpenException.class)));
     }
 
     private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {

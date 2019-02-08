@@ -1,6 +1,7 @@
 package org.zalando.riptide.httpclient.metrics;
 
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -8,13 +9,11 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -23,14 +22,13 @@ import java.io.IOException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.zalando.riptide.Route.call;
 
-public final class HttpConnectionPoolMetricsTest {
+final class HttpConnectionPoolMetricsTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 
@@ -49,13 +47,13 @@ public final class HttpConnectionPoolMetricsTest {
 
     private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
-    @After
-    public void closeClient() throws IOException {
+    @AfterEach
+    void closeClient() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldRecordConnectionPoolMetrics() {
+    void shouldRecordConnectionPoolMetrics() {
         new HttpConnectionPoolMetrics(connectionManager)
                 .withMetricName("connection-pool")
                 .withDefaultTags(Tag.of("version", "1"))

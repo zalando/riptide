@@ -3,25 +3,22 @@ package org.zalando.riptide.autoconfigure;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {
     "riptide.defaults.connect-timeout: 1 second",
@@ -36,7 +33,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
     "riptide.clients.example.max-connections-total: 24",
 })
 @Component
-public final class ClientConfigurationTest {
+final class ClientConfigurationTest {
 
     @Autowired
     @Qualifier("example")
@@ -59,19 +56,19 @@ public final class ClientConfigurationTest {
     private HttpClient exampleHttpClient;
 
     @Test
-    public void shouldWireOAuthCorrectly() {
+    void shouldWireOAuthCorrectly() {
         assertThat(exampleRest, is(notNullValue()));
         assertThat(exampleRestTemplate, is(notNullValue()));
         assertThat(exampleAsyncRestTemplate, is(notNullValue()));
     }
 
     @Test
-    public void shouldWireNonOAuthCorrectly() {
+    void shouldWireNonOAuthCorrectly() {
         assertThat(ecbRest, is(notNullValue()));
     }
 
     @Test
-    public void shouldApplyTimeouts() throws Exception {
+    void shouldApplyTimeouts() {
         assertThat("Configurable http client expected", exampleHttpClient, is(instanceOf(Configurable.class)));
 
         final RequestConfig config = ((Configurable) exampleHttpClient).getConfig();

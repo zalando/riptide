@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.io.ByteStreams;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 
@@ -13,12 +11,12 @@ import java.net.URI;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -34,24 +32,21 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
 
-public final class RouteTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class RouteTest {
 
     private final URI url = URI.create("https://api.example.com/accounts/123");
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public RouteTest() {
+    RouteTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 
     @Test
-    public void shouldPass() {
+    void shouldPass() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess());
 
@@ -62,39 +57,38 @@ public final class RouteTest {
     }
 
     @Test
-    public void shouldThrowNoRouteExceptionWithContent() {
+    void shouldThrowNoRouteExceptionWithContent() {
         server.expect(requestTo(url)).andRespond(
                 withStatus(CONFLICT)
                         .body("verbose body content")
                         .contentType(TEXT_PLAIN));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UnexpectedResponseException.class));
-        exception.expectCause(hasFeature(Throwable::getMessage, containsString(TEXT_PLAIN_VALUE)));
-        exception.expectCause(hasFeature(Throwable::getMessage, containsString("Content-Type")));
-        exception.expectCause(hasFeature(Throwable::getMessage, containsString("verbose body content")));
-
-        unit.get(url)
-                .dispatch(status(),
-                        anyStatus().call(noRoute()))
-                .join();
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.get(url)
+                        .dispatch(status(),
+                                anyStatus().call(noRoute()))
+                        .join());
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
+        assertThat(exception.getMessage(), containsString(TEXT_PLAIN_VALUE));
+        assertThat(exception.getMessage(), containsString("Content-Type"));
+        assertThat(exception.getMessage(), containsString("verbose body content"));
     }
 
     @Test
-    public void shouldThrowNoRouteExceptionWithoutContent() {
+    void shouldThrowNoRouteExceptionWithoutContent() {
         server.expect(requestTo(url)).andRespond(withStatus(NO_CONTENT));
 
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UnexpectedResponseException.class));
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.get(url)
+                        .dispatch(status(),
+                                anyStatus().call(noRoute()))
+                        .join());
 
-        unit.get(url)
-                .dispatch(status(),
-                        anyStatus().call(noRoute()))
-                .join();
+        assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
     }
 
     @Test
-    public void shouldAllowToCaptureBody() throws Exception {
+    void shouldAllowToCaptureBody() throws Exception {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body("{}")

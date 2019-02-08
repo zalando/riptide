@@ -1,6 +1,6 @@
 package org.zalando.riptide.faults;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
@@ -10,48 +10,48 @@ import java.util.NoSuchElementException;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public final class FaultClassifierTest {
+final class FaultClassifierTest {
 
     private final FaultClassifier unit = FaultClassifier.createDefault();
 
     @Test
-    public void shouldClassifyInterruptedIOException() {
+    void shouldClassifyInterruptedIOException() {
         assertTransient(new InterruptedIOException());
     }
 
     @Test
-    public void shouldClassifySocketException() {
+    void shouldClassifySocketException() {
         assertTransient(new SocketTimeoutException());
     }
 
     @Test
-    public void shouldClassifySSLHandshakeException() {
+    void shouldClassifySSLHandshakeException() {
         assertTransient(new SSLHandshakeException("Remote host closed connection during handshake"));
     }
 
     @Test
-    public void shouldNotClassifyGenericSSLHandShakeException() {
+    void shouldNotClassifyGenericSSLHandShakeException() {
         assertNotTransient(new SSLHandshakeException("No hands, no cookies"));
     }
 
     @Test
-    public void shouldClassifyAsTransientWithNonTransientRootCause() {
+    void shouldClassifyAsTransientWithNonTransientRootCause() {
         final SocketTimeoutException e = new SocketTimeoutException();
         e.initCause(new NoSuchElementException());
         assertTransient(e);
     }
 
     @Test
-    public void shouldClassifyAsTransientWithTransientIntermediateCause() {
+    void shouldClassifyAsTransientWithTransientIntermediateCause() {
         final SocketTimeoutException e = new SocketTimeoutException();
         e.initCause(new NoSuchElementException());
         assertTransient(new IllegalStateException(e));
     }
 
     @Test
-    public void shouldClassifyTransientFaultOnlyOnce() {
+    void shouldClassifyTransientFaultOnlyOnce() {
         final Throwable throwable = unit.classify(
                 unit.classify(new TransientFaultException(new InterruptedIOException())));
 

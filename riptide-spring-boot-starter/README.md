@@ -68,7 +68,7 @@ private Http example;
 ## Dependencies
 
 - Java 8
-- Spring Boot 1.x **or 2.x**
+- Spring Boot 2
 - Riptide
   - Core
   - (Apache) HTTP Client
@@ -500,7 +500,7 @@ public class GatewayService {
 
 @RunWith(SpringRunner.class)
 @RiptideClientTest(GatewayService.class)
-public class RiptideTest {
+final class RiptideTest {
 
     @Autowired
     private GatewayService client;

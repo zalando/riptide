@@ -1,9 +1,7 @@
 package org.zalando.riptide.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -21,8 +19,10 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
@@ -44,10 +44,7 @@ import static org.zalando.riptide.stream.Streams.forEach;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
 
-public class StreamsTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+final class StreamsTest {
 
     private final String baseUrl = "https://api.example.com";
     private final URI url = URI.create(baseUrl + "/accounts");
@@ -55,7 +52,7 @@ public class StreamsTest {
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public StreamsTest() {
+    StreamsTest() {
         final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
         final MockSetup setup = new MockSetup(baseUrl, singletonList(streamConverter(mapper)));
         this.server = setup.getServer();
@@ -63,7 +60,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldCallConsumerWithList() {
+    void shouldCallConsumerWithList() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
@@ -87,7 +84,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldCallConsumerWithArray() {
+    void shouldCallConsumerWithArray() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
@@ -111,7 +108,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldCallConsumerWithJsonList() {
+    void shouldCallConsumerWithJsonList() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-list.json"))
@@ -134,7 +131,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldCallConsumerWithXJsonStream() {
+    void shouldCallConsumerWithXJsonStream() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-stream.json"))
@@ -157,7 +154,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldCallConsumerWithJsonSequence() {
+    void shouldCallConsumerWithJsonSequence() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-sequence.json"))
@@ -180,7 +177,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldNotCallConsumerForEmptyStream() {
+    void shouldNotCallConsumerForEmptyStream() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentLength(0);
 
@@ -203,11 +200,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldFailOnCallWithConsumerException() throws Exception {
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UncheckedIOException.class));
-        exception.expectCause(hasFeature(Throwable::getCause, instanceOf(IOException.class)));
-
+    void shouldFailOnCallWithConsumerException() throws Exception {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-sequence.json"))
@@ -218,11 +211,14 @@ public class StreamsTest {
         doCallRealMethod().when(verifier).accept(any());
         doThrow(new IOException()).when(verifier).tryAccept(new AccountBody("1234567892", "Acme GmbH"));
 
-        unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/accounts")
+                        .dispatch(status(),
+                                on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                                anyStatus().call(this::fail))::join);
+
+        assertThat(exception.getCause(), is(instanceOf(UncheckedIOException.class)));
+        assertThat(exception.getCause().getCause(), is(instanceOf(IOException.class)));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -232,10 +228,7 @@ public class StreamsTest {
     }
 
     @Test
-    public void shouldFailOnCallWithInvalidStream() {
-        exception.expect(CompletionException.class);
-        exception.expectCause(instanceOf(UncheckedIOException.class));
-
+    void shouldFailOnCallWithInvalidStream() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
                         .body(new ClassPathResource("account-fail.json"))
@@ -244,11 +237,13 @@ public class StreamsTest {
         @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
-        unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/accounts")
+                        .dispatch(status(),
+                                on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                                anyStatus().call(this::fail))::join);
+
+        assertThat(exception.getCause(), is(instanceOf(UncheckedIOException.class)));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verifyNoMoreInteractions(verifier);

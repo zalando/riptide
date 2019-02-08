@@ -19,7 +19,7 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
 
     @Nullable
     @Override
-    public MediaType attributeOf(final ClientHttpResponse response) throws IOException {
+    public MediaType attributeOf(final ClientHttpResponse response) {
         return response.getHeaders().getContentType();
     }
 

@@ -1,12 +1,9 @@
 package org.zalando.riptide;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
@@ -15,8 +12,10 @@ import java.io.IOException;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -29,29 +28,26 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 
-@RunWith(MockitoJUnitRunner.class)
-public class RoutingTreeTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+@ExtendWith(MockitoExtension.class)
+final class RoutingTreeTest {
 
     @Mock
     private Route other;
-    
+
     @Mock
     private Route expected;
-    
+
     private final MessageReader reader = mock(MessageReader.class);
 
     @Test
-    public void shouldExposeNavigator() {
+    void shouldExposeNavigator() {
         final RoutingTree<HttpStatus> unit = RoutingTree.dispatch(status());
 
         assertThat(unit.getNavigator(), is(status()));
     }
 
     @Test
-    public void shouldUsedAttributeRoute() throws Exception {
+    void shouldUsedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, expected),
                 create(null, other))
@@ -61,7 +57,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUsedWildcardRoute() throws Exception {
+    void shouldUsedWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, other),
                 create(null, expected))
@@ -71,7 +67,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUsedAddedAttributeRoute() throws Exception {
+    void shouldUsedAddedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(null, other))
                 .merge(create(OK, expected))
@@ -81,7 +77,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUsedAddedWildcardRoute() throws Exception {
+    void shouldUsedAddedWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, other))
                 .merge(create(null, expected))
@@ -91,7 +87,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUseLastWildcardRoute() throws Exception {
+    void shouldUseLastWildcardRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create((HttpStatus) null, other))
                 .merge(create((HttpStatus) null, expected))
@@ -101,7 +97,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUseLastAttributeRoute() throws Exception {
+    void shouldUseLastAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, other))
                 .merge(create(OK, expected))
@@ -111,7 +107,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUseLastAddedAttributeRoute() throws Exception {
+    void shouldUseLastAddedAttributeRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, other),
                 create(null, other))
@@ -123,7 +119,7 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldUseLastAddedWildcardeRoute() throws Exception {
+    void shouldUseLastAddedWildcardeRoute() throws Exception {
         RoutingTree.dispatch(status(),
                 create(OK, other),
                 create(null, other))
@@ -135,34 +131,33 @@ public class RoutingTreeTest {
     }
 
     @Test
-    public void shouldCreateNewRoutingTreeIfChanged() {
+    void shouldCreateNewRoutingTreeIfChanged() {
         final RoutingTree<HttpStatus> tree = RoutingTree.dispatch(status(), on(OK).call(pass()));
         final RoutingTree<HttpStatus> result = tree.merge(anyStatus().call(pass()));
-        Assert.assertNotEquals(tree, result);
+        assertNotEquals(tree, result);
     }
 
     @Test
-    public void shouldCreateNewRoutingTreeIfNotChanged() {
+    void shouldCreateNewRoutingTreeIfNotChanged() {
         final RoutingTree<HttpStatus> tree = RoutingTree.dispatch(status(), on(OK).call(pass()));
         final RoutingTree<HttpStatus> result = tree.merge(on(OK).call(pass()));
-        Assert.assertNotEquals(tree, result);
+        assertNotEquals(tree, result);
     }
 
     @Test
-    public void shouldCatchIOExceptionFromResponse() throws Exception {
-        exception.expect(IOException.class);
-
+    void shouldCatchIOExceptionFromResponse() throws Exception {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getStatusCode()).thenThrow(new IOException());
 
-        RoutingTree.dispatch(status(), singletonList(anyStatus().call(pass())))
-                .execute(response, reader);
+        final RoutingTree<HttpStatus> tree = RoutingTree.dispatch(status(),
+                singletonList(anyStatus().call(pass())));
+
+        assertThrows(IOException.class, () ->
+                tree.execute(response, reader));
     }
 
     @Test
-    public void shouldCatchIOExceptionFromBinding() throws Exception {
-        exception.expect(IOException.class);
-
+    void shouldCatchIOExceptionFromBinding() throws Exception {
         final HttpStatus anyStatus = null;
         final Binding<HttpStatus> binding = create(anyStatus, (response, converters) -> {
             throw new IOException();
@@ -171,17 +166,18 @@ public class RoutingTreeTest {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getStatusCode()).thenReturn(OK);
 
-        RoutingTree.dispatch(status(), singletonList(binding))
-                .execute(response, reader);
+        final RoutingTree<HttpStatus> tree = RoutingTree.dispatch(status(), singletonList(binding));
+
+        assertThrows(IOException.class, () ->
+                tree.execute(response, reader));
     }
 
     @Test
-    public void shouldFailForDuplicateBindings() {
-        exception.expect(IllegalArgumentException.class);
-
-        RoutingTree.dispatch(status(),
-                on(OK).call(pass()),
-                on(OK).call(pass()));
+    void shouldFailForDuplicateBindings() {
+        assertThrows(IllegalArgumentException.class, () ->
+                RoutingTree.dispatch(status(),
+                        on(OK).call(pass()),
+                        on(OK).call(pass())));
     }
 
     private MockClientHttpResponse response(final HttpStatus status) {

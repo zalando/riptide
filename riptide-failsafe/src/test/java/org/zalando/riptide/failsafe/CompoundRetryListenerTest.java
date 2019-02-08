@@ -3,7 +3,7 @@ package org.zalando.riptide.failsafe;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-public final class CompoundRetryListenerTest {
+final class CompoundRetryListenerTest {
 
     private final RetryListener first = mock(RetryListener.class);
     private final RetryListener second = mock(RetryListener.class);
@@ -25,7 +25,7 @@ public final class CompoundRetryListenerTest {
     private final RetryListener unit = new CompoundRetryListener(first, second);
 
     @Test
-    public void shouldPropagateRetryToEveryListener() {
+    void shouldPropagateRetryToEveryListener() {
         final AtomicBoolean success = new AtomicBoolean(false);
 
         final RequestArguments arguments = RequestArguments.create();

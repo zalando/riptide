@@ -67,7 +67,7 @@ public final class MetricsPlugin implements Plugin {
         private final long startTime = clock.monotonicTime();
         private final RequestArguments arguments;
 
-        void record(final ClientHttpResponse response, final Throwable throwable) throws IOException {
+        void record(final ClientHttpResponse response, final Throwable throwable) {
             final long endTime = clock.monotonicTime();
 
             final Iterable<Tag> tags = concat(defaultTags, generator.tags(arguments, response, throwable));

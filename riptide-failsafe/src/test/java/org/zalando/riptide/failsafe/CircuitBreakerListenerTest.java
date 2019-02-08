@@ -1,13 +1,13 @@
 package org.zalando.riptide.failsafe;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public final class CircuitBreakerListenerTest {
+final class CircuitBreakerListenerTest {
 
     private final CircuitBreakerListener unit = CircuitBreakerListener.DEFAULT;
 
     @Test
-    public void shouldDoNothing() {
+    void shouldDoNothing() {
         unit.onOpen();
         unit.onHalfOpen();
         unit.onClose();

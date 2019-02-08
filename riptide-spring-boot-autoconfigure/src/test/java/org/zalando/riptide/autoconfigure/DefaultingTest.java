@@ -1,6 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 
 import java.nio.file.Paths;
@@ -8,13 +8,13 @@ import java.nio.file.Paths;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 
-public final class DefaultingTest {
+final class DefaultingTest {
 
     @Test
-    public void shouldMergeCaching() {
+    void shouldMergeCaching() {
         final Caching actual = Defaulting.merge(
                 new Caching(true, null, 4096, 100,
                         new Heuristic(0.1f, null)),

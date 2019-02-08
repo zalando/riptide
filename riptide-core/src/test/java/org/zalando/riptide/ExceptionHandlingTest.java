@@ -1,11 +1,11 @@
 package org.zalando.riptide;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.util.concurrent.ExecutionException;
@@ -16,8 +16,8 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 // this test is just a compile time check for checked exceptions (throws clauses)
-@RunWith(MockitoJUnitRunner.class)
-public final class ExceptionHandlingTest {
+@ExtendWith(MockitoExtension.class)
+final class ExceptionHandlingTest {
 
     private final Http unit;
     private final MockRestServiceServer server;
@@ -25,40 +25,40 @@ public final class ExceptionHandlingTest {
     @Mock
     private RoutingTree<Void> tree;
 
-    public ExceptionHandlingTest() {
+    ExceptionHandlingTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
     }
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         server.expect(requestTo("https://api.example.com/"))
                 .andRespond(withSuccess());
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         server.verify();
     }
 
     @Test
-    public void shouldNotThrowIOExceptionWhenSettingBody() {
+    void shouldNotThrowIOExceptionWhenSettingBody() {
         unit.get("/").body("body").call(tree).join();
     }
 
     @Test
-    public void shouldNotThrowIOExceptionWhenDispatchingWithoutBody() {
+    void shouldNotThrowIOExceptionWhenDispatchingWithoutBody() {
         unit.get("/").call(tree).join();
     }
 
     @Test
-    public void shouldNotThrowInterruptedAndExecutionExceptionWhenBlocking() {
+    void shouldNotThrowInterruptedAndExecutionExceptionWhenBlocking() {
         unit.get("/").dispatch(tree).join();
     }
 
     @Test
-    public void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() throws InterruptedException,
+    void shouldThrowInterruptedExecutionAndTimeoutExceptionWhenBlocking() throws InterruptedException,
             ExecutionException, TimeoutException {
 
         unit.get("/")

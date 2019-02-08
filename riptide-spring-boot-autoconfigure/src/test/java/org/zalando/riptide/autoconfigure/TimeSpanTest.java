@@ -1,6 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,56 +8,57 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public final class TimeSpanTest {
+final class TimeSpanTest {
 
     @Test
-    public void shouldParseEmpty() {
+    void shouldParseEmpty() {
         final TimeSpan span = TimeSpan.valueOf("");
         assertThat(span.getAmount(), is(0L));
     }
 
     @Test
-    public void shouldParseSingular() {
+    void shouldParseSingular() {
         final TimeSpan span = TimeSpan.valueOf("1 second");
         assertThat(span.to(SECONDS), is(1L));
     }
 
     @Test
-    public void shouldParseUsingConstructor() {
+    void shouldParseUsingConstructor() {
         final TimeSpan span = new TimeSpan("1 second");
         assertThat(span.getAmount(), is(1L));
         assertThat(span.getUnit(), is(SECONDS));
     }
 
     @Test
-    public void shouldParsePlural() {
+    void shouldParsePlural() {
         final TimeSpan span = TimeSpan.valueOf("17 milliseconds");
         assertThat(span.to(MILLISECONDS), is(17L));
     }
 
     @Test
-    public void shouldParseNonLowerCase() {
+    void shouldParseNonLowerCase() {
         final TimeSpan span = TimeSpan.valueOf("17 Seconds");
         assertThat(span.to(SECONDS), is(17L));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailOnUnsupportedTimeSpanFormat() {
-        TimeSpan.valueOf("forever");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailOnUnknownTimeUnit() {
-        TimeSpan.valueOf("1 decade");
+    @Test
+    void shouldFailOnUnsupportedTimeSpanFormat() {
+        assertThrows(IllegalArgumentException.class, () -> TimeSpan.valueOf("forever"));
     }
 
     @Test
-    public void shouldApplyTo() {
+    void shouldFailOnUnknownTimeUnit() {
+        assertThrows(IllegalArgumentException.class, () -> TimeSpan.valueOf("1 decade"));
+    }
+
+    @Test
+    void shouldApplyTo() {
         final Map<Long, TimeUnit> consumer = new HashMap<>();
         TimeSpan.valueOf("1 second").applyTo(consumer::put);
 
@@ -65,7 +66,7 @@ public final class TimeSpanTest {
     }
 
     @Test
-    public void shouldRenderToString() {
+    void shouldRenderToString() {
         assertThat(TimeSpan.valueOf("17 seconds"), hasToString("17 seconds"));
     }
 

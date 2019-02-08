@@ -1,6 +1,6 @@
 package org.zalando.riptide;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -13,7 +13,7 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.parseMediaType;
@@ -32,14 +32,14 @@ import static org.zalando.riptide.model.MediaTypes.SUCCESS;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS_V1;
 import static org.zalando.riptide.model.MediaTypes.SUCCESS_V2;
 
-public final class ContentTypeDispatchTest {
+final class ContentTypeDispatchTest {
 
     private final URI url = URI.create("https://api.example.com");
 
     private final Http unit;
     private final MockRestServiceServer server;
 
-    public ContentTypeDispatchTest() {
+    ContentTypeDispatchTest() {
         final MockSetup setup = new MockSetup();
         this.unit = setup.getHttp();
         this.server = setup.getServer();
@@ -60,7 +60,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchSuccess() {
+    void shouldDispatchSuccess() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -72,7 +72,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchProblem() {
+    void shouldDispatchProblem() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("problem.json"))
@@ -87,7 +87,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchError() {
+    void shouldDispatchError() {
         server.expect(requestTo(url))
                 .andRespond(withStatus(UNPROCESSABLE_ENTITY)
                         .body(new ClassPathResource("error.json"))
@@ -100,7 +100,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToMostSpecificContentType() {
+    void shouldDispatchToMostSpecificContentType() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -120,7 +120,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldNotFailIfNoContentTypeSpecified() {
+    void shouldNotFailIfNoContentTypeSpecified() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))
@@ -135,7 +135,7 @@ public final class ContentTypeDispatchTest {
     }
 
     @Test
-    public void shouldDispatchToFullMatch() {
+    void shouldDispatchToFullMatch() {
         server.expect(requestTo(url))
                 .andRespond(withSuccess()
                         .body(new ClassPathResource("success.json"))

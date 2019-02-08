@@ -3,21 +3,19 @@ package org.zalando.riptide.autoconfigure.metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
+import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.util.List;
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.collect.Ordering.from;
 import static java.util.Comparator.comparing;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -36,10 +34,9 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-@RunWith(SpringRunner.class)
 @RiptideClientTest
 @ActiveProfiles("default")
-public class MetricsTest {
+final class MetricsTest {
 
     @Configuration
     @ImportAutoConfiguration({
@@ -67,7 +64,7 @@ public class MetricsTest {
     private SimpleMeterRegistry registry;
 
     @Test
-    public void shouldRecordRequests() {
+    void shouldRecordRequests() {
         server.expect(requestTo("http://foo")).andRespond(withSuccess());
         server.expect(requestTo("http://bar")).andRespond(withSuccess());
 
@@ -89,7 +86,7 @@ public class MetricsTest {
     }
 
     @Test
-    public void shouldRecordRetries() {
+    void shouldRecordRetries() {
         server.expect(requestTo("http://foo")).andRespond(withStatus(SERVICE_UNAVAILABLE));
         server.expect(requestTo("http://foo")).andRespond(withStatus(SERVICE_UNAVAILABLE));
         server.expect(requestTo("http://foo")).andRespond(withSuccess());
@@ -114,7 +111,7 @@ public class MetricsTest {
     }
 
     @Test
-    public void shouldRecordCircuitBreakers() {
+    void shouldRecordCircuitBreakers() {
         server.expect(requestTo("http://bar")).andRespond(withStatus(SERVICE_UNAVAILABLE));
         server.expect(requestTo("http://bar")).andRespond(withStatus(SERVICE_UNAVAILABLE));
         server.expect(requestTo("http://bar")).andRespond(withStatus(SERVICE_UNAVAILABLE));

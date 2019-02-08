@@ -2,15 +2,14 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriverRule;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableList;
-import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
@@ -30,10 +29,9 @@ import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
-public class FailsafePluginNoCircuitBreakerTest {
+final class FailsafePluginNoCircuitBreakerTest {
 
-    @Rule
-    public final ClientDriverRule driver = new ClientDriverRule();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -64,13 +62,13 @@ public class FailsafePluginNoCircuitBreakerTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         client.close();
     }
 
     @Test
-    public void shouldNotOpenCircuit() {
+    void shouldNotOpenCircuit() {
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
         driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
