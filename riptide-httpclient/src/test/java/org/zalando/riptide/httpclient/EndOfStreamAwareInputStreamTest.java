@@ -45,7 +45,8 @@ final class EndOfStreamAwareInputStreamTest {
 
     @Test
     void shouldReadBytesUntilEndOfStream() throws IOException {
-        unit.read(new byte[2]);
+        unit.read(new byte[1]);
+        unit.read(new byte[1]);
         unit.close();
 
         verify(closer).close(original, true);
@@ -61,7 +62,8 @@ final class EndOfStreamAwareInputStreamTest {
 
     @Test
     void shouldReadBytesOffsetUntilEndOfStream() throws IOException {
-        unit.read(new byte[2], 0, 2);
+        unit.read(new byte[1], 0, 1);
+        unit.read(new byte[1], 0, 1);
         unit.close();
 
         verify(closer).close(original, true);
