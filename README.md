@@ -250,12 +250,12 @@ you may consider implementing a custom Plugin for it, e.g.:
 class MetricsPlugin implements Plugin {
     
     @Override
-    public RequestExecution interceptBeforeRouting(RequestArguments arguments, RequestExecution execution) {
+    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
         return () -> {
-           StopWatch watch = createStarted();
-           CompletableFuture<ClientHttpResponse> future = execution.execute();
+           final StopWatch watch = createStarted();
+           final CompletableFuture<ClientHttpResponse> future = execution.execute();
            future.whenComplete((result, e) -> {
-               Duration duration = watch.elapsed();
+               final Duration duration = watch.elapsed();
                metrics.record(arguments, result, e, duration);
            });
            return future;

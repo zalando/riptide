@@ -3,7 +3,6 @@ package org.zalando.riptide;
 import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.client.MockRestServiceServer;
 
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -155,7 +154,7 @@ final class RequesterTest {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
-                .headers(new HttpHeaders())
+                .headers(ImmutableMultimap.of())
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
                 .join();
@@ -176,7 +175,7 @@ final class RequesterTest {
         expectRequestTo("https://api.example.com/123");
 
         unit.get("/123")
-                .headers(new HttpHeaders())
+                .headers(ImmutableMultimap.of())
                 .body("deadbody")
                 .call(pass())
                 .join();

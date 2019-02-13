@@ -29,6 +29,9 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.PluginInterceptor;
+import org.zalando.riptide.auth.AuthorizationPlugin;
+import org.zalando.riptide.auth.AuthorizationProvider;
+import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
@@ -42,15 +45,18 @@ import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
-import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
-import org.zalando.stups.tokens.AccessTokens;
 import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toCollection;
@@ -72,7 +78,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         properties.getClients().forEach((id, client) -> {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
             final BeanDefinition converters = registerHttpMessageConverters(id);
-            final List<String> plugins = registerPlugins(id, client);
+            final List<String> plugins = registerPlugins(id, client, properties.getOauth());
 
             registerHttp(id, client, factoryId, converters, plugins);
             registerRestTemplate(id, factoryId, client, converters, plugins);
@@ -108,9 +114,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getRecordMetrics()) {
             registry.registerIfAbsent(id, ExecutorServiceMetrics.class, () ->
                     genericBeanDefinition(ExecutorServiceMetrics.class)
-                        .addConstructorArgReference(executorId)
-                        .addConstructorArgValue(name)
-                        .addConstructorArgValue(ImmutableList.of(clientId(id))));
+                            .addConstructorArgReference(executorId)
+                            .addConstructorArgValue(name)
+                            .addConstructorArgValue(ImmutableList.of(clientId(id))));
         }
 
         return trace(executorId);
@@ -227,17 +233,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.isRegistered(beanName) ? beanName : "jacksonObjectMapper";
     }
 
-    private String registerAccessTokens(final String id, final RiptideProperties settings) {
-        return registry.registerIfAbsent(AccessTokens.class, () -> {
-            log.debug("Client [{}]: Registering AccessTokens", id);
-            return genericBeanDefinition(AccessTokensFactory.class)
-                    .setFactoryMethod("createAccessTokens")
-                    .setDestroyMethodName("stop")
-                    .addConstructorArgValue(settings);
-        });
-    }
-
-    private List<String> registerPlugins(final String id, final Client client) {
+    private List<String> registerPlugins(final String id, final Client client,
+            final RiptideProperties.GlobalOAuth oauth) {
         final List<String> plugins = list();
 
         if (client.getRecordMetrics()) {
@@ -277,6 +274,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgValue(registerExecutor(id, client))));
         }
 
+        if (client.getOauth().getEnabled()) {
+            log.debug("Client [{}]: Registering [{}]", id, AuthorizationPlugin.class.getSimpleName());
+            plugins.add(registry.registerIfAbsent(id, AuthorizationPlugin.class, () ->
+                    genericBeanDefinition(AuthorizationPlugin.class)
+                            .addConstructorArgReference(registerAuthorizationProvider(id, oauth))));
+        }
+
         if (client.getTimeout() != null) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
             plugins.add(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
@@ -304,8 +308,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String findFaultClassifier(final String id) {
         if (registry.isRegistered(id, FaultClassifier.class)) {
             return generateBeanName(id, FaultClassifier.class);
-        } else if (registry.isRegistered(FaultClassifier.class)) {
-            return generateBeanName(FaultClassifier.class);
         } else {
             return registry.registerIfAbsent(FaultClassifier.class, () -> {
                 final List<Predicate<Throwable>> predicates = list();
@@ -341,9 +343,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             registry.registerIfAbsent(id, beanName, () ->
                     genericBeanDefinition(ExecutorServiceMetrics.class)
-                        .addConstructorArgReference(executorId)
-                        .addConstructorArgValue(name)
-                        .addConstructorArgValue(ImmutableList.of(clientId(id))));
+                            .addConstructorArgReference(executorId)
+                            .addConstructorArgValue(name)
+                            .addConstructorArgValue(ImmutableList.of(clientId(id))));
         }
 
         return trace(executorId);
@@ -413,6 +415,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 .map(URI::create).map(URI::getHost);
     }
 
+    private String registerAuthorizationProvider(final String id,
+            final RiptideProperties.GlobalOAuth oauth) {
+        return registry.registerIfAbsent(id, AuthorizationProvider.class, () ->
+                genericBeanDefinition(PlatformCredentialsAuthorizationProvider.class)
+                        .addConstructorArgValue(oauth.getCredentialsDirectory())
+                        .addConstructorArgValue(id));
+    }
+
     private BeanMetadataElement trace(final String executor) {
         final Optional<BeanMetadataElement> result = ifPresent("org.zalando.tracer.concurrent.TracingExecutors",
                 () -> {
@@ -464,14 +474,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private List<BeanMetadataElement> configureFirstRequestInterceptors(final String id, final Client client) {
         final List<BeanMetadataElement> interceptors = list();
-
-        if (client.getOauth() != null) {
-            log.debug("Client [{}]: Registering AccessTokensRequestInterceptor", id);
-            interceptors.add(genericBeanDefinition(AccessTokensRequestInterceptor.class)
-                    .addConstructorArgValue(id)
-                    .addConstructorArgReference(registerAccessTokens(id, properties))
-                    .getBeanDefinition());
-        }
 
         if (registry.isRegistered("tracerHttpRequestInterceptor")) {
             log.debug("Client [{}]: Registering TracerHttpRequestInterceptor", id);

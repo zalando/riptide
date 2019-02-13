@@ -15,8 +15,8 @@ final class ApacheClientHttpResponseBodyTest {
 
     @Test
     void shouldCallCloseOnNormalStreams() throws IOException {
-        InputStream stream = mock(InputStream.class);
-        ClientHttpResponse response = mock(ClientHttpResponse.class);
+        final InputStream stream = mock(InputStream.class);
+        final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
         new ApacheClientHttpResponse(response).close();
@@ -26,8 +26,8 @@ final class ApacheClientHttpResponseBodyTest {
 
     @Test
     void shouldCallAbortAndCloseOnConnectionReleaseTrigger() throws IOException {
-        EofSensorInputStream stream = mock(EofSensorInputStream.class);
-        ClientHttpResponse response = mock(ClientHttpResponse.class);
+        final EofSensorInputStream stream = mock(EofSensorInputStream.class);
+        final ClientHttpResponse response = mock(ClientHttpResponse.class);
         when(response.getBody()).thenReturn(stream);
 
         new ApacheClientHttpResponse(response).close();

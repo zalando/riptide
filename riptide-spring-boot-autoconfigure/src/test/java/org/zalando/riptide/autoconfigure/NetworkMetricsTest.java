@@ -1,23 +1,21 @@
-package org.zalando.riptide.spring;
+package org.zalando.riptide.autoconfigure;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.zalando.riptide.Http;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.Route.call;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = DefaultTestConfiguration.class)
+@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @ActiveProfiles("default")
 final class NetworkMetricsTest {
 

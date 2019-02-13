@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Wither;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apiguardian.api.API;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,11 +13,13 @@ import org.zalando.riptide.UrlResolution;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apiguardian.api.API.Status.INTERNAL;
 
@@ -37,17 +40,19 @@ public final class RiptideProperties {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Defaults {
-        private UrlResolution urlResolution;
-        private TimeSpan connectTimeout;
-        private TimeSpan socketTimeout;
-        private TimeSpan connectionTimeToLive;
-        private Integer maxConnectionsPerRoute;
-        private Integer maxConnectionsTotal;
+        private UrlResolution urlResolution = UrlResolution.RFC;
+        private TimeSpan connectTimeout = TimeSpan.of(5, SECONDS);
+        private TimeSpan socketTimeout = TimeSpan.of(5, SECONDS);
+        private TimeSpan connectionTimeToLive = TimeSpan.of(30, SECONDS);
+        private Integer maxConnectionsPerRoute = 20;
+        private Integer maxConnectionsTotal = 20;
         @NestedConfigurationProperty
         private ThreadPool threadPool;
-        private Boolean detectTransientFaults;
-        private Boolean preserveStackTrace;
-        private Boolean recordMetrics;
+        @NestedConfigurationProperty
+        private OAuth oauth = new OAuth();
+        private Boolean detectTransientFaults = Boolean.FALSE;
+        private Boolean preserveStackTrace = Boolean.TRUE;
+        private Boolean recordMetrics = Boolean.FALSE;
         @NestedConfigurationProperty
         private Retry retry;
         @NestedConfigurationProperty
@@ -62,13 +67,8 @@ public final class RiptideProperties {
     @Getter
     @Setter
     @NoArgsConstructor
-    @AllArgsConstructor
     public static final class GlobalOAuth {
-        private URI accessTokenUrl;
-        private Path credentialsDirectory;
-        private TimeSpan schedulingPeriod = TimeSpan.of(5, SECONDS);
-        private TimeSpan connectTimeout = TimeSpan.of(1, SECONDS);
-        private TimeSpan socketTimeout = TimeSpan.of(2, SECONDS);
+        private Path credentialsDirectory = Paths.get("/meta/credentials");
     }
 
     @Getter
@@ -85,7 +85,8 @@ public final class RiptideProperties {
         private Integer maxConnectionsTotal;
         @NestedConfigurationProperty
         private ThreadPool threadPool;
-        private OAuth oauth;
+        @NestedConfigurationProperty
+        private OAuth oauth = new OAuth();
         private Boolean detectTransientFaults;
         private Boolean preserveStackTrace;
         private Boolean recordMetrics;
@@ -96,18 +97,10 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private BackupRequest backupRequest;
         private TimeSpan timeout;
-        private boolean compressRequest = false;
+        private boolean compressRequest;
         private Keystore keystore;
         @NestedConfigurationProperty
         private Caching caching;
-
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        public static final class OAuth {
-            private List<String> scopes = new ArrayList<>();
-
-        }
 
         @Getter
         @Setter
@@ -122,10 +115,22 @@ public final class RiptideProperties {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class ThreadPool {
-        private Integer minSize;
+        private Integer minSize = 1;
         private Integer maxSize;
-        private TimeSpan keepAlive;
-        private Integer queueSize;
+        private TimeSpan keepAlive = TimeSpan.of(1, MINUTES);
+        private Integer queueSize = 0;
+
+        public ThreadPool(final Integer maxSize) {
+            this.maxSize = maxSize;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class OAuth {
+        private Boolean enabled = Boolean.FALSE;
     }
 
     @Getter

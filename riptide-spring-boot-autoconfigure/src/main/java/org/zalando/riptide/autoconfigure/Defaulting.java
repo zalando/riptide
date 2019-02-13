@@ -2,26 +2,22 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
+import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 
 import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.BinaryOperator;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
-import static java.lang.System.getenv;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.CircuitBreaker;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.GlobalOAuth;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.ThreadPool;
 
@@ -36,24 +32,21 @@ final class Defaulting {
     }
 
     private static Defaults merge(final Defaults defaults) {
-        final int maxConnectionsPerRoute = either(defaults.getMaxConnectionsPerRoute(), 20);
-        final int maxConnectionsTotal = max(either(defaults.getMaxConnectionsTotal(), 20), maxConnectionsPerRoute);
+        final int maxConnectionsPerRoute = defaults.getMaxConnectionsPerRoute();
+        final int maxConnectionsTotal = max(defaults.getMaxConnectionsTotal(), maxConnectionsPerRoute);
 
         return new Defaults(
-                either(defaults.getUrlResolution(), UrlResolution.RFC),
-                either(defaults.getConnectTimeout(), TimeSpan.of(5, SECONDS)),
-                either(defaults.getSocketTimeout(), TimeSpan.of(5, SECONDS)),
-                either(defaults.getConnectionTimeToLive(), TimeSpan.of(30, SECONDS)),
+                defaults.getUrlResolution(),
+                defaults.getConnectTimeout(),
+                defaults.getSocketTimeout(),
+                defaults.getConnectionTimeToLive(),
                 maxConnectionsPerRoute,
                 maxConnectionsTotal,
-                merge(defaults.getThreadPool(), new ThreadPool(
-                                1, maxConnectionsTotal,
-                                TimeSpan.of(1, MINUTES),
-                                0),
-                        Defaulting::merge),
-                either(defaults.getDetectTransientFaults(), false),
-                either(defaults.getPreserveStackTrace(), true),
-                either(defaults.getRecordMetrics(), false),
+                merge(defaults.getThreadPool(), new ThreadPool(maxConnectionsTotal), Defaulting::merge),
+                defaults.getOauth(),
+                defaults.getDetectTransientFaults(),
+                defaults.getPreserveStackTrace(),
+                defaults.getRecordMetrics(),
                 defaults.getRetry(),
                 defaults.getCircuitBreaker(),
                 defaults.getBackupRequest(),
@@ -65,20 +58,9 @@ final class Defaulting {
     private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
         return new RiptideProperties(
                 defaults,
-                merge(base.getOauth(), defaults),
+                base.getOauth(),
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
                         merge(requireNonNull(client), defaults)))
-        );
-    }
-
-    private static GlobalOAuth merge(final GlobalOAuth base, final Defaults defaults) {
-        return new GlobalOAuth(
-                either(base.getAccessTokenUrl(),
-                        Optional.ofNullable(getenv("ACCESS_TOKEN_URL")).map(URI::create).orElse(null)),
-                base.getCredentialsDirectory(),
-                base.getSchedulingPeriod(),
-                either(base.getConnectTimeout(), defaults.getConnectTimeout()),
-                either(base.getSocketTimeout(), defaults.getSocketTimeout())
         );
     }
 
@@ -99,7 +81,7 @@ final class Defaulting {
                 merge(base.getThreadPool(),
                         merge(new ThreadPool(null, maxConnectionsTotal, null, null), defaults.getThreadPool()),
                         Defaulting::merge),
-                base.getOauth(),
+                merge(base.getOauth(), defaults.getOauth(), Defaulting::merge),
                 either(base.getDetectTransientFaults(), defaults.getDetectTransientFaults()),
                 either(base.getPreserveStackTrace(), defaults.getPreserveStackTrace()),
                 either(base.getRecordMetrics(), defaults.getRecordMetrics()),
@@ -119,6 +101,12 @@ final class Defaulting {
                 either(base.getMaxSize(), defaults.getMaxSize()),
                 either(base.getKeepAlive(), defaults.getKeepAlive()),
                 either(base.getQueueSize(), defaults.getQueueSize())
+        );
+    }
+
+    private static OAuth merge(final OAuth base, final OAuth defaults) {
+        return new OAuth(
+                either(base.getEnabled(), defaults.getEnabled())
         );
     }
 
@@ -173,8 +161,9 @@ final class Defaulting {
         );
     }
 
-    private static <T> T either(@Nullable final T left, @Nullable final T right) {
-        return Optional.ofNullable(left).orElse(right);
+    @SafeVarargs
+    private static <T> T either(final T... options) {
+        return Arrays.stream(options).filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     private static <T> T merge(@Nullable final T base, @Nullable final T defaults, final BinaryOperator<T> merger) {

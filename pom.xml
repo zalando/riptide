@@ -48,6 +48,7 @@
     </developers>
 
     <modules>
+        <module>riptide-auth</module>
         <module>riptide-backup</module>
         <module>riptide-bom</module>
         <module>riptide-capture</module>
@@ -79,6 +80,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- riptide -->
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-auth</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-backup</artifactId>

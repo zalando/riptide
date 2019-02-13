@@ -3,8 +3,6 @@ riptide:
     detect-transient-faults: false
     preserve-stack-trace: false
     record-metrics: true
-  oauth:
-    access-token-url: http://example.com
   clients:
     example:
       base-url: https://example.com/foo
@@ -16,8 +14,6 @@ riptide:
         max-size: 100
         keep-alive: 5 minutes
         queue-size: 10
-      oauth.scopes:
-        - example.read
       preserve-stack-trace: true
     ecb:
       base-url: http://www.ecb.europa.eu
