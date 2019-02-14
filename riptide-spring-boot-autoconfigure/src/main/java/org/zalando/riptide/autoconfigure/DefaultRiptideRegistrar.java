@@ -33,6 +33,7 @@ import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.AuthorizationProvider;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
+import org.zalando.riptide.autoconfigure.RiptideProperties.GlobalOAuth;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -58,6 +59,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
@@ -234,75 +236,120 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private List<String> registerPlugins(final String id, final Client client,
-            final RiptideProperties.GlobalOAuth oauth) {
-        final List<String> plugins = list();
+            final GlobalOAuth oauth) {
 
+        final Stream<Optional<String>> plugins = Stream.of(
+                registerMetricsPlugin(id, client),
+                registerTransientFaultPlugin(id, client),
+                registerFailsafePlugin(id, client),
+                registerBackupPlugin(id, client),
+                registerAuthorizationPlugin(id, client, oauth),
+                registerTimeoutPlugin(id, client),
+                registerOriginalStackTracePlugin(id, client),
+                registerCustomPlugin(id));
+
+        return plugins
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(toCollection(Registry::list));
+    }
+
+    private Optional<String> registerMetricsPlugin(final String id, final Client client) {
         if (client.getRecordMetrics()) {
             log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, MetricsPlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, MetricsPlugin.class, () ->
                     genericBeanDefinition(MetricsPluginFactory.class)
                             .setFactoryMethod("createMetricsPlugin")
                             .addConstructorArgReference("meterRegistry")
-                            .addConstructorArgValue(ImmutableList.of(clientId(id)))));
-        }
+                            .addConstructorArgValue(ImmutableList.of(clientId(id))));
 
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerTransientFaultPlugin(final String id, final Client client) {
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
+            final String e = registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
                     genericBeanDefinition(TransientFaultPlugin.class)
-                            .addConstructorArgReference(findFaultClassifier(id))));
+                            .addConstructorArgReference(findFaultClassifier(id)));
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerFailsafePlugin(final String id, final Client client) {
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, FailsafePlugin.class, () ->
+            final String e = registry.registerIfAbsent(id, FailsafePlugin.class, () ->
                     genericBeanDefinition(FailsafePluginFactory.class)
                             .setFactoryMethod("createFailsafePlugin")
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(registerRetryPolicy(id, client))
                             .addConstructorArgValue(registerCircuitBreaker(id, client))
-                            .addConstructorArgReference(registerRetryListener(id, client))));
+                            .addConstructorArgReference(registerRetryListener(id, client)));
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerBackupPlugin(final String id, final Client client) {
         if (client.getBackupRequest() != null) {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
+            final String e = registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
                     genericBeanDefinition(BackupRequestPlugin.class)
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                            .addConstructorArgValue(registerExecutor(id, client))));
+                            .addConstructorArgValue(registerExecutor(id, client)));
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerAuthorizationPlugin(final String id, final Client client,
+            final GlobalOAuth oauth) {
         if (client.getOauth().getEnabled()) {
             log.debug("Client [{}]: Registering [{}]", id, AuthorizationPlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, AuthorizationPlugin.class, () ->
+            final String e = registry.registerIfAbsent(id, AuthorizationPlugin.class, () ->
                     genericBeanDefinition(AuthorizationPlugin.class)
-                            .addConstructorArgReference(registerAuthorizationProvider(id, oauth))));
+                            .addConstructorArgReference(registerAuthorizationProvider(id, oauth)));
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerTimeoutPlugin(final String id, final Client client) {
         if (client.getTimeout() != null) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
+            final String e = registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
                     genericBeanDefinition(TimeoutPlugin.class)
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getTimeout().getAmount())
                             .addConstructorArgValue(client.getTimeout().getUnit())
-                            .addConstructorArgValue(registerExecutor(id, client))));
+                            .addConstructorArgValue(registerExecutor(id, client)));
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerOriginalStackTracePlugin(final String id, final Client client) {
         if (client.getPreserveStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            plugins.add(registry.registerIfAbsent(id, OriginalStackTracePlugin.class));
+            final String e = registry.registerIfAbsent(id, OriginalStackTracePlugin.class);
+            return Optional.of(e);
         }
+        return Optional.empty();
+    }
 
+    private Optional<String> registerCustomPlugin(final String id) {
         if (registry.isRegistered(id, Plugin.class)) {
             final String plugin = generateBeanName(id, Plugin.class);
             log.debug("Client [{}]: Registering [{}]", plugin);
-            plugins.add(plugin);
+            return Optional.of(plugin);
         }
-
-        return plugins;
+        return Optional.empty();
     }
 
     private String findFaultClassifier(final String id) {
@@ -416,7 +463,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private String registerAuthorizationProvider(final String id,
-            final RiptideProperties.GlobalOAuth oauth) {
+            final GlobalOAuth oauth) {
         return registry.registerIfAbsent(id, AuthorizationProvider.class, () ->
                 genericBeanDefinition(PlatformCredentialsAuthorizationProvider.class)
                         .addConstructorArgValue(oauth.getCredentialsDirectory())

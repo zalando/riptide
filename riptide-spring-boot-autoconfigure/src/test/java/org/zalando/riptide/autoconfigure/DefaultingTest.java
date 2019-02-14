@@ -6,9 +6,9 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import java.nio.file.Paths;
 
 import static java.util.concurrent.TimeUnit.HOURS;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 
 final class DefaultingTest {
