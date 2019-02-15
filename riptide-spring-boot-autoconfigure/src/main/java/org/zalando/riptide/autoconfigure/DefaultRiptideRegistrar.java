@@ -271,10 +271,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerTransientFaultPlugin(final String id, final Client client) {
         if (client.getDetectTransientFaults()) {
             log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, TransientFaultPlugin.class, () ->
                     genericBeanDefinition(TransientFaultPlugin.class)
                             .addConstructorArgReference(findFaultClassifier(id)));
-            return Optional.of(e);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
@@ -282,14 +282,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerFailsafePlugin(final String id, final Client client) {
         if (client.getRetry() != null || client.getCircuitBreaker() != null) {
             log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, FailsafePlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, FailsafePlugin.class, () ->
                     genericBeanDefinition(FailsafePluginFactory.class)
                             .setFactoryMethod("createFailsafePlugin")
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(registerRetryPolicy(id, client))
                             .addConstructorArgValue(registerCircuitBreaker(id, client))
                             .addConstructorArgReference(registerRetryListener(id, client)));
-            return Optional.of(e);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
@@ -297,13 +297,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerBackupPlugin(final String id, final Client client) {
         if (client.getBackupRequest() != null) {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
                     genericBeanDefinition(BackupRequestPlugin.class)
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
                             .addConstructorArgValue(registerExecutor(id, client)));
-            return Optional.of(e);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
@@ -312,10 +312,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final GlobalOAuth oauth) {
         if (client.getOauth().getEnabled()) {
             log.debug("Client [{}]: Registering [{}]", id, AuthorizationPlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, AuthorizationPlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, AuthorizationPlugin.class, () ->
                     genericBeanDefinition(AuthorizationPlugin.class)
                             .addConstructorArgReference(registerAuthorizationProvider(id, oauth)));
-            return Optional.of(e);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
@@ -323,13 +323,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerTimeoutPlugin(final String id, final Client client) {
         if (client.getTimeout() != null) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
+            final String pluginId = registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
                     genericBeanDefinition(TimeoutPlugin.class)
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getTimeout().getAmount())
                             .addConstructorArgValue(client.getTimeout().getUnit())
                             .addConstructorArgValue(registerExecutor(id, client)));
-            return Optional.of(e);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
@@ -337,17 +337,17 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerOriginalStackTracePlugin(final String id, final Client client) {
         if (client.getPreserveStackTrace()) {
             log.debug("Client [{}]: Registering [{}]", id, OriginalStackTracePlugin.class.getSimpleName());
-            final String e = registry.registerIfAbsent(id, OriginalStackTracePlugin.class);
-            return Optional.of(e);
+            final String pluginId = registry.registerIfAbsent(id, OriginalStackTracePlugin.class);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
 
     private Optional<String> registerCustomPlugin(final String id) {
         if (registry.isRegistered(id, Plugin.class)) {
-            final String plugin = generateBeanName(id, Plugin.class);
-            log.debug("Client [{}]: Registering [{}]", plugin);
-            return Optional.of(plugin);
+            final String pluginId = generateBeanName(id, Plugin.class);
+            log.debug("Client [{}]: Registering [{}]", pluginId);
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
