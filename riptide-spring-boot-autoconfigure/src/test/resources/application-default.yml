@@ -25,14 +25,18 @@ riptide:
         global: 1 seconds
     github:
       base-url: https://example.com
-      keystore:
-        path: example.keystore
-        password: password
+      certificate-pinning:
+        enabled: true
+        keystore:
+          path: example.keystore
+          password: password
       transient-fault-detection.enabled: true
     github-invalid:
       base-url: https://example.com
-      keystore:
-        path: example.keystore
+      certificate-pinning:
+        enabled: true
+        keystore:
+          path: example.keystore
     foo:
       base-url: http://foo
       retry:

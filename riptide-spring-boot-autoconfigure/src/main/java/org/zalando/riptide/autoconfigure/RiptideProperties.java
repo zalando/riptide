@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 
 import java.nio.file.Path;
@@ -80,6 +81,9 @@ public final class RiptideProperties {
         private RequestCompression requestCompression = new RequestCompression(false);
 
         @NestedConfigurationProperty
+        private CertificatePinning certificatePinning = new CertificatePinning(false, new Keystore());
+
+        @NestedConfigurationProperty
         private Caching caching = new Caching(
                 false,
                 true,
@@ -137,17 +141,11 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private RequestCompression requestCompression;
 
-        private Keystore keystore;
+        @NestedConfigurationProperty
+        private CertificatePinning certificatePinning;
 
         @NestedConfigurationProperty
         private Caching caching;
-
-        @Getter
-        @Setter
-        public static final class Keystore {
-            private String path;
-            private String password;
-        }
 
     }
 
@@ -271,6 +269,24 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class RequestCompression {
         private Boolean enabled;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class CertificatePinning {
+        private Boolean enabled;
+        private Keystore keystore;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class Keystore {
+            private String path;
+            private String password;
+        }
     }
 
     @Getter

@@ -4,10 +4,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
@@ -57,6 +60,7 @@ final class Defaulting {
                 defaults.getBackupRequest(),
                 defaults.getTimeouts(),
                 defaults.getRequestCompression(),
+                defaults.getCertificatePinning(),
                 defaults.getCaching()
         );
     }
@@ -88,7 +92,7 @@ final class Defaulting {
                 merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
                 merge(base.getTimeouts(), defaults.getTimeouts(), Defaulting::merge),
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
-                base.getKeystore(),
+                merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge)
         );
     }
@@ -154,8 +158,8 @@ final class Defaulting {
         );
     }
 
-    private static Retry.Backoff merge(final Retry.Backoff base, final Retry.Backoff defaults) {
-        return new Retry.Backoff(
+    private static Backoff merge(final Backoff base, final Backoff defaults) {
+        return new Backoff(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getMaxDelay(), defaults.getMaxDelay()),
@@ -189,6 +193,20 @@ final class Defaulting {
     private static RequestCompression merge(final RequestCompression base, final RequestCompression defaults) {
         return new RequestCompression(
                 either(base.getEnabled(), defaults.getEnabled())
+        );
+    }
+
+    private static CertificatePinning merge(final CertificatePinning base, final CertificatePinning defaults) {
+        return new CertificatePinning(
+                either(base.getEnabled(), defaults.getEnabled()),
+                merge(base.getKeystore(), defaults.getKeystore(), Defaulting::merge)
+        );
+    }
+
+    private static Keystore merge(final Keystore base, final Keystore defaults) {
+        return new Keystore(
+                either(base.getPath(), defaults.getPath()),
+                either(base.getPassword(), defaults.getPassword())
         );
     }
 

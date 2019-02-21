@@ -2,7 +2,8 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Client.Keystore;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
 
 import java.io.FileNotFoundException;
@@ -20,7 +21,7 @@ final class HttpClientFactoryTest {
         nonExistingKeystore.setPath("i-do-not-exist.keystore");
 
         final RiptideProperties.Client client = new RiptideProperties.Client();
-        client.setKeystore(nonExistingKeystore);
+        client.setCertificatePinning(new CertificatePinning(true, nonExistingKeystore));
 
         final FileNotFoundException exception = assertThrows(FileNotFoundException.class, () ->
                 HttpClientFactory.createHttpClientConnectionManager(withDefaults(client)));
@@ -34,7 +35,7 @@ final class HttpClientFactoryTest {
         invalidKeystore.setPath("application-default.yml");
 
         final RiptideProperties.Client client = new RiptideProperties.Client();
-        client.setKeystore(invalidKeystore);
+        client.setCertificatePinning(new CertificatePinning(true, invalidKeystore));
 
         assertThrows(IOException.class, () ->
         HttpClientFactory.createHttpClientConnectionManager(withDefaults(client)));

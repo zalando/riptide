@@ -337,6 +337,11 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── global`                    | `TimeSpan`     | none                                             |
 | `│   ├── request-compression`           |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
+| `│   ├── certificate-pinning`           |                |                                                  |
+| `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   └── keystore`                  |                |                                                  |
+| `│   │       ├── path`                  | `Path`         | none                                             |
+| `│   │       └── password`              | `String`       | none                                             |
 | `│   └── caching`                       |                |                                                  |
 | `│       ├── enabled`                   | `boolean`      | `false`                                          |
 | `│       ├── shared`                    | `boolean`      | `true`                                           |
@@ -396,9 +401,11 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── global`                | `TimeSpan`     | see `defaults`                                   |
 | `        ├── request-compression`       |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
-| `        ├── keystore`                  |                | disables certificate pinning if omitted          |
-| `        │   ├── path`                  | `String`       | none                                             |
-| `        │   └── password`              | `String`       | none                                             |
+| `        ├── certificate-pinning`       |                |                                                  |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   └── keystore`              |                |                                                  |
+| `        │       ├── path`              | `Path`         | see `defaults`                                   |
+| `        │       └── password`          | `String`       | see `defaults`                                   |
 | `        └── caching`                   |                | see `defaults`                                   |
 | `            ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `            ├── shared`                | `boolean`      | see `defaults`                                   |

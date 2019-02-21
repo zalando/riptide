@@ -10,7 +10,7 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * A special {@link AuthorizationProvider authorization provider} that built for Zalando's Platform IAM which provides
+ * A special {@link AuthorizationProvider authorization provider} built for Zalando's Platform IAM which provides
  * OAuth2 tokens as files in a mounted directory. Each token is represented as a set of two individual files:
  *
  * <dl>
