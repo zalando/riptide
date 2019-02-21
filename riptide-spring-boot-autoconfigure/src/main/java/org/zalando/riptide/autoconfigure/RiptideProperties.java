@@ -73,7 +73,8 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private BackupRequest backupRequest = new BackupRequest(false, null);
 
-        private TimeSpan timeout;
+        @NestedConfigurationProperty
+        private Timeouts timeouts = new Timeouts(false, null);
 
         @NestedConfigurationProperty
         private RequestCompression requestCompression = new RequestCompression(false);
@@ -130,7 +131,8 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private BackupRequest backupRequest;
 
-        private TimeSpan timeout;
+        @NestedConfigurationProperty
+        private Timeouts timeouts;
 
         @NestedConfigurationProperty
         private RequestCompression requestCompression;
@@ -252,6 +254,15 @@ public final class RiptideProperties {
     public static final class BackupRequest {
         private Boolean enabled;
         private TimeSpan delay;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Timeouts {
+        private Boolean enabled;
+        private TimeSpan global;
     }
 
     @Getter

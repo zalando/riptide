@@ -12,7 +12,9 @@ riptide:
     backup-request:
       enabled: true
       delay: 500 milliseconds
-    timeout: 1 second
+    timeouts:
+      enabled: true
+      global: 1 seconds
   clients:
     example:
       base-url: https://example.com

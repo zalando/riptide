@@ -319,13 +319,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private Optional<String> registerTimeoutPlugin(final String id, final Client client) {
-        if (client.getTimeout() != null) {
+        if (client.getTimeouts().getEnabled()) {
             log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
+            final TimeSpan timeout = client.getTimeouts().getGlobal();
             final String pluginId = registry.registerIfAbsent(id, TimeoutPlugin.class, () ->
                     genericBeanDefinition(TimeoutPlugin.class)
                             .addConstructorArgValue(registerScheduler(id, client))
-                            .addConstructorArgValue(client.getTimeout().getAmount())
-                            .addConstructorArgValue(client.getTimeout().getUnit())
+                            .addConstructorArgValue(timeout.getAmount())
+                            .addConstructorArgValue(timeout.getUnit())
                             .addConstructorArgValue(registerExecutor(id, client)));
             return Optional.of(pluginId);
         }

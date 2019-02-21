@@ -20,7 +20,9 @@ riptide:
     ecb:
       base-url: http://www.ecb.europa.eu
       request-compression.enabled: true
-      timeout: 1 seconds
+      timeouts:
+        enabled: true
+        global: 1 seconds
     github:
       base-url: https://example.com
       keystore:

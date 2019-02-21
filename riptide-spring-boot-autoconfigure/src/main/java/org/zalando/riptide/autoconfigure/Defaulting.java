@@ -9,6 +9,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
 
 import javax.annotation.Nullable;
@@ -54,7 +55,7 @@ final class Defaulting {
                 defaults.getRetry(),
                 defaults.getCircuitBreaker(),
                 defaults.getBackupRequest(),
-                defaults.getTimeout(),
+                defaults.getTimeouts(),
                 defaults.getRequestCompression(),
                 defaults.getCaching()
         );
@@ -85,7 +86,7 @@ final class Defaulting {
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
                 merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
-                either(base.getTimeout(), defaults.getTimeout()),
+                merge(base.getTimeouts(), defaults.getTimeouts(), Defaulting::merge),
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
                 base.getKeystore(),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge)
@@ -175,6 +176,13 @@ final class Defaulting {
         return new BackupRequest(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getDelay(), defaults.getDelay())
+        );
+    }
+
+    private static Timeouts merge(final Timeouts base, final Timeouts defaults) {
+        return new Timeouts(
+                either(base.getEnabled(), defaults.getEnabled()),
+                either(base.getGlobal(), defaults.getGlobal())
         );
     }
 
