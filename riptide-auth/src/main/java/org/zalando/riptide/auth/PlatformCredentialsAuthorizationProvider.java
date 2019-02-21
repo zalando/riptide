@@ -25,25 +25,29 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public final class PlatformCredentialsAuthorizationProvider implements AuthorizationProvider {
 
-    private final String name;
-    private final Path directory;
+    private final Path type;
+    private final Path secret;
 
     public PlatformCredentialsAuthorizationProvider(final String name) {
         this(Paths.get("/meta/credentials"), name);
     }
 
     public PlatformCredentialsAuthorizationProvider(final Path directory, final String name) {
-        this.name = name;
-        this.directory = directory;
+        this(directory.resolve(name + "-token-type"),
+                directory.resolve(name + "-token-secret"));
+    }
+
+    private PlatformCredentialsAuthorizationProvider(final Path type, final Path secret) {
+        this.type = type;
+        this.secret = secret;
     }
 
     @Override
     public String get() throws IOException {
-        return read("type") + " " + read("secret");
+        return read(type) + " " + read(secret);
     }
 
-    private String read(final String suffix) throws IOException {
-        final Path path = directory.resolve(name + "-token-" + suffix);
+    private String read(final Path path) throws IOException {
         final List<String> lines = Files.readAllLines(path, UTF_8);
         checkElementIndex(0, lines.size(), "Expected at least one line in " + path);
         return lines.get(0);

@@ -20,6 +20,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("unused")
 @Slf4j
@@ -46,6 +48,8 @@ final class HttpClientFactory {
     public static HttpClientConnectionManager createHttpClientConnectionManager(final Client client)
             throws GeneralSecurityException, IOException {
 
+        final Connections connections = client.getConnections();
+
         final PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -54,11 +58,11 @@ final class HttpClientFactory {
                 null, // connection factory
                 null, // scheme port resolver
                 null, // dns resolver
-                client.getConnectionTimeToLive().getAmount(),
-                client.getConnectionTimeToLive().getUnit());
+                connections.getTimeToLive().getAmount(),
+                connections.getTimeToLive().getUnit());
 
-        manager.setMaxTotal(client.getMaxConnectionsTotal());
-        manager.setDefaultMaxPerRoute(client.getMaxConnectionsPerRoute());
+        manager.setMaxTotal(connections.getMaxTotal());
+        manager.setDefaultMaxPerRoute(connections.getMaxPerRoute());
 
         return manager;
     }
@@ -71,10 +75,10 @@ final class HttpClientFactory {
             @Nullable final HttpClientCustomizer customizer,
             @Nullable final HttpCacheStorage cacheStorage) {
 
-        @Nullable final Caching caching = client.getCaching();
-        final HttpClientBuilder builder = caching == null ?
-                HttpClientBuilder.create() :
-                configureCaching(caching, cacheStorage);
+        final Caching caching = client.getCaching();
+        final HttpClientBuilder builder = caching.getEnabled() ?
+                configureCaching(caching, cacheStorage) :
+                HttpClientBuilder.create();
 
         final RequestConfig.Builder config = RequestConfig.custom();
 
@@ -82,8 +86,9 @@ final class HttpClientFactory {
         lastRequestInterceptors.forEach(builder::addInterceptorLast);
         lastResponseInterceptors.forEach(builder::addInterceptorLast);
 
-        config.setConnectTimeout((int) client.getConnectTimeout().to(TimeUnit.MILLISECONDS));
-        config.setSocketTimeout((int) client.getSocketTimeout().to(TimeUnit.MILLISECONDS));
+        final Connections connections = client.getConnections();
+        config.setConnectTimeout((int) connections.getConnectTimeout().to(MILLISECONDS));
+        config.setSocketTimeout((int) connections.getSocketTimeout().to(MILLISECONDS));
 
         builder.setConnectionManager(connectionManager);
 
@@ -102,7 +107,7 @@ final class HttpClientFactory {
                 .setMaxObjectSize(caching.getMaxObjectSize())
                 .setMaxCacheEntries(caching.getMaxCacheEntries());
 
-        if (heuristic != null) {
+        if (heuristic.getEnabled()) {
             config.setHeuristicCachingEnabled(true);
             config.setHeuristicCoefficient(heuristic.getCoefficient());
             config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));

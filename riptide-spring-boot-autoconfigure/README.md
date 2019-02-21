@@ -79,7 +79,6 @@ private Http example;
   - Timeouts (optional)
 - Logbook (optional)
 - Tracer (optional)
-- Tokens (optional)
 
 ## Installation
 
@@ -170,6 +169,10 @@ supported out of the box.
 
 Required for `oauth` support.
 
+Registers a special {@link AuthorizationProvider authorization provider} that built for Zalando's Platform IAM which provides
+OAuth2 tokens as files in a mounted directory. See 
+[Zalando Platform IAM Integration](https://kubernetes-on-aws.readthedocs.io/en/latest/user-guide/zalando-iam.html) for more details.
+
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
@@ -181,6 +184,14 @@ Required for `oauth` support.
 #### [Metrics](../riptide-metrics) integration
 
 Required when `record-metrics` is enabled. 
+
+Will activate `micrometer` metrics support for:
+
+- requests
+- thread pools
+- connection pools
+- retries
+- circuit breaker
 
 ```xml
 <dependency>
@@ -384,8 +395,6 @@ Besides `Http`, you can also alternatively inject any of the following types per
 - `HttpClient`
 - `ClientHttpMessageConverters`
 - `AsyncListenableTaskExecutor`
-
-A global `AccessTokens` bean is also provided.
 
 ### Trusted Keystore
 

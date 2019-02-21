@@ -6,6 +6,7 @@ import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
@@ -56,6 +57,7 @@ final class FailsafePluginFactory {
                 .ifPresent(delay -> delay.applyTo(policy::withDelay));
 
         Optional.ofNullable(config.getBackoff())
+                .filter(Backoff::getEnabled)
                 .ifPresent(backoff -> {
                     final TimeSpan delay = backoff.getDelay();
                     final TimeSpan maxDelay = backoff.getMaxDelay();

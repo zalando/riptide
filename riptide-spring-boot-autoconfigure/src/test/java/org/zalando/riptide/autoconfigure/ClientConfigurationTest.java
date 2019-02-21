@@ -21,16 +21,16 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {
-    "riptide.defaults.connect-timeout: 1 second",
-    "riptide.defaults.socket-timeout: 2 seconds",
-    "riptide.defaults.connection-time-to-live: 1 minute",
-    "riptide.defaults.max-connections-per-route: 12",
-    "riptide.defaults.max-connections-total: 12",
-    "riptide.clients.example.connect-timeout: 12 minutes",
-    "riptide.clients.example.socket-timeout: 34 hours",
-    "riptide.clients.example.connection-time-to-live: 1 day",
-    "riptide.clients.example.max-connections-per-route: 24",
-    "riptide.clients.example.max-connections-total: 24",
+    "riptide.defaults.connections.connect-timeout: 1 second",
+    "riptide.defaults.connections.socket-timeout: 2 seconds",
+    "riptide.defaults.connections.time-to-live: 1 minute",
+    "riptide.defaults.connections.max-per-route: 12",
+    "riptide.defaults.connections.max-total: 12",
+    "riptide.clients.example.connections.connect-timeout: 12 minutes",
+    "riptide.clients.example.connections.socket-timeout: 34 hours",
+    "riptide.clients.example.connections.time-to-live: 1 day",
+    "riptide.clients.example.connections.max-per-route: 24",
+    "riptide.clients.example.connections.max-total: 24",
 })
 @Component
 final class ClientConfigurationTest {
