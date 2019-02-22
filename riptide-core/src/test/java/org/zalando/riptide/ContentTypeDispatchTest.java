@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.parseMediaType;

@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import lombok.Value;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +38,7 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
                 new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables),
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
+                new Assertion<>(RequestArguments::withAttributes, ImmutableMap.of(Attribute.generate(), "foo"), RequestArguments::getAttributes),
                 new Assertion<>(RequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), RequestArguments::getQueryParams),
                 new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
                 new Assertion<>(RequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), RequestArguments::getHeaders),

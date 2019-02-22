@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,16 +12,17 @@ import lombok.experimental.Wither;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 
+import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.apiguardian.api.API.Status.INTERNAL;
 
-// TODO package private?
 @API(status = INTERNAL)
 @Getter
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public final class DefaultRequestArguments implements RequestArguments {
+final class DefaultRequestArguments implements RequestArguments {
 
     @Wither
     HttpMethod method;
@@ -42,6 +44,9 @@ public final class DefaultRequestArguments implements RequestArguments {
     URI uri;
 
     @Wither
+    ImmutableMap<Attribute<?>, Object> attributes;
+
+    @Wither
     ImmutableMultimap<String, String> queryParams;
 
     @Wither
@@ -52,5 +57,12 @@ public final class DefaultRequestArguments implements RequestArguments {
 
     @Wither
     Object body;
+
+    @Override
+    public <T> Optional<T> getAttribute(final Attribute<T> attribute) {
+        @SuppressWarnings("unchecked")
+        @Nullable final T value = (T) attributes.get(attribute);
+        return Optional.ofNullable(value);
+    }
 
 }

@@ -1,8 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -13,11 +11,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static org.springframework.http.HttpHeaders.readOnlyHttpHeaders;
 
 final class DefaultHttp implements Http {
-
-    private static final HttpHeaders EMPTY = readOnlyHttpHeaders(new HttpHeaders());
 
     private final Executor executor;
     private final ClientHttpRequestFactory requestFactory;
@@ -38,127 +33,127 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public final QueryStage get(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage get(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.GET, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage get(final URI uri) {
+    public final AttributeStage get(final URI uri) {
         return execute(HttpMethod.GET, uri);
     }
 
     @Override
-    public final QueryStage get() {
+    public final AttributeStage get() {
         return execute(HttpMethod.GET);
     }
 
     @Override
-    public final QueryStage head(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage head(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.HEAD, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage head(final URI uri) {
+    public final AttributeStage head(final URI uri) {
         return execute(HttpMethod.HEAD, uri);
     }
 
     @Override
-    public final QueryStage head() {
+    public final AttributeStage head() {
         return execute(HttpMethod.HEAD);
     }
 
     @Override
-    public final QueryStage post(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage post(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.POST, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage post(final URI uri) {
+    public final AttributeStage post(final URI uri) {
         return execute(HttpMethod.POST, uri);
     }
 
     @Override
-    public final QueryStage post() {
+    public final AttributeStage post() {
         return execute(HttpMethod.POST);
     }
 
     @Override
-    public final QueryStage put(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage put(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PUT, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage put(final URI uri) {
+    public final AttributeStage put(final URI uri) {
         return execute(HttpMethod.PUT, uri);
     }
 
     @Override
-    public final QueryStage put() {
+    public final AttributeStage put() {
         return execute(HttpMethod.PUT);
     }
 
     @Override
-    public final QueryStage patch(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage patch(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.PATCH, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage patch(final URI uri) {
+    public final AttributeStage patch(final URI uri) {
         return execute(HttpMethod.PATCH, uri);
     }
 
     @Override
-    public final QueryStage patch() {
+    public final AttributeStage patch() {
         return execute(HttpMethod.PATCH);
     }
 
     @Override
-    public final QueryStage delete(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage delete(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.DELETE, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage delete(final URI uri) {
+    public final AttributeStage delete(final URI uri) {
         return execute(HttpMethod.DELETE, uri);
     }
 
     @Override
-    public final QueryStage delete() {
+    public final AttributeStage delete() {
         return execute(HttpMethod.DELETE);
     }
 
     @Override
-    public final QueryStage options(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage options(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.OPTIONS, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage options(final URI uri) {
+    public final AttributeStage options(final URI uri) {
         return execute(HttpMethod.OPTIONS, uri);
     }
 
     @Override
-    public final QueryStage options() {
+    public final AttributeStage options() {
         return execute(HttpMethod.OPTIONS);
     }
 
     @Override
-    public final QueryStage trace(final String uriTemplate, final Object... urlVariables) {
+    public final AttributeStage trace(final String uriTemplate, final Object... urlVariables) {
         return execute(HttpMethod.TRACE, uriTemplate, urlVariables);
     }
 
     @Override
-    public final QueryStage trace(final URI uri) {
+    public final AttributeStage trace(final URI uri) {
         return execute(HttpMethod.TRACE, uri);
     }
 
     @Override
-    public final QueryStage trace() {
+    public final AttributeStage trace() {
         return execute(HttpMethod.TRACE);
     }
 
     @Override
-    public QueryStage execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
+    public AttributeStage execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get())
@@ -167,7 +162,7 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public QueryStage execute(final HttpMethod method, final URI uri) {
+    public AttributeStage execute(final HttpMethod method, final URI uri) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get())
@@ -175,15 +170,14 @@ final class DefaultHttp implements Http {
     }
 
     @Override
-    public QueryStage execute(final HttpMethod method) {
+    public AttributeStage execute(final HttpMethod method) {
         return execute(arguments
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get()));
     }
 
-    private QueryStage execute(final RequestArguments arguments) {
-        return new Requester(executor, requestFactory, worker, arguments, plugin,
-                ImmutableMultimap.of(), ImmutableMultimap.of());
+    private AttributeStage execute(final RequestArguments arguments) {
+        return new Requester(executor, requestFactory, worker, arguments, plugin);
     }
 
 }
