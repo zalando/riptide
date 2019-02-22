@@ -62,24 +62,6 @@ public CompletableFuture<Order> getOrder(final String id) {
 }
 ```
 
-### Synchronous return values
-
-```java
-public Order getOrder(final String id) {
-    Capture<Order> capture = Capture.empty();
-    
-    CompletableFuture<Order> future = http.get("/sales-orders/{id}", id)
-        .dispatch(series(),
-            on(SUCCESSFUL).dispatch(contentType(),
-                on(MediaTypes.ORDER).call(Order.class, capture)))
-        .thenApply(capture);
-    
-    return Completion.join(future);
-}
-```
-
-`Completion.join(CompletableFuture)` unwraps any `CompletionException` and sneakily re-throws the cause.
-
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).

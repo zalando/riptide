@@ -79,14 +79,12 @@ CompletableFuture<ClientHttpResponse> future = http.post("/")
             on(SUCCESSFUL).call(pass()));
     
 try {
-    Completion.join(future);
-} catch (TransientFaultException e) {
-    // TODO retry later
+    future.join();
+} catch (CompletionException e) {
+    boolean isTransient = e.getCause() instanceof TransientFaultException;
+    // TODO retry later on transient
 }
 ```
-
-Note: `Completion.join` is a convenience function that get's rid of the outermost `CompletionException` and rethrows
-its cause.
 
 ## Getting Help
 
