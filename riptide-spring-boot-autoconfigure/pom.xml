@@ -41,6 +41,12 @@
         <!-- zalando -->
         <dependency>
             <groupId>org.zalando</groupId>
+            <artifactId>riptide-auth</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
             <artifactId>riptide-backup</artifactId>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
@@ -100,20 +106,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.zalando.stups</groupId>
-            <artifactId>tokens</artifactId>
-            <version>0.12.2</version>
-            <!-- required if explicitly enabled by configuration -->
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando.stups</groupId>
-            <artifactId>stups-http-components-oauth2</artifactId>
-            <version>1.0.22</version>
-            <!-- required if explicitly enabled by configuration -->
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>tracer-spring-boot-starter</artifactId>
             <version>${tracer.version}</version>
@@ -126,6 +118,12 @@
             <optional>true</optional>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

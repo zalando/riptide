@@ -1,3 +1,4 @@
+[AuthorizationPlugin{bg:deepskyblue}]
 [BackupRequestPlugin{bg:deepskyblue}]
 [FailsafePlugin{bg:deepskyblue}]
 [MetricsPlugin{bg:deepskyblue}]
@@ -12,6 +13,7 @@
 [MeterRegistry]
 [FaultClassifier{bg:deepskyblue}]
 [CircuitBreakerListener{bg:deepskyblue}]
+[AuthorizationProvider{bg:deepskyblue}]
 
 [BackupRequestPlugin]-.->[ExecutorService]
 [BackupRequestPlugin]-.->[ScheduledExecutorService]
@@ -26,3 +28,4 @@
 [CircuitBreaker]-.->[CircuitBreakerListener]
 [RetryListener]-.->[MeterRegistry]
 [CircuitBreakerListener]-.->[MeterRegistry]
+[AuthorizationPlugin]-.->[AuthorizationProvider]

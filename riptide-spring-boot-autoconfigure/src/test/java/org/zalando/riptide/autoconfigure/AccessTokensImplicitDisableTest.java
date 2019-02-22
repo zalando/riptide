@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ActiveProfiles;
-import org.zalando.stups.tokens.AccessTokens;
+import org.zalando.riptide.auth.AuthorizationPlugin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -31,11 +31,11 @@ final class AccessTokensImplicitDisableTest {
     }
 
     @Autowired(required = false)
-    private AccessTokens accessTokens;
+    private AuthorizationPlugin exampleAuthorizationPlugin;
 
     @Test
     void shouldImplicitlyDisable() {
-        assertThat(accessTokens, is(nullValue()));
+        assertThat(exampleAuthorizationPlugin, is(nullValue()));
     }
 
 }

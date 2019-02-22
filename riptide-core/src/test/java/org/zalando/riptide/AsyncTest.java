@@ -1,9 +1,9 @@
 package org.zalando.riptide;
 
+import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
@@ -102,7 +102,7 @@ final class AsyncTest {
         @SuppressWarnings("unchecked") final ThrowingConsumer<ClientHttpResponse, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
-        unit.get(url).headers(new HttpHeaders()).dispatch(series(),
+        unit.get(url).headers(ImmutableMultimap.of()).dispatch(series(),
                 on(SUCCESSFUL).call(verifier)).join();
 
         verify(verifier).tryAccept(any());
@@ -131,7 +131,7 @@ final class AsyncTest {
                 ThrowingConsumer.class);
 
         unit.get(url)
-                .headers(new HttpHeaders())
+                .headers(ImmutableMultimap.of())
                 .body("test")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(verifier))

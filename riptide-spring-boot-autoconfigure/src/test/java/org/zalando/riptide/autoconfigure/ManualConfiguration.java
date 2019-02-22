@@ -36,6 +36,8 @@ import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.UrlResolution;
+import org.zalando.riptide.auth.AuthorizationPlugin;
+import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -50,18 +52,11 @@ import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
-import org.zalando.stups.oauth2.httpcomponents.AccessTokensRequestInterceptor;
-import org.zalando.stups.tokens.AccessTokens;
-import org.zalando.stups.tokens.JsonFileBackedClientCredentialsProvider;
-import org.zalando.stups.tokens.JsonFileBackedUserCredentialsProvider;
-import org.zalando.stups.tokens.Tokens;
 import org.zalando.tracer.Tracer;
 import org.zalando.tracer.concurrent.TracingExecutors;
 import org.zalando.tracer.httpclient.TracerHttpRequestInterceptor;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 
-import java.io.File;
-import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -85,36 +80,12 @@ import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHost
 public class ManualConfiguration {
 
     @Configuration
-    static class SharedConfiguration {
-
-        @Bean(destroyMethod = "stop")
-        public AccessTokens tokens() {
-            return Tokens.createAccessTokensWithUri(URI.create("https://auth.example.com"))
-                    .usingClientCredentialsProvider(
-                            new JsonFileBackedClientCredentialsProvider(new File("/credentials/client.json")))
-                    .usingUserCredentialsProvider(
-                            new JsonFileBackedUserCredentialsProvider(new File("/credentials/user.json")))
-                    .schedulingPeriod(5)
-                    .schedulingTimeUnit(SECONDS)
-                    .connectionRequestTimeout(1000)
-                    .socketTimeout(2000)
-                    .manageToken("example")
-                    .addScope("uid")
-                    .addScope("example.read")
-                    .done()
-                    .start();
-        }
-
-    }
-
-    @Configuration
     // just for documentation, should not be imported manually
     @Import({
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             MetricsAutoConfiguration.class,
-            SharedConfiguration.class,
     })
     static class ExampleClientConfiguration {
 
@@ -170,6 +141,7 @@ public class ManualConfiguration {
                             .withListener(new MetricsRetryListener(meterRegistry)
                                     .withDefaultTags(Tag.of("clientId", "example"))),
                     new BackupRequestPlugin(scheduler, 10, MILLISECONDS),
+                    new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
                     new TimeoutPlugin(scheduler, 3, SECONDS),
                     new OriginalStackTracePlugin(),
                     new PluginTest.CustomPlugin());
@@ -206,7 +178,7 @@ public class ManualConfiguration {
 
         @Bean
         public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-                final AccessTokens tokens, final Tracer tracer, final Logbook logbook) throws Exception {
+                final Tracer tracer, final Logbook logbook) throws Exception {
             return new ApacheClientHttpRequestFactory(
                     HttpClientBuilder.create()
                             .setDefaultRequestConfig(RequestConfig.custom()
@@ -216,7 +188,6 @@ public class ManualConfiguration {
                             .setConnectionTimeToLive(30, SECONDS)
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)
-                            .addInterceptorFirst(new AccessTokensRequestInterceptor("example", tokens))
                             .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
                             .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
                             .addInterceptorLast(new GzipHttpRequestInterceptor())

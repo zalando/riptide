@@ -182,7 +182,8 @@ final class DefaultHttp implements Http {
     }
 
     private QueryStage execute(final RequestArguments arguments) {
-        return new Requester(executor, requestFactory, worker, arguments, plugin, ImmutableMultimap.of(), EMPTY);
+        return new Requester(executor, requestFactory, worker, arguments, plugin,
+                ImmutableMultimap.of(), ImmutableMultimap.of());
     }
 
 }

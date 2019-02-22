@@ -19,7 +19,10 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
@@ -34,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("unused")
 @Slf4j
@@ -46,6 +50,8 @@ final class HttpClientFactory {
     public static HttpClientConnectionManager createHttpClientConnectionManager(final Client client)
             throws GeneralSecurityException, IOException {
 
+        final Connections connections = client.getConnections();
+
         final PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -54,11 +60,11 @@ final class HttpClientFactory {
                 null, // connection factory
                 null, // scheme port resolver
                 null, // dns resolver
-                client.getConnectionTimeToLive().getAmount(),
-                client.getConnectionTimeToLive().getUnit());
+                connections.getTimeToLive().getAmount(),
+                connections.getTimeToLive().getUnit());
 
-        manager.setMaxTotal(client.getMaxConnectionsTotal());
-        manager.setDefaultMaxPerRoute(client.getMaxConnectionsPerRoute());
+        manager.setMaxTotal(connections.getMaxTotal());
+        manager.setDefaultMaxPerRoute(connections.getMaxPerRoute());
 
         return manager;
     }
@@ -71,10 +77,10 @@ final class HttpClientFactory {
             @Nullable final HttpClientCustomizer customizer,
             @Nullable final HttpCacheStorage cacheStorage) {
 
-        @Nullable final Caching caching = client.getCaching();
-        final HttpClientBuilder builder = caching == null ?
-                HttpClientBuilder.create() :
-                configureCaching(caching, cacheStorage);
+        final Caching caching = client.getCaching();
+        final HttpClientBuilder builder = caching.getEnabled() ?
+                configureCaching(caching, cacheStorage) :
+                HttpClientBuilder.create();
 
         final RequestConfig.Builder config = RequestConfig.custom();
 
@@ -82,8 +88,9 @@ final class HttpClientFactory {
         lastRequestInterceptors.forEach(builder::addInterceptorLast);
         lastResponseInterceptors.forEach(builder::addInterceptorLast);
 
-        config.setConnectTimeout((int) client.getConnectTimeout().to(TimeUnit.MILLISECONDS));
-        config.setSocketTimeout((int) client.getSocketTimeout().to(TimeUnit.MILLISECONDS));
+        final Connections connections = client.getConnections();
+        config.setConnectTimeout((int) connections.getConnectTimeout().to(MILLISECONDS));
+        config.setSocketTimeout((int) connections.getSocketTimeout().to(MILLISECONDS));
 
         builder.setConnectionManager(connectionManager);
 
@@ -95,14 +102,14 @@ final class HttpClientFactory {
 
     private static CachingHttpClientBuilder configureCaching(final Caching caching,
             @Nullable final HttpCacheStorage cacheStorage) {
-        @Nullable final Heuristic heuristic = caching.getHeuristic();
+        final Heuristic heuristic = caching.getHeuristic();
 
         final CacheConfig.Builder config = CacheConfig.custom()
                 .setSharedCache(caching.getShared())
                 .setMaxObjectSize(caching.getMaxObjectSize())
                 .setMaxCacheEntries(caching.getMaxCacheEntries());
 
-        if (heuristic != null) {
+        if (heuristic.getEnabled()) {
             config.setHeuristicCachingEnabled(true);
             config.setHeuristicCoefficient(heuristic.getCoefficient());
             config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));
@@ -117,30 +124,31 @@ final class HttpClientFactory {
     }
 
     private static SSLContext createSSLContext(final Client client) throws GeneralSecurityException, IOException {
-        @Nullable final Client.Keystore keystore = client.getKeystore();
+        final CertificatePinning pinning = client.getCertificatePinning();
 
-        if (keystore == null) {
-            return SSLContexts.createDefault();
+        if (pinning.getEnabled()) {
+            final Keystore keystore = pinning.getKeystore();
+            final String path = keystore.getPath();
+            final String password = keystore.getPassword();
+
+            final URL resource = HttpClientFactory.class.getClassLoader().getResource(path);
+
+            if (resource == null) {
+                throw new FileNotFoundException(format("Keystore [%s] not found.", path));
+            }
+
+            try {
+                return SSLContexts.custom()
+                        .loadTrustMaterial(resource, password == null ? null : password.toCharArray())
+                        .build();
+            } catch (final Exception e) {
+                log.error("Error loading keystore [{}]:", path,
+                        e); // log full exception, bean initialization code swallows it
+                throw e;
+            }
         }
 
-        final String path = keystore.getPath();
-        final String password = keystore.getPassword();
-
-        final URL resource = HttpClientFactory.class.getClassLoader().getResource(path);
-
-        if (resource == null) {
-            throw new FileNotFoundException(format("Keystore [%s] not found.", path));
-        }
-
-        try {
-            return SSLContexts.custom()
-                    .loadTrustMaterial(resource, password == null ? null : password.toCharArray())
-                    .build();
-        } catch (final Exception e) {
-            log.error("Error loading keystore [{}]:", path,
-                    e); // log full exception, bean initialization code swallows it
-            throw e;
-        }
+        return SSLContexts.createDefault();
     }
 
     private static Consumer<HttpClientCustomizer> customize(final HttpClientBuilder builder) {

@@ -2,9 +2,9 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Client.Keystore;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
-import org.zalando.riptide.autoconfigure.RiptideProperties.GlobalOAuth;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,7 +21,7 @@ final class HttpClientFactoryTest {
         nonExistingKeystore.setPath("i-do-not-exist.keystore");
 
         final RiptideProperties.Client client = new RiptideProperties.Client();
-        client.setKeystore(nonExistingKeystore);
+        client.setCertificatePinning(new CertificatePinning(true, nonExistingKeystore));
 
         final FileNotFoundException exception = assertThrows(FileNotFoundException.class, () ->
                 HttpClientFactory.createHttpClientConnectionManager(withDefaults(client)));
@@ -30,12 +30,12 @@ final class HttpClientFactoryTest {
     }
 
     @Test
-    void shouldFailOnInvalidKeystore() throws Exception {
+    void shouldFailOnInvalidKeystore() {
         final Keystore invalidKeystore = new Keystore();
         invalidKeystore.setPath("application-default.yml");
 
         final RiptideProperties.Client client = new RiptideProperties.Client();
-        client.setKeystore(invalidKeystore);
+        client.setCertificatePinning(new CertificatePinning(true, invalidKeystore));
 
         assertThrows(IOException.class, () ->
         HttpClientFactory.createHttpClientConnectionManager(withDefaults(client)));
@@ -43,7 +43,7 @@ final class HttpClientFactoryTest {
 
     private RiptideProperties.Client withDefaults(final RiptideProperties.Client client) {
         final RiptideProperties properties = Defaulting.withDefaults(
-                new RiptideProperties(new Defaults(), new GlobalOAuth(), ImmutableMap.of("example", client)));
+                new RiptideProperties(new Defaults(), ImmutableMap.of("example", client)));
 
         return properties.getClients().get("example");
     }

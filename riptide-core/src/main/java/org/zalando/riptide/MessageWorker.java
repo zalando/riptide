@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,7 +12,6 @@ import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -67,23 +65,22 @@ final class MessageWorker implements MessageReader, MessageWriter {
     }
 
     @Override
-    public <T> void write(@Nonnull final ClientHttpRequest request, @Nonnull final HttpEntity<T> entity)
+    public void write(final ClientHttpRequest request, final RequestArguments arguments)
             throws IOException {
-        final HttpHeaders headers = entity.getHeaders();
-        request.getHeaders().putAll(headers);
-    
-        @Nullable final T body = entity.getBody();
-    
+
+        @Nullable final Object body = arguments.getBody();
+
         if (body == null) {
             return;
         }
-    
+
         final Class<?> type = body.getClass();
-        @Nullable final MediaType contentType = headers.getContentType();
-    
+
+        @Nullable final MediaType contentType = request.getHeaders().getContentType();
+
         converters.stream()
                 .filter(converter -> converter.canWrite(type, contentType))
-                .map(this::<T>cast)
+                .map(this::cast)
                 .findFirst()
                 .orElseThrow(() -> fail(type, contentType))
                 .write(body, contentType, request);

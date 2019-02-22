@@ -1,26 +1,34 @@
 riptide:
   defaults:
     retry:
+      enabled: true
       max-retries: 3
       max-duration: 5 seconds
     circuit-breaker:
+      enabled: true
       failure-threshold: 5
       delay: 1 minute
       success-threshold: 5
     backup-request:
+      enabled: true
       delay: 500 milliseconds
-    timeout: 1 second
+    timeouts:
+      enabled: true
+      global: 1 seconds
   clients:
     example:
       base-url: https://example.com
       retry:
+        enabled: true
         fixed-delay: 1 second
         max-retries: 3
         max-duration: 10 seconds
         jitter-factor: 0.5
       circuit-breaker:
+        enabled: true
         failure-threshold: 3 out of 5
         delay: 5 minute
         success-threshold: 2 out of 5
       backup-request:
+        enabled: true
         delay: 250 milliseconds

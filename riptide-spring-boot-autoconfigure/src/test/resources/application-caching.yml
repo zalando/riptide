@@ -1,13 +1,20 @@
 riptide:
+  defaults:
+    caching.enabled: true
   clients:
     public:
       caching:
         shared: true
+        directory-path: /var/cache/http/public
+        max-object-size: 1024
+        max-cache-entries: 10000
     private:
       caching:
         shared: false
     heuristic:
       caching:
         heuristic:
+          enabled: true
+          coefficient: 0.2
           default-life-time: 5 minutes
 

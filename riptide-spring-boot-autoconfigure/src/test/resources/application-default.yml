@@ -1,49 +1,57 @@
 riptide:
   defaults:
-    detect-transient-faults: false
-    preserve-stack-trace: false
-    record-metrics: true
-  oauth:
-    access-token-url: http://example.com
+    transient-fault-detection.enabled: false
+    stack-trace-preservation.enabled: false
+    metrics.enabled: true
   clients:
     example:
       base-url: https://example.com/foo
       url-resolution: append
-      connection-timout: 2000 milliseconds
-      socket-timeout: 3000 milliseconds
-      thread-pool:
+      connections:
+        connection-timout: 2000 milliseconds
+        socket-timeout: 3000 milliseconds
+      threads:
         min-size: 0
         max-size: 100
         keep-alive: 5 minutes
         queue-size: 10
-      oauth.scopes:
-        - example.read
-      preserve-stack-trace: true
+      stack-trace-preservation.enabled: true
+      metrics.enabled: true
     ecb:
       base-url: http://www.ecb.europa.eu
-      compress-request: true
-      timeout: 1 seconds
+      request-compression.enabled: true
+      timeouts:
+        enabled: true
+        global: 1 seconds
     github:
       base-url: https://example.com
-      keystore:
-        path: example.keystore
-        password: password
-      detect-transient-faults: true
+      certificate-pinning:
+        enabled: true
+        keystore:
+          path: example.keystore
+          password: password
+      transient-fault-detection.enabled: true
     github-invalid:
       base-url: https://example.com
-      keystore:
-        path: example.keystore
+      certificate-pinning:
+        enabled: true
+        keystore:
+          path: example.keystore
     foo:
       base-url: http://foo
       retry:
+        enabled: true
         max-retries: 3
     bar:
       base-url: http://bar
       retry:
+        enabled: true
         max-retries: 4
       circuit-breaker:
+        enabled: true
         failure-threshold: 1
         success-threshold: 1
     baz:
       backup-request:
+        enabled: true
         delay: 100 milliseconds
