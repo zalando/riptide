@@ -11,10 +11,10 @@ import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.capture.Completion;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +24,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -85,13 +86,15 @@ final class BackupRequestPluginTest {
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().withStatus(503));
 
-        assertThrows(IllegalStateException.class, () ->
-        Completion.join(unit.get("/bar")
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        on(SERVER_ERROR).call(() -> {
-                            throw new IllegalStateException();
-                        }))));
+        final CompletionException exception = assertThrows(CompletionException.class, () ->
+                unit.get("/bar")
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(pass()),
+                                on(SERVER_ERROR).call(() -> {
+                                    throw new IllegalStateException();
+                                }))
+                        .join());
+        assertEquals(IllegalStateException.class, exception.getCause().getClass());
     }
 
     @Test
