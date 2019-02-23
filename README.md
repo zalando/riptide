@@ -10,6 +10,7 @@
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-core.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-core)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
+[![Chat](https://badges.gitter.im/zalando/riptide.svg)](https://gitter.im/zalando/riptide)
 
 > **Riptide** noun, /ˈrɪp.taɪd/: strong flow of water away from the shore
 
