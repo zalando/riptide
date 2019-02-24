@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,7 @@ import org.zalando.fauxpas.FauxPas;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apiguardian.api.API.Status.STABLE;
@@ -31,6 +33,10 @@ public interface RequestArguments {
 
     URI getUri();
 
+    <T> Optional<T> getAttribute(Attribute<T> attribute);
+
+    ImmutableMap<Attribute<?>, Object> getAttributes();
+
     ImmutableMultimap<String, String> getQueryParams();
 
     URI getRequestUri();
@@ -50,6 +56,8 @@ public interface RequestArguments {
     RequestArguments withUriVariables(@Nullable ImmutableList<Object> uriVariables);
 
     RequestArguments withUri(@Nullable URI uri);
+
+    RequestArguments withAttributes(@Nullable ImmutableMap<Attribute<?>, Object> attributes);
 
     RequestArguments withQueryParams(@Nullable ImmutableMultimap<String, String> queryParams);
 
@@ -105,8 +113,8 @@ public interface RequestArguments {
     }
 
     static RequestArguments create() {
-        return new DefaultRequestArguments(null, null, null, null, ImmutableList.of(), null, ImmutableMultimap.of(),
-                null, ImmutableMultimap.of(), null);
+        return new DefaultRequestArguments(null, null, null, null, ImmutableList.of(), null,
+                ImmutableMap.of(), ImmutableMultimap.of(), null, ImmutableMultimap.of(), null);
     }
 
 }

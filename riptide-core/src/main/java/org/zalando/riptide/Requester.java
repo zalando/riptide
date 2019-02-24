@@ -1,8 +1,11 @@
 package org.zalando.riptide;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import lombok.AllArgsConstructor;
+import lombok.experimental.Wither;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
@@ -32,52 +35,40 @@ import static java.util.stream.Collectors.joining;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
-final class Requester extends QueryStage {
+@AllArgsConstructor
+final class Requester extends AttributeStage {
 
     private final Executor executor;
     private final ClientHttpRequestFactory requestFactory;
     private final MessageWorker worker;
+
+    @Wither
     private final RequestArguments arguments;
+
     private final Plugin plugin;
 
-    private final ImmutableMultimap<String, String> query;
-    private final ImmutableMultimap<String, String> headers;
-
-    Requester(final Executor executor, final ClientHttpRequestFactory requestFactory,
-            final MessageWorker worker, final RequestArguments arguments, final Plugin plugin,
-            final ImmutableMultimap<String, String> query,
-            final ImmutableMultimap<String, String> headers) {
-        this.executor = executor;
-        this.requestFactory = requestFactory;
-        this.worker = worker;
-        this.arguments = arguments;
-        this.plugin = plugin;
-        this.query = query;
-        this.headers = headers;
-    }
-
-    private Requester(final Requester requester, final ImmutableMultimap<String, String> query,
-            final ImmutableMultimap<String, String> headers) {
-        this(requester.executor, requester.requestFactory, requester.worker, requester.arguments,
-                requester.plugin, query, headers);
+    @Override
+    public <T> AttributeStage attribute(final Attribute<T> attribute, final T value) {
+        return withArguments(arguments.withAttributes(ImmutableMap.<Attribute<?>, Object>builder()
+                .putAll(arguments.getAttributes())
+                .put(attribute, value)
+                .build()));
     }
 
     @Override
     public QueryStage queryParam(final String name, final String value) {
-        return new Requester(this, ImmutableMultimap.<String, String>builder()
-                .putAll(query)
+        return withArguments(arguments.withQueryParams(ImmutableMultimap.<String, String>builder()
+                .putAll(arguments.getQueryParams())
                 .put(name, value)
-                .build(),
-                headers);
+                .build()));
     }
 
     @Override
     public QueryStage queryParams(final Multimap<String, String> params) {
-        return new Requester(this, ImmutableMultimap.<String, String>builder()
-                .putAll(query)
+        return withArguments(arguments.withQueryParams(ImmutableMultimap.<String, String>builder()
+                .putAll(arguments.getQueryParams())
                 .putAll(params)
-                .build(),
-                headers);
+                .build()));
     }
 
     @Override
@@ -133,18 +124,18 @@ final class Requester extends QueryStage {
 
     @Override
     public HeaderStage header(final String name, final String value) {
-        return new Requester(this, query, ImmutableMultimap.<String, String>builder()
-                .putAll(headers)
+        return withArguments(arguments.withHeaders(ImmutableMultimap.<String, String>builder()
+                .putAll(arguments.getHeaders())
                 .put(name, value)
-                .build());
+                .build()));
     }
 
     @Override
     public HeaderStage headers(final Multimap<String, String> headers) {
-        return new Requester(this, query, ImmutableMultimap.<String, String>builder()
-                .putAll(this.headers)
+        return withArguments(arguments.withHeaders(ImmutableMultimap.<String, String>builder()
+                .putAll(arguments.getHeaders())
                 .putAll(headers)
-                .build());
+                .build()));
     }
 
     @Override
@@ -154,15 +145,7 @@ final class Requester extends QueryStage {
 
     @Override
     public <T> DispatchStage body(@Nullable final T body) {
-        final ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
-        headers.forEach(builder::putAll);
-
-        return new ResponseDispatcher(arguments
-                .withQueryParams(ImmutableMultimap.copyOf(query))
-                .withRequestUri()
-                .withHeaders(builder.build())
-                .withBody(body)
-        );
+        return new ResponseDispatcher(arguments.withBody(body));
     }
 
     private final class ResponseDispatcher extends DispatchStage {
@@ -175,11 +158,11 @@ final class Requester extends QueryStage {
 
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
-            final RequestExecution before = plugin.beforeSend(this::send);
+            final RequestExecution before = plugin.beforeSend(arguments -> send(arguments.withRequestUri()));
             final RequestExecution after = plugin.beforeDispatch(dispatch(before, route));
 
-            // TODO get rid of this
-            return throwingFunction(after::execute).apply(arguments);
+            // build request URI once so plugins can observe them once after in case they modify something
+            return throwingFunction(after::execute).apply(arguments.withRequestUri());
         }
 
         private CompletableFuture<ClientHttpResponse> send(final RequestArguments arguments) {

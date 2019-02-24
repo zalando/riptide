@@ -10,40 +10,40 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public interface URIStage {
 
-    QueryStage get(String uriTemplate, Object... urlVariables);
-    QueryStage get(URI uri);
-    QueryStage get();
+    AttributeStage get(String uriTemplate, Object... urlVariables);
+    AttributeStage get(URI uri);
+    AttributeStage get();
 
-    QueryStage head(String uriTemplate, Object... urlVariables);
-    QueryStage head(URI uri);
-    QueryStage head();
+    AttributeStage head(String uriTemplate, Object... urlVariables);
+    AttributeStage head(URI uri);
+    AttributeStage head();
 
-    QueryStage post(String uriTemplate, Object... urlVariables);
-    QueryStage post(URI uri);
-    QueryStage post();
+    AttributeStage post(String uriTemplate, Object... urlVariables);
+    AttributeStage post(URI uri);
+    AttributeStage post();
 
-    QueryStage put(String uriTemplate, Object... urlVariables);
-    QueryStage put(URI uri);
-    QueryStage put();
+    AttributeStage put(String uriTemplate, Object... urlVariables);
+    AttributeStage put(URI uri);
+    AttributeStage put();
 
-    QueryStage patch(String uriTemplate, Object... urlVariables);
-    QueryStage patch(URI uri);
-    QueryStage patch();
+    AttributeStage patch(String uriTemplate, Object... urlVariables);
+    AttributeStage patch(URI uri);
+    AttributeStage patch();
 
-    QueryStage delete(String uriTemplate, Object... urlVariables);
-    QueryStage delete(URI uri);
-    QueryStage delete();
+    AttributeStage delete(String uriTemplate, Object... urlVariables);
+    AttributeStage delete(URI uri);
+    AttributeStage delete();
 
-    QueryStage options(String uriTemplate, Object... urlVariables);
-    QueryStage options(URI uri);
-    QueryStage options();
+    AttributeStage options(String uriTemplate, Object... urlVariables);
+    AttributeStage options(URI uri);
+    AttributeStage options();
 
-    QueryStage trace(String uriTemplate, Object... urlVariables);
-    QueryStage trace(URI uri);
-    QueryStage trace();
+    AttributeStage trace(String uriTemplate, Object... urlVariables);
+    AttributeStage trace(URI uri);
+    AttributeStage trace();
 
-    QueryStage execute(HttpMethod method, String uriTemplate, Object... uriVariables);
-    QueryStage execute(HttpMethod method, URI uri);
-    QueryStage execute(HttpMethod method);
+    AttributeStage execute(HttpMethod method, String uriTemplate, Object... uriVariables);
+    AttributeStage execute(HttpMethod method, URI uri);
+    AttributeStage execute(HttpMethod method);
 
 }

@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -24,9 +23,9 @@ final class RequesterImmutabilityTest {
         assertNotSame(original, original.accept(MediaType.ALL));
         assertNotSame(original, original.contentType(MediaType.APPLICATION_JSON));
         assertNotSame(original, original.header("header","value"));
-        assertNotSame(original, original.headers(ImmutableMultimap.of()));
+        assertNotSame(original, original.headers(ImmutableMultimap.of("header", "value")));
         assertNotSame(original, original.queryParam("p","v"));
-        assertNotSame(original, original.queryParams(LinkedHashMultimap.create()));
+        assertNotSame(original, original.queryParams(ImmutableMultimap.of("p", "v")));
         assertNotSame(original, original.ifMatch(""));
         assertNotSame(original, original.ifModifiedSince(OffsetDateTime.now()));
         assertNotSame(original, original.ifNoneMatch(""));

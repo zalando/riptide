@@ -2,7 +2,6 @@ package org.zalando.riptide;
 
 import com.google.common.collect.Multimap;
 import org.apiguardian.api.API;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.time.OffsetDateTime;

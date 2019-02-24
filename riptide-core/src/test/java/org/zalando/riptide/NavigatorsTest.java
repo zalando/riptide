@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
 
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Navigators.contentType;
 import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
