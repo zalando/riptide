@@ -57,6 +57,13 @@ public interface RequestArguments {
 
     RequestArguments withUri(@Nullable URI uri);
 
+    default <T> RequestArguments withAttribute(final Attribute<T> attribute, final T value) {
+        return withAttributes(ImmutableMap.<Attribute<?>, Object>builder()
+                .putAll(getAttributes())
+                .put(attribute, value)
+                .build());
+    }
+
     RequestArguments withAttributes(@Nullable ImmutableMap<Attribute<?>, Object> attributes);
 
     RequestArguments withQueryParams(@Nullable ImmutableMultimap<String, String> queryParams);

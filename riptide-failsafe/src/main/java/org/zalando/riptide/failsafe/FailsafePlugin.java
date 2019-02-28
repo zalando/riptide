@@ -15,6 +15,7 @@ import org.zalando.riptide.DefaultIdempotentMethodDetector;
 import org.zalando.riptide.DefaultSafeMethodDetector;
 import org.zalando.riptide.IdempotencyKeyIdempotentMethodDetector;
 import org.zalando.riptide.MethodDetector;
+import org.zalando.riptide.OverrideIdempotentMethodDetector;
 import org.zalando.riptide.OverrideSafeMethodDetector;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -48,7 +49,8 @@ public final class FailsafePlugin implements Plugin {
                         new OverrideSafeMethodDetector()
                 )),
                 new ConditionalIdempotentMethodDetector(),
-                new IdempotencyKeyIdempotentMethodDetector()
+                new IdempotencyKeyIdempotentMethodDetector(),
+                new OverrideIdempotentMethodDetector()
         ), RetryListener.DEFAULT);
     }
 

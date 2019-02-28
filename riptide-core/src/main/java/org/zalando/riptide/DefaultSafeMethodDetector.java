@@ -2,8 +2,6 @@ package org.zalando.riptide;
 
 import org.apiguardian.api.API;
 
-import javax.annotation.Nonnull;
-
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -13,7 +11,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 public final class DefaultSafeMethodDetector implements MethodDetector {
 
     @Override
-    public boolean test(@Nonnull final RequestArguments arguments) {
+    public boolean test(final RequestArguments arguments) {
         switch (arguments.getMethod()) {
             case GET:
             case HEAD:
