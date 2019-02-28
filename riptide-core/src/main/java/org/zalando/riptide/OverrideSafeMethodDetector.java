@@ -6,7 +6,6 @@ import org.apiguardian.api.API;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.http.HttpMethod;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
@@ -18,11 +17,10 @@ import static org.springframework.http.HttpMethod.POST;
 @API(status = EXPERIMENTAL)
 public final class OverrideSafeMethodDetector implements MethodDetector {
 
-    // TODO decide whether to open this up, effectively allowing other detectors to inspect the override
     private final MethodDetector detector = new DefaultSafeMethodDetector();
 
     @Override
-    public boolean test(@Nonnull final RequestArguments arguments) {
+    public boolean test(final RequestArguments arguments) {
         if (arguments.getMethod() != POST) {
             return false;
         }

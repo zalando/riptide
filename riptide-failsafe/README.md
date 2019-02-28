@@ -61,7 +61,7 @@ Http.builder()
                            .withDelay(Duration.ofMinutes(1))
             ),
             Executors.newScheduledThreadPool(20))
-            .withListeners(myListeners))
+            .withListener(myRetryListener))
     .build();
 ```
 
@@ -121,6 +121,39 @@ http.get("/users/me")
         on(SERVER_ERROR).dispatch(status(),
             on(SERVICE_UNAVAILABLE).call(retry())),
         anySeries().call(problemHandling()))
+```
+
+### Safe and Idempotent methods
+
+Only [safe](https://tools.ietf.org/html/rfc7231#section-4.2.1) and [idempontent](https://tools.ietf.org/html/rfc7231#section-4.2.2)
+methods are retried by default. The following request methods can be detected:
+
+- Standard HTTP method
+- [HTTP method override](https://opensocial.github.io/spec/2.5.1/Core-API-Server.xml#rfc.section.2.1.1.19)
+- [Conditional Requests](https://tools.ietf.org/html/rfc7232)
+- [`Idempotency-Key` header](https://stripe.com/docs/api#idempotent_requests)
+
+You also have the option to declare any request to be `idempotent` by setting the respective request attribute. This is
+useful in situation where none of the options are above would detect it but based on the contract of the API you may know
+that a certain operation is in fact idempotent.
+
+```java
+http.post("/subscriptions/{id}/cursors", subscriptionId)
+    .attribute(MethodDetector.IDEMPOTENT, true)
+    .header("X-Nakadi-StreamId", streamId)
+    .body(cursors)
+    .dispatch(series(),
+        on(SUCCESSFUL).call(pass()),
+        anySeries().call(problemHandling()))
+```
+
+In case those options are insufficient you may specify your own method detector:
+
+```java
+Http.builder()
+    .plugin(new FailsafePlugin(ImmutableList.of(retryPolicy), scheduler)
+        .withIdempontentMethodDetector(new CustomIdempotentMethodDetector()))
+    .build();
 ```
 
 ## Getting Help

@@ -118,7 +118,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     }
 
     @Override
-    public ConfigurationStage plugins(@Nonnull final Iterable<Plugin> plugins) {
+    public ConfigurationStage plugins(final Iterable<Plugin> plugins) {
         plugins.forEach(this::plugin);
         return this;
     }

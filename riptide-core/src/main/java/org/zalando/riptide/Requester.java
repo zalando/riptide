@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -49,10 +48,7 @@ final class Requester extends AttributeStage {
 
     @Override
     public <T> AttributeStage attribute(final Attribute<T> attribute, final T value) {
-        return withArguments(arguments.withAttributes(ImmutableMap.<Attribute<?>, Object>builder()
-                .putAll(arguments.getAttributes())
-                .put(attribute, value)
-                .build()));
+        return withArguments(arguments.withAttribute(attribute, value));
     }
 
     @Override

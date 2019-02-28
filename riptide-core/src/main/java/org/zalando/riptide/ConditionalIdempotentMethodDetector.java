@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import org.apiguardian.api.API;
 
-import javax.annotation.Nonnull;
-
 import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Arrays.asList;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
@@ -51,7 +49,7 @@ public final class ConditionalIdempotentMethodDetector implements MethodDetector
     ));
 
     @Override
-    public boolean test(@Nonnull final RequestArguments arguments) {
+    public boolean test(final RequestArguments arguments) {
         return arguments.getHeaders().keySet().stream().anyMatch(conditionals::contains);
     }
 

@@ -11,6 +11,8 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 @FunctionalInterface
 public interface MethodDetector {
 
+    Attribute<Boolean> IDEMPOTENT = Attribute.generate();
+
     boolean test(RequestArguments arguments);
 
     static MethodDetector always() {
