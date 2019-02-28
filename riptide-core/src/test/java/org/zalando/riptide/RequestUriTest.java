@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
@@ -150,8 +151,9 @@ final class RequestUriTest {
                 tester.accept(unit);
                 fail("Expected exception");
             } catch (final Exception e) {
-                assertThat(e, is(instanceOf(IllegalArgumentException.class)));
-                assertThat(e.getMessage(), is(message));
+                final Throwable cause = Throwables.getRootCause(e);
+                assertThat(cause, is(instanceOf(IllegalArgumentException.class)));
+                assertThat(cause.getMessage(), is(message));
             }
         }
 

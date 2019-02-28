@@ -39,7 +39,7 @@ public final class TimeoutPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestExecution execution) {
+    public RequestExecution aroundAsync(final RequestExecution execution) {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute(arguments);
 

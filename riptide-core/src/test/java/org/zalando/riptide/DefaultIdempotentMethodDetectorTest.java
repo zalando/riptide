@@ -1,62 +1,28 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.http.HttpMethod;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.HEAD;
-import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.PATCH;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
-import static org.springframework.http.HttpMethod.TRACE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 
-// TODO rewrite using @ValueSource when migrating to JUnit 5
 final class DefaultIdempotentMethodDetectorTest {
 
     private final MethodDetector unit = new DefaultIdempotentMethodDetector();
 
-    @Test
-    void options() {
-        assertTrue(unit.test(arguments(OPTIONS)));
+    @ParameterizedTest
+    @EnumSource(value = HttpMethod.class, mode = EXCLUDE, names = {"POST", "PATCH"})
+    void shouldDetectIdempotentMethods(final HttpMethod method) {
+        assertTrue(unit.test(arguments(method)));
     }
 
-    @Test
-    void get() {
-        assertTrue(unit.test(arguments(GET)));
-    }
-
-    @Test
-    void head() {
-        assertTrue(unit.test(arguments(HEAD)));
-    }
-
-    @Test
-    void trace() {
-        assertTrue(unit.test(arguments(TRACE)));
-    }
-
-    @Test
-    void post() {
-        assertFalse(unit.test(arguments(POST)));
-    }
-
-    @Test
-    void put() {
-        assertTrue(unit.test(arguments(PUT)));
-    }
-
-    @Test
-    void patch() {
-        assertFalse(unit.test(arguments(PATCH)));
-    }
-
-    @Test
-    void delete() {
-        assertTrue(unit.test(arguments(DELETE)));
+    @ParameterizedTest
+    @EnumSource(value = HttpMethod.class, mode = INCLUDE, names = {"POST", "PATCH"})
+    void shouldDetectNonIdempotentMethods(final HttpMethod method) {
+        assertFalse(unit.test(arguments(method)));
     }
 
     private RequestArguments arguments(final HttpMethod method) {

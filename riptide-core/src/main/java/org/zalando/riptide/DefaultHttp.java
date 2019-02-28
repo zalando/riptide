@@ -7,26 +7,23 @@ import org.springframework.http.converter.HttpMessageConverter;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
 final class DefaultHttp implements Http {
 
-    private final Executor executor;
-    private final ClientHttpRequestFactory requestFactory;
-    private final MessageWorker worker;
+    private final RequestExecution network;
+    private final MessageReader reader;
     private final Supplier<URI> baseUrlProvider;
     private final RequestArguments arguments;
     private final Plugin plugin;
 
-    DefaultHttp(final Executor executor, final ClientHttpRequestFactory requestFactory,
+    DefaultHttp(final ClientHttpRequestFactory requestFactory,
             final List<HttpMessageConverter<?>> converters,
             final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
-        this.executor = requireNonNull(executor, "executor");
-        this.requestFactory = requireNonNull(requestFactory, "request factory");
-        this.worker = new MessageWorker(converters);
+        this.reader = new DefaultMessageReader(converters);
+        this.network = new NetworkRequestExecution(requestFactory, new DefaultMessageWriter(converters));
         this.baseUrlProvider = requireNonNull(baseUrlProvider, "base url provider");
         this.arguments = RequestArguments.create().withUrlResolution(resolution);
         this.plugin = plugin;
@@ -177,7 +174,7 @@ final class DefaultHttp implements Http {
     }
 
     private AttributeStage execute(final RequestArguments arguments) {
-        return new Requester(executor, requestFactory, worker, arguments, plugin);
+        return new Requester(network, reader, arguments, plugin);
     }
 
 }

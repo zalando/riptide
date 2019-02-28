@@ -1,10 +1,10 @@
 package org.zalando.riptide.metrics;
 
 import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
@@ -12,12 +12,8 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
-import java.io.IOException;
-
 import static com.google.common.collect.Iterables.concat;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
 @API(status = EXPERIMENTAL)
 public final class MetricsPlugin implements Plugin {
@@ -25,7 +21,6 @@ public final class MetricsPlugin implements Plugin {
     private final MeterRegistry registry;
     private final String metricName;
     private final ImmutableList<Tag> defaultTags;
-    private final Clock clock;
     private final TagGenerator generator = new DefaultTagGenerator();
 
     public MetricsPlugin(final MeterRegistry registry) {
@@ -36,7 +31,6 @@ public final class MetricsPlugin implements Plugin {
         this.registry = registry;
         this.metricName = metricName;
         this.defaultTags = defaultTags;
-        this.clock = registry.config().clock();
     }
 
     public MetricsPlugin withMetricName(final String metricName) {
@@ -52,29 +46,25 @@ public final class MetricsPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeSend(final RequestExecution execution) {
+    public RequestExecution aroundNetwork(final RequestExecution execution) {
         return arguments -> {
             final Measurement measurement = new Measurement(arguments);
 
             return execution.execute(arguments)
-                    .whenComplete(throwingBiConsumer(measurement::record));
+                    .whenComplete(measurement::record);
         };
     }
 
     @AllArgsConstructor
     private final class Measurement {
 
-        private final long startTime = clock.monotonicTime();
+        private final Sample sample = Timer.start(registry);
         private final RequestArguments arguments;
 
         void record(final ClientHttpResponse response, final Throwable throwable) {
-            final long endTime = clock.monotonicTime();
-
             final Iterable<Tag> tags = concat(defaultTags, generator.tags(arguments, response, throwable));
             final Timer timer = registry.timer(metricName, tags);
-
-            final long duration = endTime - startTime;
-            timer.record(duration, NANOSECONDS);
+            sample.stop(timer);
         }
 
     }

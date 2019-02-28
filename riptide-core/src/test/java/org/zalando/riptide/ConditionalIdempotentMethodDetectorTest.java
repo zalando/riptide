@@ -2,43 +2,28 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// TODO rewrite using @ValueSource when migrating to JUnit 5
 final class ConditionalIdempotentMethodDetectorTest {
 
     private final MethodDetector unit = new ConditionalIdempotentMethodDetector();
 
-    @Test
-    void shouldDetectIfMatch() {
-        assertTrue(unit.test(arguments("If-Match", "xyzzy")));
-    }
+    @ParameterizedTest
+    @CsvSource({
+            "If-Match,xyzzy",
+            "if-match,xyzzy",
+            "If-None-Match,*",
+            "if-none-match,*",
+            "If-Unmodified-Since,Sat, 29 Oct 1994 19:43:31 GMT",
+            "if-unmodified-since,Sat, 29 Oct 1994 19:43:31 GMT"
 
-    @Test
-    void shouldDetectIfMatchCaseInsensitive() {
-        assertTrue(unit.test(arguments("if-match", "xyzzy")));
-    }
-
-    @Test
-    void shouldDetectIfNoneMatch() {
-        assertTrue(unit.test(arguments("If-None-Match", "*")));
-    }
-
-    @Test
-    void shouldDetectIfNoneMatchCaseInsensitive() {
-        assertTrue(unit.test(arguments("if-none-match", "*")));
-    }
-
-    @Test
-    void shouldDetectIfUnmodifiedSince() {
-        assertTrue(unit.test(arguments("If-Unmodified-Since", "Sat, 29 Oct 1994 19:43:31 GMT")));
-    }
-
-    @Test
-    void shouldDetectIfUnmodifiedSinceCaseInsensitive() {
-        assertTrue(unit.test(arguments("if-unmodified-since", "Sat, 29 Oct 1994 19:43:31 GMT")));
+    })
+    void shouldDetectMatch(final String name, final String value) {
+        assertTrue(unit.test(arguments(name, value)));
     }
 
     @Test
