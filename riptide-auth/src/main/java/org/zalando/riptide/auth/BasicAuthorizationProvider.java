@@ -11,25 +11,22 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
  */
 public final class BasicAuthorizationProvider implements AuthorizationProvider {
 
-    private final Base64.Encoder base64 = Base64.getEncoder();
-
-    private final String username;
-    private final String password;
+    private final String authorization;
 
     public BasicAuthorizationProvider(final String username, final String password) {
         checkArgument(!username.contains(":"), "Username must not contain a colon");
         final CharsetEncoder encoder = ISO_8859_1.newEncoder();
         checkArgument(encoder.canEncode(username), "Username must be encoded in ISO-8859-1");
         checkArgument(encoder.canEncode(password), "Password must be encoded in ISO-8859-1");
-        this.username = username;
-        this.password = password;
+        final String credentials = username + ":" + password;
+        final Base64.Encoder base64 = Base64.getEncoder();
+        final byte[] bytes = credentials.getBytes(ISO_8859_1);
+        this.authorization = "Basic " + base64.encodeToString(bytes);
     }
 
     @Override
     public String get() {
-        final String credentials = username + ":" + password;
-        final byte[] bytes = credentials.getBytes(ISO_8859_1);
-        return "Basic " + base64.encodeToString(bytes);
+        return authorization;
     }
 
 }
