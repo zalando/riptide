@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apiguardian.api.API;
@@ -10,7 +9,6 @@ import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.zalando.fauxpas.ThrowingSupplier;
@@ -112,13 +110,12 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
      * @param request original request
      * @param body    serialized request body
      * @return derived request arguments
-     * @see org.springframework.web.util.AbstractUriTemplateHandler#insertBaseUrl(java.net.URI)
      */
     private RequestArguments toArguments(final HttpRequest request, final byte[] body) {
         return RequestArguments.create()
                 .withMethod(request.getMethod())
                 .withRequestUri(request.getURI())
-                .withHeaders(copy(request.getHeaders()))
+                .withHeaders(request.getHeaders())
                 /*
                  * Plugins and AsyncClientHttpRequestInterceptors are conceptually working on different logical
                  * levels. Plugins are pre-serialization and interceptors are post-serialization. Passing the
@@ -126,12 +123,6 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
                  * attempt, we decided to do it anyway.
                  */
                 .withBody(body);
-    }
-
-    private ImmutableMultimap<String, String> copy(final MultiValueMap<String, String> values) {
-        final ImmutableMultimap.Builder<String, String> copy = ImmutableMultimap.builder();
-        values.forEach(copy::putAll);
-        return copy.build();
     }
 
 }

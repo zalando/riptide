@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -16,13 +15,13 @@ final class CompoundMethodDetectorTest {
     @Test
     void shouldDetectA() {
         assertTrue(unit.test(RequestArguments.create()
-                .withHeaders(ImmutableMultimap.of("A", "any"))));
+                .withHeader("A", "any")));
     }
 
     @Test
     void shouldDetectB() {
         assertTrue(unit.test(RequestArguments.create()
-                .withHeaders(ImmutableMultimap.of("B", "any"))));
+                .withHeader("B", "any")));
     }
 
     @Test

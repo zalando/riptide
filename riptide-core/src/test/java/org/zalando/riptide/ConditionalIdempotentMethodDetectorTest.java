@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -38,7 +37,7 @@ final class ConditionalIdempotentMethodDetectorTest {
 
     RequestArguments arguments(final String name, final String value) {
         return RequestArguments.create()
-                .withHeaders(ImmutableMultimap.of(name, value));
+                .withHeader(name, value);
     }
 
 }

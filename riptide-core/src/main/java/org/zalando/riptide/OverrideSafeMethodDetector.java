@@ -1,13 +1,15 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
 import org.apiguardian.api.API;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.http.HttpMethod;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.springframework.http.HttpMethod.POST;
 
@@ -44,9 +46,8 @@ public final class OverrideSafeMethodDetector implements MethodDetector {
 
     @Nullable
     private String getOverride(final RequestArguments arguments) {
-        final Multimap<String, String> headers = arguments.getHeaders();
-        // TODO should use case-insensitive comparison
-        final Collection<String> overrides = headers.get("X-HTTP-Method-Override");
+        final Map<String, List<String>> headers = arguments.getHeaders();
+        final Collection<String> overrides = headers.getOrDefault("X-HTTP-Method-Override", emptyList());
         return Iterables.getFirst(overrides, null);
     }
 

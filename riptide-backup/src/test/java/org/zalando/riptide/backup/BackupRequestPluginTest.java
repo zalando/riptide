@@ -20,6 +20,7 @@ import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.PUT;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -135,7 +136,8 @@ final class BackupRequestPluginTest {
                 .baseUrl(driver.getBaseUrl())
                 .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS).withExecutor(executor)
                         .withSafeMethodDetector(
-                                arguments -> arguments.getHeaders().containsEntry("Allow-Backup-Request", "true")))
+                                arguments -> arguments.getHeaders()
+                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();
 
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));

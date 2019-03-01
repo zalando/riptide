@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -29,7 +28,7 @@ final class AttributeTest {
                     public RequestExecution aroundNetwork(final RequestExecution execution) {
                         return arguments -> {
                             final String secret = arguments.getAttribute(attribute).orElse("unknown");
-                            return execution.execute(arguments.withHeaders(ImmutableMultimap.of("Secret", secret)));
+                            return execution.execute(arguments.withHeader("Secret", secret));
                         };
                     }
                 })
@@ -48,6 +47,7 @@ final class AttributeTest {
                 .andRespond(withSuccess());
 
         unit.trace("https://api.example.com")
+                .attribute(attribute, "dXNlcjpzZWNyZXQK")
                 .attribute(attribute, "dXNlcjpzZWNyZXQK")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))

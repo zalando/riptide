@@ -1,6 +1,5 @@
 package org.zalando.riptide.auth;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
@@ -37,15 +36,7 @@ public final class AuthorizationPlugin implements Plugin {
             return arguments;
         }
 
-        return withAuthorization(arguments);
-    }
-
-    private RequestArguments withAuthorization(final RequestArguments arguments) throws IOException {
-        return arguments
-                .withHeaders(ImmutableMultimap.<String, String>builder()
-                        .putAll(arguments.getHeaders())
-                        .put(AUTHORIZATION, provider.get())
-                        .build());
+        return arguments.withHeader(AUTHORIZATION, provider.get());
     }
 
 }

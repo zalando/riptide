@@ -25,8 +25,8 @@ final class NetworkRequestExecution implements RequestExecution {
 
             final ClientHttpRequest request = requestFactory.createRequest(requestUri, method);
 
-            arguments.getHeaders()
-                    .forEach(request.getHeaders()::add);
+            arguments.getHeaders().forEach((name, values) ->
+                    values.forEach(value -> request.getHeaders().add(name, value)));
 
             writer.write(request, arguments);
 

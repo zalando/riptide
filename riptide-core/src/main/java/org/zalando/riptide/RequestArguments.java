@@ -1,22 +1,22 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.zalando.fauxpas.FauxPas;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apiguardian.api.API.Status.STABLE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 import static org.springframework.web.util.UriUtils.encode;
+import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
 @API(status = STABLE)
 public interface RequestArguments {
@@ -29,19 +29,17 @@ public interface RequestArguments {
 
     String getUriTemplate();
 
-    ImmutableList<Object> getUriVariables();
+    List<Object> getUriVariables();
 
     URI getUri();
 
     <T> Optional<T> getAttribute(Attribute<T> attribute);
 
-    ImmutableMap<Attribute<?>, Object> getAttributes();
-
-    ImmutableMultimap<String, String> getQueryParams();
+    Map<String, List<String>> getQueryParams();
 
     URI getRequestUri();
 
-    ImmutableMultimap<String, String> getHeaders();
+    Map<String, List<String>> getHeaders();
 
     Object getBody();
 
@@ -53,24 +51,29 @@ public interface RequestArguments {
 
     RequestArguments withUriTemplate(@Nullable String uriTemplate);
 
-    RequestArguments withUriVariables(@Nullable ImmutableList<Object> uriVariables);
+    RequestArguments replaceUriVariables(List<Object> uriVariables);
 
     RequestArguments withUri(@Nullable URI uri);
 
-    default <T> RequestArguments withAttribute(final Attribute<T> attribute, final T value) {
-        return withAttributes(ImmutableMap.<Attribute<?>, Object>builder()
-                .putAll(getAttributes())
-                .put(attribute, value)
-                .build());
-    }
+    <T> RequestArguments withAttribute(Attribute<T> attribute, T value);
 
-    RequestArguments withAttributes(@Nullable ImmutableMap<Attribute<?>, Object> attributes);
+    RequestArguments withQueryParam(String name, String value);
 
-    RequestArguments withQueryParams(@Nullable ImmutableMultimap<String, String> queryParams);
+    RequestArguments withQueryParams(Map<String, ? extends Collection<String>> queryParams);
+
+    RequestArguments withoutQueryParam(String name);
+
+    RequestArguments replaceQueryParams(Map<String, ? extends Collection<String>> queryParams);
 
     RequestArguments withRequestUri(@Nullable URI requestUri);
 
-    RequestArguments withHeaders(@Nullable ImmutableMultimap<String, String> headers);
+    RequestArguments withHeader(String name, String value);
+
+    RequestArguments withHeaders(Map<String, ? extends Collection<String>> headers);
+
+    RequestArguments withoutHeader(String name);
+
+    RequestArguments replaceHeaders(Map<String, ? extends Collection<String>> headers);
 
     RequestArguments withBody(@Nullable Object body);
 
@@ -107,8 +110,9 @@ public interface RequestArguments {
 
         final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
         // encode query params
-        getQueryParams().entries().forEach(FauxPas.throwingConsumer(entry ->
-                components.queryParam(entry.getKey(), encode(entry.getValue(), "UTF-8"))));
+        getQueryParams().forEach(throwingBiConsumer((key, values) ->
+                values.forEach(value ->
+                        components.queryParam(key, encode(value, "UTF-8")))));
 
         // build request uri
         final URI requestUri = components.uri(resolvedUri)
@@ -120,8 +124,7 @@ public interface RequestArguments {
     }
 
     static RequestArguments create() {
-        return new DefaultRequestArguments(null, null, null, null, ImmutableList.of(), null,
-                ImmutableMap.of(), ImmutableMultimap.of(), null, ImmutableMultimap.of(), null);
+        return new DefaultRequestArguments();
     }
 
 }

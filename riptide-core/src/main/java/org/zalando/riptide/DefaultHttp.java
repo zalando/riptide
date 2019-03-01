@@ -1,11 +1,11 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -155,7 +155,7 @@ final class DefaultHttp implements Http {
                 .withMethod(method)
                 .withBaseUrl(baseUrlProvider.get())
                 .withUriTemplate(uriTemplate)
-                .withUriVariables(ImmutableList.copyOf(uriVariables)));
+                .replaceUriVariables(Arrays.asList(uriVariables)));
     }
 
     @Override
