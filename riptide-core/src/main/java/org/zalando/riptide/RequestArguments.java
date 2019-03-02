@@ -43,6 +43,8 @@ public interface RequestArguments {
 
     Object getBody();
 
+    byte[] getEntity();
+
     RequestArguments withBaseUrl(@Nullable URI baseUrl);
 
     RequestArguments withUrlResolution(@Nullable UrlResolution resolution);
@@ -76,6 +78,8 @@ public interface RequestArguments {
     RequestArguments replaceHeaders(Map<String, ? extends Collection<String>> headers);
 
     RequestArguments withBody(@Nullable Object body);
+
+    RequestArguments withEntity(byte[] entity);
 
     default RequestArguments withRequestUri() {
         @Nullable final URI uri = getUri();

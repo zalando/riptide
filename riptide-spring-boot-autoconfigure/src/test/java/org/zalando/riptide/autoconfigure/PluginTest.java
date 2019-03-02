@@ -84,6 +84,7 @@ final class PluginTest {
     void shouldUseTransientFaultPlugin() throws Exception {
         assertThat(getPlugins(github), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(TransientFaultPlugin.class),
                 instanceOf(CustomPlugin.class))));
@@ -93,6 +94,7 @@ final class PluginTest {
     void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(FailsafePlugin.class))));
     }
@@ -100,6 +102,7 @@ final class PluginTest {
     @Test
     void shouldUseBackupRequestPlugin() throws Exception {
         assertThat(getPlugins(baz), contains(asList(
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(BackupRequestPlugin.class))));
@@ -109,6 +112,7 @@ final class PluginTest {
     void shouldUseTimeoutPlugin() throws Exception {
         assertThat(getPlugins(ecb), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(TimeoutPlugin.class))));
     }
@@ -116,6 +120,7 @@ final class PluginTest {
     @Test
     void shouldUseOriginalStackTracePlugin() throws Exception {
         assertThat(getPlugins(example), contains(asList(
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(OriginalStackTracePlugin.class))));

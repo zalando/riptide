@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 final class CompositePlugin implements Plugin {
@@ -22,6 +23,11 @@ final class CompositePlugin implements Plugin {
     }
 
     @Override
+    public RequestExecution aroundSerialization(final RequestExecution execution) {
+        return combine(execution, Plugin::aroundSerialization);
+    }
+
+    @Override
     public RequestExecution aroundNetwork(final RequestExecution execution) {
         return combine(execution, Plugin::aroundNetwork);
     }
@@ -32,10 +38,22 @@ final class CompositePlugin implements Plugin {
         RequestExecution result = execution;
 
         for (final Plugin plugin : plugins) {
-            result = combiner.apply(plugin, result);
+            result = apply(plugin, result, combiner);
         }
 
         return result;
+    }
+
+    private RequestExecution apply(final Plugin plugin, final RequestExecution before,
+            final BiFunction<Plugin, RequestExecution, RequestExecution> combiner) {
+
+        final RequestExecution after = combiner.apply(plugin, before);
+
+        if (Objects.equals(before, after)) {
+            return after;
+        }
+
+        return new GuardedRequestExecution(after);
     }
 
 }

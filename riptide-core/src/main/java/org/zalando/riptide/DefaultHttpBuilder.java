@@ -131,11 +131,14 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public Http build() {
+        final List<HttpMessageConverter<?>> converters = converters();
+
         final List<Plugin> plugins = new ArrayList<>();
         plugins.add(new AsyncPlugin(executor));
+        plugins.add(new SerializationPlugin(new DefaultMessageWriter(converters)));
         plugins.addAll(plugins());
 
-        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, composite(plugins));
+        return new DefaultHttp(requestFactory, converters, baseUrlProvider, resolution, composite(plugins));
     }
 
     private List<HttpMessageConverter<?>> converters() {

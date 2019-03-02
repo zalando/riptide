@@ -41,7 +41,8 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
                 new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
-                new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody)
+                new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody),
+                new Assertion<>(RequestArguments::withEntity, new byte[0], RequestArguments::getEntity)
         );
     }
 

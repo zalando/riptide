@@ -144,12 +144,12 @@ final class Requester extends AttributeStage {
             final Plugin plugin = Plugin.composite(new DispatchPlugin(route, reader), plugins);
 
             // TODO update request uri after each plugin?
-            // TODO wrap each request execution to catch any exceptions directly thrown by plugins and wrap them?
             final RequestExecution execution =
                     plugin.aroundAsync(
                             plugin.aroundDispatch(
-                                    plugin.aroundNetwork(
-                                            network)));
+                                    plugin.aroundSerialization(
+                                            plugin.aroundNetwork(
+                                                    network))));
 
             // build request URI once so plugins can observe them once after in case they modify something
             return throwingFunction(execution::execute).apply(arguments.withRequestUri());

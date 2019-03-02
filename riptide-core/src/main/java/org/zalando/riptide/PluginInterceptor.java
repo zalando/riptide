@@ -62,9 +62,10 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
         }
     }
 
+    @Nonnull
     @Override
     public ListenableFuture<ClientHttpResponse> intercept(final HttpRequest request, final byte[] body,
-            final AsyncClientHttpRequestExecution execution) {
+            final AsyncClientHttpRequestExecution execution) throws IOException {
 
         final RequestExecution requestExecution = arguments ->
                 packAsync(() -> execution.executeAsync(request, body));
@@ -74,6 +75,7 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
         final RequestExecution after = plugin.aroundDispatch(before);
 
         final RequestArguments arguments = toArguments(request, body);
+
         return new CompletableToListenableFutureAdapter<>(after.execute(arguments));
     }
 
