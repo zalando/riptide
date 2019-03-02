@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.zalando.riptide.Plugin.compound;
+import static org.zalando.riptide.Plugin.composite;
 
 final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, ConfigurationStage, FinalStage {
 
@@ -135,7 +135,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
         plugins.add(new AsyncPlugin(executor));
         plugins.addAll(plugins());
 
-        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, compound(plugins));
+        return new DefaultHttp(requestFactory, converters(), baseUrlProvider, resolution, composite(plugins));
     }
 
     private List<HttpMessageConverter<?>> converters() {

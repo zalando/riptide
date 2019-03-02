@@ -64,12 +64,12 @@ public interface Plugin {
         return execution;
     }
 
-    static Plugin compound(final Plugin... plugins) {
-        return compound(Arrays.asList(plugins));
+    static Plugin composite(final Plugin... plugins) {
+        return composite(Arrays.asList(plugins));
     }
 
-    static Plugin compound(final List<Plugin> plugins) {
-        return new CompoundPlugin(plugins);
+    static Plugin composite(final List<Plugin> plugins) {
+        return new CompositePlugin(plugins);
     }
 
 }

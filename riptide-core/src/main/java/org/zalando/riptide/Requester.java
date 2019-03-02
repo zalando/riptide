@@ -141,7 +141,7 @@ final class Requester extends AttributeStage {
 
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
-            final Plugin plugin = Plugin.compound(new DispatchPlugin(route, reader), plugins);
+            final Plugin plugin = Plugin.composite(new DispatchPlugin(route, reader), plugins);
 
             // TODO update request uri after each plugin?
             // TODO wrap each request execution to catch any exceptions directly thrown by plugins and wrap them?

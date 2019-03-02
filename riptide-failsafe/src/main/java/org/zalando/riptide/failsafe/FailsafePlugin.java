@@ -43,8 +43,8 @@ public final class FailsafePlugin implements Plugin {
 
     public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies,
             final ScheduledExecutorService scheduler) {
-        this(policies, scheduler, MethodDetector.compound(
-                new DefaultIdempotentMethodDetector(MethodDetector.compound(
+        this(policies, scheduler, MethodDetector.composite(
+                new DefaultIdempotentMethodDetector(MethodDetector.composite(
                         new DefaultSafeMethodDetector(),
                         new OverrideSafeMethodDetector()
                 )),

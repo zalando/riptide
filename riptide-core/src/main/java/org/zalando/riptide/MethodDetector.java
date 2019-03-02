@@ -19,11 +19,11 @@ public interface MethodDetector {
         return arguments -> true;
     }
 
-    static MethodDetector compound(final MethodDetector... detectors) {
-        return compound(Arrays.asList(detectors));
+    static MethodDetector composite(final MethodDetector... detectors) {
+        return composite(Arrays.asList(detectors));
     }
 
-    static MethodDetector compound(final Collection<MethodDetector> detectors) {
+    static MethodDetector composite(final Collection<MethodDetector> detectors) {
         return arguments ->
                 detectors.stream().anyMatch(detector -> detector.test(arguments));
     }

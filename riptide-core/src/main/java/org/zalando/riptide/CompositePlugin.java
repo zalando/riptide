@@ -3,11 +3,11 @@ package org.zalando.riptide;
 import java.util.Collection;
 import java.util.function.BiFunction;
 
-final class CompoundPlugin implements Plugin {
+final class CompositePlugin implements Plugin {
 
     private final Collection<Plugin> plugins;
 
-    CompoundPlugin(final Collection<Plugin> plugins) {
+    CompositePlugin(final Collection<Plugin> plugins) {
         this.plugins = plugins;
     }
 

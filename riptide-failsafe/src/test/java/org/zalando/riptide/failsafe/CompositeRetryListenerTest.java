@@ -17,12 +17,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
-final class CompoundRetryListenerTest {
+final class CompositeRetryListenerTest {
 
     private final RetryListener first = mock(RetryListener.class);
     private final RetryListener second = mock(RetryListener.class);
 
-    private final RetryListener unit = new CompoundRetryListener(first, second);
+    private final RetryListener unit = new CompositeRetryListener(first, second);
 
     @Test
     void shouldPropagateRetryToEveryListener() {
