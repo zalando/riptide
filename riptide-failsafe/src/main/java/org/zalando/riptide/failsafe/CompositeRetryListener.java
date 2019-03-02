@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
+// TODO package private?
 @API(status = EXPERIMENTAL)
 public final class CompositeRetryListener implements RetryListener {
 

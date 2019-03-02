@@ -3,6 +3,10 @@ riptide:
     transient-fault-detection.enabled: false
     stack-trace-preservation.enabled: false
     metrics.enabled: true
+    tracing:
+      tags:
+        environment: test
+      propagate-flow-id: false
   clients:
     example:
       base-url: https://example.com/foo
@@ -17,12 +21,19 @@ riptide:
         queue-size: 10
       stack-trace-preservation.enabled: true
       metrics.enabled: true
+      tracing:
+        enabled: true
+        tags:
+          peer.service: example
+        propagate-flow-id: true
     ecb:
       base-url: http://www.ecb.europa.eu
       request-compression.enabled: true
       timeouts:
         enabled: true
         global: 1 seconds
+      tracing:
+        propagate-flow-id: true
       chaos:
         latency:
           enabled: true
@@ -57,8 +68,11 @@ riptide:
       retry:
         enabled: true
         max-retries: 3
+      tracing:
+        enabled: true
     bar:
       base-url: http://bar
+      transient-fault-detection.enabled: true
       retry:
         enabled: true
         max-retries: 4

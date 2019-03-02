@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apiguardian.api.API.Status.INTERNAL;
@@ -106,6 +107,9 @@ public final class RiptideProperties {
         );
 
         @NestedConfigurationProperty
+        private Tracing tracing = new Tracing(false, emptyMap(), false);
+
+        @NestedConfigurationProperty
         private Chaos chaos = new Chaos(
                 new Latency(false, 0.01, TimeSpan.of(1, SECONDS)),
                 new Exceptions(false, 0.001),
@@ -164,6 +168,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Caching caching;
+
+        @NestedConfigurationProperty
+        private Tracing tracing;
 
         @NestedConfigurationProperty
         private Chaos chaos;
@@ -336,6 +343,17 @@ public final class RiptideProperties {
             private TimeSpan defaultLifeTime;
         }
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Tracing {
+        private Boolean enabled;
+        private Map<String, String> tags;
+        private Boolean propagateFlowId;
+    }
+
 
     @Getter
     @Setter

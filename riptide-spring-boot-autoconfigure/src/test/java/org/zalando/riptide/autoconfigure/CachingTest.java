@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
+import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;

@@ -5,14 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
+import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
+import org.zalando.riptide.opentracing.span.HttpUrlSpanDecorator;
+import org.zalando.riptide.opentracing.span.SpanDecorator;
+import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -27,10 +31,16 @@ final class UrlResolutionTest {
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class,
+            OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })
     @ActiveProfiles("default")
     static class ContextConfiguration {
+
+        @Bean
+        public SpanDecorator exampleSpanDecorator() {
+            return new HttpUrlSpanDecorator();
+        }
 
     }
 

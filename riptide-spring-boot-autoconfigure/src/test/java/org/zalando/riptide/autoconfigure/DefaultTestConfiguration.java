@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
+import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 @Configuration
 @ImportAutoConfiguration({
@@ -13,6 +13,7 @@ import org.zalando.tracer.spring.TracerAutoConfiguration;
         JacksonAutoConfiguration.class,
         LogbookAutoConfiguration.class,
         TracerAutoConfiguration.class,
+        OpenTracingTestAutoConfiguration.class,
         MetricsTestAutoConfiguration.class,
 })
 @ActiveProfiles("default")

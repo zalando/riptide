@@ -4,8 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.concurrent.TracedExecutorService;
+import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +24,9 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.zalando.logbook.Logbook;
+import org.zalando.logbook.httpclient.LogbookHttpRequestInterceptor;
+import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
@@ -39,15 +49,18 @@ import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
-import org.zalando.tracer.Tracer;
-import org.zalando.tracer.concurrent.TracingExecutors;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
+import org.zalando.tracer.Flow;
+import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import org.zalando.tracer.httpclient.FlowHttpRequestInterceptor;
 
 import java.net.SocketTimeoutException;
 import java.time.Clock;
@@ -67,6 +80,7 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 
 @Configuration
@@ -97,7 +111,7 @@ public class ManualConfiguration {
         }
 
         @Bean
-        public List<Plugin> examplePlugins(final MeterRegistry meterRegistry,
+        public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Tracer tracer,
                 final ScheduledExecutorService scheduler, final Executor executor) {
 
             final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
@@ -120,6 +134,7 @@ public class ManualConfiguration {
                     new MetricsPlugin(meterRegistry)
                             .withDefaultTags(Tag.of("clientId", "example")),
                     new TransientFaultPlugin(),
+                    new OpenTracingPlugin(tracer),
                     new FailsafePlugin(
                             ImmutableList.of(
                                     new RetryPolicy<ClientHttpResponse>()
@@ -152,9 +167,35 @@ public class ManualConfiguration {
                     new CustomPlugin());
         }
 
+        @Bean
+        public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
+                final Flow flow, final Logbook logbook) throws Exception {
+            return new ApacheClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(RequestConfig.custom()
+                                    .setConnectTimeout(5000)
+                                    .setSocketTimeout(5000)
+                                    .build())
+                            .setConnectionTimeToLive(30, SECONDS)
+                            .setMaxConnPerRoute(2)
+                            .setMaxConnTotal(20)
+                            .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
+                            .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
+                            .addInterceptorLast(new GzipHttpRequestInterceptor())
+                            .addInterceptorLast(new LogbookHttpResponseInterceptor())
+                            .setSSLSocketFactory(new SSLConnectionSocketFactory(
+                                    SSLContexts.custom()
+                                            .loadTrustMaterial(
+                                                    getClass().getClassLoader().getResource("example.keystore"),
+                                                    "password".toCharArray())
+                                            .build(),
+                                    getDefaultHostnameVerifier()))
+                            .build());
+        }
+
         @Bean(destroyMethod = "shutdown")
         public ExecutorService executor(final Tracer tracer) {
-            return TracingExecutors.preserve(
+            return new TracedExecutorService(
                     new ThreadPoolExecutor(
                             1, 20, 1, MINUTES,
                             new ArrayBlockingQueue<>(0),
@@ -165,7 +206,7 @@ public class ManualConfiguration {
 
         @Bean(destroyMethod = "shutdown")
         public ScheduledExecutorService scheduler(final Tracer tracer) {
-            return TracingExecutors.preserve(
+            return new TracedScheduledExecutorService(
                     Executors.newScheduledThreadPool(
                             20, // TODO max-connections-total?
                             new CustomizableThreadFactory("http-example-scheduler-")),
