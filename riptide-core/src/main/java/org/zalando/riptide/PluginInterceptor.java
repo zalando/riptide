@@ -51,7 +51,6 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
         final RequestExecution requestExecution = arguments ->
                 pack(() -> execution.execute(request, body));
 
-
         // since there is no routing to be done, we just call the plugin twice in succession
         final RequestExecution before = plugin.beforeSend(requestExecution);
         final RequestExecution after = plugin.beforeDispatch(before);

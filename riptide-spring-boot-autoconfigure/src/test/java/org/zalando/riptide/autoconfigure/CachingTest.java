@@ -19,7 +19,7 @@ import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
+import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
@@ -67,7 +67,7 @@ final class CachingTest {
     @Test
     void shouldCacheInSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "max-age=300, s-maxage=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "max-age=300, s-maxage=300"));
 
         shared.get(driver.getBaseUrl()).call(pass()).join();
         shared.get(driver.getBaseUrl()).call(pass()).join();
@@ -76,9 +76,9 @@ final class CachingTest {
     @Test
     void shouldNotCacheWithAuthorizationInSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "max-age=300"));
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "max-age=300"));
 
         shared.get(driver.getBaseUrl())
                 .header("Authorization", "Bearer XYZ")
@@ -92,7 +92,7 @@ final class CachingTest {
     @Test
     void shouldCacheWithAuthorizationInSharedCacheModeWithPublicDirective() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "public, s-maxage=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "public, s-maxage=300"));
 
         shared.get(driver.getBaseUrl())
                 .header("Authorization", "Bearer XYZ")
@@ -106,7 +106,7 @@ final class CachingTest {
     @Test
     void shouldCacheInNonSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "max-age=300"));
 
         nonShared.get(driver.getBaseUrl()).call(pass()).join();
         nonShared.get(driver.getBaseUrl()).call(pass()).join();
@@ -115,7 +115,7 @@ final class CachingTest {
     @Test
     void shouldCacheWithAuthorizationInNonSharedCacheMode() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "max-age=300"));
+                giveResponse("Hello", "text/plain").withHeader("Cache-Control", "max-age=300"));
 
         nonShared.get(driver.getBaseUrl())
                 .header("Authorization", "Bearer XYZ")
@@ -129,10 +129,24 @@ final class CachingTest {
     @Test
     void shouldCacheWithHeuristic() {
         driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withHeader("Cache-Control", "public"));
+                giveResponse("Hello", "text/plain"));
 
         heuristic.get(driver.getBaseUrl()).call(pass()).join();
         heuristic.get(driver.getBaseUrl()).call(pass()).join();
+    }
+
+    @Test
+    void shouldCacheWithAuthorizationAndHeuristic() {
+        driver.addExpectation(onRequestTo("/"),
+                giveResponse("Hello", "text/plain"));
+
+        heuristic.get(driver.getBaseUrl())
+                .header("Authorization", "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.")
+                .call(pass()).join();
+
+        heuristic.get(driver.getBaseUrl())
+                .header("Authorization", "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.")
+                .call(pass()).join();
     }
 
 }
