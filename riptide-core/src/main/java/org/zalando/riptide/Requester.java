@@ -1,16 +1,15 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import lombok.AllArgsConstructor;
-import lombok.experimental.Wither;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,8 +30,6 @@ final class Requester extends AttributeStage {
 
     private final RequestExecution network;
     private final MessageReader reader;
-
-    @Wither
     private final RequestArguments arguments;
 
     private final Plugin plugins;
@@ -44,18 +41,17 @@ final class Requester extends AttributeStage {
 
     @Override
     public QueryStage queryParam(final String name, final String value) {
-        return withArguments(arguments.withQueryParams(ImmutableMultimap.<String, String>builder()
-                .putAll(arguments.getQueryParams())
-                .put(name, value)
-                .build()));
+        return withArguments(arguments.withQueryParam(name, value));
     }
 
     @Override
     public QueryStage queryParams(final Multimap<String, String> params) {
-        return withArguments(arguments.withQueryParams(ImmutableMultimap.<String, String>builder()
-                .putAll(arguments.getQueryParams())
-                .putAll(params)
-                .build()));
+        return queryParams(params.asMap());
+    }
+
+    @Override
+    public QueryStage queryParams(final Map<String, Collection<String>> params) {
+        return withArguments(arguments.withQueryParams(params));
     }
 
     @Override
@@ -111,18 +107,21 @@ final class Requester extends AttributeStage {
 
     @Override
     public HeaderStage header(final String name, final String value) {
-        return withArguments(arguments.withHeaders(ImmutableMultimap.<String, String>builder()
-                .putAll(arguments.getHeaders())
-                .put(name, value)
-                .build()));
+        return withArguments(arguments.withHeader(name, value));
     }
 
     @Override
     public HeaderStage headers(final Multimap<String, String> headers) {
-        return withArguments(arguments.withHeaders(ImmutableMultimap.<String, String>builder()
-                .putAll(arguments.getHeaders())
-                .putAll(headers)
-                .build()));
+        return headers(headers.asMap());
+    }
+
+    @Override
+    public HeaderStage headers(final Map<String, Collection<String>> headers) {
+        return withArguments(arguments.withHeaders(headers));
+    }
+
+    private Requester withArguments(final RequestArguments arguments) {
+        return new Requester(network, reader, arguments, plugins);
     }
 
     @Override
@@ -145,6 +144,7 @@ final class Requester extends AttributeStage {
             final Plugin plugin = Plugin.compound(new DispatchPlugin(route, reader), plugins);
 
             // TODO update request uri after each plugin?
+            // TODO wrap each request execution to catch any exceptions directly thrown by plugins and wrap them?
             final RequestExecution execution =
                     plugin.aroundAsync(
                             plugin.aroundDispatch(

@@ -1,9 +1,7 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import lombok.Value;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
@@ -14,10 +12,15 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class DefaultRequestArgumentsTest {
 
@@ -36,12 +39,8 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withUrlResolution, UrlResolution.APPEND, RequestArguments::getUrlResolution),
                 new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod),
                 new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
-                new Assertion<>(RequestArguments::withUriVariables, ImmutableList.of(123), RequestArguments::getUriVariables),
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
-                new Assertion<>(RequestArguments::withAttributes, ImmutableMap.of(Attribute.generate(), "foo"), RequestArguments::getAttributes),
-                new Assertion<>(RequestArguments::withQueryParams, ImmutableMultimap.of("k", "v"), RequestArguments::getQueryParams),
                 new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
-                new Assertion<>(RequestArguments::withHeaders, ImmutableMultimap.of("Secret", "true"), RequestArguments::getHeaders),
                 new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody)
         );
     }
@@ -62,6 +61,48 @@ final class DefaultRequestArgumentsTest {
 
         assertThat(applied, is(not(sameInstance(unit))));
         assertThat(assertion.getter.apply(applied), is(sameInstance(assertion.argument)));
+    }
+
+    @Test
+    void shouldRemoveQueryParam() {
+        final RequestArguments with = unit.withQueryParam("foo", "bar");
+        assertThat(with.getQueryParams(), hasKey("foo"));
+
+        final RequestArguments without = with.withoutQueryParam("foo");
+        assertThat(without.getQueryParams(), not(hasKey("foo")));
+    }
+
+    @Test
+    void shouldReplaceQueryParam() {
+        final RequestArguments with = unit.withQueryParam("foo", "bar");
+        assertThat(with.getQueryParams(), hasKey("foo"));
+
+        final RequestArguments without = with.replaceQueryParams(singletonMap("q", singletonList("example")));
+        assertThat(without.getQueryParams(), hasEntry("q", singletonList("example")));
+    }
+
+    @Test
+    void shouldRemoveHeader() {
+        final RequestArguments with = unit.withHeader("Foo", "bar");
+        assertThat(with.getHeaders(), hasKey("Foo"));
+
+        final RequestArguments without = with.withoutHeader("Foo");
+        assertThat(without.getHeaders(), not(hasKey("Foo")));
+    }
+
+    @Test
+    void shouldReplaceHeaders() {
+        final RequestArguments with = unit.withHeader("Foo", "bar");
+        assertThat(with.getHeaders(), hasKey("Foo"));
+
+        final RequestArguments without = with.replaceHeaders(singletonMap("Test", singletonList("true")));
+        assertThat(without.getHeaders(), hasEntry("Test", singletonList("true")));
+    }
+
+    @Test
+    void headersShouldBeCaseInsensitive() {
+        final RequestArguments arguments = unit.withHeader("Foo", "bar");
+        assertTrue(arguments.getHeaders().containsKey("foo"));
     }
 
 }

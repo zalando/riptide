@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -147,7 +148,7 @@ final class FailsafePluginRetriesTest {
                         ),
                         newSingleThreadScheduledExecutor())
                         .withIdempotentMethodDetector(arguments ->
-                                arguments.getHeaders().containsEntry("Idempotent", "true"))
+                                arguments.getHeaders().getOrDefault("Idempotent", emptyList()).contains("true"))
                         .withListener(listeners))
                 .build();
 

@@ -1,7 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -19,26 +17,25 @@ final class ConditionalIdempotentMethodDetectorTest {
             "If-None-Match,*",
             "if-none-match,*",
             "If-Unmodified-Since,Sat, 29 Oct 1994 19:43:31 GMT",
-            "if-unmodified-since,Sat, 29 Oct 1994 19:43:31 GMT"
-
+            "if-unmodified-since,Sat, 29 Oct 1994 19:43:31 GMT",
     })
-    void shouldDetectMatch(final String name, final String value) {
+    void shouldBeIdempotent(final String name, final String value) {
         assertTrue(unit.test(arguments(name, value)));
     }
 
-    @Test
-    void shouldNotDetectUnconditional() {
-        assertFalse(unit.test(RequestArguments.create()));
-    }
-
-    @Test
-    void shouldNotDetectIfModifiedSince() {
-        assertFalse(unit.test(arguments("If-Modified-Since", "Sat, 29 Oct 1994 19:43:31 GMT")));
+    @ParameterizedTest
+    @CsvSource({
+            "If-Modified-Since,Sat, 29 Oct 1994 19:43:31 GMT",
+            "If-None-Match,xyzzy",
+            "Date,Sat, 29 Oct 1994 19:43:31 GMT"
+    })
+    void shouldNotBeIdempotent(final String name, final String value) {
+        assertFalse(unit.test(arguments(name, value)));
     }
 
     RequestArguments arguments(final String name, final String value) {
         return RequestArguments.create()
-                .withHeaders(ImmutableMultimap.of(name, value));
+                .withHeader(name, value);
     }
 
 }

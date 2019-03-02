@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -15,13 +14,13 @@ final class IdempotencyKeyIdempotentMethodDetectorTest {
     @Test
     void shouldDetectIdempotencyKey() {
         assertTrue(unit.test(RequestArguments.create()
-            .withHeaders(ImmutableMultimap.of("Idempotency-Key", UUID.randomUUID().toString()))));
+                .withHeader("Idempotency-Key", UUID.randomUUID().toString())));
     }
 
     @Test
     void shouldDetectIdempotencyKeyCaseInsensitive() {
         assertTrue(unit.test(RequestArguments.create()
-                .withHeaders(ImmutableMultimap.of("idempotency-key", UUID.randomUUID().toString()))));
+                .withHeader("idempotency-key", UUID.randomUUID().toString())));
     }
 
     @Test

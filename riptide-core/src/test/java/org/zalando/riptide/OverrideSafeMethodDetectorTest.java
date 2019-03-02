@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 
@@ -43,14 +42,23 @@ final class OverrideSafeMethodDetectorTest {
         assertFalse(unit.test(arguments(PATCH, PUT)));
     }
 
+    @Test
+    void shouldDetectCaseInsensitive() {
+        assertTrue(unit.test(arguments(POST, "x-http-method-override", "GET")));
+    }
+
     RequestArguments arguments(final HttpMethod method, final HttpMethod override) {
         return arguments(method, override.name());
     }
 
     RequestArguments arguments(final HttpMethod method, final String name) {
+        return arguments(method, "X-HTTP-Method-Override", name);
+    }
+
+    RequestArguments arguments(final HttpMethod method, final String header, final String name) {
         return RequestArguments.create()
                     .withMethod(method)
-                    .withHeaders(ImmutableMultimap.of("X-HTTP-Method-Override", name));
+                    .withHeader(header, name);
     }
 
 }
