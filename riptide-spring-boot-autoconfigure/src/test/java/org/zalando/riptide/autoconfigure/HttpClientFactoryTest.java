@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 final class HttpClientFactoryTest {
 
     @Test
-    void shouldFailOnKeystoreNotFound() throws Exception {
+    void shouldFailOnKeystoreNotFound() {
         final Keystore nonExistingKeystore = new Keystore();
         nonExistingKeystore.setPath("i-do-not-exist.keystore");
 

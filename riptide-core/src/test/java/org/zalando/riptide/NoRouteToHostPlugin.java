@@ -7,7 +7,7 @@ import static org.zalando.fauxpas.FauxPas.partially;
 final class NoRouteToHostPlugin implements Plugin {
 
     @Override
-    public RequestExecution beforeDispatch(final RequestExecution execution) {
+    public RequestExecution aroundDispatch(final RequestExecution execution) {
         return applyTo(execution);
     }
 

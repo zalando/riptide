@@ -1,33 +1,24 @@
 package org.zalando.riptide;
 
 import com.google.common.reflect.TypeToken;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestClientException;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
-
-final class MessageWorker implements MessageReader, MessageWriter {
+@AllArgsConstructor
+final class DefaultMessageReader implements MessageReader {
 
     private final List<HttpMessageConverter<?>> converters;
-
-    MessageWorker(final List<HttpMessageConverter<?>> converters) {
-        this.converters = checkNotNull(converters, "converters");
-    }
 
     @Override
     public <I> I read(final TypeToken<I> type, final ClientHttpResponse response) throws IOException {
@@ -62,45 +53,6 @@ final class MessageWorker implements MessageReader, MessageWriter {
     @SuppressWarnings("unchecked")
     private <I> I cast(final Object result) {
         return (I) result;
-    }
-
-    @Override
-    public void write(final ClientHttpRequest request, final RequestArguments arguments)
-            throws IOException {
-
-        @Nullable final Object body = arguments.getBody();
-
-        if (body == null) {
-            return;
-        }
-
-        final Class<?> type = body.getClass();
-
-        @Nullable final MediaType contentType = request.getHeaders().getContentType();
-
-        converters.stream()
-                .filter(converter -> converter.canWrite(type, contentType))
-                .map(this::cast)
-                .findFirst()
-                .orElseThrow(() -> fail(type, contentType))
-                .write(body, contentType, request);
-    }
-
-    @SuppressWarnings("unchecked") // guarded by HttpMessageConverter#canWrite
-    private <T> HttpMessageConverter<T> cast(final HttpMessageConverter<?> converter) {
-        return (HttpMessageConverter<T>) converter;
-    }
-
-    private RestClientException fail(final Class<?> type, @Nullable final MediaType contentType) {
-        final String message = format(
-                "Could not write request: no suitable HttpMessageConverter found for request type [%s]",
-                type.getName());
-    
-        if (contentType == null) {
-            return new RestClientException(message);
-        } else {
-            return new RestClientException(format("%s and content type [%s]", message, contentType));
-        }
     }
 
 }

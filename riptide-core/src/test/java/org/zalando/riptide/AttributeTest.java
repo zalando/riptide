@@ -26,7 +26,7 @@ final class AttributeTest {
         this.unit = setup.getHttpBuilder()
                 .plugin(new Plugin() {
                     @Override
-                    public RequestExecution beforeSend(final RequestExecution execution) {
+                    public RequestExecution aroundNetwork(final RequestExecution execution) {
                         return arguments -> {
                             final String secret = arguments.getAttribute(attribute).orElse("unknown");
                             return execution.execute(arguments.withHeaders(ImmutableMultimap.of("Secret", secret)));

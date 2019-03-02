@@ -15,12 +15,12 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -33,7 +33,7 @@ final class TimeoutPluginTest {
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
-    private final Executor executor = Executors.newCachedThreadPool();
+    private final Executor executor = newFixedThreadPool(2);
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http unit = Http.builder()
@@ -73,7 +73,7 @@ final class TimeoutPluginTest {
     @Test
     void shouldTimeout() {
         driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().after(1, TimeUnit.SECONDS));
+                giveEmptyResponse().after(2, TimeUnit.SECONDS));
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.get("/foo")

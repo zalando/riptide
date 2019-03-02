@@ -239,37 +239,20 @@ no wildcard condition either.
 Riptide comes with a way to register extensions in the form of plugins.
 
 - `OriginalStackTracePlugin`, preserves stack traces when executing requests asynchronously
+- [`BackupRequestPlugin`](#riptide-backup), adds backup requests
 - [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
 - [`MetricsPlugin`](riptide-metrics), adds metrics for request duration
 - [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
 - [`TimeoutPlugin`](riptide-timeout), applies timeouts to the whole call (including retries, network latency, etc.)
 
 Whenever you encounter the need to perform some repetitive task on the futures returned by a remote call,
-you may consider implementing a custom Plugin for it, e.g.:
+you may consider implementing a custom Plugin for it.
 
-```java
-class MetricsPlugin implements Plugin {
-    
-    @Override
-    public RequestExecution interceptBeforeRouting(final RequestArguments arguments, final RequestExecution execution) {
-        return () -> {
-           final StopWatch watch = createStarted();
-           final CompletableFuture<ClientHttpResponse> future = execution.execute();
-           future.whenComplete((result, e) -> {
-               final Duration duration = watch.elapsed();
-               metrics.record(arguments, result, e, duration);
-           });
-           return future;
-       };
-    }
-    
-}
+Plugins are executed in phases:
 
-Http.builder()
-    // ...
-    .plugin(new MetricsPlugin(metrics))
-    .build();
-```
+[![Plugin phases](https://docs.google.com/drawings/d/e/2PACX-1vQr2WAQyNILt-UdaCL-2KbBk1QgR2MrpagpnEdI8OjD9l5aopRw2AeM7bg32feN4tutll4DAbYidjn2/pub?w=367&h=659)](https://docs.google.com/drawings/d/1zJC6533at3XzHvxsoUUqyyd4G8cZxmlJ9HFxfhBEcbg/edit?usp=sharing)
+
+Please consult the [Plugin documentation](riptide-core/src/main/java/org/zalando/riptide/Plugin.java) for details.
 
 ### Testing
 

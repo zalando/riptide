@@ -38,7 +38,7 @@ final class AuthorizationPluginTest {
     }
 
     @Test
-    void shouldAddAuthorizationHeader() {
+    void shouldFail() {
         driver.addExpectation(
                 onRequestTo("/").withHeader("Authorization", "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30."),
                 giveEmptyResponse());

@@ -63,7 +63,7 @@ public final class FailsafePlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestExecution execution) {
+    public RequestExecution aroundDispatch(final RequestExecution execution) {
         return arguments -> {
             final Policy<ClientHttpResponse>[] policies = select(arguments);
 

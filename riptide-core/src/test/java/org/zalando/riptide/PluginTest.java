@@ -3,15 +3,16 @@ package org.zalando.riptide;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.UnaryOperator;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
@@ -21,12 +22,12 @@ final class PluginTest {
 
     private final Plugin state = new Plugin() {
         @Override
-        public RequestExecution beforeSend(final RequestExecution execution) {
+        public RequestExecution aroundNetwork(final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution beforeDispatch(final RequestExecution execution) {
+        public RequestExecution aroundDispatch(final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -40,12 +41,12 @@ final class PluginTest {
 
     private final Plugin argument = new Plugin() {
         @Override
-        public RequestExecution beforeSend(final RequestExecution execution) {
+        public RequestExecution aroundNetwork(final RequestExecution execution) {
             return applyTo(execution);
         }
 
         @Override
-        public RequestExecution beforeDispatch(final RequestExecution execution) {
+        public RequestExecution aroundDispatch(final RequestExecution execution) {
             return applyTo(execution);
         }
 
@@ -58,17 +59,17 @@ final class PluginTest {
     };
 
     @Test
-    void shouldApplyInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(arguments -> compound(state, argument).beforeSend(arguments));
+    void shouldApplyInCorrectOrder() {
+        shouldRunInCorrectOrder(arguments -> compound(state, argument).aroundNetwork(arguments));
     }
 
     @Test
-    void shouldPrepareInCorrectOrder() throws IOException {
-        shouldRunInCorrectOrder(compound(state, argument)::beforeDispatch);
+    void shouldPrepareInCorrectOrder() {
+        shouldRunInCorrectOrder(compound(state, argument)::aroundDispatch);
     }
 
     private void shouldRunInCorrectOrder(
-            final UnaryOperator<RequestExecution> function) throws IOException {
+            final UnaryOperator<RequestExecution> function) {
 
         try {
             final RequestExecution execution = arguments -> {
@@ -88,6 +89,25 @@ final class PluginTest {
             assertThat(throwable.getCause(), is(instanceOf(IllegalStateException.class)));
             assertThat(throwable.getCause().getCause(), is(instanceOf(NoSuchElementException.class)));
         }
+    }
+
+    private final Plugin malicious = new Plugin() {
+        @Override
+        public RequestExecution aroundAsync(final RequestExecution execution) {
+            return arguments -> {
+                throw new UnsupportedOperationException();
+            };
+        }
+    };
+
+    @Test
+    void shouldWrapExceptionInExceptionallyCompletedCompletableFuture() {
+        final Plugin plugin = compound(malicious, new AsyncPlugin(Runnable::run));
+        final CompletableFuture<ClientHttpResponse> future = plugin.aroundAsync(arguments -> completedFuture(null))
+                .execute(mock(RequestArguments.class));
+
+        final CompletionException exception = assertThrows(CompletionException.class, future::join);
+        assertThat(exception.getCause(), is(instanceOf(UnsupportedOperationException.class)));
     }
 
 }

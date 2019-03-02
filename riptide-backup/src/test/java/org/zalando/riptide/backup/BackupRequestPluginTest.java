@@ -7,21 +7,20 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.PUT;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,14 +36,14 @@ final class BackupRequestPluginTest {
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor(Executors.newFixedThreadPool(2));
+    private final Executor executor = newFixedThreadPool(2);
     private final ClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http unit = Http.builder()
             .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor))
+            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS).withExecutor(executor))
             .build();
 
     @AfterEach
@@ -94,6 +93,7 @@ final class BackupRequestPluginTest {
                                     throw new IllegalStateException();
                                 }))
                         .join());
+
         assertEquals(IllegalStateException.class, exception.getCause().getClass());
     }
 
@@ -133,7 +133,7 @@ final class BackupRequestPluginTest {
                 .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
-                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS, executor)
+                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS).withExecutor(executor)
                         .withSafeMethodDetector(
                                 arguments -> arguments.getHeaders().containsEntry("Allow-Backup-Request", "true")))
                 .build();

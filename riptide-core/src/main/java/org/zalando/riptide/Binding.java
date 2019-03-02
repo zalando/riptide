@@ -45,7 +45,6 @@ public final class Binding<A> {
      * @return a binding of attribute to route
      * @see PartialBinding
      */
-    // TODO package private?
     @API(status = INTERNAL)
     public static <A> Binding<A> create(@Nullable final A attribute, final Route route) {
         return new Binding<>(attribute, route);

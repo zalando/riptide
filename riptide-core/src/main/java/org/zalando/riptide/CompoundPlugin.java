@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import java.util.Collection;
+import java.util.function.BiFunction;
 
 final class CompoundPlugin implements Plugin {
 
@@ -11,22 +12,27 @@ final class CompoundPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution beforeSend(final RequestExecution execution) {
-        RequestExecution result = execution;
-
-        for (final Plugin plugin : plugins) {
-            result = plugin.beforeSend(result);
-        }
-
-        return result;
+    public RequestExecution aroundAsync(final RequestExecution execution) {
+        return combine(execution, Plugin::aroundAsync);
     }
 
     @Override
-    public RequestExecution beforeDispatch(final RequestExecution execution) {
+    public RequestExecution aroundDispatch(final RequestExecution execution) {
+        return combine(execution, Plugin::aroundDispatch);
+    }
+
+    @Override
+    public RequestExecution aroundNetwork(final RequestExecution execution) {
+        return combine(execution, Plugin::aroundNetwork);
+    }
+
+    private RequestExecution combine(final RequestExecution execution,
+            final BiFunction<Plugin, RequestExecution, RequestExecution> combiner) {
+
         RequestExecution result = execution;
 
         for (final Plugin plugin : plugins) {
-            result = plugin.beforeDispatch(result);
+            result = combiner.apply(plugin, result);
         }
 
         return result;

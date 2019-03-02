@@ -83,7 +83,7 @@ private final ClientDriver driver = new ClientDriverFactory().createClientDriver
     void shouldClassifyExceptionAsTransientAsIs() {
         final Http unit = newUnit(new Plugin() {
             @Override
-            public RequestExecution beforeDispatch(final RequestExecution execution) {
+            public RequestExecution aroundDispatch(final RequestExecution execution) {
                 return arguments -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
