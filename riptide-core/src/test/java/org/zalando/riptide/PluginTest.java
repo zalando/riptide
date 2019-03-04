@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
-import static org.zalando.riptide.Plugin.compound;
+import static org.zalando.riptide.Plugin.composite;
 
 final class PluginTest {
 
@@ -60,12 +60,12 @@ final class PluginTest {
 
     @Test
     void shouldApplyInCorrectOrder() {
-        shouldRunInCorrectOrder(arguments -> compound(state, argument).aroundNetwork(arguments));
+        shouldRunInCorrectOrder(arguments -> composite(state, argument).aroundNetwork(arguments));
     }
 
     @Test
     void shouldPrepareInCorrectOrder() {
-        shouldRunInCorrectOrder(compound(state, argument)::aroundDispatch);
+        shouldRunInCorrectOrder(composite(state, argument)::aroundDispatch);
     }
 
     private void shouldRunInCorrectOrder(
@@ -102,7 +102,7 @@ final class PluginTest {
 
     @Test
     void shouldWrapExceptionInExceptionallyCompletedCompletableFuture() {
-        final Plugin plugin = compound(malicious, new AsyncPlugin(Runnable::run));
+        final Plugin plugin = composite(malicious, new AsyncPlugin(Runnable::run));
         final CompletableFuture<ClientHttpResponse> future = plugin.aroundAsync(arguments -> completedFuture(null))
                 .execute(mock(RequestArguments.class));
 

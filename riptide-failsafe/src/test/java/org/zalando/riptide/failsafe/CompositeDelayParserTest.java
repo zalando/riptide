@@ -10,12 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-final class CompoundDelayParserTest {
+final class CompositeDelayParserTest {
 
     private final DelayParser first = mock(DelayParser.class);
     private final DelayParser second = mock(DelayParser.class);
 
-    private final DelayParser unit = new CompoundDelayParser(Arrays.asList(first, second));
+    private final DelayParser unit = new CompositeDelayParser(Arrays.asList(first, second));
 
     @Test
     void shouldUseFirstNonNullDelay() {

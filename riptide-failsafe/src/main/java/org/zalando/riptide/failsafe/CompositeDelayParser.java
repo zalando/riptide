@@ -7,11 +7,11 @@ import java.util.Collection;
 import java.util.Objects;
 
 @Slf4j
-final class CompoundDelayParser implements DelayParser {
+final class CompositeDelayParser implements DelayParser {
 
     private final Collection<DelayParser> parsers;
 
-    CompoundDelayParser(final Collection<DelayParser> parsers) {
+    CompositeDelayParser(final Collection<DelayParser> parsers) {
         this.parsers = parsers;
     }
 

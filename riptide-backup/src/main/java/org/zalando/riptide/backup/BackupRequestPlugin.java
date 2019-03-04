@@ -39,7 +39,7 @@ public final class BackupRequestPlugin implements Plugin {
 
     private BackupRequestPlugin(final ScheduledExecutorService scheduler, final long delay, final TimeUnit unit,
             final Executor executor) {
-        this(MethodDetector.compound(new DefaultSafeMethodDetector(), new OverrideSafeMethodDetector()),
+        this(MethodDetector.composite(new DefaultSafeMethodDetector(), new OverrideSafeMethodDetector()),
                 scheduler, delay, unit, executor);
     }
 

@@ -11,15 +11,15 @@ import java.util.Collection;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
-public final class CompoundRetryListener implements RetryListener {
+public final class CompositeRetryListener implements RetryListener {
 
     private final Collection<RetryListener> listeners;
 
-    public CompoundRetryListener(final RetryListener... listeners) {
+    public CompositeRetryListener(final RetryListener... listeners) {
         this(Arrays.asList(listeners));
     }
 
-    public CompoundRetryListener(final Collection<RetryListener> listeners) {
+    public CompositeRetryListener(final Collection<RetryListener> listeners) {
         this.listeners = listeners;
     }
 

@@ -24,7 +24,7 @@ public final class RetryAfterDelayFunction implements DelayFunction<ClientHttpRe
     private final DelayParser parser;
 
     public RetryAfterDelayFunction(final Clock clock) {
-        this.parser = new CompoundDelayParser(Arrays.asList(
+        this.parser = new CompositeDelayParser(Arrays.asList(
                 new SecondsDelayParser(),
                 new HttpDateDelayParser(clock)
         ));

@@ -527,7 +527,7 @@ The following table shows all beans with their respective name (for the `example
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.
 
-In case you need more than one custom plugin, please use `Plugin.compound(Plugin...)`.
+In case you need more than one custom plugin, please use `Plugin.composite(Plugin...)`.
 
 ### Testing
 

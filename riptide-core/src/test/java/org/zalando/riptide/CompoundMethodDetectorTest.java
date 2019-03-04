@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class CompoundMethodDetectorTest {
 
-    private final MethodDetector unit = MethodDetector.compound(
+    private final MethodDetector unit = MethodDetector.composite(
             arguments -> arguments.getHeaders().containsKey("A"),
             arguments -> arguments.getHeaders().containsKey("B")
     );
