@@ -21,7 +21,7 @@ public final class TransientFaultPlugin implements Plugin {
     }
 
     @Override
-    public RequestExecution aroundDispatch(final RequestExecution execution) {
+    public RequestExecution aroundNetwork(final RequestExecution execution) {
         return arguments -> execution.execute(arguments)
                 .exceptionally(partially(classifier::classifyExceptionally));
     }

@@ -24,6 +24,11 @@
             <groupId>org.zalando</groupId>
             <artifactId>riptide-core</artifactId>
         </dependency>
+        <!-- TODO remove dependency! -->
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-idempotency</artifactId>
+        </dependency>
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>failsafe</artifactId>

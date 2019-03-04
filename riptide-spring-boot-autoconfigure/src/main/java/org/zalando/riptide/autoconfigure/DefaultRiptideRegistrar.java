@@ -43,6 +43,7 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
+import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
@@ -109,6 +110,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(threads.getQueueSize() == 0 ?
                             new SynchronousQueue<>() :
                             new ArrayBlockingQueue<>(threads.getQueueSize()))
+                    // TODO UncaughtExceptionHandler?
                     .addConstructorArgValue(new CustomizableThreadFactory(name + "-"))
                     .setDestroyMethodName("shutdown");
         });
@@ -301,6 +303,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgValue(registerScheduler(id, client))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
+                            .addConstructorArgValue(new IdempotencyPredicate())
                             .addConstructorArgValue(registerExecutor(id, client)));
             return Optional.of(pluginId);
         }

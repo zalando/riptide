@@ -147,7 +147,7 @@ final class FailsafePluginRetriesTest {
                                         .withMaxRetries(1)
                         ),
                         newSingleThreadScheduledExecutor())
-                        .withIdempotentMethodDetector(arguments ->
+                        .withPredicate(arguments ->
                                 arguments.getHeaders().getOrDefault("Idempotent", emptyList()).contains("true"))
                         .withListener(listeners))
                 .build();

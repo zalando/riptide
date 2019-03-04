@@ -1,7 +1,9 @@
-package org.zalando.riptide;
+package org.zalando.riptide.idempotency;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
 import org.apiguardian.api.API;
+import org.zalando.riptide.RequestArguments;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  * @see <a href="https://tools.ietf.org/html/rfc7232">Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests</a>
  */
 @API(status = EXPERIMENTAL)
-public final class ConditionalIdempotentMethodDetector implements MethodDetector {
+public final class ConditionalIdempotencyDetector implements IdempotencyDetector {
 
     private final Map<String, Predicate<String>> conditionals = ImmutableMap.of(
             /*
@@ -24,8 +26,11 @@ public final class ConditionalIdempotentMethodDetector implements MethodDetector
              * prevent the "lost update" problem).
              *
              * https://tools.ietf.org/html/rfc7232#section-3.1
+             *
+             * Excludes * and requires a single entity tag, because otherwise it
+             * wouldn't be idempotent.
              */
-            "If-Match", $ -> true,
+            "If-Match", CharMatcher.anyOf("*,")::matchesNoneOf,
 
             /*
              * If-None-Match can also be used with a value of "*" to prevent an
@@ -35,6 +40,8 @@ public final class ConditionalIdempotentMethodDetector implements MethodDetector
              * (Section 4.2.1 of [RFC7231]).
              *
              * https://tools.ietf.org/html/rfc7232#section-3.2
+             *
+             * Requires *, because any other usage wouldn't be idempotent.
              */
             "If-None-Match", "*"::equals,
 
@@ -51,7 +58,7 @@ public final class ConditionalIdempotentMethodDetector implements MethodDetector
     );
 
     @Override
-    public boolean test(final RequestArguments arguments) {
+    public boolean test(final RequestArguments arguments, final Predicate<RequestArguments> root) {
         final Map<String, List<String>> headers = arguments.getHeaders();
         return conditionals.entrySet().stream()
                 .anyMatch(entry -> {

@@ -134,10 +134,11 @@ final class BackupRequestPluginTest {
                 .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
-                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS).withExecutor(executor)
-                        .withSafeMethodDetector(
-                                arguments -> arguments.getHeaders()
-                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
+                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS)
+                        .withPredicate(arguments ->
+                                arguments.getHeaders()
+                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true"))
+                        .withExecutor(executor))
                 .build();
 
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));

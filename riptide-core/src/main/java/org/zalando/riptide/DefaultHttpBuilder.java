@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
@@ -35,7 +36,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     static class Plugins {
         private static final ImmutableList<Plugin> DEFAULT =
-                ImmutableList.of(new OriginalStackTracePlugin());
+                ImmutableList.copyOf(ServiceLoader.load(Plugin.class));
 
         private Plugins() {
 

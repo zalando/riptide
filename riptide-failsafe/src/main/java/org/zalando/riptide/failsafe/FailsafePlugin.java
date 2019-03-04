@@ -10,16 +10,10 @@ import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import net.jodah.failsafe.function.CheckedConsumer;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.ConditionalIdempotentMethodDetector;
-import org.zalando.riptide.DefaultIdempotentMethodDetector;
-import org.zalando.riptide.DefaultSafeMethodDetector;
-import org.zalando.riptide.IdempotencyKeyIdempotentMethodDetector;
-import org.zalando.riptide.MethodDetector;
-import org.zalando.riptide.OverrideIdempotentMethodDetector;
-import org.zalando.riptide.OverrideSafeMethodDetector;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,28 +32,20 @@ public final class FailsafePlugin implements Plugin {
 
     private final ImmutableList<? extends Policy<ClientHttpResponse>> policies;
     private final ScheduledExecutorService scheduler;
-    private final MethodDetector idempotent;
+    private final Predicate<RequestArguments> predicate;
     private final RetryListener listener;
 
     public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies,
             final ScheduledExecutorService scheduler) {
-        this(policies, scheduler, MethodDetector.composite(
-                new DefaultIdempotentMethodDetector(MethodDetector.composite(
-                        new DefaultSafeMethodDetector(),
-                        new OverrideSafeMethodDetector()
-                )),
-                new ConditionalIdempotentMethodDetector(),
-                new IdempotencyKeyIdempotentMethodDetector(),
-                new OverrideIdempotentMethodDetector()
-        ), RetryListener.DEFAULT);
+        this(policies, scheduler, new IdempotencyPredicate(), RetryListener.DEFAULT);
     }
 
-    public FailsafePlugin withIdempotentMethodDetector(final MethodDetector idempotent) {
-        return new FailsafePlugin(policies, scheduler, idempotent, listener);
+    public FailsafePlugin withPredicate(final Predicate<RequestArguments> predicate) {
+        return new FailsafePlugin(policies, scheduler, predicate, listener);
     }
 
     public FailsafePlugin withListener(final RetryListener listener) {
-        return new FailsafePlugin(policies, scheduler, idempotent, listener);
+        return new FailsafePlugin(policies, scheduler, predicate, listener);
     }
 
     @Override
@@ -84,7 +70,7 @@ public final class FailsafePlugin implements Plugin {
 
     private Policy<ClientHttpResponse>[] select(final RequestArguments arguments) {
         final Stream<Policy<ClientHttpResponse>> stream = policies.stream()
-                .filter(skipNonIdempotentRetries(arguments))
+                .filter(skipRetriesIfNeeded(arguments))
                 .map(withRetryListener(arguments));
 
         @SuppressWarnings("unchecked")
@@ -93,8 +79,9 @@ public final class FailsafePlugin implements Plugin {
         return policies;
     }
 
-    private Predicate<Policy<ClientHttpResponse>> skipNonIdempotentRetries(final RequestArguments arguments) {
-        return idempotent.test(arguments) ?
+    // TODO depends on the exception, e.g. pre-request exceptions are fine!
+    private Predicate<Policy<ClientHttpResponse>> skipRetriesIfNeeded(final RequestArguments arguments) {
+        return predicate.test(arguments) ?
                 policy -> true :
                 policy -> !(policy instanceof RetryPolicy);
     }
