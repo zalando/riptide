@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
+import org.zalando.riptide.RequestArguments.Entity;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -21,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 final class DefaultRequestArgumentsTest {
 
@@ -42,7 +44,7 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
                 new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
                 new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody),
-                new Assertion<>(RequestArguments::withEntity, new byte[0], RequestArguments::getEntity)
+                new Assertion<>(RequestArguments::withEntity, mock(Entity.class), RequestArguments::getEntity)
         );
     }
 

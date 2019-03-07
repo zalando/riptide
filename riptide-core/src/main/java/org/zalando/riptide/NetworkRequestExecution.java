@@ -7,11 +7,11 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.springframework.util.CollectionUtils.toMultiValueMap;
 
 @AllArgsConstructor
 final class NetworkRequestExecution implements RequestExecution {
@@ -25,12 +25,8 @@ final class NetworkRequestExecution implements RequestExecution {
 
         final ClientHttpRequest request = requestFactory.createRequest(requestUri, method);
 
-        arguments.getHeaders().forEach((name, values) ->
-                values.forEach(value -> request.getHeaders().add(name, value)));
-
-        final OutputStream stream = request.getBody();
-        stream.write(arguments.getEntity());
-        stream.flush();
+        request.getHeaders().addAll(toMultiValueMap(arguments.getHeaders()));
+        arguments.getEntity().writeTo(request);
 
         return completedFuture(request.execute());
     }

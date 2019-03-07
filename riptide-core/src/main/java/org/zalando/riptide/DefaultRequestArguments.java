@@ -71,7 +71,7 @@ final class DefaultRequestArguments implements RequestArguments {
 
     @Getter
     @Wither
-    byte[] entity;
+    Entity entity;
 
     public DefaultRequestArguments() {
         this(null, null, null, null, PersistentVector.empty(), null, PersistentHashMap.empty(),

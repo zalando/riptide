@@ -2,10 +2,12 @@ package org.zalando.riptide;
 
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpOutputMessage;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +22,10 @@ import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
 @API(status = STABLE)
 public interface RequestArguments {
+
+    interface Entity {
+        void writeTo(HttpOutputMessage message) throws IOException;
+    }
 
     URI getBaseUrl();
 
@@ -43,7 +49,7 @@ public interface RequestArguments {
 
     Object getBody();
 
-    byte[] getEntity();
+    Entity getEntity();
 
     RequestArguments withBaseUrl(@Nullable URI baseUrl);
 
@@ -79,7 +85,7 @@ public interface RequestArguments {
 
     RequestArguments withBody(@Nullable Object body);
 
-    RequestArguments withEntity(byte[] entity);
+    RequestArguments withEntity(Entity entity);
 
     default RequestArguments withRequestUri() {
         @Nullable final URI uri = getUri();

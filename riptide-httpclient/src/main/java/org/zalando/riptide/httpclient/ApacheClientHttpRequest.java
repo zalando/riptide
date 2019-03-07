@@ -2,14 +2,16 @@ package org.zalando.riptide.httpclient;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 
-final class ApacheClientHttpRequest implements ClientHttpRequest {
+final class ApacheClientHttpRequest implements ClientHttpRequest, StreamingHttpOutputMessage {
 
     private final ClientHttpRequest request;
 
@@ -19,12 +21,14 @@ final class ApacheClientHttpRequest implements ClientHttpRequest {
 
     @Override
     public ClientHttpResponse execute() throws IOException {
-        return new ApacheClientHttpResponse(request.execute());
+        final ClientHttpResponse execute = request.execute();
+        return new ApacheClientHttpResponse(execute);
     }
 
+    @Nonnull
     @Override
-    public OutputStream getBody() throws IOException {
-        return request.getBody();
+    public OutputStream getBody() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -45,6 +49,11 @@ final class ApacheClientHttpRequest implements ClientHttpRequest {
     @Override
     public HttpHeaders getHeaders() {
         return request.getHeaders();
+    }
+
+    @Override
+    public void setBody(final Body body) {
+        ((StreamingHttpOutputMessage) request).setBody(body);
     }
 
 }
