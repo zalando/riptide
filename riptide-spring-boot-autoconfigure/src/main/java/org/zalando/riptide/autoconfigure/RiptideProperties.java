@@ -86,7 +86,7 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private Caching caching = new Caching(
                 false,
-                true,
+                false,
                 null,
                 CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES,
                 CacheConfig.DEFAULT_MAX_CACHE_ENTRIES,

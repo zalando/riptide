@@ -13,7 +13,6 @@ riptide:
         shared: false
     heuristic:
       caching:
-        shared: false
         heuristic:
           enabled: true
           coefficient: 0.2
