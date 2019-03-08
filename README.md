@@ -239,6 +239,7 @@ no wildcard condition either.
 Riptide comes with a way to register extensions in the form of plugins.
 
 - `OriginalStackTracePlugin`, preserves stack traces when executing requests asynchronously
+- [`AuthorizationPlugin`](#riptide-auth), adds `Authorization` support
 - [`BackupRequestPlugin`](#riptide-backup), adds backup requests
 - [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
 - [`MetricsPlugin`](riptide-metrics), adds metrics for request duration

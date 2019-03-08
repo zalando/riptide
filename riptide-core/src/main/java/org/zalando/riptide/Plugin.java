@@ -17,6 +17,8 @@ import static org.apiguardian.api.API.Status.MAINTAINED;
  *     <dd>Phases afterwards are executed asynchronously.</dd>
  *     <dt>Dispatch</dt>
  *     <dd>Performs the response routing onto the supplied routing tree upon receiving a response.</dd>
+ *     <dt>Serialization</dt>
+ *     <dd>Serialization of the request body.</dd>
  *     <dt>Network</dt>
  *     <dd>The actual network communication.</dd>
  * </dl>
@@ -35,7 +37,7 @@ public interface Plugin {
      * useful for plugins which either need to perform some task in the calling thread or (more commonly) may trigger
      * other asynchronous operations concurrently to the request.
      *
-     * @param execution the execution that includes the thread switch as well as the dispatch and network phases
+     * @param execution the execution that includes the thread switch as well as the dispatch, serialization and network phases
      * @return the new, potentially modified execution
      */
     default RequestExecution aroundAsync(final RequestExecution execution) {
@@ -46,10 +48,20 @@ public interface Plugin {
      * The given execution will have the response already being dispatched onto the given {@link Route}. Any
      * exceptions that were produced from the response will be observable in this stage.
      *
-     * @param execution the execution that includes the dispatch and network phase
+     * @param execution the execution that includes the dispatch, serialization and network phase
      * @return the new, potentially modified execution
      */
     default RequestExecution aroundDispatch(final RequestExecution execution) {
+        return execution;
+    }
+
+    /**
+     * The given execution will have the request body already serialized into bytes.
+     *
+     * @param execution the execution that includes serialization and network phase
+     * @return the new, potentially modified execution
+     */
+    default RequestExecution aroundSerialization(final RequestExecution execution) {
         return execution;
     }
 

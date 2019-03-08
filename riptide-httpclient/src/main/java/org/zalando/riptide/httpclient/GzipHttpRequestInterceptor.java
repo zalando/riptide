@@ -33,9 +33,7 @@ public final class GzipHttpRequestInterceptor implements HttpRequestInterceptor 
     }
 
     private boolean hasNonEmptyBody(final HttpEntityEnclosingRequest request) {
-        return Optional.ofNullable(request.getEntity())
-                .filter(entity -> entity.getContentLength() > 0)
-                .isPresent();
+        return request.getEntity() != null;
     }
 
     private HttpEntity compress(final HttpEntity entity) {

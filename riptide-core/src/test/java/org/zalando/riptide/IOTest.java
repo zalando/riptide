@@ -45,9 +45,11 @@ final class IOTest {
 
     private final ExecutorService executor = newSingleThreadExecutor();
 
+    private final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
     private final Http http = Http.builder()
             .executor(executor)
-            .requestFactory(new SimpleClientHttpRequestFactory())
+            .requestFactory(requestFactory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .build();
@@ -65,7 +67,18 @@ final class IOTest {
     }
 
     @Test
-    void shouldReadContributors() throws IOException {
+    void shouldBuffer() throws IOException {
+        requestFactory.setBufferRequestBody(true);
+        shouldReadContributors();
+    }
+
+    @Test
+    void shouldStream() throws IOException {
+        requestFactory.setBufferRequestBody(false);
+        shouldReadContributors();
+    }
+
+    private void shouldReadContributors() throws IOException {
         driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 

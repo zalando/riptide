@@ -15,6 +15,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -148,7 +149,9 @@ final class ApacheClientHttpRequestFactoryTest {
         final ClientHttpRequest request = factory.createRequest(uri, POST);
 
         request.getHeaders().setAccept(singletonList(APPLICATION_JSON));
-        request.getBody().write("{}".getBytes(UTF_8));
+
+        ((StreamingHttpOutputMessage) request)
+                .setBody(stream -> stream.write("{}".getBytes(UTF_8)));
 
         assertThat(request.getMethod(), is(POST));
         assertThat(request.getMethodValue(), is("POST"));

@@ -6,10 +6,7 @@ import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apiguardian.api.API;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -22,7 +19,7 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public final class ApacheClientHttpRequestFactory implements ClientHttpRequestFactory {
 
-    private final ClientHttpRequestFactory factory;
+    private final HttpComponentsClientHttpRequestFactory factory;
 
     public ApacheClientHttpRequestFactory(final HttpClient client) {
         final RequestConfig config = Configurable.class.cast(client).getConfig();
@@ -34,6 +31,8 @@ public final class ApacheClientHttpRequestFactory implements ClientHttpRequestFa
                 HttpRequestBase.class.cast(request).setConfig(config);
             }
         };
+
+        this.factory.setBufferRequestBody(false);
     }
 
     @Override

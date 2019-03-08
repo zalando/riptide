@@ -3,6 +3,7 @@ package org.zalando.riptide;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -59,17 +60,17 @@ final class PluginTest {
     };
 
     @Test
-    void shouldApplyInCorrectOrder() {
+    void shouldApplyInCorrectOrder() throws IOException {
         shouldRunInCorrectOrder(arguments -> composite(state, argument).aroundNetwork(arguments));
     }
 
     @Test
-    void shouldPrepareInCorrectOrder() {
+    void shouldPrepareInCorrectOrder() throws IOException {
         shouldRunInCorrectOrder(composite(state, argument)::aroundDispatch);
     }
 
     private void shouldRunInCorrectOrder(
-            final UnaryOperator<RequestExecution> function) {
+            final UnaryOperator<RequestExecution> function) throws IOException {
 
         try {
             final RequestExecution execution = arguments -> {
@@ -101,7 +102,7 @@ final class PluginTest {
     };
 
     @Test
-    void shouldWrapExceptionInExceptionallyCompletedCompletableFuture() {
+    void shouldWrapExceptionInExceptionallyCompletedCompletableFuture() throws IOException {
         final Plugin plugin = composite(malicious, new AsyncPlugin(Runnable::run));
         final CompletableFuture<ClientHttpResponse> future = plugin.aroundAsync(arguments -> completedFuture(null))
                 .execute(mock(RequestArguments.class));

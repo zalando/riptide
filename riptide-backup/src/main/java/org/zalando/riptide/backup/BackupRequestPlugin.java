@@ -3,6 +3,7 @@ package org.zalando.riptide.backup;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.AbstractCancelableCompletableFuture;
 import org.zalando.riptide.DefaultSafeMethodDetector;
 import org.zalando.riptide.MethodDetector;
@@ -11,6 +12,7 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -63,7 +65,7 @@ public final class BackupRequestPlugin implements Plugin {
     }
 
     private CompletableFuture<ClientHttpResponse> withBackup(final RequestExecution execution,
-            final RequestArguments arguments) {
+            final RequestArguments arguments) throws IOException {
         final CompletableFuture<ClientHttpResponse> original = execution.execute(arguments);
         final CompletableFuture<ClientHttpResponse> backup = new CompletableFuture<>();
 
@@ -75,7 +77,7 @@ public final class BackupRequestPlugin implements Plugin {
         return anyOf(original, backup);
     }
 
-    private Runnable backup(final RequestExecution execution,
+    private ThrowingRunnable<IOException> backup(final RequestExecution execution,
             final RequestArguments arguments, final CompletableFuture<ClientHttpResponse> target) {
         return () -> execution.execute(arguments).whenCompleteAsync(forwardTo(target), executor);
     }

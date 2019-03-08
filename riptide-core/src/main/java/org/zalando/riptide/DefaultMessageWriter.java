@@ -1,8 +1,8 @@
 package org.zalando.riptide;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 
@@ -18,7 +18,7 @@ final class DefaultMessageWriter implements MessageWriter {
     private final List<HttpMessageConverter<?>> converters;
 
     @Override
-    public void write(final ClientHttpRequest request, final RequestArguments arguments)
+    public void write(final HttpOutputMessage request, final RequestArguments arguments)
             throws IOException {
 
         @Nullable final Object body = arguments.getBody();

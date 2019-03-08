@@ -23,7 +23,7 @@ final class DefaultHttp implements Http {
             final List<HttpMessageConverter<?>> converters,
             final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
         this.reader = new DefaultMessageReader(converters);
-        this.network = new NetworkRequestExecution(requestFactory, new DefaultMessageWriter(converters));
+        this.network = new GuardedRequestExecution(new NetworkRequestExecution(requestFactory));
         this.baseUrlProvider = requireNonNull(baseUrlProvider, "base url provider");
         this.arguments = RequestArguments.create().withUrlResolution(resolution);
         this.plugin = plugin;
