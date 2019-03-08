@@ -35,8 +35,7 @@ riptide.clients:
       delay: 30 seconds
       success-threshold: 5 out of 5
     caching:
-      shared: false
-      max-cache-entries: 100
+      max-cache-entries: 1000
 ```
 
 ```java
@@ -344,7 +343,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │       └── password`              | `String`       | none                                             |
 | `│   └── caching`                       |                |                                                  |
 | `│       ├── enabled`                   | `boolean`      | `false`                                          |
-| `│       ├── shared`                    | `boolean`      | `true`                                           |
+| `│       ├── shared`                    | `boolean`      | `false`                                           |
 | `│       ├── directory`                 | `String`       | none, *in-memory* caching by default             |
 | `│       ├── max-object-size`           | `int`          | `8192`                                           |
 | `│       ├── max-cache-entries`         | `int`          | `1000`                                           |
