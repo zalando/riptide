@@ -116,7 +116,7 @@ public final class PluginInterceptor implements ClientHttpRequestInterceptor, As
     private RequestArguments toArguments(final HttpRequest request, final byte[] body) {
         return RequestArguments.create()
                 .withMethod(request.getMethod())
-                .withRequestUri(request.getURI())
+                .withUri(request.getURI())
                 .withHeaders(request.getHeaders())
                 /*
                  * Plugins and AsyncClientHttpRequestInterceptors are conceptually working on different logical

@@ -5,7 +5,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
@@ -14,11 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.apiguardian.api.API.Status.STABLE;
-import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
-import static org.springframework.web.util.UriUtils.encode;
-import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 
 @API(status = STABLE)
 public interface RequestArguments {
@@ -73,8 +68,6 @@ public interface RequestArguments {
 
     RequestArguments replaceQueryParams(Map<String, ? extends Collection<String>> queryParams);
 
-    RequestArguments withRequestUri(@Nullable URI requestUri);
-
     RequestArguments withHeader(String name, String value);
 
     RequestArguments withHeaders(Map<String, ? extends Collection<String>> headers);
@@ -86,52 +79,6 @@ public interface RequestArguments {
     RequestArguments withBody(@Nullable Object body);
 
     RequestArguments withEntity(Entity entity);
-
-    default RequestArguments withRequestUri() {
-        @Nullable final URI uri = getUri();
-        @Nullable final URI unresolvedUri;
-
-        if (uri == null) {
-            final String uriTemplate = getUriTemplate();
-            if (uriTemplate == null || uriTemplate.isEmpty()) {
-                unresolvedUri = null;
-            } else {
-                // expand uri template
-                unresolvedUri = fromUriString(uriTemplate)
-                        .buildAndExpand(getUriVariables().toArray())
-                        .encode()
-                        .toUri();
-            }
-        } else {
-            unresolvedUri = uri;
-        }
-
-        @Nullable final URI baseUrl = getBaseUrl();
-        @Nonnull final URI resolvedUri;
-
-        if (unresolvedUri == null) {
-            checkArgument(baseUrl != null, "Either Base URL or absolute Request URI is required");
-            resolvedUri = baseUrl;
-        } else if (baseUrl == null || unresolvedUri.isAbsolute()) {
-            resolvedUri = unresolvedUri;
-        } else {
-            resolvedUri = getUrlResolution().resolve(baseUrl, unresolvedUri);
-        }
-
-        final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
-        // encode query params
-        getQueryParams().forEach(throwingBiConsumer((key, values) ->
-                values.forEach(value ->
-                        components.queryParam(key, encode(value, "UTF-8")))));
-
-        // build request uri
-        final URI requestUri = components.uri(resolvedUri)
-                .build(true).normalize().toUri();
-
-        checkArgument(requestUri.isAbsolute(), "Request URI is not absolute");
-
-        return withRequestUri(requestUri);
-    }
 
     static RequestArguments create() {
         return new DefaultRequestArguments();

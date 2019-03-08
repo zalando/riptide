@@ -10,8 +10,8 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +21,7 @@ final class DefaultTagGeneratorTest {
 
     private final RequestArguments arguments = RequestArguments.create()
             .withMethod(HttpMethod.GET)
-            .withRequestUri(URI.create("http://localhost/"));
+            .withBaseUrl(URI.create("http://localhost/"));
 
     private final ClientHttpResponse response = mock(ClientHttpResponse.class);
 
