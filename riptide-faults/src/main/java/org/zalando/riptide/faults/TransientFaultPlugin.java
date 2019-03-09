@@ -13,7 +13,7 @@ public final class TransientFaultPlugin implements Plugin {
     private final FaultClassifier classifier;
 
     public TransientFaultPlugin() {
-        this(FaultClassifier.createDefault());
+        this(new DefaultFaultClassifier());
     }
 
     public TransientFaultPlugin(final FaultClassifier classifier) {

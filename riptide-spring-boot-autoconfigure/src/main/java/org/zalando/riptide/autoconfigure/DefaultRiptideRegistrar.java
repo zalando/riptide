@@ -8,8 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.ConnectionClosedException;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -38,6 +36,7 @@ import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
+import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -58,7 +57,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
@@ -355,17 +353,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (registry.isRegistered(id, FaultClassifier.class)) {
             return generateBeanName(id, FaultClassifier.class);
         } else {
-            return registry.registerIfAbsent(FaultClassifier.class, () -> {
-                final List<Predicate<Throwable>> predicates = list();
-
-                predicates.addAll(FaultClassifier.defaults());
-                predicates.add(ConnectionClosedException.class::isInstance);
-                predicates.add(NoHttpResponseException.class::isInstance);
-
-                return genericBeanDefinition(FaultClassifier.class)
-                        .setFactoryMethod("create")
-                        .addConstructorArgValue(predicates);
-            });
+            return registry.registerIfAbsent(FaultClassifier.class, () ->
+                    genericBeanDefinition(DefaultFaultClassifier.class));
         }
     }
 

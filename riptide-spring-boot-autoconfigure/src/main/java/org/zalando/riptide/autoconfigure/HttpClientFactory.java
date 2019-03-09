@@ -93,8 +93,9 @@ final class HttpClientFactory {
         config.setSocketTimeout((int) connections.getSocketTimeout().to(MILLISECONDS));
 
         builder.setConnectionManager(connectionManager);
-
         builder.setDefaultRequestConfig(config.build());
+        builder.disableAutomaticRetries();
+
         Optional.ofNullable(customizer).ifPresent(customize(builder));
 
         return builder.build();
