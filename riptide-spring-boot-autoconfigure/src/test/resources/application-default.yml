@@ -23,6 +23,9 @@ riptide:
       timeouts:
         enabled: true
         global: 1 seconds
+      soap:
+        enabled: true
+        protocol: 1.2
     github:
       base-url: https://example.com
       certificate-pinning:

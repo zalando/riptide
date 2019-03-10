@@ -2,6 +2,7 @@ package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import lombok.AllArgsConstructor;
@@ -44,13 +45,17 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
+import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
+import javax.xml.soap.SOAPConstants;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -61,6 +66,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toCollection;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.autoconfigure.Dependencies.ifPresent;
@@ -79,7 +85,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     public void register() {
         properties.getClients().forEach((id, client) -> {
             final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
-            final BeanDefinition converters = registerHttpMessageConverters(id);
+            final BeanDefinition converters = registerHttpMessageConverters(id, client);
             final List<String> plugins = registerPlugins(id, client);
 
             registerHttp(id, client, factoryId, converters, plugins);
@@ -128,7 +134,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     }
 
-    private BeanDefinition registerHttpMessageConverters(final String id) {
+    private BeanDefinition registerHttpMessageConverters(final String id, final Client client) {
         // we use the wrong type here since that's the easiest way to influence the name
         // we want exampleHttpMessageConverters, rather than exampleClientHttpMessageConverters
 
@@ -150,6 +156,26 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgReference(objectMapperId)
                         .getBeanDefinition());
             });
+
+            if (client.getSoap().getEnabled()) {
+                final Map<String, String> protocols = ImmutableMap.of(
+                        "1.1", SOAPConstants.SOAP_1_1_PROTOCOL,
+                        "1.2", SOAPConstants.SOAP_1_2_PROTOCOL
+                );
+
+                final String protocol = requireNonNull(protocols.get(client.getSoap().getProtocol()),
+                        "Unsupported protocol: " + client.getSoap().getProtocol());
+
+                log.debug("Client [{}]: Registering SOAPHttpMessageConverter", id);
+                list.add(genericBeanDefinition(SOAPHttpMessageConverter.class)
+                        .addConstructorArgValue(protocol)
+                        .getBeanDefinition());
+
+                log.debug("Client [{]]: Registering SOAPFaultHttpMessageConverter", id);
+                list.add(genericBeanDefinition(SOAPFaultHttpMessageConverter.class)
+                        .addConstructorArgValue(protocol)
+                        .getBeanDefinition());
+            }
 
             log.debug("Client [{}]: Registering StringHttpMessageConverter", id);
             list.add(genericBeanDefinition(StringHttpMessageConverter.class)
