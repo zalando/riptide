@@ -32,7 +32,6 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.faults.FaultClassifier.create;
 
 final class TransientFaultPluginTest {
 
@@ -70,7 +69,8 @@ final class TransientFaultPluginTest {
 
     @Test
     void shouldNotClassifyAsTransientIfNotMatching() {
-        final Http unit = newUnit(new TransientFaultPlugin(create()));
+        final Http unit = newUnit(new TransientFaultPlugin(new DefaultFaultClassifier()
+                .exclude(SocketTimeoutException.class::isInstance)));
 
         driver.addExpectation(onRequestTo("/"),
                 giveEmptyResponse().after(DELAY, TimeUnit.MILLISECONDS));
@@ -90,7 +90,7 @@ final class TransientFaultPluginTest {
                     return future;
                 };
             }
-        }, new TransientFaultPlugin(create(IllegalArgumentException.class::isInstance)));
+        }, new TransientFaultPlugin(new DefaultFaultClassifier().include(IllegalArgumentException.class::isInstance)));
 
         final CompletionException exception = assertThrows(CompletionException.class, request(unit)::join);
 

@@ -2,19 +2,25 @@ package org.zalando.riptide.faults;
 
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
-import java.util.NoSuchElementException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.hamcrest.MatcherAssert.assertThat;
 
-final class FaultClassifierTest {
+final class DefaultFaultClassifierTest {
 
-    private final FaultClassifier unit = FaultClassifier.createDefault();
+    private final FaultClassifier unit = new DefaultFaultClassifier();
+
+    @Test
+    void shouldClassifyIOException() {
+        assertTransient(new IOException());
+    }
 
     @Test
     void shouldClassifyInterruptedIOException() {
@@ -22,8 +28,13 @@ final class FaultClassifierTest {
     }
 
     @Test
-    void shouldClassifySocketException() {
+    void shouldClassifySocketTimeoutException() {
         assertTransient(new SocketTimeoutException());
+    }
+
+    @Test
+    void shouldNotClassifySSLException() {
+        assertNotTransient(new SSLException("Oops"));
     }
 
     @Test
@@ -34,20 +45,6 @@ final class FaultClassifierTest {
     @Test
     void shouldNotClassifyGenericSSLHandShakeException() {
         assertNotTransient(new SSLHandshakeException("No hands, no cookies"));
-    }
-
-    @Test
-    void shouldClassifyAsTransientWithNonTransientRootCause() {
-        final SocketTimeoutException e = new SocketTimeoutException();
-        e.initCause(new NoSuchElementException());
-        assertTransient(e);
-    }
-
-    @Test
-    void shouldClassifyAsTransientWithTransientIntermediateCause() {
-        final SocketTimeoutException e = new SocketTimeoutException();
-        e.initCause(new NoSuchElementException());
-        assertTransient(new IllegalStateException(e));
     }
 
     @Test

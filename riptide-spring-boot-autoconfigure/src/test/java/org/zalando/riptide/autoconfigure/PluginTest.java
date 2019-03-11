@@ -14,6 +14,7 @@ import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.metrics.MetricsPlugin;
@@ -41,12 +42,12 @@ final class PluginTest {
 
         @Bean
         public FaultClassifier githubFaultClassifier() {
-            return FaultClassifier.createDefault();
+            return new DefaultFaultClassifier();
         }
 
         @Bean
         public FaultClassifier faultClassifier() {
-            return FaultClassifier.createDefault();
+            return new DefaultFaultClassifier();
         }
 
         @Bean

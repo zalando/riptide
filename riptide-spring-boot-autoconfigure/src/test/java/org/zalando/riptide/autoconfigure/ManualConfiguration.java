@@ -6,8 +6,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.ConnectionClosedException;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -44,7 +42,6 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
-import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -67,7 +64,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
-import java.util.function.Predicate;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -113,12 +109,7 @@ public class ManualConfiguration {
             return Arrays.asList(
                     new MetricsPlugin(meterRegistry)
                             .withDefaultTags(Tag.of("clientId", "example")),
-                    new TransientFaultPlugin(
-                            FaultClassifier.create(ImmutableList.<Predicate<Throwable>>builder()
-                                    .addAll(FaultClassifier.defaults())
-                                    .add(ConnectionClosedException.class::isInstance)
-                                    .add(NoHttpResponseException.class::isInstance)
-                                    .build())),
+                    new TransientFaultPlugin(),
                     new FailsafePlugin(
                             ImmutableList.of(
                                     new RetryPolicy<ClientHttpResponse>()
