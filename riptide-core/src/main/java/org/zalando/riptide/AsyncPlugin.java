@@ -19,9 +19,8 @@ final class AsyncPlugin implements Plugin {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
 
-            executor.execute(throwingRunnable(() -> {
-                execution.execute(arguments).whenComplete(forwardTo(future));
-            }));
+            executor.execute(throwingRunnable(() ->
+                    execution.execute(arguments).whenComplete(forwardTo(future))));
 
             return future;
         };

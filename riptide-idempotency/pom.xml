@@ -10,24 +10,15 @@
         <version>3.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>riptide-backup</artifactId>
+    <artifactId>riptide-idempotency</artifactId>
 
-    <name>Riptide: Backup</name>
+    <name>Riptide: Idempotency</name>
     <description>Client side response routing</description>
 
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>riptide-idempotency</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>riptide-httpclient</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -39,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>riptide-capture</artifactId>
+            <artifactId>riptide-httpclient</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

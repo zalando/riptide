@@ -39,12 +39,12 @@ final class TransientFaultPluginTest {
     private static final int SOCKET_TIMEOUT = 1000;
     private static final int DELAY = 2000;
 
-private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
-                .setSocketTimeout(SOCKET_TIMEOUT)
-                .build())
+                    .setSocketTimeout(SOCKET_TIMEOUT)
+                    .build())
             .build();
 
     private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
@@ -83,7 +83,7 @@ private final ClientDriver driver = new ClientDriverFactory().createClientDriver
     void shouldClassifyExceptionAsTransientAsIs() {
         final Http unit = newUnit(new Plugin() {
             @Override
-            public RequestExecution aroundDispatch(final RequestExecution execution) {
+            public RequestExecution aroundNetwork(final RequestExecution execution) {
                 return arguments -> {
                     final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
                     future.completeExceptionally(new IllegalArgumentException());
