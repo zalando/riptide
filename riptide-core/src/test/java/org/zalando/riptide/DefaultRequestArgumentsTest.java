@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -42,7 +43,6 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withMethod, HttpMethod.GET, RequestArguments::getMethod),
                 new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
-                new Assertion<>(RequestArguments::withRequestUri, URI.create("https://api.example.com/123?k=v"), RequestArguments::getRequestUri),
                 new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody),
                 new Assertion<>(RequestArguments::withEntity, mock(Entity.class), RequestArguments::getEntity)
         );
@@ -106,6 +106,17 @@ final class DefaultRequestArgumentsTest {
     void headersShouldBeCaseInsensitive() {
         final RequestArguments arguments = unit.withHeader("Foo", "bar");
         assertTrue(arguments.getHeaders().containsKey("foo"));
+    }
+
+    @Test
+    void shouldCacheRequestUri() {
+        final RequestArguments arguments = unit
+                .withBaseUrl(URI.create("https://www.example.org"))
+                .withUrlResolution(UrlResolution.RFC)
+                .withUriTemplate("/users/{user}")
+                .replaceUriVariables(singletonList("me"));
+
+        assertSame(arguments.getRequestUri(), arguments.getRequestUri());
     }
 
 }

@@ -38,7 +38,7 @@ final class MetricsRetryListenerTest {
                 .with(policy.onRetry(event -> {
                     final RequestArguments arguments = RequestArguments.create()
                             .withMethod(HttpMethod.GET)
-                            .withRequestUri(URI.create("/"));
+                            .withUri(URI.create("https://www.example.org/"));
                     unit.onRetry(arguments, event);
                 }))
                 .run(() -> {
