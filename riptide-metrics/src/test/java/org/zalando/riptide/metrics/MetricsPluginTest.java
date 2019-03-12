@@ -11,7 +11,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 
 import javax.annotation.Nullable;
@@ -65,7 +64,6 @@ final class MetricsPluginTest {
 
     MetricsPluginTest() {
         this.factory.setReadTimeout(500);
-        this.factory.setTaskExecutor(new ConcurrentTaskExecutor());
     }
 
     @Test

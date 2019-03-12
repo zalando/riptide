@@ -310,7 +310,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── socket-timeout`            | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── time-to-live`              | `TimeSpan`     | `30 seconds`                                     |
 | `│   │   ├── max-per-route`             | `int`          | `20`                                             |
-| `│   │   └── max-total`                 | `int`          | `20` (or at least `max-per-route`)               |
+| `│   │   ├── max-total`                 | `int`          | `20` (or at least `max-per-route`)               |
+| `│   │   └── mode`                      | `String`       | `streaming` (alternative is `buffering`)         |
 | `│   ├── threads`                       |                |                                                  |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
@@ -378,6 +379,7 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── max-per-route`         | `int`          | see `defaults`                                   |
 | `        │   └── max-total`             | `int`          | see `defaults`                                   |
+| `        │   └── mode`                  | `String`       | see `defaults`                                   |
 | `        └── threads`                   |                |                                                  |
 | `            ├── min-size`              | `int`          | see `defaults`                                   |
 | `            ├── max-size`              | `int`          | see `defaults`                                   |

@@ -12,6 +12,7 @@ import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +48,8 @@ public final class RiptideProperties {
                 TimeSpan.of(5, SECONDS),
                 TimeSpan.of(30, SECONDS),
                 20,
-                20
+                20,
+                Mode.STREAMING
         );
 
         @NestedConfigurationProperty
@@ -165,6 +167,7 @@ public final class RiptideProperties {
         private TimeSpan timeToLive;
         private Integer maxPerRoute;
         private Integer maxTotal;
+        private Mode mode;
     }
 
     @Getter

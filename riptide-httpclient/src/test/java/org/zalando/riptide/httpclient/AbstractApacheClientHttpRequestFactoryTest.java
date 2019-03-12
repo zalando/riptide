@@ -6,23 +6,23 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
+import com.github.restdriver.clientdriver.ClientDriverRequest;
+import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +30,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
@@ -48,6 +49,7 @@ import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -57,38 +59,25 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 
-final class ApacheClientHttpRequestFactoryTest {
+public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
-
-    @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
-    static class User {
-        String login;
-
-        String getLogin() {
-            return login;
-        }
-    }
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setMaxConnTotal(1)
             .setMaxConnPerRoute(1)
             .build();
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
-    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
+
+    private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client, getMode());
+
+    abstract Mode getMode();
 
     private final Http http = Http.builder()
-            .executor(executor)
+            .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .converter(createJsonConverter())
+            .converter(new MappingJackson2HttpMessageConverter(createObjectMapper()))
             .build();
-
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(createObjectMapper());
-        return converter;
-    }
 
     private static ObjectMapper createObjectMapper() {
         return new ObjectMapper().findAndRegisterModules()
@@ -97,7 +86,7 @@ final class ApacheClientHttpRequestFactoryTest {
 
     @AfterEach
     void tearDown() throws IOException {
-        client.close();
+        factory.destroy();
     }
 
     @Test
@@ -106,7 +95,7 @@ final class ApacheClientHttpRequestFactoryTest {
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final RestTemplate template = new RestTemplate(factory);
-        template.setMessageConverters(singletonList(createJsonConverter()));
+        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(createObjectMapper())));
 
         final List<User> users = template.exchange(driver.getBaseUrl() + "/repos/zalando/riptide/contributors", GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
@@ -142,7 +131,7 @@ final class ApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReadContributorsManually() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors").withMethod(Method.POST),
+        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors").withMethod(ClientDriverRequest.Method.POST),
                 giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final URI uri = URI.create(driver.getBaseUrl()).resolve("/repos/zalando/riptide/contributors");
@@ -150,8 +139,12 @@ final class ApacheClientHttpRequestFactoryTest {
 
         request.getHeaders().setAccept(singletonList(APPLICATION_JSON));
 
-        ((StreamingHttpOutputMessage) request)
-                .setBody(stream -> stream.write("{}".getBytes(UTF_8)));
+        if (request instanceof StreamingHttpOutputMessage) {
+            ((StreamingHttpOutputMessage) request)
+                    .setBody(stream -> stream.write("{}".getBytes(UTF_8)));
+        } else {
+            request.getBody().write("{}".getBytes(UTF_8));
+        }
 
         assertThat(request.getMethod(), is(POST));
         assertThat(request.getMethodValue(), is("POST"));
@@ -187,4 +180,17 @@ final class ApacheClientHttpRequestFactoryTest {
         });
     }
 
+    @Test
+    void shouldDestroyNonCloseableClient() throws IOException {
+        new ApacheClientHttpRequestFactory(mock(HttpClient.class), getMode()).destroy();
+    }
+
+    @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
+    static class User {
+        String login;
+
+        String getLogin() {
+            return login;
+        }
+    }
 }

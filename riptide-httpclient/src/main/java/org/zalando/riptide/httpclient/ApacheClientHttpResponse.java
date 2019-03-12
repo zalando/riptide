@@ -1,24 +1,46 @@
 package org.zalando.riptide.httpclient;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.AbstractClientHttpResponse;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
+import static org.springframework.util.StreamUtils.emptyInput;
+import static org.zalando.fauxpas.FauxPas.throwingConsumer;
 import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
-final class ApacheClientHttpResponse implements ClientHttpResponse {
+final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
 
-    private final ClientHttpResponse response;
+    private final HttpHeaders headers = new HttpHeaders();
+    private final HttpResponse response;
     private final InputStream body;
 
-    ApacheClientHttpResponse(final ClientHttpResponse response) throws IOException {
+    ApacheClientHttpResponse(final HttpResponse response) throws IOException {
         this.response = response;
-        this.body = new EndOfStreamAwareInputStream(response.getBody(), (body, endOfStreamDetected) -> {
+        this.body = getBody(response);
+
+        for (final Header header : response.getAllHeaders()) {
+            this.headers.add(header.getName(), header.getValue());
+        }
+    }
+
+    private static InputStream getBody(final HttpResponse response) throws IOException {
+        @Nullable final HttpEntity entity = response.getEntity();
+
+        if (entity == null) {
+            return emptyInput();
+        }
+
+        return new EndOfStreamAwareInputStream(entity.getContent(), (body, endOfStreamDetected) -> {
             if (body instanceof ConnectionReleaseTrigger) {
                 // effectively releasing the connection back to the pool in order to prevent starvation
                 final ConnectionReleaseTrigger trigger = (ConnectionReleaseTrigger) body;
@@ -37,18 +59,14 @@ final class ApacheClientHttpResponse implements ClientHttpResponse {
     }
 
     @Override
-    public HttpStatus getStatusCode() throws IOException {
-        return response.getStatusCode();
+    public int getRawStatusCode() {
+        return response.getStatusLine().getStatusCode();
     }
 
+    @Nonnull
     @Override
-    public int getRawStatusCode() throws IOException {
-        return response.getRawStatusCode();
-    }
-
-    @Override
-    public String getStatusText() throws IOException {
-        return response.getStatusText();
+    public String getStatusText() {
+        return response.getStatusLine().getReasonPhrase();
     }
 
     @Nonnull
@@ -57,16 +75,19 @@ final class ApacheClientHttpResponse implements ClientHttpResponse {
         return body;
     }
 
+    @Nonnull
     @Override
     public HttpHeaders getHeaders() {
-        return response.getHeaders();
+        return headers;
     }
 
     @Override
     public void close() {
-        // no clue why ClientHttpResponse#close doesn't allow IOExceptions to be thrown...
-        throwingRunnable(() -> getBody().close()).run();
-        response.close();
+        throwingRunnable(body::close).run();
+        Optional.of(response)
+                .filter(Closeable.class::isInstance)
+                .map(Closeable.class::cast)
+                .ifPresent(throwingConsumer(Closeable::close));
     }
 
 }

@@ -97,7 +97,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.registerIfAbsent(id, ClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
             return genericBeanDefinition(ApacheClientHttpRequestFactory.class)
-                    .addConstructorArgReference(registerHttpClient(id, client));
+                    .addConstructorArgReference(registerHttpClient(id, client))
+                    .addConstructorArgValue(client.getConnections().getMode());
         });
     }
 

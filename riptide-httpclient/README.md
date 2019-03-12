@@ -26,6 +26,7 @@ final Http http = Http.builder()
 - fixes several issues with Spring's [`HttpComponentsClientHttpRequestFactory`](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html):
     - preserve the underlying client's request config
     - releasing connections back to the pool after closing streams
+    - aborts connection when the stream hasn't been consumed fully
 
 ## Dependencies
 
@@ -43,7 +44,9 @@ Add the following dependency to your project:
 </dependency>
 ```
 
-## Usage
+## Configuration
+
+The majority of configuration is done on the underlying `HttpClient`:
 
 ```java
 CloseableHttpClient client = HttpClientBuilder.create()
@@ -54,6 +57,27 @@ final Http http = Http.builder()
         .requestFactory(new ApacheClientHttpRequestFactory(client))
         .build();
 ```
+
+What the `ApacheClientHttpRequestFactory` in addition offers two modes of operation:
+
+```java
+new ApacheClientHttpRequestFactory(client, Mode.BUFFERING)
+```
+
+<dl>
+  <dt>Streaming (default)</dt>
+  <dd>
+    Streams request bodies directly to the server. This requires less
+    memory but any serialization error would result in an invalid, partial
+    request to the server.
+  </dd>
+  <dt>Buffering</dt>
+  <dd>
+    Buffers request bodies before sending anything to the server.
+    This requires more memory but allows to catch serialization early
+    without the server noticing.
+  </dd>
+</dl>
 
 The `RestAsyncClientHttpRequestFactory` implements `ClientHttpRequestFactory` **as well as** 
 `AsyncClientHttpRequestFactory` and can therefore be used with both: `RestTemplate` and `AsyncRestTemplate`.
