@@ -53,6 +53,7 @@
         <module>riptide-bom</module>
         <module>riptide-capture</module>
         <module>riptide-core</module>
+        <module>riptide-chaos</module>
         <module>riptide-failsafe</module>
         <module>riptide-faults</module>
         <module>riptide-httpclient</module>
@@ -100,6 +101,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-chaos</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

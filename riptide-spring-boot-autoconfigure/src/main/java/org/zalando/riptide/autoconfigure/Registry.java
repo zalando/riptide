@@ -60,6 +60,11 @@ final class Registry {
         return registerIfAbsent(id, generateBeanName(id, type), factory);
     }
 
+    public <T> String registerIfAbsent(final String id, final String infix, final Class<T> type,
+            final Supplier<BeanDefinitionBuilder> factory) {
+        return registerIfAbsent(id, generateBeanName(id, infix, type), factory);
+    }
+
     public String registerIfAbsent(final String id, final String name, final Supplier<BeanDefinitionBuilder> factory) {
         if (isRegistered(name)) {
             LOG.debug("Bean [{}] is already registered, skipping it.", name);
@@ -82,6 +87,11 @@ final class Registry {
     public static <T> String generateBeanName(final String id, final Class<T> type) {
         final String suffix = type.getSimpleName();
         return generateBeanName(id, suffix);
+    }
+
+    public static <T> String generateBeanName(final String id, String infix, final Class<T> type) {
+        final String suffix = type.getSimpleName();
+        return generateBeanName(id, infix + suffix);
     }
 
     public static String generateBeanName(final String id, final String suffix) {

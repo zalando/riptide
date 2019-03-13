@@ -23,6 +23,18 @@ riptide:
       timeouts:
         enabled: true
         global: 1 seconds
+      chaos:
+        latency:
+          enabled: true
+          probability: 0.01
+          delay: 1 second
+        error-responses:
+          enabled: true
+          probability: 0.001
+          status-codes: [500, 503]
+        exceptions:
+          enabled: true
+          probability: 0.001
       soap:
         enabled: true
         protocol: 1.2

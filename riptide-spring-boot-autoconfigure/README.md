@@ -366,6 +366,18 @@ For a complete overview of available properties, they type and default value ple
 | `│   │       ├── enabled`               | `boolean`      | `false`                                          |
 | `│   │       ├── coefficient`           | `double`       | `0.1`                                            |
 | `│   │       └── default-life-time`     | `TimeSpan`     | `0 seconds`, disabled                            |
+| `│   ├── chaos`                         |                |                                                  |
+| `│   │   ├── latency`                   |                |                                                  |
+| `│   │   │   ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │   │   ├── probability`           | `double`       | `0.01`                                           |
+| `│   │   │   └── delay`                 | `TimeSpan`     | `1 second`                                       |
+| `│   │   ├── exceptions`                |                |                                                  |
+| `│   │   │   ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │   │   └── probability`           | `double`       | `0.01`                                           |
+| `│   │   └── error-responses`           |                |                                                  |
+| `│   │       ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │       ├── probability`           | `double`       | `0.01`                                           |
+| `│   │       └── status-codes`          | `int[]`        | `[500, 503]`                                     |
 | `│   └── soap`                          |                |                                                  |
 | `│       ├── enabled`                   | `boolean`      | `false`                                          |
 | `│       └── protocol`                  | `String`       | `1.1` (possible other value: `1.2`)              |
@@ -378,13 +390,13 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── socket-timeout`        | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── max-per-route`         | `int`          | see `defaults`                                   |
-| `        │   └── max-total`             | `int`          | see `defaults`                                   |
+| `        │   ├── max-total`             | `int`          | see `defaults`                                   |
 | `        │   └── mode`                  | `String`       | see `defaults`                                   |
-| `        └── threads`                   |                |                                                  |
-| `            ├── min-size`              | `int`          | see `defaults`                                   |
-| `            ├── max-size`              | `int`          | see `defaults`                                   |
-| `            ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |
-| `            └── queue-size`            | `int`          | see `defaults`                                   |
+| `        ├── threads`                   |                |                                                  |
+| `        │   ├── min-size`              | `int`          | see `defaults`                                   |
+| `        │   ├── max-size`              | `int`          | see `defaults`                                   |
+| `        │   ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |
+| `        │   └── queue-size`            | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── credentials-directory` | `Path`         | see `defaults`                                   |
@@ -434,6 +446,18 @@ For a complete overview of available properties, they type and default value ple
 | `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
 | `        │       ├── coefficient`       | `double`       | see `defaults`                                   |
 | `        │       └── default-life-time` | `TimeSpan`     | see `defaults`                                   |
+| `        ├── chaos`                     |                |                                                  |
+| `        │   ├── latency`               |                |                                                  |
+| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │   │   ├── probability`       | `double`       | see `defaults`                                   |
+| `        │   │   └── delay`             | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── exceptions`            |                |                                                  |
+| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │   │   └── probability`       | `double`       | see `defaults`                                   |
+| `        │   └── error-responses`       |                |                                                  |
+| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │       ├── probability`       | `double`       | see `defaults`                                   |
+| `        │       └── status-codes`      | `int[]`        | see `defaults`                                   |
 | `        └── soap`                      |                |                                                  |
 | `            ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `            └── protocol`              | `String`       | see `defaults`                                   |

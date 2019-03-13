@@ -54,12 +54,16 @@ final class TimeSpan {
         return targetUnit.convert(amount, unit);
     }
 
+    Duration toDuration() {
+        return Duration.of(amount, UNIT_MAPPING.get(unit));
+    }
+
     void applyTo(final BiConsumer<Long, TimeUnit> consumer) {
         consumer.accept(amount, unit);
     }
 
     void applyTo(final Consumer<Duration> consumer) {
-        consumer.accept(Duration.of(amount, UNIT_MAPPING.get(unit)));
+        consumer.accept(toDuration());
     }
 
     @Override

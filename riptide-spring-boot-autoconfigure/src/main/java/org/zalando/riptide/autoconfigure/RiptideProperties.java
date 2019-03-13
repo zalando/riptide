@@ -11,12 +11,17 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -100,6 +105,13 @@ public final class RiptideProperties {
         );
 
         @NestedConfigurationProperty
+        private Chaos chaos = new Chaos(
+                new Latency(false, 0.01, TimeSpan.of(1, SECONDS)),
+                new Exceptions(false, 0.001),
+                new ErrorResponses(false, 0.001, Arrays.asList(500, 503))
+        );
+
+        @NestedConfigurationProperty
         private Soap soap = new Soap(false, "1.1");
 
     }
@@ -151,6 +163,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Caching caching;
+
+        @NestedConfigurationProperty
+        private Chaos chaos;
 
         @NestedConfigurationProperty
         private Soap soap;
@@ -320,6 +335,46 @@ public final class RiptideProperties {
             private TimeSpan defaultLifeTime;
         }
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Chaos {
+        private Latency latency;
+        private Exceptions exceptions;
+        private ErrorResponses errorResponses;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class Latency {
+            private Boolean enabled;
+            private Double probability;
+            private TimeSpan delay;
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class Exceptions {
+            private Boolean enabled;
+            private Double probability;
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static final class ErrorResponses {
+            private Boolean enabled;
+            private Double probability;
+            private List<Integer> statusCodes;
+        }
+    }
+
 
     @Getter
     @Setter

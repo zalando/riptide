@@ -29,7 +29,7 @@ import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
-final class FailsafePluginNoCircuitBreakerTest {
+final class FailsafePluginNoPolicyTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
