@@ -73,7 +73,8 @@ public final class RiptideProperties {
         private Metrics metrics = new Metrics(false);
 
         @NestedConfigurationProperty
-        private Retry retry = new Retry(false, null, new Backoff(false, null, null, null), null, null, null, null);
+        private Retry retry = new Retry(false, null,
+                new Backoff(false, null, null, null), null, TimeSpan.of(5, SECONDS), null, null);
 
         @NestedConfigurationProperty
         private CircuitBreaker circuitBreaker = new CircuitBreaker(false, null, TimeSpan.of(0, SECONDS), null);
