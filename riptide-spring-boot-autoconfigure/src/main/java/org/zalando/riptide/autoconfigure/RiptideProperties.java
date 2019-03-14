@@ -97,6 +97,9 @@ public final class RiptideProperties {
                 )
         );
 
+        @NestedConfigurationProperty
+        private Soap soap = new Soap(false, "1.1");
+
     }
 
     @Getter
@@ -146,6 +149,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Caching caching;
+
+        @NestedConfigurationProperty
+        private Soap soap;
 
     }
 
@@ -311,4 +317,14 @@ public final class RiptideProperties {
             private TimeSpan defaultLifeTime;
         }
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Soap {
+        private Boolean enabled;
+        private String protocol;
+    }
+
 }

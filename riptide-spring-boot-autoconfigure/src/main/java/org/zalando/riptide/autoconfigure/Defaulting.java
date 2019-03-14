@@ -11,6 +11,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
@@ -61,7 +62,8 @@ final class Defaulting {
                 defaults.getTimeouts(),
                 defaults.getRequestCompression(),
                 defaults.getCertificatePinning(),
-                defaults.getCaching()
+                defaults.getCaching(),
+                defaults.getSoap()
         );
     }
 
@@ -93,7 +95,8 @@ final class Defaulting {
                 merge(base.getTimeouts(), defaults.getTimeouts(), Defaulting::merge),
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
                 merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
-                merge(base.getCaching(), defaults.getCaching(), Defaulting::merge)
+                merge(base.getCaching(), defaults.getCaching(), Defaulting::merge),
+                merge(base.getSoap(), defaults.getSoap(), Defaulting::merge)
         );
     }
 
@@ -227,6 +230,13 @@ final class Defaulting {
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getCoefficient(), defaults.getCoefficient()),
                 either(base.getDefaultLifeTime(), defaults.getDefaultLifeTime())
+        );
+    }
+
+    private static Soap merge(final Soap base, final Soap defaults) {
+        return new Soap(
+                either(base.getEnabled(), defaults.getEnabled()),
+                either(base.getProtocol(), defaults.getProtocol())
         );
     }
 

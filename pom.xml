@@ -59,6 +59,7 @@
         <module>riptide-idempotency</module>
         <module>riptide-metrics</module>
         <module>riptide-problem</module>
+        <module>riptide-soap</module>
         <module>riptide-spring-boot-autoconfigure</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
@@ -129,6 +130,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-problem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-soap</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

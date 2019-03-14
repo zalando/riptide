@@ -7,13 +7,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+
+import static com.google.common.base.Throwables.propagateIfPossible;
 
 @AllArgsConstructor
 final class DefaultMessageReader implements MessageReader {
@@ -39,7 +43,12 @@ final class DefaultMessageReader implements MessageReader {
 
     private <I> I readBody(final Type type, final ClientHttpResponse response) throws IOException {
         final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type, converters);
-        return extractor.extractData(response);
+        try {
+            return extractor.extractData(response);
+        } catch (final RestClientException e) {
+            propagateIfPossible(e.getCause(), IOException.class, HttpMessageNotReadableException.class);
+            throw e;
+        }
     }
 
     private <I> void closeIfNecessary(final I body, final ClientHttpResponse response) {

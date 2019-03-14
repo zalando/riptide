@@ -54,6 +54,7 @@ private Http example;
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
   - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
   - [Metrics](https://micrometer.io) via [Riptide: Metrics](../riptide-metrics)
+  - SOAP via [Riptide: SOAP](../riptide-soap)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
@@ -76,6 +77,7 @@ private Http example;
   - Faults (optional)
   - Metrics (optional)
   - Timeouts (optional)
+  - SOAP (optional)
 - Logbook (optional)
 - Tracer (optional)
 
@@ -121,7 +123,7 @@ Required when `detect-transient-faults` is enabled.
 
 #### [Backup Requests](../riptide-backup)
 
-Required when `backup-request` is configured:
+Required when `backup-request` is enabled:
 
 ```xml
 <dependency>
@@ -140,6 +142,18 @@ supported out of the box.
 <dependency>
     <groupId>org.zalando</groupId>
     <artifactId>riptide-timeout</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
+#### [SOAP](../riptide-soap) support
+
+Required when `soap` is enabled.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-soap</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -341,16 +355,19 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── keystore`                  |                |                                                  |
 | `│   │       ├── path`                  | `Path`         | none                                             |
 | `│   │       └── password`              | `String`       | none                                             |
-| `│   └── caching`                       |                |                                                  |
+| `│   ├── caching`                       |                |                                                  |
+| `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   ├── shared`                    | `boolean`      | `false`                                          |
+| `│   │   ├── directory`                 | `String`       | none, *in-memory* caching by default             |
+| `│   │   ├── max-object-size`           | `int`          | `8192`                                           |
+| `│   │   ├── max-cache-entries`         | `int`          | `1000`                                           |
+| `│   │   └── heuristic`                 |                | If max age was not specified by the server       |
+| `│   │       ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │       ├── coefficient`           | `double`       | `0.1`                                            |
+| `│   │       └── default-life-time`     | `TimeSpan`     | `0 seconds`, disabled                            |
+| `│   └── soap`                          |                |                                                  |
 | `│       ├── enabled`                   | `boolean`      | `false`                                          |
-| `│       ├── shared`                    | `boolean`      | `false`                                           |
-| `│       ├── directory`                 | `String`       | none, *in-memory* caching by default             |
-| `│       ├── max-object-size`           | `int`          | `8192`                                           |
-| `│       ├── max-cache-entries`         | `int`          | `1000`                                           |
-| `│       └── heuristic`                 |                | If max age was not specified by the server       |
-| `│           ├── enabled`               | `boolean`      | `false`                                          |
-| `│           ├── coefficient`           | `double`       | `0.1`                                            |
-| `│           └── default-life-time`     | `TimeSpan`     | `0 seconds`, disabled                            |
+| `│       └── protocol`                  | `String`       | `1.1` (possible other value: `1.2`)              |
 | `└── clients`                           |                |                                                  |
 | `    └── <id>`                          | `String`       |                                                  |
 | `        ├── base-url`                  | `URI`          | none                                             |
@@ -405,16 +422,19 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── keystore`              |                |                                                  |
 | `        │       ├── path`              | `Path`         | see `defaults`                                   |
 | `        │       └── password`          | `String`       | see `defaults`                                   |
-| `        └── caching`                   |                | see `defaults`                                   |
-| `            ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `            ├── shared`                | `boolean`      | see `defaults`                                   |
-| `            ├── directory`             | `String`       | see `defaults`                                   |
-| `            ├── max-object-size`       | `int`          | see `defaults`                                   |
-| `            ├── max-cache-entries`     | `int`          | see `defaults`                                   |
-| `            └── heuristic`             |                |                                                  |
-| `                ├── enabled`           | `boolean`      | see `defaults`                                   |
-| `                ├── coefficient`       | `double`       | see `defaults`                                   |
-| `                └── default-life-time` | `TimeSpan`     | see `defaults`                                   |
+| `        ├── caching`                   |                | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── shared`                | `boolean`      | see `defaults`                                   |
+| `        │   ├── directory`             | `String`       | see `defaults`                                   |
+| `        │   ├── max-object-size`       | `int`          | see `defaults`                                   |
+| `        │   ├── max-cache-entries`     | `int`          | see `defaults`                                   |
+| `        │   └── heuristic`             |                |                                                  |
+| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │       ├── coefficient`       | `double`       | see `defaults`                                   |
+| `        │       └── default-life-time` | `TimeSpan`     | see `defaults`                                   |
+| `        └── soap`                      |                |                                                  |
+| `            ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `            └── protocol`              | `String`       | see `defaults`                                   |
 
 **Beware** that starting with Spring Boot 1.5.x the property resolution for environment variables changes and
 properties like `REST_CLIENTS_EXAMPLE_BASEURL` no longer work. As an alternative applications can use the 
