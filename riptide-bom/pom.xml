@@ -40,6 +40,11 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-chaos</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-failsafe</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>
@@ -56,6 +61,7 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-idempotency</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>

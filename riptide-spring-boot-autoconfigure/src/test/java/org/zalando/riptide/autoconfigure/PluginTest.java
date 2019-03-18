@@ -13,6 +13,7 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.backup.BackupRequestPlugin;
+import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
@@ -114,6 +115,7 @@ final class PluginTest {
         assertThat(getPlugins(ecb), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(ChaosPlugin.class),
                 instanceOf(MetricsPlugin.class),
                 instanceOf(TimeoutPlugin.class))));
     }

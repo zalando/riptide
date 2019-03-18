@@ -61,6 +61,12 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
+            <artifactId>riptide-chaos</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
             <artifactId>riptide-failsafe</artifactId>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>

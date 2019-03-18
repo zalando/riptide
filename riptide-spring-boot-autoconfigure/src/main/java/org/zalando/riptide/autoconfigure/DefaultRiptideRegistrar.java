@@ -15,6 +15,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -31,9 +32,15 @@ import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.AuthorizationProvider;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.backup.BackupRequestPlugin;
+import org.zalando.riptide.chaos.ChaosPlugin;
+import org.zalando.riptide.chaos.ErrorResponseInjection;
+import org.zalando.riptide.chaos.ExceptionInjection;
+import org.zalando.riptide.chaos.LatencyInjection;
+import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
@@ -53,7 +60,10 @@ import org.zalando.tracer.concurrent.TracingExecutors;
 
 import javax.annotation.Nullable;
 import javax.xml.soap.SOAPConstants;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.time.Clock;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,15 +73,21 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.autoconfigure.Dependencies.ifPresent;
 import static org.zalando.riptide.autoconfigure.Registry.generateBeanName;
 import static org.zalando.riptide.autoconfigure.Registry.list;
 import static org.zalando.riptide.autoconfigure.Registry.ref;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 
 @Slf4j
 @AllArgsConstructor
@@ -265,6 +281,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private List<String> registerPlugins(final String id, final Client client) {
 
         final Stream<Optional<String>> plugins = Stream.of(
+                registerChaosPlugin(id, client),
                 registerMetricsPlugin(id, client),
                 registerTransientFaultPlugin(id, client),
                 registerFailsafePlugin(id, client),
@@ -277,7 +294,67 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return plugins
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(toCollection(Registry::list));
+                .collect(toList());
+    }
+
+    private Optional<String> registerChaosPlugin(final String id, final Client client) {
+        final Chaos chaos = client.getChaos();
+        final Latency latency = chaos.getLatency();
+        final Exceptions exceptions = chaos.getExceptions();
+        final ErrorResponses errorResponses = chaos.getErrorResponses();
+
+        final List<String> injections = new ArrayList<>();
+
+        if (latency.getEnabled()) {
+            injections.add(registry.registerIfAbsent(id, LatencyInjection.class, () ->
+                    genericBeanDefinition(LatencyInjection.class)
+                            .addConstructorArgReference(
+                                    registry.registerIfAbsent(id, "Latency", Probability.class, () ->
+                                            genericBeanDefinition(Probability.class)
+                                                    .setFactoryMethod("fixed")
+                                                    .addConstructorArgValue(latency.getProbability())))
+                            .addConstructorArgValue(Clock.systemUTC())
+                            .addConstructorArgValue(latency.getDelay().toDuration())));
+        }
+
+        if (exceptions.getEnabled()) {
+            injections.add(registry.registerIfAbsent(id, ExceptionInjection.class, () -> {
+                final List<Supplier<Exception>> singleton = singletonList(SocketTimeoutException::new);
+                return genericBeanDefinition(ExceptionInjection.class)
+                        .addConstructorArgReference(
+                                registry.registerIfAbsent(id, "Exception", Probability.class, () ->
+                                        genericBeanDefinition(Probability.class)
+                                                .setFactoryMethod("fixed")
+                                                .addConstructorArgValue(exceptions.getProbability())))
+                        .addConstructorArgValue(singleton);
+            }));
+        }
+
+        if (errorResponses.getEnabled()) {
+            injections.add(registry.registerIfAbsent(id, ErrorResponseInjection.class, () -> {
+                return genericBeanDefinition(ErrorResponseInjection.class)
+                        .addConstructorArgReference(
+                                registry.registerIfAbsent(id, "ErrorResponse", Probability.class, () ->
+                                        genericBeanDefinition(Probability.class)
+                                                .setFactoryMethod("fixed")
+                                                .addConstructorArgValue(errorResponses.getProbability())))
+                        .addConstructorArgValue(errorResponses.getStatusCodes().stream()
+                                .map(HttpStatus::valueOf)
+                                .collect(toList()));
+            }));
+        }
+
+        if (injections.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final String pluginId = registry.registerIfAbsent(id, ChaosPlugin.class, () ->
+                genericBeanDefinition(ChaosPlugin.class)
+                        .addConstructorArgValue(injections.stream()
+                                .map(Registry::ref)
+                                .collect(toCollection(Registry::list))));
+
+        return Optional.of(pluginId);
     }
 
     private Optional<String> registerMetricsPlugin(final String id, final Client client) {

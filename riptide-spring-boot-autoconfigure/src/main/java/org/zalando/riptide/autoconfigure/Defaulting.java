@@ -6,6 +6,10 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
@@ -63,6 +67,7 @@ final class Defaulting {
                 defaults.getRequestCompression(),
                 defaults.getCertificatePinning(),
                 defaults.getCaching(),
+                defaults.getChaos(),
                 defaults.getSoap()
         );
     }
@@ -96,6 +101,7 @@ final class Defaulting {
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
                 merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge),
+                merge(base.getChaos(), defaults.getChaos(), Defaulting::merge),
                 merge(base.getSoap(), defaults.getSoap(), Defaulting::merge)
         );
     }
@@ -231,6 +237,37 @@ final class Defaulting {
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getCoefficient(), defaults.getCoefficient()),
                 either(base.getDefaultLifeTime(), defaults.getDefaultLifeTime())
+        );
+    }
+
+    private static Chaos merge(final Chaos base, final Chaos defaults) {
+        return new Chaos(
+                merge(base.getLatency(), defaults.getLatency(), Defaulting::merge),
+                merge(base.getExceptions(), defaults.getExceptions(), Defaulting::merge),
+                merge(base.getErrorResponses(), defaults.getErrorResponses(), Defaulting::merge)
+        );
+    }
+
+    private static Latency merge(final Latency base, final Latency defaults) {
+        return new Latency(
+                either(base.getEnabled(), defaults.getEnabled()),
+                either(base.getProbability(), defaults.getProbability()),
+                either(base.getDelay(), defaults.getDelay())
+        );
+    }
+
+    private static Exceptions merge(final Exceptions base, final Exceptions defaults) {
+        return new Exceptions(
+                either(base.getEnabled(), defaults.getEnabled()),
+                either(base.getProbability(), defaults.getProbability())
+        );
+    }
+
+    private static ErrorResponses merge(final ErrorResponses base, final ErrorResponses defaults) {
+        return new ErrorResponses(
+                either(base.getEnabled(), defaults.getEnabled()),
+                either(base.getProbability(), defaults.getProbability()),
+                either(base.getStatusCodes(), defaults.getStatusCodes())
         );
     }
 
