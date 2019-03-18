@@ -8,7 +8,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestExecution;
@@ -20,6 +19,7 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -46,7 +46,6 @@ final class TransientFaultPluginTest {
                     .build())
             .build();
 
-    private final ConcurrentTaskExecutor executor = new ConcurrentTaskExecutor();
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     @AfterEach
@@ -128,7 +127,7 @@ final class TransientFaultPluginTest {
 
     private Http newUnit(final Plugin... plugins) {
         return Http.builder()
-                .executor(executor)
+                .executor(Executors.newSingleThreadExecutor())
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
                 .plugins(Arrays.asList(plugins))

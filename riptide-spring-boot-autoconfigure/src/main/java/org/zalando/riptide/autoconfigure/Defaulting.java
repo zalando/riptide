@@ -45,7 +45,7 @@ final class Defaulting {
         final Connections connections = merge(
                 new Connections(null, null, null, null, max(
                         defaults.getConnections().getMaxTotal(),
-                        defaults.getConnections().getMaxPerRoute())),
+                        defaults.getConnections().getMaxPerRoute()), null),
                 defaults.getConnections());
 
         return new Defaults(
@@ -109,7 +109,8 @@ final class Defaulting {
                 either(base.getSocketTimeout(), defaults.getSocketTimeout()),
                 either(base.getTimeToLive(), defaults.getTimeToLive()),
                 maxPerRoute,
-                maxTotal
+                maxTotal,
+                either(base.getMode(), defaults.getMode())
         );
     }
 

@@ -11,14 +11,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
@@ -36,11 +35,10 @@ final class HttpConnectionPoolMetricsTest {
             .setConnectionManager(connectionManager)
             .build();
 
-    private final AsyncListenableTaskExecutor executor = new ConcurrentTaskExecutor();
     private final ClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
     private final Http http = Http.builder()
-            .executor(executor)
+            .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .build();
