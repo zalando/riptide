@@ -335,7 +335,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
 | `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
 | `│   │   ├── max-retries`               | `int`          | none                                             |
-| `│   │   ├── max-duration`              | `TimeSpan`     | none                                             |
+| `│   │   ├── max-duration`              | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
 | `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
 | `│   ├── circuit-breaker`               |                |                                                  |

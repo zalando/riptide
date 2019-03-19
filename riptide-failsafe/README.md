@@ -77,19 +77,28 @@ new RetryPolicy<ClientHttpResponse>()
     .handle(RetryException.class);
 ```
 
-As of Failsafe version 1.1.0, it's now supported to dynamically compute delays using a custom function.
-Riptide: Failsafe offers a special implementation that understands 
-[`Retry-After` (RFC 7231, section 7.1.3)](https://tools.ietf.org/html/rfc7231#section-7.1.3):
+Failsafe supports dynamically computed delays using a custom function.
+
+Riptide: Failsafe offers implementations that understand:
+- [`Retry-After` (RFC 7231, section 7.1.3)](https://tools.ietf.org/html/rfc7231#section-7.1.3)
+- [`X-RateLimit-Reset` (RESTful API Guidelines)](https://opensource.zalando.com/restful-api-guidelines/#153)
 
 ```java
 Http.builder()
     .plugin(new FailsafePlugin(
             ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
                      .withDelay(Duration.ofMillis(25))
-                     .withDelay(new RetryAfterDelayFunction(clock))),
+                     .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                             new RetryAfterDelayFunction(clock),
+                             new RateLimitResetDelayFunction(clock)
+                     )))
+                     .withMaxDuration(Duration.ofSeconds(5))),
             Executors.newScheduledThreadPool(20)))
     .build();
 ```
+
+:warning: Make sure you you specify a **max duration** otherwise any value coming from a server
+that is further ahead in the future will make your retry block practically forever.
 
 Make sure you **check out 
 [zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of

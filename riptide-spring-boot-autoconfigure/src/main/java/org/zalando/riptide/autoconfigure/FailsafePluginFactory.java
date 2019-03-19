@@ -8,13 +8,16 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +89,11 @@ final class FailsafePluginFactory {
 
         policy.handle(TransientFaultException.class);
         policy.handle(RetryException.class);
-        policy.withDelay(new RetryAfterDelayFunction(systemUTC()));
+
+        policy.withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                new RetryAfterDelayFunction(systemUTC()),
+                new RateLimitResetDelayFunction(systemUTC())
+        )));
 
         return policy;
     }

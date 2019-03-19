@@ -40,7 +40,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
-final class RetryAfterDelayFunctionTest {
+final class RateLimitResetDelayFunctionTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
@@ -62,7 +62,7 @@ final class RetryAfterDelayFunctionTest {
                             new CircuitBreaker<ClientHttpResponse>(),
                             new RetryPolicy<ClientHttpResponse>()
                                     .withDelay(Duration.ofSeconds(2))
-                                    .withDelay(new RetryAfterDelayFunction(clock))
+                                    .withDelay(new RateLimitResetDelayFunction(clock))
                                     .withMaxDuration(Duration.ofSeconds(5))
                                     .withMaxRetries(4)),
                     newSingleThreadScheduledExecutor()))
@@ -100,7 +100,7 @@ final class RetryAfterDelayFunctionTest {
     @Test
     void shouldIgnoreDynamicDelayOnInvalidFormatAndRetryImmediately() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("Retry-After", "foo"));
+                .withHeader("X-RateLimit-Reset", "foo"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         unit.get("/baz")
@@ -112,9 +112,9 @@ final class RetryAfterDelayFunctionTest {
     }
 
     @Test
-    void shouldRetryOnDemandWithDynamicDelay() {
+    void shouldRetryOnDemandWithDelaySeconds() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("Retry-After", "1"));
+                .withHeader("X-RateLimit-Reset", "1"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         assertTimeout(Duration.ofMillis(1500), () ->
@@ -127,9 +127,9 @@ final class RetryAfterDelayFunctionTest {
     }
 
     @Test
-    void shouldRetryWithDynamicDelayDate() {
+    void shouldRetryWithDelayEpochSeconds() {
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("Retry-After", "Wed, 11 Apr 2018 22:34:28 GMT"));
+                .withHeader("X-RateLimit-Reset", "1523486068"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         assertTimeout(Duration.ofMillis(1500), () ->
