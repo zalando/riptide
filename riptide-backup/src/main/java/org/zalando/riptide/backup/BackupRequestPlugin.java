@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingRunnable;
-import org.zalando.riptide.AbstractCancelableCompletableFuture;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -22,7 +21,7 @@ import java.util.function.Predicate;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
+import static org.zalando.riptide.CompletableFutures.forwardTo;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor(access = PRIVATE)
@@ -85,16 +84,7 @@ public final class BackupRequestPlugin implements Plugin {
 
     @SafeVarargs
     private final <T> CompletableFuture<T> anyOf(final CompletableFuture<? extends T>... futures) {
-        final CompletableFuture<T> any = new AbstractCancelableCompletableFuture<T>() {
-            @Override
-            public boolean cancel(final boolean mayInterruptIfRunning) {
-                for (final CompletableFuture<? extends T> future : futures) {
-                    future.cancel(mayInterruptIfRunning);
-                }
-
-                return super.cancel(mayInterruptIfRunning);
-            }
-        };
+        final CompletableFuture<T> any = new CompletableFuture<>();
 
         for (final CompletableFuture<? extends T> future : futures) {
             future.whenCompleteAsync(forwardTo(any), executor);

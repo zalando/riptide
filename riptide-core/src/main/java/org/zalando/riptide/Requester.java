@@ -116,7 +116,7 @@ final class Requester extends AttributeStage {
     }
 
     @Override
-    public HeaderStage headers(final Map<String, Collection<String>> headers) {
+    public HeaderStage headers(final Map<String, ? extends Collection<String>> headers) {
         return withArguments(arguments.withHeaders(headers));
     }
 

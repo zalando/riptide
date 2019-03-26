@@ -23,5 +23,5 @@ public abstract class HeaderStage extends BodyStage {
     public abstract HeaderStage ifMatch(Collection<String> entityTags);
     public abstract HeaderStage header(String name, String value);
     public abstract HeaderStage headers(Multimap<String, String> headers);
-    public abstract HeaderStage headers(Map<String, Collection<String>> headers);
+    public abstract HeaderStage headers(Map<String, ? extends Collection<String>> headers);
 }

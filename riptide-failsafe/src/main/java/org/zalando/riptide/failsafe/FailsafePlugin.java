@@ -15,7 +15,6 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -23,8 +22,6 @@ import java.util.stream.Stream;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
-import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
-import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
 
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
@@ -57,13 +54,9 @@ public final class FailsafePlugin implements Plugin {
                 return execution.execute(arguments);
             }
 
-            final CompletableFuture<ClientHttpResponse> original = Failsafe.with(select(arguments))
+            return Failsafe.with(select(arguments))
                     .with(scheduler)
                     .getStageAsync(() -> execution.execute(arguments));
-
-            final CompletableFuture<ClientHttpResponse> cancelable = preserveCancelability(original);
-            original.whenComplete(forwardTo(cancelable));
-            return cancelable;
         };
     }
 

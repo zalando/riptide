@@ -18,8 +18,7 @@ import java.util.function.BiConsumer;
 
 import static java.util.Arrays.stream;
 import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.riptide.CancelableCompletableFuture.forwardTo;
-import static org.zalando.riptide.CancelableCompletableFuture.preserveCancelability;
+import static org.zalando.riptide.CompletableFutures.forwardTo;
 
 /**
  * @see "CompletableFuture#orTimeout(long, TimeUnit)"
@@ -43,7 +42,7 @@ public final class TimeoutPlugin implements Plugin {
         return arguments -> {
             final CompletableFuture<ClientHttpResponse> upstream = execution.execute(arguments);
 
-            final CompletableFuture<ClientHttpResponse> downstream = preserveCancelability(upstream);
+            final CompletableFuture<ClientHttpResponse> downstream = new CompletableFuture<>();
             upstream.whenCompleteAsync(forwardTo(downstream), executor);
 
             final ScheduledFuture<?> scheduledTimeout = delay(timeout(downstream), cancel(upstream));
