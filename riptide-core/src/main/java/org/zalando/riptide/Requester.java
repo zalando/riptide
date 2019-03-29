@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.riptide.RequestArguments.Entity;
 
 import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
@@ -127,6 +128,11 @@ final class Requester extends AttributeStage {
     @Override
     public CompletableFuture<ClientHttpResponse> call(final Route route) {
         return body(null).call(route);
+    }
+
+    @Override
+    public <T> DispatchStage body(@Nullable final Entity entity) {
+        return new ResponseDispatcher(arguments.withEntity(entity));
     }
 
     @Override

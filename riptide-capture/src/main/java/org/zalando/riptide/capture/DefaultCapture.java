@@ -26,6 +26,7 @@ final class DefaultCapture<T> implements Capture<T> {
     }
 
     @Override
+    @SuppressWarnings("OptionalAssignedToNull")
     public T retrieve() {
         @Nullable final Optional<T> value = reference.get();
 

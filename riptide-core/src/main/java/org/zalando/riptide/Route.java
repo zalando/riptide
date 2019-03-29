@@ -33,6 +33,10 @@ public interface Route {
      */
     void execute(final ClientHttpResponse response, final MessageReader reader) throws Exception;
 
+    default Route merge(final Route other) {
+        return other;
+    }
+
     static Route call(final ThrowingRunnable<? extends Exception> runnable) {
         return (response, reader) ->
                 tryWith(response, (ClientHttpResponse ignored) -> runnable.tryRun());

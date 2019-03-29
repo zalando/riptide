@@ -35,6 +35,11 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-compatibility</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>

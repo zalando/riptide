@@ -18,6 +18,7 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public interface RequestArguments {
 
+    // TODO top level?!
     interface Entity {
         void writeTo(HttpOutputMessage message) throws IOException;
     }
@@ -78,7 +79,7 @@ public interface RequestArguments {
 
     RequestArguments withBody(@Nullable Object body);
 
-    RequestArguments withEntity(Entity entity);
+    RequestArguments withEntity(@Nullable Entity entity);
 
     static RequestArguments create() {
         return new DefaultRequestArguments();
