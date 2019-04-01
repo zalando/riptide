@@ -132,7 +132,7 @@ final class RateLimitResetDelayFunctionTest {
                 .withHeader("X-RateLimit-Reset", "1523486068"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        assertTimeout(Duration.ofMillis(1500), () ->
+        assertTimeout(Duration.ofMillis(2000), () ->
                 atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
                         .dispatch(series(),
                                 on(SUCCESSFUL).call(pass()))
