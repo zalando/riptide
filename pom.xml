@@ -208,6 +208,19 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- must be listed before spring, otherwise we get the wrong httpclient version -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.8</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
             <!-- spring -->
             <dependency>
                 <groupId>org.springframework</groupId>
