@@ -132,7 +132,7 @@ final class RetryAfterDelayFunctionTest {
                 .withHeader("Retry-After", "Wed, 11 Apr 2018 22:34:28 GMT"));
         driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
-        assertTimeout(Duration.ofMillis(1500), () ->
+        assertTimeout(Duration.ofMillis(2000), () ->
                 atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
                         .dispatch(series(),
                                 on(SUCCESSFUL).call(pass()))
