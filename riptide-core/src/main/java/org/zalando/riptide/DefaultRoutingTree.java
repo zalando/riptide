@@ -3,7 +3,6 @@ package org.zalando.riptide;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,19 +57,6 @@ final class DefaultRoutingTree<A> implements RoutingTree<A> {
     @Override
     public Optional<Route> getWildcard() {
         return Optional.ofNullable(wildcard);
-    }
-
-    @Override
-    public RoutingTree<A> merge(final List<Binding<A>> bindings) {
-        final List<Binding<A>> present = new ArrayList<>(routes.size() + 1);
-        routes.forEach((attribute, route) ->
-                present.add(Binding.create(attribute, route)));
-
-        if (wildcard != null) {
-            present.add(Binding.create(null, wildcard));
-        }
-
-        return RoutingTree.dispatch(navigator, navigator.merge(present, bindings));
     }
 
     @Override

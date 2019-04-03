@@ -10,9 +10,13 @@ final class SerializationPlugin implements Plugin {
     @Override
     public RequestExecution aroundSerialization(final RequestExecution execution) {
         return arguments ->
-                execution.execute(arguments
-                        .withEntity((message) ->
-                                writer.write(message, arguments)));
+                execution.execute(arguments.getEntity() == null ?
+                        arguments.withEntity(toEntity(arguments)) :
+                        arguments);
+    }
+
+    private RequestArguments.Entity toEntity(final RequestArguments arguments) {
+        return (message) -> writer.write(message, arguments);
     }
 
 }

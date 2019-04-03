@@ -4,11 +4,14 @@ import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.apiguardian.api.API.Status.STABLE;
 
@@ -45,7 +48,46 @@ public interface RoutingTree<A> extends Route {
     }
 
     @API(status = EXPERIMENTAL)
-    RoutingTree<A> merge(final List<Binding<A>> bindings);
+    default RoutingTree<A> merge(final List<Binding<A>> bindings) {
+        return merge(dispatch(getNavigator(), bindings));
+    }
+
+    @Override
+    default Route merge(final Route route) {
+        if (route instanceof RoutingTree) {
+            final RoutingTree other = (RoutingTree) route;
+            if (getNavigator().equals(other.getNavigator())) {
+                @SuppressWarnings("unchecked")
+                final RoutingTree<A> tree = other;
+                return merge(tree);
+            }
+        }
+
+        return Route.super.merge(route);
+    }
+
+    @API(status = EXPERIMENTAL)
+    default RoutingTree<A> merge(final RoutingTree<A> other) {
+        final Map<A, Route> bindings = new LinkedHashMap<>(keySet().size() + other.keySet().size());
+
+        keySet().forEach(attribute ->
+                bindings.merge(attribute, get(attribute)
+                        .orElseThrow(IllegalStateException::new), Route::merge));
+
+        getWildcard().ifPresent(route ->
+                bindings.merge(null, route, Route::merge));
+
+        other.keySet().forEach(attribute ->
+                bindings.merge(attribute, other.get(attribute)
+                        .orElseThrow(IllegalStateException::new), Route::merge));
+
+        other.getWildcard().ifPresent(route ->
+                bindings.merge(null, route, Route::merge));
+
+        return dispatch(getNavigator(), bindings.entrySet().stream()
+                .map(e -> Binding.create(e.getKey(), e.getValue()))
+                .collect(toList()));
+    }
 
     @SafeVarargs
     static <A> RoutingTree<A> dispatch(final Navigator<A> navigator, final Binding<A>... bindings) {

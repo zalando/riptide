@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.concurrent.CompletionException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -104,6 +105,24 @@ final class ExecuteTest {
         unit.put(url)
                 .header("X-Foo", "bar")
                 .body(ImmutableMap.of("foo", "bar"))
+                .call(pass())
+                .join();
+
+        server.verify();
+    }
+
+    @Test
+    void shouldSendEntity() {
+        server.expect(requestTo(url))
+                .andExpect(header("X-Foo", "bar"))
+                .andExpect(content().string("{\"foo\":\"bar\"}"))
+                .andRespond(withSuccess());
+
+        unit.put(url)
+                .body(message -> {
+                    message.getHeaders().add("X-Foo", "bar");
+                    message.getBody().write("{\"foo\":\"bar\"}".getBytes(UTF_8));
+                })
                 .call(pass())
                 .join();
 
