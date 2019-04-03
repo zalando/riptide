@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
-import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 
 final class Registry {
 
@@ -49,10 +48,6 @@ final class Registry {
         registry.registerBeanDefinition(name, factory.get().getBeanDefinition());
 
         return name;
-    }
-
-    public <T> String registerIfAbsent(final String id, final Class<T> type) {
-        return registerIfAbsent(id, type, () -> genericBeanDefinition(type));
     }
 
     public <T> String registerIfAbsent(final String id, final Class<T> type,

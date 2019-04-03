@@ -28,14 +28,12 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
 @AutoConfigureAfter(name = {
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
         "org.zalando.logbook.spring.LogbookAutoConfiguration",
-        "org.zalando.tracer.spring.TracerAutoConfiguration",
-        "org.zalando.tracer.spring.TracerSchedulingAutoConfiguration",  // only needed for tracer < 0.12.0,
-        "io.micrometer.spring.autoconfigure.CompositeMeterRegistryAutoConfiguration", // Spring Boot 1.x
-        "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration", // Spring Boot 2.x
+        "org.zalando.tracer.autoconfigure.TracerAutoConfiguration",
+        "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration",
 })
 @AutoConfigureBefore(name = {
         "org.springframework.scheduling.annotation.SchedulingConfiguration",
-        "org.zalando.failsafeactuator.config.FailsafeInjectionConfiguration"
+        "org.zalando.actuate.autoconfigure.failsafe.CircuitBreakersEndpointAutoConfiguration"
 })
 public class RiptideAutoConfiguration {
 

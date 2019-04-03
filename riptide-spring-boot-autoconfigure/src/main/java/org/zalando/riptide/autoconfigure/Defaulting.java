@@ -18,10 +18,13 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Tracing;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
@@ -67,6 +70,7 @@ final class Defaulting {
                 defaults.getRequestCompression(),
                 defaults.getCertificatePinning(),
                 defaults.getCaching(),
+                defaults.getTracing(),
                 defaults.getChaos(),
                 defaults.getSoap()
         );
@@ -101,6 +105,7 @@ final class Defaulting {
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
                 merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge),
+                merge(base.getTracing(), defaults.getTracing(), Defaulting::merge),
                 merge(base.getChaos(), defaults.getChaos(), Defaulting::merge),
                 merge(base.getSoap(), defaults.getSoap(), Defaulting::merge)
         );
@@ -238,6 +243,24 @@ final class Defaulting {
                 either(base.getCoefficient(), defaults.getCoefficient()),
                 either(base.getDefaultLifeTime(), defaults.getDefaultLifeTime())
         );
+    }
+
+    private static Tracing merge(final Tracing base, final Tracing defaults) {
+        final boolean enabled = either(base.getEnabled(), defaults.getEnabled());
+        final boolean propagateFlowId = either(base.getPropagateFlowId(), defaults.getPropagateFlowId());
+
+        return new Tracing(
+                enabled,
+                merge(base.getTags(), defaults.getTags(), Defaulting::merge),
+                enabled && propagateFlowId
+        );
+    }
+
+    private static  <K, V> Map<K, V> merge(final Map<K, V> base, final Map<K, V> defaults) {
+        final Map<K, V> map = new HashMap<>();
+        map.putAll(defaults);
+        map.putAll(base);
+        return map;
     }
 
     private static Chaos merge(final Chaos base, final Chaos defaults) {

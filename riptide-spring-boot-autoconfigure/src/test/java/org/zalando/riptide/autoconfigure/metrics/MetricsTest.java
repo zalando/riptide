@@ -14,9 +14,10 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
+import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.tracer.spring.TracerAutoConfiguration;
+import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +44,7 @@ final class MetricsTest {
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
             TracerAutoConfiguration.class,
+            OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })
     static class ContextConfiguration {
