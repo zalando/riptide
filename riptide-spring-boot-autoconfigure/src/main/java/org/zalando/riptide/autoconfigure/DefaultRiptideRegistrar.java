@@ -14,21 +14,15 @@ import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.AuthorizationProvider;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
@@ -58,7 +52,6 @@ import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.tracer.concurrent.TracingExecutors;
 
-import javax.annotation.Nullable;
 import javax.xml.soap.SOAPConstants;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -98,18 +91,25 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     @Override
     public void register() {
-        properties.getClients().forEach((id, client) -> {
-            final String factoryId = registerAsyncClientHttpRequestFactory(id, client);
-            final BeanDefinition converters = registerHttpMessageConverters(id, client);
-            final List<String> plugins = registerPlugins(id, client);
+        properties.getClients().forEach(this::registerHttp);
+    }
 
-            registerHttp(id, client, factoryId, converters, plugins);
-            registerRestTemplate(id, factoryId, client, converters, plugins);
-            registerAsyncRestTemplate(id, factoryId, client, converters, plugins);
+    private void registerHttp(final String id, final Client client) {
+        registry.registerIfAbsent(id, Http.class, () -> {
+            log.debug("Client [{}]: Registering Http", id);
+
+            return genericBeanDefinition(HttpFactory.class)
+                    .setFactoryMethod("create")
+                    .addConstructorArgValue(registerExecutor(id, client))
+                    .addConstructorArgReference(registerClientHttpRequestFactory(id, client))
+                    .addConstructorArgValue(client.getBaseUrl())
+                    .addConstructorArgValue(client.getUrlResolution())
+                    .addConstructorArgValue(registerHttpMessageConverters(id, client))
+                    .addConstructorArgValue(registerPlugins(id, client));
         });
     }
 
-    private String registerAsyncClientHttpRequestFactory(final String id, final Client client) {
+    private String registerClientHttpRequestFactory(final String id, final Client client) {
         return registry.registerIfAbsent(id, ClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering RestAsyncClientHttpRequestFactory", id);
             return genericBeanDefinition(ApacheClientHttpRequestFactory.class)
@@ -146,8 +146,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         return trace(executorId);
     }
-
     private static final class HttpMessageConverters {
+
 
     }
 
@@ -208,77 +208,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 .getBeanDefinition();
     }
 
-    private void registerHttp(final String id, final Client client, final String factoryId,
-            final BeanDefinition converters, final List<String> plugins) {
-        registry.registerIfAbsent(id, Http.class, () -> {
-            log.debug("Client [{}]: Registering Http", id);
-
-            return genericBeanDefinition(HttpFactory.class)
-                    .setFactoryMethod("create")
-                    .addConstructorArgValue(registerExecutor(id, client))
-                    .addConstructorArgReference(factoryId)
-                    .addConstructorArgValue(client.getBaseUrl())
-                    .addConstructorArgValue(client.getUrlResolution())
-                    .addConstructorArgValue(converters)
-                    .addConstructorArgValue(plugins.stream()
-                            .map(Registry::ref)
-                            .collect(toCollection(Registry::list)));
-        });
-    }
-
-    private void registerRestTemplate(final String id, final String factoryId, final Client client,
-            final BeanDefinition converters, final List<String> plugins) {
-        registry.registerIfAbsent(id, RestTemplate.class, () -> {
-            log.debug("Client [{}]: Registering RestTemplate", id);
-
-            final BeanDefinitionBuilder template = genericBeanDefinition(RestTemplate.class);
-            template.addConstructorArgReference(factoryId);
-            configureTemplate(template, client.getBaseUrl(), converters, plugins);
-
-            return template;
-        });
-    }
-
-    private void registerAsyncRestTemplate(final String id, final String factoryId, final Client client,
-            final BeanDefinition converters, final List<String> plugins) {
-        registry.registerIfAbsent(id, AsyncRestTemplate.class, () -> {
-            log.debug("Client [{}]: Registering AsyncRestTemplate", id);
-
-            final BeanDefinitionBuilder template = genericBeanDefinition(AsyncRestTemplate.class);
-            template.addConstructorArgReference(registry.registerIfAbsent(id, AsyncClientHttpRequestFactory.class, () ->
-                    genericBeanDefinition(ConcurrentClientHttpRequestFactory.class)
-                            .addConstructorArgReference(factoryId)
-                            .addConstructorArgValue(genericBeanDefinition(ConcurrentTaskExecutor.class)
-                                    .addConstructorArgValue(registerExecutor(id, client))
-                                    .getBeanDefinition())));
-            template.addConstructorArgReference(factoryId);
-            configureTemplate(template, client.getBaseUrl(), converters, plugins);
-
-            return template;
-        });
-    }
-
-    private void configureTemplate(final BeanDefinitionBuilder template, @Nullable final String baseUrl,
-            final BeanDefinition converters,
-            final List<String> plugins) {
-        final DefaultUriBuilderFactory factory = baseUrl == null ?
-                new DefaultUriBuilderFactory() :
-                new DefaultUriBuilderFactory(baseUrl);
-        template.addPropertyValue("uriTemplateHandler", factory);
-        template.addPropertyValue("messageConverters", converters);
-        template.addPropertyValue("interceptors", plugins.stream()
-                .map(plugin -> genericBeanDefinition(PluginInterceptor.class)
-                        .addConstructorArgReference(plugin)
-                        .getBeanDefinition())
-                .collect(toCollection(Registry::list)));
-    }
-
     private String findObjectMapper(final String id) {
         final String beanName = generateBeanName(id, ObjectMapper.class);
         return registry.isRegistered(beanName) ? beanName : "jacksonObjectMapper";
     }
 
-    private List<String> registerPlugins(final String id, final Client client) {
+    private List<BeanReference> registerPlugins(final String id, final Client client) {
 
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
@@ -294,7 +229,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return plugins
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(toList());
+                .map(Registry::ref)
+                .collect(toCollection(Registry::list));
     }
 
     private Optional<String> registerChaosPlugin(final String id, final Client client) {

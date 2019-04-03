@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,13 +41,13 @@ final class ClientConfigurationTest {
     @Qualifier("ecb")
     private Http ecbRest;
 
-    @Autowired
-    @Qualifier("example")
-    private RestTemplate exampleRestTemplate;
-
-    @Autowired
-    @Qualifier("example")
-    private AsyncRestTemplate exampleAsyncRestTemplate;
+//    @Autowired
+//    @Qualifier("example")
+//    private RestOperations exampleRestOperations;
+//
+//    @Autowired
+//    @Qualifier("example")
+//    private AsyncRestOperations exampleAsyncRestOperations;
 
     @Autowired
     @Qualifier("example")
@@ -58,8 +56,8 @@ final class ClientConfigurationTest {
     @Test
     void shouldWireOAuthCorrectly() {
         assertThat(exampleRest, is(notNullValue()));
-        assertThat(exampleRestTemplate, is(notNullValue()));
-        assertThat(exampleAsyncRestTemplate, is(notNullValue()));
+//        assertThat(exampleRestOperations, is(notNullValue()));
+//        assertThat(exampleAsyncRestOperations, is(notNullValue()));
     }
 
     @Test

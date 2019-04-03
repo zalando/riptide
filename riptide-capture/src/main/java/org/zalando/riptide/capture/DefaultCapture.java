@@ -17,7 +17,7 @@ final class DefaultCapture<T> implements Capture<T> {
     private final AtomicReference<Optional<T>> reference = new AtomicReference<>();
 
     @Override
-    public void capture(final T result) {
+    public void capture(@Nullable final T result) {
         final boolean captured = reference.compareAndSet(null, Optional.ofNullable(result));
 
         if (!captured) {

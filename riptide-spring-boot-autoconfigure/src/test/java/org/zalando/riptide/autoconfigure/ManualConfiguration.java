@@ -6,34 +6,21 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.zalando.logbook.Logbook;
-import org.zalando.logbook.httpclient.LogbookHttpRequestInterceptor;
-import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
 import org.zalando.logbook.spring.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.PluginInterceptor;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
@@ -52,8 +39,6 @@ import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
-import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
@@ -62,7 +47,6 @@ import org.zalando.riptide.stream.Streams;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.tracer.Tracer;
 import org.zalando.tracer.concurrent.TracingExecutors;
-import org.zalando.tracer.httpclient.TracerHttpRequestInterceptor;
 import org.zalando.tracer.spring.TracerAutoConfiguration;
 
 import java.net.SocketTimeoutException;
@@ -83,8 +67,6 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toList;
-import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 
 @Configuration
@@ -168,61 +150,6 @@ public class ManualConfiguration {
                     new TimeoutPlugin(scheduler, 3, SECONDS, executor),
                     new OriginalStackTracePlugin(),
                     new CustomPlugin());
-        }
-
-        @Bean
-        public RestTemplate exampleRestTemplate(final ClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
-            final RestTemplate template = new RestTemplate();
-
-            final DefaultUriBuilderFactory handler = new DefaultUriBuilderFactory("https://www.example.com");
-            template.setUriTemplateHandler(handler);
-            template.setRequestFactory(requestFactory);
-            template.setMessageConverters(converters.getConverters());
-            template.setInterceptors(plugins.stream().map(PluginInterceptor::new).collect(toList()));
-
-            return template;
-        }
-
-        @Bean
-        public AsyncRestTemplate exampleAsyncRestTemplate(final ClientHttpRequestFactory requestFactory,
-                final Executor executor, final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
-            final AsyncRestTemplate template = new AsyncRestTemplate();
-
-            final AsyncListenableTaskExecutor taskExecutor = new ConcurrentTaskExecutor(executor);
-            final DefaultUriBuilderFactory handler = new DefaultUriBuilderFactory("https://www.example.com");
-            template.setUriTemplateHandler(handler);
-            template.setAsyncRequestFactory(new ConcurrentClientHttpRequestFactory(requestFactory, taskExecutor));
-            template.setMessageConverters(converters.getConverters());
-            template.setInterceptors(plugins.stream().map(PluginInterceptor::new).collect(toList()));
-
-            return template;
-        }
-
-        @Bean
-        public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-                final Tracer tracer, final Logbook logbook) throws Exception {
-            return new ApacheClientHttpRequestFactory(
-                    HttpClientBuilder.create()
-                            .setDefaultRequestConfig(RequestConfig.custom()
-                                    .setConnectTimeout(5000)
-                                    .setSocketTimeout(5000)
-                                    .build())
-                            .setConnectionTimeToLive(30, SECONDS)
-                            .setMaxConnPerRoute(2)
-                            .setMaxConnTotal(20)
-                            .addInterceptorFirst(new TracerHttpRequestInterceptor(tracer))
-                            .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
-                            .addInterceptorLast(new GzipHttpRequestInterceptor())
-                            .addInterceptorLast(new LogbookHttpResponseInterceptor())
-                            .setSSLSocketFactory(new SSLConnectionSocketFactory(
-                                    SSLContexts.custom()
-                                            .loadTrustMaterial(
-                                                    getClass().getClassLoader().getResource("example.keystore"),
-                                                    "password".toCharArray())
-                                            .build(),
-                                    getDefaultHostnameVerifier()))
-                            .build());
         }
 
         @Bean(destroyMethod = "shutdown")

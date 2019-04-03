@@ -4,6 +4,7 @@ import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingConsumer;
 
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
 import static org.apiguardian.api.API.Status.STABLE;
@@ -11,12 +12,12 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public interface Capture<T> extends ThrowingConsumer<T, RuntimeException>, Function<ClientHttpResponse, T> {
 
-    void capture(T result) throws IllegalStateException;
+    void capture(@Nullable T result) throws IllegalStateException;
 
     T retrieve() throws CaptureException;
 
     @Override
-    default void tryAccept(final T result) {
+    default void tryAccept(@Nullable final T result) {
         capture(result);
     }
 

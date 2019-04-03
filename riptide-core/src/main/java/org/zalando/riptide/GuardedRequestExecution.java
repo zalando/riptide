@@ -5,6 +5,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.zalando.riptide.CompletableFutures.exceptionallyCompletedFuture;
+
 @AllArgsConstructor
 final class GuardedRequestExecution implements RequestExecution {
 
@@ -15,9 +17,7 @@ final class GuardedRequestExecution implements RequestExecution {
         try {
             return execution.execute(arguments);
         } catch (final Exception e) {
-            final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
+            return exceptionallyCompletedFuture(e);
         }
     }
 

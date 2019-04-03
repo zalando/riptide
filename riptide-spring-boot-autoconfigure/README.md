@@ -304,7 +304,7 @@ For a complete overview of available properties, they type and default value ple
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
 | `├── defaults`                          |                |                                                  |
-| `│   ├── url-resolution`                | `String`       | `rfc`, not applicable to Async/RestTemplate      |
+| `│   ├── url-resolution`                | `String`       | `rfc`                                            |
 | `│   ├── connections`                   |                |                                                  |
 | `│   │   ├── connect-timeout`           | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── socket-timeout`            | `TimeSpan`     | `5 seconds`                                      |
@@ -485,13 +485,9 @@ private Http example;
 All beans that are created for each client use the *Client ID*, in this case `example`, as their qualifier.
 
 Besides `Http`, you can also alternatively inject any of the following types per client directly:
-- `RestTemplate`
-- `AsyncRestTemplate`
 - `ClientHttpRequestFactory`
-- `AsyncClientHttpRequestFactory`
 - `HttpClient`
 - `ClientHttpMessageConverters`
-- `AsyncListenableTaskExecutor`
 
 ### Trusted Keystore
 
@@ -545,29 +541,27 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 
 The following table shows all beans with their respective name (for the `example` client) and type:
 
-| Bean Name                              | Bean Type                                                          |
-|----------------------------------------|--------------------------------------------------------------------|
-| `exampleHttp`                          | `Http`                                                             |
-| `exampleAsyncRestTemplate`             | `AsyncRestTemplate`                                                |
-| `exampleRestTemplate`                  | `RestTemplate`                                                     |
-| `exampleAsyncClientHttpRequestFactory` | `AsyncClientHttpRequestFactory` **and** `ClientHttpRequestFactory` |
-| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                                      |
-| `exampleHttpClient`                    | `HttpClient`                                                       |
-| `exampleExecutorService`               | `ExecutorService`                                                  |
-| `exampleBackupRequestPlugin`           | `BackupRequestPlugin`                                              |
-| `exampleFailsafePlugin`                | `FailsafePlugin`                                                   |
-| `exampleMetricsPlugin`                 | `MetricsPlugin`                                                    |
-| `exampleOriginalStackTracePlugin`      | `OriginalStackTracePlugin`                                         |
-| `exampleTimeoutPlugin`                 | `TimeoutPlugin`                                                    |
-| `exampleTransientFaultPlugin`          | `TransientFaultPlugin`                                             |
-| `examplePlugin`                        | `Plugin` (optional, additional custom plugin)                      |
-| `exampleScheduledExecutorService`      | `ScheduledExecutorService`                                         |
-| `exampleRetryPolicy`                   | `RetryPolicy`                                                      |
-| `exampleCircuitBreaker`                | `CircuitBreaker`                                                   |
-| `exampleRetryListener`                 | `RetryListener`                                                    |
-| `exampleFaultClassifier`               | `FaultClassifier`                                                  |
-| `exampleCircuitBreakerListener`        | `CircuitBreakerListener`                                           |
-| `exampleAuthorizationProvider`         | `AuthorizationProvider`                                            |
+| Bean Name                         | Bean Type                                     |
+|-----------------------------------|-----------------------------------------------|
+| `exampleHttp`                     | `Http`                                        |
+| `exampleClientHttpRequestFactory` | `ClientHttpRequestFactory`                    |
+| `exampleHttpMessageConverters`    | `ClientHttpMessageConverters`                 |
+| `exampleHttpClient`               | `HttpClient`                                  |
+| `exampleExecutorService`          | `ExecutorService`                             |
+| `exampleBackupRequestPlugin`      | `BackupRequestPlugin`                         |
+| `exampleFailsafePlugin`           | `FailsafePlugin`                              |
+| `exampleMetricsPlugin`            | `MetricsPlugin`                               |
+| `exampleOriginalStackTracePlugin` | `OriginalStackTracePlugin`                    |
+| `exampleTimeoutPlugin`            | `TimeoutPlugin`                               |
+| `exampleTransientFaultPlugin`     | `TransientFaultPlugin`                        |
+| `examplePlugin`                   | `Plugin` (optional, additional custom plugin) |
+| `exampleScheduledExecutorService` | `ScheduledExecutorService`                    |
+| `exampleRetryPolicy`              | `RetryPolicy`                                 |
+| `exampleCircuitBreaker`           | `CircuitBreaker`                              |
+| `exampleRetryListener`            | `RetryListener`                               |
+| `exampleFaultClassifier`          | `FaultClassifier`                             |
+| `exampleCircuitBreakerListener`   | `CircuitBreakerListener`                      |
+| `exampleAuthorizationProvider`    | `AuthorizationProvider`                       |
 
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.

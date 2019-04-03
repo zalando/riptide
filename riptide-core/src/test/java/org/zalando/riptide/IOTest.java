@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
@@ -27,7 +26,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 
 final class IOTest {
@@ -93,18 +91,6 @@ final class IOTest {
                 .collect(toList());
 
         assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
-    }
-
-    @Test
-    void shouldCancelRequest() throws InterruptedException {
-        // TODO: support proper cancellations and remove this expectation
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-
-        http.get("/foo")
-                .call(pass())
-                .cancel(true);
-
-        Thread.sleep(5000);
     }
 
 }
