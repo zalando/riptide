@@ -513,6 +513,8 @@ private Http example;
 All beans that are created for each client use the *Client ID*, in this case `example`, as their qualifier.
 
 Besides `Http`, you can also alternatively inject any of the following types per client directly:
+- `RestOperations`
+- `AsyncRestOperations`
 - `ClientHttpRequestFactory`
 - `HttpClient`
 - `ClientHttpMessageConverters`

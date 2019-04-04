@@ -24,6 +24,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.web.client.AsyncRestOperations;
+import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.httpclient.LogbookHttpRequestInterceptor;
 import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
@@ -41,6 +43,8 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
+import org.zalando.riptide.compatibility.AsyncHttpOperations;
+import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
@@ -165,6 +169,16 @@ public class ManualConfiguration {
                     new TimeoutPlugin(scheduler, 3, SECONDS, executor),
                     new OriginalStackTracePlugin(),
                     new CustomPlugin());
+        }
+
+        @Bean
+        public RestOperations exampleRestOperations(final Http http) {
+            return new HttpOperations(http);
+        }
+
+        @Bean
+        public AsyncRestOperations exampleAsyncRestOperations(final Http http) {
+            return new AsyncHttpOperations(http);
         }
 
         @Bean

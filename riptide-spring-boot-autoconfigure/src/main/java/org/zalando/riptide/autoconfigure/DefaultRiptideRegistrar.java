@@ -22,6 +22,8 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.web.client.AsyncRestOperations;
+import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -37,6 +39,8 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
+import org.zalando.riptide.compatibility.AsyncHttpOperations;
+import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
@@ -94,11 +98,15 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     @Override
     public void register() {
-        properties.getClients().forEach(this::registerHttp);
+        properties.getClients().forEach((id, client) -> {
+            registerHttp(id, client);
+            registerHttpOperations(id, client);
+            registerAsyncHttpOperations(id, client);
+        });
     }
 
-    private void registerHttp(final String id, final Client client) {
-        registry.registerIfAbsent(id, Http.class, () -> {
+    private String registerHttp(final String id, final Client client) {
+        return registry.registerIfAbsent(id, Http.class, () -> {
             log.debug("Client [{}]: Registering Http", id);
 
             return genericBeanDefinition(HttpFactory.class)
@@ -110,6 +118,18 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(registerHttpMessageConverters(id, client))
                     .addConstructorArgValue(registerPlugins(id, client));
         });
+    }
+
+    private void registerHttpOperations(final String id, final Client client) {
+        registry.registerIfAbsent(id, RestOperations.class, () ->
+                genericBeanDefinition(HttpOperations.class)
+                        .addConstructorArgReference(registerHttp(id, client)));
+    }
+
+    private void registerAsyncHttpOperations(final String id, final Client client) {
+        registry.registerIfAbsent(id, AsyncRestOperations.class, () ->
+                genericBeanDefinition(AsyncHttpOperations.class)
+                        .addConstructorArgReference(registerHttp(id, client)));
     }
 
     private String registerClientHttpRequestFactory(final String id, final Client client) {
@@ -156,6 +176,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         return executorId;
     }
+
     private static final class HttpMessageConverters {
 
 
@@ -198,7 +219,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgValue(protocol)
                         .getBeanDefinition());
 
-                log.debug("Client [{]]: Registering SOAPFaultHttpMessageConverter", id);
+                log.debug("Client [{}]: Registering SOAPFaultHttpMessageConverter", id);
                 list.add(genericBeanDefinition(SOAPFaultHttpMessageConverter.class)
                         .addConstructorArgValue(protocol)
                         .getBeanDefinition());
@@ -278,17 +299,16 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         if (errorResponses.getEnabled()) {
-            injections.add(registry.registerIfAbsent(id, ErrorResponseInjection.class, () -> {
-                return genericBeanDefinition(ErrorResponseInjection.class)
-                        .addConstructorArgReference(
-                                registry.registerIfAbsent(id, "ErrorResponse", Probability.class, () ->
-                                        genericBeanDefinition(Probability.class)
-                                                .setFactoryMethod("fixed")
-                                                .addConstructorArgValue(errorResponses.getProbability())))
-                        .addConstructorArgValue(errorResponses.getStatusCodes().stream()
-                                .map(HttpStatus::valueOf)
-                                .collect(toList()));
-            }));
+            injections.add(registry.registerIfAbsent(id, ErrorResponseInjection.class, () ->
+                    genericBeanDefinition(ErrorResponseInjection.class)
+                            .addConstructorArgReference(
+                                    registry.registerIfAbsent(id, "ErrorResponse", Probability.class, () ->
+                                            genericBeanDefinition(Probability.class)
+                                                    .setFactoryMethod("fixed")
+                                                    .addConstructorArgValue(errorResponses.getProbability())))
+                            .addConstructorArgValue(errorResponses.getStatusCodes().stream()
+                                    .map(HttpStatus::valueOf)
+                                    .collect(toList()))));
         }
 
         if (injections.isEmpty()) {
@@ -594,7 +614,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         if (client.getRequestCompression().getEnabled()) {
-            log.debug("Client [{}]: Registering GzippingHttpRequestInterceptor", id);
+            log.debug("Client [{}]: Registering GzipHttpRequestInterceptor", id);
             interceptors.add(genericBeanDefinition(GzipHttpRequestInterceptor.class)
                     .getBeanDefinition());
         }
