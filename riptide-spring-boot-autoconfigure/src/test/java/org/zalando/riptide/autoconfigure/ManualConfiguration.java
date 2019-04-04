@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
@@ -80,6 +82,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -218,6 +221,11 @@ public class ManualConfiguration {
                     tracer);
         }
 
+        @Bean
+        public MeterBinder executorServiceMetrics(final ExecutorService executor) {
+            return new ExecutorServiceMetrics(executor, "http-example", singleton(Tag.of("clientId", "example")));
+        }
+
         @Bean(destroyMethod = "shutdown")
         public ScheduledExecutorService scheduler(final Tracer tracer) {
             return new TracedScheduledExecutorService(
@@ -225,6 +233,11 @@ public class ManualConfiguration {
                             20,
                             new CustomizableThreadFactory("http-example-scheduler-")),
                     tracer);
+        }
+
+        @Bean
+        public MeterBinder scheduledExecutorServiceMetrics(final ScheduledExecutorService executor) {
+            return new ExecutorServiceMetrics(executor, "http-example-scheduler", singleton(Tag.of("clientId", "example")));
         }
 
         @Bean
