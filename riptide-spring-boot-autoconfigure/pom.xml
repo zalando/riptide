@@ -113,7 +113,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-concurrent</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.1</version>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
