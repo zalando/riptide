@@ -3,7 +3,6 @@ package org.zalando.riptide;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -18,7 +17,6 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public interface RequestArguments {
 
-    // TODO top level?!
     interface Entity {
         void writeTo(HttpOutputMessage message) throws IOException;
     }

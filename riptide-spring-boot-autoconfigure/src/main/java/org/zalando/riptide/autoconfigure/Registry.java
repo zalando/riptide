@@ -1,7 +1,7 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -13,87 +13,54 @@ import org.springframework.beans.factory.support.ManagedList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
-import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static org.zalando.riptide.autoconfigure.Name.name;
 
+@AllArgsConstructor
+@Slf4j
 final class Registry {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Registry.class);
 
     private final BeanDefinitionRegistry registry;
 
-    Registry(final BeanDefinitionRegistry registry) {
-        this.registry = registry;
-    }
-
-    public boolean isRegistered(final String id, final Class<?> type) {
-        return isRegistered(generateBeanName(id, type));
-    }
-
-    public boolean isRegistered(final String name) {
+    boolean isRegistered(final String name) {
         return registry.isBeanNameInUse(name);
     }
 
-    public <T> String registerIfAbsent(final Class<T> type, final Supplier<BeanDefinitionBuilder> factory) {
-        final String name = generateBeanName(type);
-
-        if (isRegistered(name)) {
-            LOG.debug("Bean [{}] is already registered, skipping it.", name);
-            return name;
-        }
-
-        registry.registerBeanDefinition(name, factory.get().getBeanDefinition());
-
-        return name;
+    String registerIfAbsent(final String id, final Class<?> suffix, final Supplier<BeanDefinitionBuilder> factory) {
+        return registerIfAbsent(name(id, suffix), factory);
     }
 
-    public <T> String registerIfAbsent(final String id, final Class<T> type,
-            final Supplier<BeanDefinitionBuilder> factory) {
-        return registerIfAbsent(id, generateBeanName(id, type), factory);
+    String registerIfAbsent(final Name name, final Supplier<BeanDefinitionBuilder> factory) {
+        return find(name).orElseGet(() -> {
+            final AbstractBeanDefinition definition = factory.get().getBeanDefinition();
+
+            name.getId().ifPresent(id ->
+                    definition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, id)));
+
+            final String beanName = name.toNormalizedString();
+            log.debug("Registering [{}]", beanName);
+            registry.registerBeanDefinition(beanName, definition);
+            return beanName;
+        });
     }
 
-    public <T> String registerIfAbsent(final String id, final String infix, final Class<T> type,
-            final Supplier<BeanDefinitionBuilder> factory) {
-        return registerIfAbsent(id, generateBeanName(id, infix, type), factory);
+    Optional<BeanReference> findRef(final String id, final Class<?>... types) {
+        return find(id, types).map(Registry::ref);
     }
 
-    public String registerIfAbsent(final String id, final String name, final Supplier<BeanDefinitionBuilder> factory) {
-        if (isRegistered(name)) {
-            LOG.debug("Bean [{}] is already registered, skipping it.", name);
-            return name;
-        }
-
-        final AbstractBeanDefinition definition = factory.get().getBeanDefinition();
-
-        definition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, id));
-
-        registry.registerBeanDefinition(name, definition);
-
-        return name;
+    Optional<String> find(final String id, final Class<?>... types) {
+        return find(name(id, types));
     }
 
-    public static <T> String generateBeanName(final Class<T> type) {
-        return UPPER_CAMEL.to(LOWER_CAMEL, type.getSimpleName());
+    private Optional<String> find(final Name name) {
+        return name.getAlternatives().stream()
+                .filter(this::isRegistered)
+                .findFirst();
     }
 
-    public static <T> String generateBeanName(final String id, final Class<T> type) {
-        final String suffix = type.getSimpleName();
-        return generateBeanName(id, suffix);
-    }
-
-    public static <T> String generateBeanName(final String id, String infix, final Class<T> type) {
-        final String suffix = type.getSimpleName();
-        return generateBeanName(id, infix + suffix);
-    }
-
-    public static String generateBeanName(final String id, final String suffix) {
-        return LOWER_HYPHEN.to(LOWER_CAMEL, id) + suffix;
-    }
-
-    public static BeanReference ref(final String beanName) {
+    static BeanReference ref(final String beanName) {
         return new RuntimeBeanReference(beanName);
     }
 

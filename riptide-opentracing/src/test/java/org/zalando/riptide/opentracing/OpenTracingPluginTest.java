@@ -62,8 +62,6 @@ final class OpenTracingPluginTest {
                             new UriVariablesTagSpanDecorator()))
             .build();
 
-    // TODO set socket timeout and test network error
-
     @Test
     void shouldTraceRequestAndResponse() {
         driver.addExpectation(onRequestTo("/users/me")

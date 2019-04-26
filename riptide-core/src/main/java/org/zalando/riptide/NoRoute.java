@@ -5,7 +5,6 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import static org.apiguardian.api.API.Status.STABLE;
 
-// TODO UnsupportedResponseRoute?
 @API(status = STABLE)
 public final class NoRoute implements Route {
 

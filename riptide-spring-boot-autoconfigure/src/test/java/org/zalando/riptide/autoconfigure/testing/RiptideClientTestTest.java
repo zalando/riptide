@@ -11,7 +11,6 @@ import org.zalando.riptide.autoconfigure.RiptideClientTest;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-// TODO @RunWith(SpringRunner.class)
 @RiptideClientTest
 @ActiveProfiles("testing")
 final class RiptideClientTestTest {

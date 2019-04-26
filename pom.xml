@@ -614,7 +614,6 @@
                     <version>3.8.0</version>
                     <configuration>
                         <compilerArgs>
-                            <!-- TODO fail on deprecation -->
                             <compilerArg>-Xlint:unchecked</compilerArg>
                             <compilerArg>-Werror</compilerArg>
                             <compilerArg>-parameters</compilerArg>
