@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-concurrent</artifactId>
-            <version>0.2.1</version>
+            <version>0.3.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
