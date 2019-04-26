@@ -64,6 +64,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,13 +77,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.autoconfigure.Dependencies.ifPresent;
-import static org.zalando.riptide.autoconfigure.Registry.generateBeanName;
+import static org.zalando.riptide.autoconfigure.Name.name;
 import static org.zalando.riptide.autoconfigure.Registry.list;
 import static org.zalando.riptide.autoconfigure.Registry.ref;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
@@ -154,7 +154,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(threads.getQueueSize() == 0 ?
                             new SynchronousQueue<>() :
                             new ArrayBlockingQueue<>(threads.getQueueSize()))
-                    // TODO UncaughtExceptionHandler?
                     .addConstructorArgValue(new CustomizableThreadFactory(name + "-"))
                     .setDestroyMethodName("shutdown");
         });
@@ -240,12 +239,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private String findObjectMapper(final String id) {
-        final String beanName = generateBeanName(id, ObjectMapper.class);
-        return registry.isRegistered(beanName) ? beanName : "jacksonObjectMapper";
+        return registry.find(id, ObjectMapper.class).orElse("jacksonObjectMapper");
     }
 
     private List<BeanReference> registerPlugins(final String id, final Client client) {
-
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
                 registerMetricsPlugin(id, client),
@@ -277,8 +274,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             injections.add(registry.registerIfAbsent(id, LatencyInjection.class, () ->
                     genericBeanDefinition(LatencyInjection.class)
                             .addConstructorArgReference(
-                                    registry.registerIfAbsent(id, "Latency", Probability.class, () ->
-                                            genericBeanDefinition(Probability.class)
+                                    registry.registerIfAbsent(name(id, LatencyInjection.class, Probability.class),
+                                            () -> genericBeanDefinition(Probability.class)
                                                     .setFactoryMethod("fixed")
                                                     .addConstructorArgValue(latency.getProbability())))
                             .addConstructorArgValue(Clock.systemUTC())
@@ -286,24 +283,23 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         if (exceptions.getEnabled()) {
-            injections.add(registry.registerIfAbsent(id, ExceptionInjection.class, () -> {
-                final List<Supplier<Exception>> singleton = singletonList(SocketTimeoutException::new);
-                return genericBeanDefinition(ExceptionInjection.class)
-                        .addConstructorArgReference(
-                                registry.registerIfAbsent(id, "Exception", Probability.class, () ->
-                                        genericBeanDefinition(Probability.class)
-                                                .setFactoryMethod("fixed")
-                                                .addConstructorArgValue(exceptions.getProbability())))
-                        .addConstructorArgValue(singleton);
-            }));
+            injections.add(registry.registerIfAbsent(id, ExceptionInjection.class, () ->
+                    genericBeanDefinition(ExceptionInjection.class)
+                            .addConstructorArgReference(
+                                    registry.registerIfAbsent(name(id, ExceptionInjection.class, Probability.class),
+                                            () -> genericBeanDefinition(Probability.class)
+                                                    .setFactoryMethod("fixed")
+                                                    .addConstructorArgValue(exceptions.getProbability())))
+                            .addConstructorArgValue(
+                                    Collections.<Supplier<Exception>>singletonList(SocketTimeoutException::new))));
         }
 
         if (errorResponses.getEnabled()) {
             injections.add(registry.registerIfAbsent(id, ErrorResponseInjection.class, () ->
                     genericBeanDefinition(ErrorResponseInjection.class)
                             .addConstructorArgReference(
-                                    registry.registerIfAbsent(id, "ErrorResponse", Probability.class, () ->
-                                            genericBeanDefinition(Probability.class)
+                                    registry.registerIfAbsent(name(id, ErrorResponseInjection.class, Probability.class),
+                                            () -> genericBeanDefinition(Probability.class)
                                                     .setFactoryMethod("fixed")
                                                     .addConstructorArgValue(errorResponses.getProbability())))
                             .addConstructorArgValue(errorResponses.getStatusCodes().stream()
@@ -355,13 +351,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getTracing().getEnabled()) {
             registry.registerIfAbsent(id, OpenTracingPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTracingPlugin.class.getSimpleName());
-
-                final String decorator = generateBeanName(id, SpanDecorator.class);
                 return genericBeanDefinition(OpenTracingPluginFactory.class)
                         .setFactoryMethod("create")
                         .addConstructorArgReference("tracer")
                         .addConstructorArgValue(client)
-                        .addConstructorArgValue(registry.isRegistered(decorator) ? ref(decorator) : null);
+                        .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
             });
         }
         return Optional.empty();
@@ -438,21 +432,13 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private Optional<String> registerCustomPlugin(final String id) {
-        if (registry.isRegistered(id, Plugin.class)) {
-            final String pluginId = generateBeanName(id, Plugin.class);
-            log.debug("Client [{}]: Registering [{}]", pluginId);
-            return Optional.of(pluginId);
-        }
-        return Optional.empty();
+        return registry.find(id, Plugin.class);
     }
 
     private String findFaultClassifier(final String id) {
-        if (registry.isRegistered(id, FaultClassifier.class)) {
-            return generateBeanName(id, FaultClassifier.class);
-        } else {
-            return registry.registerIfAbsent(FaultClassifier.class, () ->
-                    genericBeanDefinition(DefaultFaultClassifier.class));
-        }
+        return registry.find(id, FaultClassifier.class).orElseGet(() ->
+                registry.registerIfAbsent(name(FaultClassifier.class), () ->
+                        genericBeanDefinition(DefaultFaultClassifier.class)));
     }
 
     private String registerScheduler(final String id, final Client client) {
@@ -471,9 +457,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
 
         if (client.getMetrics().getEnabled()) {
-            final String beanName = generateBeanName(id, "ScheduledExecutorServiceMetrics");
-
-            registry.registerIfAbsent(id, beanName, () ->
+            registry.registerIfAbsent(name(id, "Scheduled", ExecutorServiceMetrics.class), () ->
                     genericBeanDefinition(ExecutorServiceMetrics.class)
                             .addConstructorArgReference(executorId)
                             .addConstructorArgValue(name)
@@ -585,10 +569,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(configureLastRequestInterceptors(id, client))
                     .addConstructorArgValue(configureLastResponseInterceptors(id))
                     .addConstructorArgReference(connectionManager)
-                    .addConstructorArgValue(registry.isRegistered(id, HttpClientCustomizer.class) ?
-                            ref(generateBeanName(id, HttpClientCustomizer.class)) : null)
-                    .addConstructorArgValue(registry.isRegistered(id, HttpCacheStorage.class) ?
-                            ref(generateBeanName(id, HttpCacheStorage.class)) : null)
+                    .addConstructorArgValue(registry.findRef(id, HttpClientCustomizer.class).orElse(null))
+                    .addConstructorArgValue(registry.findRef(id, HttpCacheStorage.class).orElse(null))
                     .setDestroyMethodName("close");
         });
     }
@@ -596,8 +578,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private List<BeanMetadataElement> configureFirstRequestInterceptors(final String id, final Client client) {
         final List<BeanMetadataElement> interceptors = list();
 
-        // TODO theoretically tracing could still be disabled...
-        if (client.getTracing().getPropagateFlowId()) {
+        if (client.getTracing().getEnabled() && client.getTracing().getPropagateFlowId()) {
             log.debug("Client [{}]: Registering FlowHttpRequestInterceptor", id);
             interceptors.add(ref("flowHttpRequestInterceptor"));
         }

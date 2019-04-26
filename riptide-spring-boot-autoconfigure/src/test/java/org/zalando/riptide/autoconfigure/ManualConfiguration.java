@@ -222,7 +222,7 @@ public class ManualConfiguration {
         public ScheduledExecutorService scheduler(final Tracer tracer) {
             return new TracedScheduledExecutorService(
                     Executors.newScheduledThreadPool(
-                            20, // TODO max-connections-total?
+                            20,
                             new CustomizableThreadFactory("http-example-scheduler-")),
                     tracer);
         }

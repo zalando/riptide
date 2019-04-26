@@ -629,13 +629,13 @@ final class RiptideTest {
     @Test
     public void shouldAutowireMockedHttp()  {
         server.expect(requestTo("https://example.com/bar")).andRespond(withSuccess());
-        client.remoteCall()           ;
+        client.remoteCall();
         server.verify();
     }
 }
 ```
 
-**Beware** that all components of a client below and including `AsyncClientHttpRequestFactory` are replaced by mocks.
+**Beware** that all components of a client below and including `ClientHttpRequestFactory` are replaced by mocks.
 
 ## Getting Help
 

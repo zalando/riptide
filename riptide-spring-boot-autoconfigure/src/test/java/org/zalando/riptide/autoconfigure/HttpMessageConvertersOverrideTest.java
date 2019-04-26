@@ -25,15 +25,15 @@ final class HttpMessageConvertersOverrideTest {
     public static class TestConfiguration {
 
         @Bean
-        @Qualifier("example")
-        public ClientHttpMessageConverters exampleHttpMessageConverters() {
+        @Qualifier("github-invalid")
+        public ClientHttpMessageConverters githubInvalidHttpMessageConverters() {
             return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
         }
 
     }
 
     @Autowired
-    @Qualifier("example")
+    @Qualifier("github-invalid")
     private ClientHttpMessageConverters unit;
 
     @Test
