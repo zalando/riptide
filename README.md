@@ -130,8 +130,9 @@ Integration of your typical Spring Boot Application with Riptide, [Logbook](http
 
 ```java
 Http.builder()
+    .executor(Executors.newCachedThreadPool())
+    .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .baseUrl("https://api.github.com")
-    .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
     .converter(new MappingJackson2HttpMessageConverter())
     .converter(new Jaxb2RootElementHttpMessageConverter())
     .plugin(new OriginalStackTracePlugin())
@@ -142,7 +143,8 @@ The following code is the bare minimum, since a request factory is required:
 
 ```java
 Http.builder()
-    .requestFactory(new HttpComponentsAsyncClientHttpRequestFactory())
+    .executor(Executors.newCachedThreadPool())
+    .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .build();
 ```
 
@@ -150,6 +152,9 @@ This defaults to:
 - no base URL
 - same list of converters as `new RestTemplate()`
 - [`OriginalStackTracePlugin`](#plugins)
+
+In order to configure the thread pool correctly, please refer to
+[How to set an ideal thread pool size](https://jobs.zalando.com/tech/blog/how-to-set-an-ideal-thread-pool-size).
 
 ## Usage
 
