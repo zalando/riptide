@@ -1,4 +1,4 @@
-# Riptide: Client-side response routing
+# Riptide: A next generation HTTP client 
 
 [![Tidal wave](docs/wave.jpg)](http://pixabay.com/en/wave-water-sea-tsunami-giant-wave-11061/)
 
