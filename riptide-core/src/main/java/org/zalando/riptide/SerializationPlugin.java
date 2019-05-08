@@ -1,6 +1,10 @@
 package org.zalando.riptide;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpOutputMessage;
+import org.zalando.riptide.RequestArguments.Entity;
+
+import java.io.IOException;
 
 @AllArgsConstructor
 final class SerializationPlugin implements Plugin {
@@ -9,14 +13,26 @@ final class SerializationPlugin implements Plugin {
 
     @Override
     public RequestExecution aroundSerialization(final RequestExecution execution) {
-        return arguments ->
-                execution.execute(arguments.getEntity() == null ?
-                        arguments.withEntity(toEntity(arguments)) :
-                        arguments);
+        return arguments -> execution.execute(arguments.getEntity() == null ?
+                arguments.withEntity(new SerializingEntity(arguments)) :
+                arguments);
     }
 
-    private RequestArguments.Entity toEntity(final RequestArguments arguments) {
-        return message -> writer.write(message, arguments);
+    @AllArgsConstructor
+    private class SerializingEntity implements Entity {
+
+        private final RequestArguments arguments;
+
+        @Override
+        public void writeTo(final HttpOutputMessage message) throws IOException {
+            writer.write(message, arguments);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return arguments.getBody() == null;
+        }
+
     }
 
 }
