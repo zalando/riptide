@@ -16,7 +16,7 @@ final class SerializationPlugin implements Plugin {
     }
 
     private RequestArguments.Entity toEntity(final RequestArguments arguments) {
-        return (message) -> writer.write(message, arguments);
+        return message -> writer.write(message, arguments);
     }
 
 }

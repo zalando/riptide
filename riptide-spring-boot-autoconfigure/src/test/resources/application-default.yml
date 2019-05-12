@@ -21,6 +21,7 @@ riptide:
         queue-size: 10
       stack-trace-preservation.enabled: true
       metrics.enabled: true
+      logging.enabled: true
       tracing:
         enabled: true
         tags:

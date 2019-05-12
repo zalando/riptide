@@ -35,17 +35,17 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-chaos</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-compatibility</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
-                <version>3.0.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-chaos</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
@@ -70,12 +70,18 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-logbook</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-metrics</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-opentracing</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>

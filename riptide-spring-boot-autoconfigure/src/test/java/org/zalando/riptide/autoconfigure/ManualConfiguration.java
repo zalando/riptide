@@ -27,9 +27,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
-import org.zalando.logbook.httpclient.LogbookHttpRequestInterceptor;
-import org.zalando.logbook.httpclient.LogbookHttpResponseInterceptor;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
+import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -56,6 +54,7 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
+import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
@@ -115,8 +114,8 @@ public class ManualConfiguration {
         }
 
         @Bean
-        public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Tracer tracer,
-                final ScheduledExecutorService scheduler, final Executor executor) {
+        public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Logbook logbook,
+                final Tracer tracer, final ScheduledExecutorService scheduler, final Executor executor) {
 
             final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
                     .withDefaultTags(Tag.of("clientId", "example"));
@@ -137,6 +136,7 @@ public class ManualConfiguration {
                                             HttpStatus.SERVICE_UNAVAILABLE)))),
                     new MetricsPlugin(meterRegistry)
                             .withDefaultTags(Tag.of("clientId", "example")),
+                    new LogbookPlugin(logbook),
                     new TransientFaultPlugin(),
                     new OpenTracingPlugin(tracer),
                     new FailsafePlugin(
@@ -183,7 +183,7 @@ public class ManualConfiguration {
 
         @Bean
         public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-                final Flow flow, final Logbook logbook) throws Exception {
+                final Flow flow) throws Exception {
             return new ApacheClientHttpRequestFactory(
                     HttpClientBuilder.create()
                             .setDefaultRequestConfig(RequestConfig.custom()
@@ -194,9 +194,7 @@ public class ManualConfiguration {
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)
                             .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
-                            .addInterceptorLast(new LogbookHttpRequestInterceptor(logbook))
                             .addInterceptorLast(new GzipHttpRequestInterceptor())
-                            .addInterceptorLast(new LogbookHttpResponseInterceptor())
                             .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                     SSLContexts.custom()
                                             .loadTrustMaterial(

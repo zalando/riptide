@@ -51,6 +51,7 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
+import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
@@ -246,6 +247,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
                 registerMetricsPlugin(id, client),
+                registerLogbookPlugin(id, client),
                 registerTransientFaultPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
                 registerFailsafePlugin(id, client),
@@ -328,6 +330,19 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .setFactoryMethod("createMetricsPlugin")
                         .addConstructorArgReference("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
+            });
+
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerLogbookPlugin(final String id, final Client client) {
+        if (client.getLogging().getEnabled()) {
+            final String pluginId = registry.registerIfAbsent(id, LogbookPlugin.class, () -> {
+                log.debug("Client [{}]: Registering [{}]", id, LogbookPlugin.class.getSimpleName());
+                return genericBeanDefinition(LogbookPlugin.class)
+                        .addConstructorArgReference("logbook");
             });
 
             return Optional.of(pluginId);
@@ -567,7 +582,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(client)
                     .addConstructorArgValue(configureFirstRequestInterceptors(id, client))
                     .addConstructorArgValue(configureLastRequestInterceptors(id, client))
-                    .addConstructorArgValue(configureLastResponseInterceptors(id))
                     .addConstructorArgReference(connectionManager)
                     .addConstructorArgValue(registry.findRef(id, HttpClientCustomizer.class).orElse(null))
                     .addConstructorArgValue(registry.findRef(id, HttpCacheStorage.class).orElse(null))
@@ -589,26 +603,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private List<BeanMetadataElement> configureLastRequestInterceptors(final String id, final Client client) {
         final List<BeanMetadataElement> interceptors = list();
 
-        if (registry.isRegistered("logbookHttpRequestInterceptor")) {
-            log.debug("Client [{}]: Registering LogbookHttpRequestInterceptor", id);
-            interceptors.add(ref("logbookHttpRequestInterceptor"));
-        }
-
         if (client.getRequestCompression().getEnabled()) {
             log.debug("Client [{}]: Registering GzipHttpRequestInterceptor", id);
             interceptors.add(genericBeanDefinition(GzipHttpRequestInterceptor.class)
                     .getBeanDefinition());
-        }
-
-        return interceptors;
-    }
-
-    private List<BeanMetadataElement> configureLastResponseInterceptors(final String id) {
-        final List<BeanMetadataElement> interceptors = list();
-
-        if (registry.isRegistered("logbookHttpResponseInterceptor")) {
-            log.debug("Client [{}]: Registering LogbookHttpResponseInterceptor", id);
-            interceptors.add(ref("logbookHttpResponseInterceptor"));
         }
 
         return interceptors;

@@ -27,7 +27,7 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
 @Configuration
 @AutoConfigureAfter(name = {
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
-        "org.zalando.logbook.spring.LogbookAutoConfiguration",
+        "org.zalando.logbook.autoconfigure.LogbookAutoConfiguration",
         "org.zalando.tracer.autoconfigure.TracerAutoConfiguration",
         "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration",
 })

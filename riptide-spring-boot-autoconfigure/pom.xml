@@ -16,7 +16,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <logbook.version>1.13.0</logbook.version>
+        <logbook.version>2.0.0-RC.1</logbook.version>
         <tracer.version>2.0.0-RC.1</tracer.version>
     </properties>
 
@@ -53,10 +53,6 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>riptide-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
             <artifactId>riptide-capture</artifactId>
         </dependency>
         <dependency>
@@ -68,6 +64,10 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-compatibility</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -100,6 +100,12 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
+            <artifactId>riptide-logbook</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
             <artifactId>riptide-metrics</artifactId>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
@@ -113,7 +119,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-concurrent</artifactId>
-            <version>0.4.0</version>
+            <version>0.3.0</version>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
@@ -142,7 +148,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>logbook-spring-boot-starter</artifactId>
+            <artifactId>logbook-spring-boot-autoconfigure</artifactId>
             <version>${logbook.version}</version>
             <optional>true</optional>
         </dependency>
@@ -245,7 +251,7 @@
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-mock</artifactId>
-            <version>0.33.0</version>
+            <version>0.32.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -255,7 +261,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>2.22.0</version>
                 <configuration>
                     <perCoreThreadCount>false</perCoreThreadCount>
                     <environmentVariables>

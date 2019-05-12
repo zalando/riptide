@@ -11,6 +11,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Logging;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
@@ -63,6 +64,7 @@ final class Defaulting {
                 defaults.getTransientFaultDetection(),
                 defaults.getStackTracePreservation(),
                 defaults.getMetrics(),
+                defaults.getLogging(),
                 defaults.getRetry(),
                 defaults.getCircuitBreaker(),
                 defaults.getBackupRequest(),
@@ -98,6 +100,7 @@ final class Defaulting {
                 merge(base.getTransientFaultDetection(), defaults.getTransientFaultDetection(), Defaulting::merge),
                 merge(base.getStackTracePreservation(), defaults.getStackTracePreservation(), Defaulting::merge),
                 merge(base.getMetrics(), defaults.getMetrics(), Defaulting::merge),
+                merge(base.getLogging(), defaults.getLogging(), Defaulting::merge),
                 merge(base.getRetry(), defaults.getRetry(), Defaulting::merge),
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
                 merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
@@ -157,6 +160,12 @@ final class Defaulting {
 
     private static Metrics merge(final Metrics base, final Metrics defaults) {
         return new Metrics(
+                either(base.getEnabled(), defaults.getEnabled())
+        );
+    }
+
+    private static Logging merge(final Logging base, final Logging defaults) {
+        return new Logging(
                 either(base.getEnabled(), defaults.getEnabled())
         );
     }
