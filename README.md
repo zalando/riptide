@@ -21,6 +21,8 @@ protocol and Java. Riptide allows users to leverage the power of HTTP with its u
 - **Status**:  Actively maintained and used in production.
 - Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
 
+:rotating_light: **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md).
+
 ## Example
 
 Usage typically looks like this:
