@@ -33,6 +33,7 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestCompressionPlugin;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
@@ -54,7 +55,6 @@ import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
-import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.metrics.MetricsPlugin;
@@ -139,6 +139,7 @@ public class ManualConfiguration {
                                             HttpStatus.SERVICE_UNAVAILABLE)))),
                     new MetricsPlugin(meterRegistry)
                             .withDefaultTags(Tag.of("clientId", "example")),
+                    new RequestCompressionPlugin(),
                     new LogbookPlugin(logbook),
                     new TransientFaultPlugin(),
                     new OpenTracingPlugin(tracer),
@@ -197,7 +198,6 @@ public class ManualConfiguration {
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)
                             .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
-                            .addInterceptorLast(new GzipHttpRequestInterceptor())
                             .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                     SSLContexts.custom()
                                             .loadTrustMaterial(

@@ -27,6 +27,7 @@ import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestCompressionPlugin;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.AuthorizationProvider;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
@@ -48,7 +49,6 @@ import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
-import org.zalando.riptide.httpclient.GzipHttpRequestInterceptor;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
@@ -247,6 +247,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
                 registerMetricsPlugin(id, client),
+                registerRequestCompressionPlugin(id, client),
                 registerLogbookPlugin(id, client),
                 registerTransientFaultPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
@@ -343,6 +344,18 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, LogbookPlugin.class.getSimpleName());
                 return genericBeanDefinition(LogbookPlugin.class)
                         .addConstructorArgReference("logbook");
+            });
+
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerRequestCompressionPlugin(final String id, final Client client) {
+        if (client.getRequestCompression().getEnabled()) {
+            final String pluginId = registry.registerIfAbsent(id, RequestCompressionPlugin.class, () -> {
+                log.debug("Client [{}]: Registering [{}]", id, RequestCompressionPlugin.class);
+                return genericBeanDefinition(RequestCompressionPlugin.class);
             });
 
             return Optional.of(pluginId);
@@ -581,7 +594,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .setFactoryMethod("createHttpClient")
                     .addConstructorArgValue(client)
                     .addConstructorArgValue(configureFirstRequestInterceptors(id, client))
-                    .addConstructorArgValue(configureLastRequestInterceptors(id, client))
                     .addConstructorArgReference(connectionManager)
                     .addConstructorArgValue(registry.findRef(id, HttpClientCustomizer.class).orElse(null))
                     .addConstructorArgValue(registry.findRef(id, HttpCacheStorage.class).orElse(null))
@@ -595,18 +607,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getTracing().getEnabled() && client.getTracing().getPropagateFlowId()) {
             log.debug("Client [{}]: Registering FlowHttpRequestInterceptor", id);
             interceptors.add(ref("flowHttpRequestInterceptor"));
-        }
-
-        return interceptors;
-    }
-
-    private List<BeanMetadataElement> configureLastRequestInterceptors(final String id, final Client client) {
-        final List<BeanMetadataElement> interceptors = list();
-
-        if (client.getRequestCompression().getEnabled()) {
-            log.debug("Client [{}]: Registering GzipHttpRequestInterceptor", id);
-            interceptors.add(genericBeanDefinition(GzipHttpRequestInterceptor.class)
-                    .getBeanDefinition());
         }
 
         return interceptors;

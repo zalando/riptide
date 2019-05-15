@@ -16,6 +16,7 @@ import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Precorrelation;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.RequestCompressionPlugin;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -29,6 +30,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -51,6 +53,7 @@ final class LogbookPluginTest {
     private final Http http = Http.builder()
             .executor(executor)
             .requestFactory(new SimpleClientHttpRequestFactory())
+            .plugin(new RequestCompressionPlugin())
             .plugin(new LogbookPlugin(logbook))
             .baseUrl(driver.getBaseUrl())
             .build();
@@ -95,7 +98,7 @@ final class LogbookPluginTest {
     void shouldLogWithBody() throws IOException {
         driver.addExpectation(onRequestTo("/greet")
                         .withMethod(POST)
-                        .withBody("Hello?", "text/plain"),
+                        .withBody(notNullValue(String.class), "text/plain"),
                 giveResponse("World!", "text/plain"));
 
         http.post("/greet")

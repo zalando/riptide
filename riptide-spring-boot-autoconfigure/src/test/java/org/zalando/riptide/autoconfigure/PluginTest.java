@@ -12,6 +12,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestCompressionPlugin;
 import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -118,6 +119,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(ChaosPlugin.class),
                 instanceOf(MetricsPlugin.class),
+                instanceOf(RequestCompressionPlugin.class),
                 instanceOf(TimeoutPlugin.class))));
     }
 

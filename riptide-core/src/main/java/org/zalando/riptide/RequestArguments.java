@@ -18,7 +18,13 @@ import static org.apiguardian.api.API.Status.STABLE;
 public interface RequestArguments {
 
     interface Entity {
+
         void writeTo(HttpOutputMessage message) throws IOException;
+
+        default boolean isEmpty() {
+            return false;
+        }
+
     }
 
     URI getBaseUrl();

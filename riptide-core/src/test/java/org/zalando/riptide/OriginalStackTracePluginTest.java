@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.zalando.riptide.Navigators.contentType;
 
-final class StackTraceTest {
+final class OriginalStackTracePluginTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
     private final ExecutorService executor = newSingleThreadExecutor();
@@ -51,7 +51,7 @@ final class StackTraceTest {
         assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
 
         assertThat(getStackTraceAsString(exception), containsString("Requester$ResponseDispatcher.call("));
-        assertThat(getStackTraceAsString(exception), containsString("StackTraceTest.execute("));
+        assertThat(getStackTraceAsString(exception), containsString("OriginalStackTracePluginTest.execute("));
     }
 
     @Test
@@ -65,7 +65,7 @@ final class StackTraceTest {
         assertThat(exception.getCause(), is(instanceOf(UnexpectedResponseException.class)));
 
         assertThat(getStackTraceAsString(exception), not(containsString("Requester$ResponseDispatcher.call(")));
-        assertThat(getStackTraceAsString(exception), not(containsString("StackTraceTest.execute(")));
+        assertThat(getStackTraceAsString(exception), not(containsString("OriginalStackTracePluginTest.execute(")));
     }
 
     private Http.ConfigurationStage configureRest() {
