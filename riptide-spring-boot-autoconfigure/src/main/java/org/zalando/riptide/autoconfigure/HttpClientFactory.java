@@ -72,7 +72,6 @@ final class HttpClientFactory {
     public static CloseableHttpClient createHttpClient(final Client client,
             final List<HttpRequestInterceptor> firstRequestInterceptors,
             final List<HttpRequestInterceptor> lastRequestInterceptors,
-            final List<HttpResponseInterceptor> lastResponseInterceptors,
             final HttpClientConnectionManager connectionManager,
             @Nullable final HttpClientCustomizer customizer,
             @Nullable final HttpCacheStorage cacheStorage) {
@@ -86,7 +85,6 @@ final class HttpClientFactory {
 
         firstRequestInterceptors.forEach(builder::addInterceptorFirst);
         lastRequestInterceptors.forEach(builder::addInterceptorLast);
-        lastResponseInterceptors.forEach(builder::addInterceptorLast);
 
         final Connections connections = client.getConnections();
         config.setConnectTimeout((int) connections.getConnectTimeout().to(MILLISECONDS));

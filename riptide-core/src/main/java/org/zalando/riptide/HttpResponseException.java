@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +30,7 @@ public abstract class HttpResponseException extends RestClientException {
 
     public HttpResponseException(final String message, final ClientHttpResponse response) throws IOException {
         this(message, response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
-                extractCharset(response), readFromBody(response));
+                extractCharset(response), tryWith(response, HttpResponseException::readFromBody));
     }
 
     private HttpResponseException(final String message, final int rawStatusCode, final String statusText,
@@ -42,17 +43,17 @@ public abstract class HttpResponseException extends RestClientException {
     }
 
     private static byte[] readFromBody(final ClientHttpResponse response) throws IOException {
-        return tryWith(response.getBody(), stream -> {
-            // needed for spring versions prior to 4.3.14
-            if (stream == null) {
-                return new byte[0];
-            }
+        @Nullable final InputStream stream = response.getBody();
 
-            final InputStream input = ByteStreams.limit(stream, MAX_BODY_BYTES_TO_READ);
-            final ByteArrayOutputStream output = new ByteArrayOutputStream();
-            ByteStreams.copy(input, output);
-            return output.toByteArray();
-        });
+        // needed for spring versions prior to 4.3.14
+        if (stream == null) {
+            return new byte[0];
+        }
+
+        final InputStream input = ByteStreams.limit(stream, MAX_BODY_BYTES_TO_READ);
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ByteStreams.copy(input, output);
+        return output.toByteArray();
     }
 
     private static Charset extractCharset(final ClientHttpResponse response) {
@@ -63,7 +64,8 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static String format(final String message, final byte[] body, final Charset charset,
             final int statusCode, final String reasonPhrase, final HttpHeaders headers) {
-        return String.format("%s: %d - %s\n%s\n%s", message, statusCode, reasonPhrase, headers, new String(body, charset));
+        return String.format("%s: %d - %s\n%s\n%s", message, statusCode, reasonPhrase, headers,
+                new String(body, charset));
     }
 
     public int getRawStatusCode() {

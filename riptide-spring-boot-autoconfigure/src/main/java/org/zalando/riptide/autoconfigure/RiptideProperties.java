@@ -74,6 +74,9 @@ public final class RiptideProperties {
         private Metrics metrics = new Metrics(false);
 
         @NestedConfigurationProperty
+        private Logging logging = new Logging(false);
+
+        @NestedConfigurationProperty
         private Retry retry = new Retry(false, null,
                 new Backoff(false, null, null, null), null, TimeSpan.of(5, SECONDS), null, null);
 
@@ -147,6 +150,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Metrics metrics;
+
+        @NestedConfigurationProperty
+        private Logging logging;
 
         @NestedConfigurationProperty
         private Retry retry;
@@ -238,6 +244,14 @@ public final class RiptideProperties {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Metrics {
+        private Boolean enabled;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Logging {
         private Boolean enabled;
     }
 

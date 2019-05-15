@@ -266,16 +266,16 @@ Riptide is built on the same foundation as Spring's `RestTemplate` and `AsyncRes
 trick, to use the same testing facilities, the [`MockRestServiceServer`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/client/MockRestServiceServer.html):
 
 ```java
-AsyncRestTemplate template = new AsyncRestTemplate();
+RestTemplate template = new RestTemplate();
 MockRestServiceServer server = MockRestServiceServer.createServer(template);
-AsyncClientHttpRequestFactory requestFactory = template.getAsyncRequestFactory();
+ClientHttpRequestFactory requestFactory = template.getRequestFactory();
 
 Http.builder()
     .requestFactory(requestFactory)
     // continue configuration
 ```
 
-We basically use an intermediate `AsyncRestTemplate` as a holder of the special `AsyncClientHttpRequestFactory` that the
+We basically use an intermediate `RestTemplate` as a holder of the special `ClientHttpRequestFactory` that the
 `MockRestServiceServer` manages.
 
 If you are using the [Spring Boot Starter](riptide-spring-boot-starter) the test setup is provided by a convenient annotation `@RiptideClientTest`, 

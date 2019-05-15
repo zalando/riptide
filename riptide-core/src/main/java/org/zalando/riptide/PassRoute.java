@@ -20,7 +20,11 @@ public final class PassRoute implements Route {
 
     @Override
     public void execute(final ClientHttpResponse response, final MessageReader reader) throws IOException {
-        tryWith(response.getBody(), ByteStreams::exhaust);
+        tryWith(response, this::exhaust);
+    }
+
+    private void exhaust(final ClientHttpResponse response) throws IOException {
+        ByteStreams.exhaust(response.getBody());
     }
 
     /**

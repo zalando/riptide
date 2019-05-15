@@ -84,10 +84,10 @@ private Http example;
   - Backup (optional)
   - Failsafe (optional)
   - Faults (optional)
+  - Logbook (optional)
   - Metrics (optional)
   - Timeouts (optional)
   - SOAP (optional)
-- Logbook (optional)
 - Tracer (optional)
 
 ## Installation
@@ -169,10 +169,17 @@ Required when `soap` is enabled.
 
 #### [Logbook](https://github.com/zalando/logbook) integration
 
+Required when `logging` is enabled.
+
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>logbook-spring-boot-starter</artifactId>
+    <artifactId>riptide-logbook</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>logbook-spring-boot-autoconfigure</artifactId>
     <version>${logbook.version}</version>
 </dependency>
 ```
@@ -182,7 +189,7 @@ Required when `soap` is enabled.
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>tracer-spring-boot-starter</artifactId>
+    <artifactId>tracer-spring-boot-autoconfigure</artifactId>
     <version>${tracer.version}</version>
 </dependency>
 ```
@@ -191,7 +198,7 @@ Required when `soap` is enabled.
 
 Required for `oauth` support.
 
-Registers a special {@link AuthorizationProvider authorization provider} that built for Zalando's Platform IAM which provides
+Registers a special AuthorizationProvider that built for Zalando's Platform IAM which provides
 OAuth2 tokens as files in a mounted directory. See 
 [Zalando Platform IAM Integration](https://kubernetes-on-aws.readthedocs.io/en/latest/user-guide/zalando-iam.html) for more details.
 
@@ -363,6 +370,8 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── metrics`                       |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
+| `│   ├── logging`                       |                |                                                  |
+| `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
@@ -416,11 +425,11 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── max-per-route`         | `int`          | see `defaults`                                   |
 | `        │   └── max-total`             | `int`          | see `defaults`                                   |
-| `        └── threads`                   |                |                                                  |
-| `            ├── min-size`              | `int`          | see `defaults`                                   |
-| `            ├── max-size`              | `int`          | see `defaults`                                   |
-| `            ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |
-| `            └── queue-size`            | `int`          | see `defaults`                                   |
+| `        ├── threads`                   |                |                                                  |
+| `        │   ├── min-size`              | `int`          | see `defaults`                                   |
+| `        │   ├── max-size`              | `int`          | see `defaults`                                   |
+| `        │   ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |
+| `        │   └── queue-size`            | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── credentials-directory` | `Path`         | see `defaults`                                   |
@@ -429,6 +438,8 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── stack-trace-preservation`  |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── metrics`                   |                |                                                  |
+| `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
+| `        ├── logging`                   |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── retry`                     |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |

@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.zalando.logbook.spring.LogbookAutoConfiguration;
+import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 @Configuration
