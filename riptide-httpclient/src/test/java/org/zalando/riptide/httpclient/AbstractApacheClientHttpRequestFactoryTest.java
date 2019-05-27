@@ -174,7 +174,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
         driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
 
-        assertTimeout(Duration.ofMillis(250), () -> {
+        assertTimeout(Duration.ofMillis(500), () -> {
             http.get("/").call(pass()).join();
             http.get("/").call(pass()).join();
         });
