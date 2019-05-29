@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
 import org.organicdesign.fp.collections.ImList;
 import org.organicdesign.fp.collections.PersistentVector;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -49,7 +50,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;
 
     private final Executor executor;
-    private final ClientHttpRequestFactory requestFactory;
+    private final IO io;
     private final ImList<HttpMessageConverter<?>> converters;
     private final Supplier<URI> baseUrl;
     private final UrlResolution resolution;
@@ -61,12 +62,21 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public RequestFactoryStage executor(final Executor executor) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution, plugins);
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution, plugins);
     }
 
     @Override
-    public ConfigurationStage requestFactory(final ClientHttpRequestFactory requestFactory) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution, plugins);
+    public ConfigurationStage requestFactory(final ClientHttpRequestFactory factory) {
+        final IO io = new BlockingIO(factory);
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution, plugins);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public ConfigurationStage asyncRequestFactory(final AsyncClientHttpRequestFactory factory) {
+        final Executor executor = Runnable::run;
+        final IO io = new NonBlockingIO(factory);
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution, plugins);
     }
 
     @Override
@@ -76,14 +86,12 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage converters(@Nonnull final Iterable<HttpMessageConverter<?>> converters) {
-        return new DefaultHttpBuilder(executor, requestFactory, this.converters.concat(converters),
-                baseUrl, resolution, plugins);
+        return new DefaultHttpBuilder(executor, io, this.converters.concat(converters), baseUrl, resolution, plugins);
     }
 
     @Override
     public ConfigurationStage converter(final HttpMessageConverter<?> converter) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters.append(converter),
-                baseUrl, resolution, plugins);
+        return new DefaultHttpBuilder(executor, io, converters.append(converter), baseUrl, resolution, plugins);
     }
 
     @Override
@@ -99,7 +107,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage baseUrl(final Supplier<URI> baseUrl) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters,
+        return new DefaultHttpBuilder(executor, io, converters,
                 () -> checkAbsoluteBaseUrl(baseUrl.get()), resolution, plugins);
     }
 
@@ -110,7 +118,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage urlResolution(@Nullable final UrlResolution resolution) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl,
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl,
                 firstNonNull(resolution, DEFAULT_RESOLUTION), plugins);
     }
 
@@ -121,13 +129,13 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage plugins(final Iterable<Plugin> plugins) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution,
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution,
                 this.plugins.concat(plugins));
     }
 
     @Override
     public ConfigurationStage plugin(final Plugin plugin) {
-        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution,
+        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution,
                 plugins.append(plugin));
     }
 
@@ -137,10 +145,11 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
         final List<Plugin> plugins = new ArrayList<>();
         plugins.add(new AsyncPlugin(executor));
+        plugins.add(new DispatchPlugin(new DefaultMessageReader(converters)));
         plugins.add(new SerializationPlugin(new DefaultMessageWriter(converters)));
         plugins.addAll(plugins());
 
-        return new DefaultHttp(requestFactory, converters, baseUrl, resolution, composite(plugins));
+        return new DefaultHttp(io, baseUrl, resolution, composite(plugins));
     }
 
     private List<HttpMessageConverter<?>> converters() {

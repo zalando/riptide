@@ -90,6 +90,7 @@ final class PluginTest {
         assertThat(getPlugins(github), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
                 instanceOf(TransientFaultPlugin.class),
                 instanceOf(CustomPlugin.class))));
@@ -98,6 +99,7 @@ final class PluginTest {
     @Test
     void shouldUseFailsafePlugin() throws Exception {
         assertThat(getPlugins(foo), contains(asList(
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
@@ -110,6 +112,7 @@ final class PluginTest {
         assertThat(getPlugins(baz), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
                 instanceOf(BackupRequestPlugin.class))));
     }
@@ -117,6 +120,7 @@ final class PluginTest {
     @Test
     void shouldUseTimeoutPlugin() throws Exception {
         assertThat(getPlugins(ecb), contains(asList(
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(ChaosPlugin.class),
@@ -128,6 +132,7 @@ final class PluginTest {
     @Test
     void shouldUseOriginalStackTracePlugin() throws Exception {
         assertThat(getPlugins(example), contains(asList(
+                instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),

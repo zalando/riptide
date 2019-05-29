@@ -7,7 +7,6 @@ import static org.zalando.fauxpas.FauxPas.throwingFunction;
 @AllArgsConstructor
 final class DispatchPlugin implements Plugin {
 
-    private final Route route;
     private final MessageReader reader;
 
     @Override
@@ -15,7 +14,7 @@ final class DispatchPlugin implements Plugin {
         return arguments -> execution.execute(arguments)
                 .thenApply(throwingFunction(response -> {
                     try {
-                        route.execute(response, reader);
+                        arguments.getRoute().execute(response, reader);
                     } catch (final NoWildcardException e) {
                         throw new UnexpectedResponseException(response);
                     }

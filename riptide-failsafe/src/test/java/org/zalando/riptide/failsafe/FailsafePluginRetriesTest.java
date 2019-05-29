@@ -72,7 +72,7 @@ final class FailsafePluginRetriesTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
-            .executor(newSingleThreadExecutor())
+            .executor(newCachedThreadPool())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())

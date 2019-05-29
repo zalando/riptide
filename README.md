@@ -45,6 +45,7 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
   - retries and circuit breaker via [Failsafe integration](riptide-failsafe)
   - backup requests via [riptide-backup](riptide-backup)
   - [timeouts](riptide-timeout)
+- non-blocking IO (optional)
 - encourages the use of
   - fallbacks
   - content negotiation
@@ -157,6 +158,33 @@ This defaults to:
 
 In order to configure the thread pool correctly, please refer to
 [How to set an ideal thread pool size](https://jobs.zalando.com/tech/blog/how-to-set-an-ideal-thread-pool-size).
+
+### Non-blocking IO
+
+Riptide has the notion of an *executor* and a *request factory*. There are two different kinds of request factories:
+
+**[`ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html)**
+
+The following implementations offer blocking IO:
+
+- [`ApacheClientHttpRequestFactory`](riptide-httpclient), using the [Apache HTTP Client](https://hc.apache.org/httpcomponents-client-ga/)
+- ~[`HttpComponentsClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html)~, please use the none above
+- [`SimpleClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html), using [`HttpURLConnection`](https://docs.oracle.com/javase/8/docs/api/java/net/HttpURLConnection.html)
+
+**[`AsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/AsyncClientHttpRequestFactory.html)**
+
+The following implementations offer non-blocking IO:
+
+- [`OkHttp3ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/OkHttp3ClientHttpRequestFactory.html), using [OkHttp](https://square.github.io/okhttp/)
+- [`Netty4ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/Netty4ClientHttpRequestFactory.html), using [Netty](https://netty.io/)
+- [`HttpComponentsAsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsAsyncClientHttpRequestFactory.html), using [Apache HTTP Async Client](https://hc.apache.org/httpcomponents-asyncclient-4.1.x/index.html)
+
+Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. For synchronous operations it's possible to just pass `Runnable::run`.
+
+|                 | Synchronous                                  | Asynchronous                                      |
+|-----------------|----------------------------------------------|---------------------------------------------------|
+| Blocking IO     | `Runnable::run` + `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory`           |
+| Non-blocking IO | n/a                                          | `Runnable::run` + `AsyncClientHttpRequestFactory` |
 
 ## Usage
 

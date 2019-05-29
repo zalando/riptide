@@ -1,13 +1,12 @@
 package org.zalando.riptide;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.client.ClientHttpResponse;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static org.zalando.fauxpas.FauxPas.throwingRunnable;
-import static org.zalando.riptide.CompletableFutures.forwardTo;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.function.Function.identity;
+import static org.zalando.fauxpas.FauxPas.throwingSupplier;
 
 @AllArgsConstructor
 final class AsyncPlugin implements Plugin {
@@ -16,13 +15,17 @@ final class AsyncPlugin implements Plugin {
 
     @Override
     public RequestExecution aroundAsync(final RequestExecution execution) {
-        return arguments -> {
-            final CompletableFuture<ClientHttpResponse> future = new CompletableFuture<>();
+        return arguments ->
+                supplyAsync(throwingSupplier(() -> execution.execute(arguments)), executor)
+                .thenCompose(identity());
+    }
 
-            executor.execute(throwingRunnable(() ->
-                    execution.execute(arguments).whenComplete(forwardTo(future))));
-
-            return future;
-        };
+    @Override
+    public RequestExecution aroundNetwork(final RequestExecution execution) {
+        return arguments ->
+                execution.execute(arguments)
+                        .whenCompleteAsync((r, e) -> {
+                            // this will force any further callbacks to be executed using the executor
+                        }, executor);
     }
 }

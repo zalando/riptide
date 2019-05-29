@@ -14,16 +14,16 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.springframework.util.CollectionUtils.toMultiValueMap;
 
 @AllArgsConstructor
-final class NetworkRequestExecution implements RequestExecution {
+final class BlockingIO implements IO {
 
     private final ClientHttpRequestFactory requestFactory;
 
     @Override
     public CompletableFuture<ClientHttpResponse> execute(final RequestArguments arguments) throws IOException {
-        final URI requestUri = arguments.getRequestUri();
+        final URI uri = arguments.getRequestUri();
         final HttpMethod method = arguments.getMethod();
 
-        final ClientHttpRequest request = requestFactory.createRequest(requestUri, method);
+        final ClientHttpRequest request = requestFactory.createRequest(uri, method);
 
         request.getHeaders().addAll(toMultiValueMap(arguments.getHeaders()));
         arguments.getEntity().writeTo(request);
