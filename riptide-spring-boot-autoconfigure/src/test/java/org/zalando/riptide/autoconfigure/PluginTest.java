@@ -21,6 +21,7 @@ import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 
 import java.lang.reflect.Field;
@@ -100,6 +101,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
+                instanceOf(OpenTracingPlugin.class),
                 instanceOf(FailsafePlugin.class))));
     }
 
@@ -130,6 +132,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MetricsPlugin.class),
                 instanceOf(LogbookPlugin.class),
+                instanceOf(OpenTracingPlugin.class),
                 instanceOf(OriginalStackTracePlugin.class))));
     }
 
