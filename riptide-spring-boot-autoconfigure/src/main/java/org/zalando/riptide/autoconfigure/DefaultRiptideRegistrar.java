@@ -377,7 +377,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private Optional<String> registerOpenTracingPlugin(final String id, final Client client) {
         if (client.getTracing().getEnabled()) {
-            registry.registerIfAbsent(id, OpenTracingPlugin.class, () -> {
+            final String pluginId = registry.registerIfAbsent(id, OpenTracingPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTracingPlugin.class.getSimpleName());
                 return genericBeanDefinition(OpenTracingPluginFactory.class)
                         .setFactoryMethod("create")
@@ -385,6 +385,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
             });
+            return Optional.of(pluginId);
         }
         return Optional.empty();
     }
