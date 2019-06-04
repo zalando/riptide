@@ -24,8 +24,10 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import java.io.IOException;
 
+import static java.lang.ThreadLocal.withInitial;
 import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
 import static org.springframework.http.MediaType.TEXT_XML;
+import static org.zalando.fauxpas.FauxPas.throwingSupplier;
 
 public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
@@ -37,7 +39,8 @@ public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter
                 }
             });
 
-    private final String protocol;
+    private final ThreadLocal<MessageFactory> messageFactory;
+    private final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 
     public SOAPHttpMessageConverter() {
         this(SOAP_1_1_PROTOCOL);
@@ -45,7 +48,7 @@ public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter
 
     public SOAPHttpMessageConverter(final String protocol) {
         super(TEXT_XML);
-        this.protocol = protocol;
+        this.messageFactory = withInitial(throwingSupplier(() -> MessageFactory.newInstance(protocol)));
     }
 
     @Override
@@ -59,8 +62,7 @@ public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter
             final HttpInputMessage message) throws IOException, HttpMessageNotReadableException {
 
         try {
-            final MessageFactory factory = MessageFactory.newInstance(protocol);
-            final SOAPMessage soapMessage = factory.createMessage(null, message.getBody());
+            final SOAPMessage soapMessage = messageFactory.get().createMessage(null, message.getBody());
             final Document document = soapMessage.getSOAPBody().extractContentAsDocument();
             final Unmarshaller unmarshaller = contexts.getUnchecked(type).createUnmarshaller();
             return unmarshaller.unmarshal(document);
@@ -74,10 +76,10 @@ public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter
             final HttpOutputMessage message) throws IOException, HttpMessageNotWritableException {
 
         try {
-            final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            final Marshaller marshaller = JAXBContext.newInstance(value.getClass()).createMarshaller();
+            final Document document = builderFactory.newDocumentBuilder().newDocument();
+            final Marshaller marshaller = contexts.getUnchecked(value.getClass()).createMarshaller();
             marshaller.marshal(value, document);
-            final SOAPMessage soapMessage = MessageFactory.newInstance(protocol).createMessage();
+            final SOAPMessage soapMessage = messageFactory.get().createMessage();
             soapMessage.getSOAPBody().addDocument(document);
 
             soapMessage.writeTo(message.getBody());

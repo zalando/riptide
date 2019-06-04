@@ -14,12 +14,14 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPMessage;
 import java.io.IOException;
 
+import static java.lang.ThreadLocal.withInitial;
 import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
 import static org.springframework.http.MediaType.TEXT_XML;
+import static org.zalando.fauxpas.FauxPas.throwingSupplier;
 
 public final class SOAPFaultHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
-    private final String protocol;
+    private final ThreadLocal<MessageFactory> messageFactory;
 
     public SOAPFaultHttpMessageConverter() {
         this(SOAP_1_1_PROTOCOL);
@@ -27,7 +29,7 @@ public final class SOAPFaultHttpMessageConverter extends AbstractHttpMessageConv
 
     public SOAPFaultHttpMessageConverter(final String protocol) {
         super(TEXT_XML);
-        this.protocol = protocol;
+        this.messageFactory = withInitial(throwingSupplier(() -> MessageFactory.newInstance(protocol)));
     }
 
     @Override
@@ -46,8 +48,7 @@ public final class SOAPFaultHttpMessageConverter extends AbstractHttpMessageConv
             throws IOException, HttpMessageNotReadableException {
 
         try {
-            final MessageFactory factory = MessageFactory.newInstance(protocol);
-            final SOAPMessage soapMessage = factory.createMessage(null, message.getBody());
+            final SOAPMessage soapMessage = messageFactory.get().createMessage(null, message.getBody());
             return soapMessage.getSOAPBody().getFault();
         } catch (final SOAPException e) {
             throw new HttpMessageNotReadableException(e.getMessage(), e, message);
