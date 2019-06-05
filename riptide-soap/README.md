@@ -17,7 +17,7 @@
 ```java
 http.post()
     .body(new PlaceOrderRequest(order))
-    .call(soap(PlaceOrderResponse,class, this::onSuccess));
+    .call(soap(PlaceOrderResponse.class, this::onSuccess));
 ```
 
 ## Features
@@ -57,7 +57,7 @@ Http.builder()
 ```java
 http.post()
     .body(new PlaceOrderRequest(order))
-    .call(soap(PlaceOrderResponse,class, this::onSuccess));
+    .call(soap(PlaceOrderResponse.class, this::onSuccess));
 ```
 
 Please note that you can just use `Http#post()` without specifying any request URI or path since
