@@ -350,12 +350,12 @@ For a complete overview of available properties, they type and default value ple
 | `├── defaults`                          |                |                                                  |
 | `│   ├── url-resolution`                | `String`       | `rfc`                                            |
 | `│   ├── connections`                   |                |                                                  |
-| `│   │   ├── connect-timeout`           | `TimeSpan`     | `5 seconds`                                      |
-| `│   │   ├── socket-timeout`            | `TimeSpan`     | `5 seconds`                                      |
-| `│   │   ├── time-to-live`              | `TimeSpan`     | `30 seconds`                                     |
-| `│   │   ├── max-per-route`             | `int`          | `20`                                             |
-| `│   │   ├── max-total`                 | `int`          | `20` (or at least `max-per-route`)               |
-| `│   │   └── mode`                      | `String`       | `streaming` (alternative is `buffering`)         |
+| `│   │   ├── connect-timeout`           | `TimeSpan`     | `5 seconds`                                      |
+| `│   │   ├── socket-timeout`            | `TimeSpan`     | `5 seconds`                                      |
+| `│   │   ├── time-to-live`              | `TimeSpan`     | `30 seconds`                                     |
+| `│   │   ├── max-per-route`             | `int`          | `20`                                             |
+| `│   │   ├── max-total`                 | `int`          | `20` (or at least `max-per-route`)               |
+| `│   │   └── mode`                      | `String`       | `streaming` (alternative is `buffering`)         |
 | `│   ├── threads`                       |                |                                                  |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
@@ -376,7 +376,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   ├── fixed-delay`               | `TimeSpan`     | none, mutually exclusive to `backoff`            |
 | `│   │   ├── backoff`                   |                | none, mutually exclusive to `fixed-delay`        |
-| `│   │   │   ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │   │   ├── enabled`               | `boolean`      | `false`                                          |
 | `│   │   │   ├── delay`                 | `TimeSpan`     | none, requires `backoff.max-delay`               |
 | `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
 | `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
@@ -396,7 +396,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── global`                    | `TimeSpan`     | none                                             |
 | `│   ├── request-compression`           |                |                                                  |
-| `│   │   └── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── certificate-pinning`           |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── keystore`                  |                |                                                  |
@@ -409,10 +409,10 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── max-object-size`           | `int`          | `8192`                                           |
 | `│   │   ├── max-cache-entries`         | `int`          | `1000`                                           |
 | `│   │   └── heuristic`                 |                | If max age was not specified by the server       |
-| `│   │       ├── enabled`               | `boolean`      | `false`                                          |
+| `│   │       ├── enabled`               | `boolean`      | `false`                                          |
 | `│   │       ├── coefficient`           | `double`       | `0.1`                                            |
 | `│   │       └── default-life-time`     | `TimeSpan`     | `0 seconds`, disabled                            |
-| `│   └── soap`                          |                |                                                  |
+| `│   └── soap`                          |                |                                                  |
 | `│       ├── enabled`                   | `boolean`      | `false`                                          |
 | `│       └── protocol`                  | `String`       | `1.1` (possible other value: `1.2`)              |
 | `└── clients`                           |                |                                                  |
@@ -420,11 +420,11 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── base-url`                  | `URI`          | none                                             |
 | `        ├── url-resolution`            | `String`       | see `defaults`                                   |
 | `        ├── connections`               |                |                                                  |
-| `        │   ├── connect-timeout`       | `TimeSpan`     | see `defaults`                                   |
-| `        │   ├── socket-timeout`        | `TimeSpan`     | see `defaults`                                   |
-| `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
-| `        │   ├── max-per-route`         | `int`          | see `defaults`                                   |
-| `        │   └── max-total`             | `int`          | see `defaults`                                   |
+| `        │   ├── connect-timeout`       | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── socket-timeout`        | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── max-per-route`         | `int`          | see `defaults`                                   |
+| `        │   └── max-total`             | `int`          | see `defaults`                                   |
 | `        ├── threads`                   |                |                                                  |
 | `        │   ├── min-size`              | `int`          | see `defaults`                                   |
 | `        │   ├── max-size`              | `int`          | see `defaults`                                   |
@@ -432,7 +432,7 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── queue-size`            | `int`          | see `defaults`                                   |
 | `        ├── oauth`                     |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `        │   └── credentials-directory` | `Path`         | see `defaults`                                   |
+| `        │   └── credentials-directory` | `Path`         | see `defaults`                                   |
 | `        ├── transient-fault-detection` |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── stack-trace-preservation`  |                |                                                  |
@@ -442,10 +442,10 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── logging`                   |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── retry`                     |                |                                                  |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   ├── fixed-delay`           | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── backoff`               |                |                                                  |
-| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
 | `        │   │   ├── delay`             | `TimeSpan`     | see `defaults`                                   |
 | `        │   │   ├── max-delay`         | `TimeSpan`     | see `defaults`                                   |
 | `        │   │   └── delay-factor`      | `double`       | see `defaults`                                   |
@@ -454,52 +454,52 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── jitter-factor`         | `double`       | see `defaults`                                   |
 | `        │   └── jitter`                | `TimeSpan`     | see `defaults`                                   |
 | `        ├── circuit-breaker`           |                |                                                  |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   ├── failure-threshold`     | `Ratio`        | see `defaults`                                   |
 | `        │   ├── delay`                 | `TimeSpan`     | see `defaults`                                   |
 | `        │   └── success-threshold`     | `Ratio`        | see `defaults`                                   |
 | `        ├── backup-request`            |                |                                                  |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── delay`                 | `TimeSpan`     | see `defaults`                                   |
 | `        ├── timeouts`                  |                |                                                  |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── global`                | `TimeSpan`     | see `defaults`                                   |
 | `        ├── request-compression`       |                |                                                  |
-| `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
-| `        ├── certificate-pinning`       |                |                                                  |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `        │   └── keystore`              |                |                                                  |
-| `        │       ├── path`              | `Path`         | see `defaults`                                   |
-| `        │       └── password`          | `String`       | see `defaults`                                   |
+| `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
+| `        ├── certificate-pinning`       |                |                                                  |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   └── keystore`              |                |                                                  |
+| `        │       ├── path`              | `Path`         | see `defaults`                                   |
+| `        │       └── password`          | `String`       | see `defaults`                                   |
 | `        ├── caching`                   |                | see `defaults`                                   |
-| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `        │   ├── shared`                | `boolean`      | see `defaults`                                   |
-| `        │   ├── directory`             | `String`       | see `defaults`                                   |
-| `        │   ├── max-object-size`       | `int`          | see `defaults`                                   |
-| `        │   ├── max-cache-entries`     | `int`          | see `defaults`                                   |
-| `        │   └── heuristic`             |                |                                                  |
-| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
-| `        │       ├── coefficient`       | `double`       | see `defaults`                                   |
-| `        │       └── default-life-time` | `TimeSpan`     | see `defaults`                                   |
-| `        ├── tracing`                   |                       |                                                  |
-| `        │   ├── enabled`               | `boolean`             | see `defaults`                                   |
-| `        │   ├── tags`                  | `Map<String, String>` | see `defaults`                                   |
-| `        │   └── propagate-flow-id`     | `boolean`             | see `defaults`                                   |
-| `        ├── chaos`                     |                |                                                  |
-| `        │   ├── latency`               |                |                                                  |
-| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
-| `        │   │   ├── probability`       | `double`       | see `defaults`                                   |
-| `        │   │   └── delay`             | `TimeSpan`     | see `defaults`                                   |
-| `        │   ├── exceptions`            |                |                                                  |
-| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
-| `        │   │   └── probability`       | `double`       | see `defaults`                                   |
-| `        │   └── error-responses`       |                |                                                  |
-| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
-| `        │       ├── probability`       | `double`       | see `defaults`                                   |
-| `        │       └── status-codes`      | `int[]`        | see `defaults`                                   |
-| `        └── soap`                      |                |                                                  |
-| `            ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `            └── protocol`              | `String`       | see `defaults`                                   |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── shared`                | `boolean`      | see `defaults`                                   |
+| `        │   ├── directory`             | `String`       | see `defaults`                                   |
+| `        │   ├── max-object-size`       | `int`          | see `defaults`                                   |
+| `        │   ├── max-cache-entries`     | `int`          | see `defaults`                                   |
+| `        │   └── heuristic`             |                |                                                  |
+| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │       ├── coefficient`       | `double`       | see `defaults`                                   |
+| `        │       └── default-life-time` | `TimeSpan`     | see `defaults`                                   |
+| `        ├── tracing`                   |                       |                                                  |
+| `        │   ├── enabled`               | `boolean`             | see `defaults`                                   |
+| `        │   ├── tags`                  | `Map<String, String>` | see `defaults`                                   |
+| `        │   └── propagate-flow-id`     | `boolean`             | see `defaults`                                   |
+| `        ├── chaos`                     |                |                                                  |
+| `        │   ├── latency`               |                |                                                  |
+| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │   │   ├── probability`       | `double`       | see `defaults`                                   |
+| `        │   │   └── delay`             | `TimeSpan`     | see `defaults`                                   |
+| `        │   ├── exceptions`            |                |                                                  |
+| `        │   │   ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │   │   └── probability`       | `double`       | see `defaults`                                   |
+| `        │   └── error-responses`       |                |                                                  |
+| `        │       ├── enabled`           | `boolean`      | see `defaults`                                   |
+| `        │       ├── probability`       | `double`       | see `defaults`                                   |
+| `        │       └── status-codes`      | `int[]`        | see `defaults`                                   |
+| `        └── soap`                      |                |                                                  |
+| `            ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `            └── protocol`              | `String`       | see `defaults`                                   |
 
 **Beware** that starting with Spring Boot 1.5.x the property resolution for environment variables changes and
 properties like `REST_CLIENTS_EXAMPLE_BASEURL` no longer work. As an alternative applications can use the 
