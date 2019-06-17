@@ -18,6 +18,7 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     private RiptideProperties properties;
     private BiFunction<Registry, RiptideProperties, RiptideRegistrar> registrarFactory;
+    private BeanDefinitionRegistry registry;
 
     RiptidePostProcessor(final BiFunction<Registry, RiptideProperties, RiptideRegistrar> registrarFactory) {
         this.registrarFactory = registrarFactory;
@@ -34,13 +35,13 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
-        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry), Defaulting.withDefaults(properties));
-        registrar.register();
+        this.registry = registry;
     }
 
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // nothing to do
+        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry, beanFactory), Defaulting.withDefaults(properties));
+        registrar.register();
     }
 
 }
