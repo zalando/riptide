@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
+import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.http.HttpStatus;
@@ -168,10 +170,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         if (client.getTracing().getEnabled()) {
+            BeanReference tracerRef = registry.findRef(null, Tracer.class).orElseThrow(() -> new NoSuchBeanDefinitionException(Tracer.class));
             return registry.registerIfAbsent(id, TracedExecutorService.class, () ->
                     genericBeanDefinition(TracedExecutorService.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgReference("tracer"));
+                            .addConstructorArgValue(tracerRef));
         }
 
         return executorId;
@@ -379,9 +382,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getTracing().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(id, OpenTracingPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTracingPlugin.class.getSimpleName());
+                BeanReference tracerRef = registry.findRef(null, Tracer.class).orElseThrow(() -> new NoSuchBeanDefinitionException(Tracer.class));
                 return genericBeanDefinition(OpenTracingPluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgReference("tracer")
+                        .addConstructorArgValue(tracerRef)
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
             });

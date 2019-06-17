@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import static org.zalando.riptide.autoconfigure.Name.name;
 
 @AllArgsConstructor
@@ -46,11 +48,11 @@ final class Registry {
         });
     }
 
-    Optional<BeanReference> findRef(final String id, final Class<?>... types) {
+    Optional<BeanReference> findRef(@Nullable final String id, final Class<?>... types) {
         return find(id, types).map(Registry::ref);
     }
 
-    Optional<String> find(final String id, final Class<?>... types) {
+    Optional<String> find(@Nullable final String id, final Class<?>... types) {
         return find(name(id, types));
     }
 
