@@ -12,7 +12,7 @@ import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 public class OpenTracingTestAutoConfiguration {
 
     @Bean
-    public Tracer sampleTracer() {
+    public Tracer tracer() {
         return new MockTracer();
     }
 
