@@ -1,6 +1,9 @@
 package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
+import lombok.AllArgsConstructor;
+import org.organicdesign.fp.collections.ImList;
+import org.organicdesign.fp.collections.PersistentVector;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -22,10 +25,10 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.zalando.riptide.Plugin.composite;
 
+@AllArgsConstructor
 final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, ConfigurationStage, FinalStage {
 
-    // package private so we can trick code coverage
-    static class Converters {
+    private static class Converters {
         private static final ImmutableList<HttpMessageConverter<?>> DEFAULT =
                 ImmutableList.copyOf(new RestTemplate().getMessageConverters());
 
@@ -34,7 +37,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
         }
     }
 
-    static class Plugins {
+    private static class Plugins {
         private static final ImmutableList<Plugin> DEFAULT =
                 ImmutableList.copyOf(ServiceLoader.load(Plugin.class));
 
@@ -45,27 +48,25 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     private static final UrlResolution DEFAULT_RESOLUTION = UrlResolution.RFC;
 
-    private Executor executor;
-    private ClientHttpRequestFactory requestFactory;
-    private final List<HttpMessageConverter<?>> converters = new ArrayList<>();
-    private Supplier<URI> baseUrlProvider = () -> null;
-    private UrlResolution resolution = DEFAULT_RESOLUTION;
-    private final List<Plugin> plugins = new ArrayList<>();
+    private final Executor executor;
+    private final ClientHttpRequestFactory requestFactory;
+    private final ImList<HttpMessageConverter<?>> converters;
+    private final Supplier<URI> baseUrl;
+    private final UrlResolution resolution;
+    private final ImList<Plugin> plugins;
 
     DefaultHttpBuilder() {
-
+        this(null, null, PersistentVector.empty(), () -> null, DEFAULT_RESOLUTION, PersistentVector.empty());
     }
 
     @Override
     public RequestFactoryStage executor(final Executor executor) {
-        this.executor = executor;
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution, plugins);
     }
 
     @Override
     public ConfigurationStage requestFactory(final ClientHttpRequestFactory requestFactory) {
-        this.requestFactory = requestFactory;
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution, plugins);
     }
 
     @Override
@@ -75,14 +76,14 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage converters(@Nonnull final Iterable<HttpMessageConverter<?>> converters) {
-        converters.forEach(this::converter);
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, this.converters.concat(converters),
+                baseUrl, resolution, plugins);
     }
 
     @Override
     public ConfigurationStage converter(final HttpMessageConverter<?> converter) {
-        this.converters.add(converter);
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters.append(converter),
+                baseUrl, resolution, plugins);
     }
 
     @Override
@@ -97,9 +98,9 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     }
 
     @Override
-    public ConfigurationStage baseUrl(final Supplier<URI> baseUrlProvider) {
-        this.baseUrlProvider = () -> checkAbsoluteBaseUrl(baseUrlProvider.get());
-        return this;
+    public ConfigurationStage baseUrl(final Supplier<URI> baseUrl) {
+        return new DefaultHttpBuilder(executor, requestFactory, converters,
+                () -> checkAbsoluteBaseUrl(baseUrl.get()), resolution, plugins);
     }
 
     private URI checkAbsoluteBaseUrl(@Nullable final URI baseUrl) {
@@ -109,8 +110,8 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage urlResolution(@Nullable final UrlResolution resolution) {
-        this.resolution = firstNonNull(resolution, DEFAULT_RESOLUTION);
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl,
+                firstNonNull(resolution, DEFAULT_RESOLUTION), plugins);
     }
 
     @Override
@@ -120,14 +121,14 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage plugins(final Iterable<Plugin> plugins) {
-        plugins.forEach(this::plugin);
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution,
+                this.plugins.concat(plugins));
     }
 
     @Override
     public ConfigurationStage plugin(final Plugin plugin) {
-        this.plugins.add(plugin);
-        return this;
+        return new DefaultHttpBuilder(executor, requestFactory, converters, baseUrl, resolution,
+                plugins.append(plugin));
     }
 
     @Override
@@ -139,7 +140,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
         plugins.add(new SerializationPlugin(new DefaultMessageWriter(converters)));
         plugins.addAll(plugins());
 
-        return new DefaultHttp(requestFactory, converters, baseUrlProvider, resolution, composite(plugins));
+        return new DefaultHttp(requestFactory, converters, baseUrl, resolution, composite(plugins));
     }
 
     private List<HttpMessageConverter<?>> converters() {
