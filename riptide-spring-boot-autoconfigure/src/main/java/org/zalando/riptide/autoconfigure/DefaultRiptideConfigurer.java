@@ -1,13 +1,22 @@
 package org.zalando.riptide.autoconfigure;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.concurrent.TracedExecutorService;
+import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.zalando.logbook.Logbook;
+import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import org.zalando.riptide.failsafe.RetryListener;
+import org.zalando.riptide.logbook.LogbookPlugin;
+import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @AllArgsConstructor
@@ -19,45 +28,66 @@ class DefaultRiptideConfigurer {
         properties.getClients().forEach(this::configure);
     }
 
-    private void configure(String id, RiptideProperties.Client client) {
+    private void configure(final String id, final RiptideProperties.Client client) {
         if (client.getTracing().getEnabled()) {
-            final BeanDefinition tracerRef = getTracerBeanRef(Tracer.class);
+            final BeanDefinition tracerRef = getBeanRef(Tracer.class);
 
-            findBeanDefinition(id + "TracedExecutorService")
+            findBeanDefinition(id, TracedExecutorService.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
 
-            findBeanDefinition(id + "OpenTracingPlugin")
+            findBeanDefinition(id, OpenTracingPlugin.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
 
-            findBeanDefinition(id + "TracedScheduledExecutorService")
+            findBeanDefinition(id, TracedScheduledExecutorService.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
         }
 
         if (client.getLogging().getEnabled()) {
-            final BeanDefinition logbookRef = getTracerBeanRef(Logbook.class);
+            final BeanDefinition logbookRef = getBeanRef(Logbook.class);
 
-            findBeanDefinition(id + "LogbookPlugin")
+            findBeanDefinition(id, LogbookPlugin.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "logbook", logbookRef));
         }
 
+        if (client.getMetrics().getEnabled()) {
+            final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class);
+
+            findBeanDefinition(id, MetricsPlugin.class)
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+
+            findBeanDefinition(id, RetryListener.class)
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+
+            findBeanDefinition(id, CircuitBreakerListener.class)
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+        }
     }
 
-    private BeanDefinition getTracerBeanRef(Class clazz) {
-        return Stream.of(beanFactory.getBeanNamesForType(clazz))
-                     .findFirst()
-                     .map(beanFactory::getBeanDefinition)
-                     .orElse(null);
+    private BeanDefinition getBeanRef(Class type) {
+        final String[] names = beanFactory.getBeanNamesForType(type);
+        BeanDefinition definition = null;
+        for (final String name : names) {
+            definition = beanFactory.getBeanDefinition(name);
+            if (definition.isPrimary()) {
+                return definition;
+            }
+        }
+        return definition;
     }
 
-    private Optional<BeanDefinition> findBeanDefinition(String id) {
+    private Optional<BeanDefinition> findBeanDefinition(final String id, final Class<?> type) {
+        return findBeanDefinition(Name.name(id, type));
+    }
+
+    private Optional<BeanDefinition> findBeanDefinition(final Name name) {
         try {
-            return Optional.of(beanFactory.getBeanDefinition(id));
+            return Optional.of(beanFactory.getBeanDefinition(name.toNormalizedString()));
         } catch (NoSuchBeanDefinitionException e) {
             return Optional.empty();
         }
     }
 
-    private void replaceConstructorArgumentWithBean(BeanDefinition bd, String arg, BeanDefinition ref) {
+    private void replaceConstructorArgumentWithBean(final BeanDefinition bd, final String arg, final BeanDefinition ref) {
         bd.getConstructorArgumentValues()
           .getIndexedArgumentValues()
           .values().stream()

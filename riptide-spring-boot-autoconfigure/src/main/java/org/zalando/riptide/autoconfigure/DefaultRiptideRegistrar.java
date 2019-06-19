@@ -329,7 +329,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createMetricsPlugin")
-                        .addConstructorArgReference("meterRegistry")
+                        .addConstructorArgValue("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             });
 
@@ -531,7 +531,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (client.getMetrics().getEnabled()) {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createRetryListener")
-                        .addConstructorArgReference("meterRegistry")
+                        .addConstructorArgValue("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
                 return genericBeanDefinition(MetricsPluginFactory.class)
@@ -545,7 +545,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (client.getMetrics().getEnabled()) {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createCircuitBreakerListener")
-                        .addConstructorArgReference("meterRegistry")
+                        .addConstructorArgValue("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
             } else {
                 return genericBeanDefinition(MetricsPluginFactory.class)
