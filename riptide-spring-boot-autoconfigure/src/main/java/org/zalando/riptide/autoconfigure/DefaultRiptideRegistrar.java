@@ -171,7 +171,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             return registry.registerIfAbsent(id, TracedExecutorService.class, () ->
                     genericBeanDefinition(TracedExecutorService.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgReference("tracer"));
+                            .addConstructorArgValue("tracer"));
         }
 
         return executorId;
@@ -343,7 +343,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(id, LogbookPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, LogbookPlugin.class.getSimpleName());
                 return genericBeanDefinition(LogbookPlugin.class)
-                        .addConstructorArgReference("logbook");
+                        .addConstructorArgValue("logbook");
             });
 
             return Optional.of(pluginId);
@@ -381,7 +381,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTracingPlugin.class.getSimpleName());
                 return genericBeanDefinition(OpenTracingPluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgReference("tracer")
+                        .addConstructorArgValue("tracer")
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
             });
@@ -497,7 +497,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             return registry.registerIfAbsent(id, TracedScheduledExecutorService.class, () ->
                     genericBeanDefinition(TracedScheduledExecutorService.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgReference("tracer"));
+                            .addConstructorArgValue("tracer"));
         }
 
         return executorId;
