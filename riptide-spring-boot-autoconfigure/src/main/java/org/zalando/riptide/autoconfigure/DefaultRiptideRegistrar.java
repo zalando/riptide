@@ -89,6 +89,9 @@ import static org.zalando.riptide.autoconfigure.Registry.ref;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
+import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @Slf4j
 @AllArgsConstructor
@@ -171,7 +174,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             return registry.registerIfAbsent(id, TracedExecutorService.class, () ->
                     genericBeanDefinition(TracedExecutorService.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgValue("tracer"));
+                            .addConstructorArgValue(TRACER_REF));
         }
 
         return executorId;
@@ -329,7 +332,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createMetricsPlugin")
-                        .addConstructorArgValue("meterRegistry")
+                        .addConstructorArgValue(METER_REGISTRY_REF)
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             });
 
@@ -343,7 +346,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(id, LogbookPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, LogbookPlugin.class.getSimpleName());
                 return genericBeanDefinition(LogbookPlugin.class)
-                        .addConstructorArgValue("logbook");
+                        .addConstructorArgValue(LOGBOOK_REF);
             });
 
             return Optional.of(pluginId);
@@ -381,7 +384,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTracingPlugin.class.getSimpleName());
                 return genericBeanDefinition(OpenTracingPluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue("tracer")
+                        .addConstructorArgValue(TRACER_REF)
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
             });
@@ -497,7 +500,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             return registry.registerIfAbsent(id, TracedScheduledExecutorService.class, () ->
                     genericBeanDefinition(TracedScheduledExecutorService.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgValue("tracer"));
+                            .addConstructorArgValue(TRACER_REF));
         }
 
         return executorId;
@@ -531,7 +534,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (client.getMetrics().getEnabled()) {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createRetryListener")
-                        .addConstructorArgValue("meterRegistry")
+                        .addConstructorArgValue(METER_REGISTRY_REF)
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
                 return genericBeanDefinition(MetricsPluginFactory.class)
@@ -545,7 +548,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             if (client.getMetrics().getEnabled()) {
                 return genericBeanDefinition(MetricsPluginFactory.class)
                         .setFactoryMethod("createCircuitBreakerListener")
-                        .addConstructorArgValue("meterRegistry")
+                        .addConstructorArgValue(METER_REGISTRY_REF)
                         .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
             } else {
                 return genericBeanDefinition(MetricsPluginFactory.class)

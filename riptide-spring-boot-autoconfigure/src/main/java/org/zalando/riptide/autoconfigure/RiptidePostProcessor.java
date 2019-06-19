@@ -40,8 +40,7 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
 
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // nothing to do
-        DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, Defaulting.withDefaults(properties));
+        final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, Defaulting.withDefaults(properties));
         configurer.register();
     }
 

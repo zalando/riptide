@@ -16,8 +16,10 @@ import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @AllArgsConstructor
 class DefaultRiptideConfigurer {
@@ -33,33 +35,33 @@ class DefaultRiptideConfigurer {
             final BeanDefinition tracerRef = getBeanRef(Tracer.class);
 
             findBeanDefinition(id, TracedExecutorService.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
 
             findBeanDefinition(id, OpenTracingPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
 
             findBeanDefinition(id, TracedScheduledExecutorService.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "tracer", tracerRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
         }
 
         if (client.getLogging().getEnabled()) {
             final BeanDefinition logbookRef = getBeanRef(Logbook.class);
 
             findBeanDefinition(id, LogbookPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "logbook", logbookRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, LOGBOOK_REF, logbookRef));
         }
 
         if (client.getMetrics().getEnabled()) {
             final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class);
 
             findBeanDefinition(id, MetricsPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
 
             findBeanDefinition(id, RetryListener.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
 
             findBeanDefinition(id, CircuitBreakerListener.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, "meterRegistry", meterRegistryRef));
+                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
         }
     }
 
