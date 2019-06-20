@@ -52,9 +52,14 @@ Add the following dependency to your project:
 ```java
 Http.builder()
     .baseUrl("https://www.example.com")
-    .plugin(new OpenTracingPlugin(tracer))
+    .plugin(new OpenTracingPlugin(tracer)
+        .withLifecyclePolicy(new NewSpanLifecyclePolicy())
+        .withActivationPolicy(new NoOpActivationPolicy())
+        .withAdditionalSpanDecorators(new HttpUrlSpanDecorator))
     .build();
 ```
+
+By default a new span will be started for each request and it will be activated.
 
 The following tags/logs are supported out of the box:
 
@@ -90,6 +95,104 @@ If you still want to enable it, you can do so by just registering the missing sp
 ```java
 new OpenTracingPlugin(tracer)
     .withAdditionalSpanDecorators(new HttpUrlSpanDecorator())
+```
+
+### Lifecycle Policy
+
+A lifecycle policy can be used to specify which spans are reused or whether a new one is created:
+
+```java
+new OpenTracingPlugin(tracer)
+    .withLifecyclePolicy(new NewSpanLifecyclePolicy());
+```
+
+#### Active Span Lifecycle Policy
+
+The `ActiveSpanLifecyclePolicy` reuses the current active span. This approach might be useful if some other
+facility already provided a span that can be used to decorate with *tags*.
+
+```java
+Http http = Http.builder()
+    .baseUrl("https://www.example.com")
+    .plugin(new OpenTracingPlugin(tracer)
+        .withLifecyclePolicy(new ActiveSpanLifecyclePolicy()))
+    .build();
+
+Span span = tracer.buildSpan("test").start();
+
+try (final Scope ignored = tracer.activateSpan(span)) {
+    http.get("/users/{user}", "me")
+            .dispatch(..)
+            .join();
+} finally {
+    span.finish();
+}
+```
+
+#### Explicit Span Lifecycle Policy
+
+The `ExplicitSpanLifecyclePolicy` reuses the span passed with the `OpenTracingPlugin.SPAN` attribute.
+That allows to pass a span explicitly rather than implicitly via the *active span* mechanism. This might be needed
+for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop based reactive applications.
+
+```java
+Http http = Http.builder()
+    .baseUrl("https://www.example.com")
+    .plugin(new OpenTracingPlugin(tracer)
+        .withLifecyclePolicy(new ExplicitSpanLifecyclePolicy()))
+    .build();
+
+Span span = tracer.buildSpan("test").start();
+
+http.get("/users/{user}", "me")
+        .attribute(OpenTracingPlugin.SPAN, span)
+        .dispatch(..)
+        .join();
+    
+span.finish();
+```
+
+#### New Span Lifecycle Policy
+
+The `NewSpanLifecyclePolicy` starts and finishes a new span for every request. This policy is the most common
+approach and therefore the default (in conjunction with the `ExplicitSpanLifecyclePolicy`).
+
+```java
+Http http = Http.builder()
+    .baseUrl("https://www.example.com")
+    .plugin(new OpenTracingPlugin(tracer)
+        .withLifecyclePolicy(new NewSpanLifecyclePolicy()))
+    .build();
+
+http.get("/users/{user}", "me")
+        .dispatch(..)
+        .join();
+```
+
+#### Lifecycle Policy composition
+
+Different lifecycle policies can be chained together:
+
+```java
+new OpenTracingPlugin(tracer)
+    .withLifecyclePolicy(LifecyclePolicy.composite(
+            new ActiveSpanLifecyclePolicy(),
+            new ExplicitSpanLifecyclePolicy(),
+            new NewSpanLifecyclePolicy()
+    ));
+```
+
+If a policy doesn't produce a span the next one will be used and so on and so forth. Tracing will effectively
+be disabled if none of the policies produces a span. 
+
+### Activation Policy
+
+An activation policy can be used to specify whether a span will be activated or not. This might be desired
+for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop based reactive applications.
+
+```java
+new OpenTracingPlugin(tracer)
+    .withActivationPolicy(new NoOpActivationPolicy());
 ```
 
 ### Span Decorators
