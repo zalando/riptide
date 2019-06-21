@@ -16,7 +16,9 @@ import org.zalando.riptide.metrics.MetricsPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
@@ -65,16 +67,20 @@ class DefaultRiptideConfigurer {
         }
     }
 
+    /**
+     * Search for an existing bean definition for the provided type.
+     * Will return the bean annotated with the @Primary annotation,
+     * or if there's few beans present the first one that will be resolved.
+     *
+     * @param type bean type
+     * @return bean definition
+     * @throws NoSuchBeanDefinitionException if bean of specified type is not found
+     */
     private BeanDefinition getBeanRef(Class type) {
-        final String[] names = beanFactory.getBeanNamesForType(type);
-        BeanDefinition definition = null;
-        for (final String name : names) {
-            definition = beanFactory.getBeanDefinition(name);
-            if (definition.isPrimary()) {
-                return definition;
-            }
-        }
-        return definition;
+        return Stream.of(beanFactory.getBeanNamesForType(type))
+                     .map(beanFactory::getBeanDefinition)
+                     .sorted(comparing(BeanDefinition::isPrimary).reversed())
+                     .findFirst().orElseThrow(() -> new NoSuchBeanDefinitionException(type));
     }
 
     private Optional<BeanDefinition> findBeanDefinition(final String id, final Class<?> type) {
