@@ -2,11 +2,9 @@ package org.zalando.riptide.opentracing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimaps;
-import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-import io.opentracing.Tracer.SpanBuilder;
 import io.opentracing.propagation.TextMapAdapter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -27,11 +25,13 @@ import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
 import static java.util.Objects.nonNull;
@@ -39,6 +39,11 @@ import static lombok.AccessLevel.PRIVATE;
 
 @AllArgsConstructor(access = PRIVATE)
 public final class OpenTracingPlugin implements Plugin {
+
+    /**
+     * Allows to pass an explicit {@link Span} directly from a call site.
+     */
+    public static final Attribute<Span> SPAN = Attribute.generate();
 
     /**
      * Allows to pass a customized {@link Tracer#buildSpan(String) operation name} directly from
@@ -62,20 +67,38 @@ public final class OpenTracingPlugin implements Plugin {
      */
     public static final Attribute<Map<String, Object>> LOGS = Attribute.generate();
 
+    /**
+     * Internal: Allows to pass span objects between stages.
+     */
+    private static final Attribute<Span> INTERNAL_SPAN = Attribute.generate();
+
     private final Tracer tracer;
+    private final LifecyclePolicy lifecyclePolicy;
+    private final ActivationPolicy activationPolicy;
     private final SpanDecorator decorator;
 
     public OpenTracingPlugin(final Tracer tracer) {
-        this(tracer, SpanDecorator.composite(
-                new CallSiteSpanDecorator(),
-                new ComponentSpanDecorator(),
-                new ErrorSpanDecorator(),
-                new HttpMethodSpanDecorator(),
-                new HttpPathSpanDecorator(),
-                new HttpStatusCodeSpanDecorator(),
-                new PeerSpanDecorator(),
-                new SpanKindSpanDecorator()
-        ));
+        this(tracer, LifecyclePolicy.composite(new ExplicitSpanLifecyclePolicy(), new NewSpanLifecyclePolicy()), new DefaultActivationPolicy(),
+                SpanDecorator.composite(
+                        new CallSiteSpanDecorator(),
+                        new ComponentSpanDecorator(),
+                        new ErrorSpanDecorator(),
+                        new HttpMethodSpanDecorator(),
+                        new HttpPathSpanDecorator(),
+                        new HttpStatusCodeSpanDecorator(),
+                        new PeerSpanDecorator(),
+                        new SpanKindSpanDecorator()
+                ));
+    }
+
+    @CheckReturnValue
+    public OpenTracingPlugin withLifecyclePolicy(final LifecyclePolicy lifecyclePolicy) {
+        return new OpenTracingPlugin(tracer, lifecyclePolicy, activationPolicy, decorator);
+    }
+
+    @CheckReturnValue
+    public OpenTracingPlugin withActivationPolicy(final ActivationPolicy activationPolicy) {
+        return new OpenTracingPlugin(tracer, lifecyclePolicy, activationPolicy, decorator);
     }
 
     /**
@@ -102,41 +125,39 @@ public final class OpenTracingPlugin implements Plugin {
      */
     @CheckReturnValue
     public OpenTracingPlugin withSpanDecorators(final SpanDecorator decorator, final SpanDecorator... decorators) {
-        return new OpenTracingPlugin(tracer, SpanDecorator.composite(decorator, decorators));
+        return new OpenTracingPlugin(tracer,
+                lifecyclePolicy, activationPolicy, SpanDecorator.composite(decorator, decorators));
     }
 
     @Override
     public RequestExecution aroundDispatch(final RequestExecution execution) {
         return arguments -> {
-            final Span span = startSpan(arguments);
-            final Scope scope = tracer.activateSpan(span);
+            @Nullable final Span span = lifecyclePolicy.start(tracer, arguments, decorator);
 
-            return execution.execute(arguments)
-                    .whenComplete(perform(scope::close))
-                    .whenComplete(perform(span::finish));
+            if (span == null) {
+                return execution.execute(arguments);
+            }
+
+            final Runnable close = activationPolicy.activate(tracer, span);
+            final Runnable finish = () -> lifecyclePolicy.finish(span);
+
+            return execution.execute(arguments.withAttribute(INTERNAL_SPAN, span))
+                    .whenComplete(perform(close, finish));
         };
     }
 
     @Override
     public RequestExecution aroundNetwork(final RequestExecution execution) {
         return arguments -> {
-            final Span span = tracer.activeSpan();
+            @Nullable final Span span = arguments.getAttribute(INTERNAL_SPAN).orElse(null);
+
+            if (span == null) {
+                return execution.execute(arguments);
+            }
 
             return execution.execute(inject(arguments, span.context()))
-                    .whenComplete(onResponse(span, arguments))
-                    .whenComplete(onError(span, arguments));
+                    .whenComplete(decorate(span, arguments));
         };
-    }
-
-    private Span startSpan(final RequestArguments arguments) {
-        final String operationName = arguments.getAttribute(OPERATION_NAME)
-                .orElse(arguments.getMethod().name());
-
-        final SpanBuilder builder = tracer.buildSpan(operationName);
-        decorator.onStart(builder, arguments);
-        final Span span = builder.start();
-        decorator.onStarted(span, arguments);
-        return span;
     }
 
     private RequestArguments inject(final RequestArguments arguments, final SpanContext context) {
@@ -145,26 +166,21 @@ public final class OpenTracingPlugin implements Plugin {
         return arguments.withHeaders(Multimaps.forMap(headers).asMap());
     }
 
-    private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> onResponse(final Span span,
+    private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> decorate(final Span span,
             final RequestArguments arguments) {
 
         return (response, error) -> {
             if (nonNull(response)) {
                 decorator.onResponse(span, arguments, response);
             }
-        };
-    }
-
-    private BiConsumer<ClientHttpResponse, Throwable> onError(final Span span, final RequestArguments arguments) {
-        return (response, error) -> {
             if (nonNull(error)) {
                 decorator.onError(span, arguments, unpack(error));
             }
         };
     }
 
-    private static <T, U> BiConsumer<T, U> perform(final Runnable runnable) {
-        return (t, u) -> runnable.run();
+    private static <T, U> BiConsumer<T, U> perform(final Runnable... runnables) {
+        return (t, u) -> Stream.of(runnables).forEach(Runnable::run);
     }
 
     @VisibleForTesting
