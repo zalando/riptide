@@ -76,11 +76,13 @@ The following tags/logs are supported out of the box:
 | `error`              | `ErrorSpanDecorator`           | `false`                           |
 | `error.kind` (log)   | `ErrorSpanDecorator`           | `SocketTimeoutException`          |
 | `error.object` (log) | `ErrorSpanDecorator`           | (exception instance)              |
+| `message` (log)      | `ErrorMessageSpanDecorator`    | `Connection timed out`            |
+| `stack` (log)        | `ErrorStackSpanDecorator`      | `SocketTimeoutException at [...]` |
 | `retry`              | `RetrySpanDecorator`           | `true`                            |
 | `retry_number` (log) | `RetrySpanDecorator`           | `3`                               |
 | `*`                  | `CallSiteSpanDecorator`        | `admin=true`                      |
 | `*`                  | `StaticTagSpanDecorator`       | `aws.region=eu-central-1`         |
-| `*`                  | `UriVariablesTagSpanDecorator` | user_id=me                        |
+| `*`                  | `UriVariablesTagSpanDecorator` | `user_id=me`                      |
 
 ### Notice
 

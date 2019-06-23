@@ -17,6 +17,7 @@ import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentracing.span.CallSiteSpanDecorator;
 import org.zalando.riptide.opentracing.span.ComponentSpanDecorator;
 import org.zalando.riptide.opentracing.span.ErrorSpanDecorator;
+import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPathSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
@@ -83,6 +84,7 @@ public final class OpenTracingPlugin implements Plugin {
                         new CallSiteSpanDecorator(),
                         new ComponentSpanDecorator(),
                         new ErrorSpanDecorator(),
+                        new ErrorStackSpanDecorator(),
                         new HttpMethodSpanDecorator(),
                         new HttpPathSpanDecorator(),
                         new HttpStatusCodeSpanDecorator(),
