@@ -52,7 +52,7 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
@@ -246,7 +246,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private List<BeanReference> registerPlugins(final String id, final Client client) {
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
-                registerMetricsPlugin(id, client),
+                registerMicrometerPlugin(id, client),
                 registerRequestCompressionPlugin(id, client),
                 registerLogbookPlugin(id, client),
                 registerTransientFaultPlugin(id, client),
@@ -323,12 +323,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.of(pluginId);
     }
 
-    private Optional<String> registerMetricsPlugin(final String id, final Client client) {
+    private Optional<String> registerMicrometerPlugin(final String id, final Client client) {
         if (client.getMetrics().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(id, MetricsPlugin.class, () -> {
-                log.debug("Client [{}]: Registering [{}]", id, MetricsPlugin.class.getSimpleName());
-                return genericBeanDefinition(MetricsPluginFactory.class)
-                        .setFactoryMethod("createMetricsPlugin")
+            final String pluginId = registry.registerIfAbsent(id, MicrometerPlugin.class, () -> {
+                log.debug("Client [{}]: Registering [{}]", id, MicrometerPlugin.class.getSimpleName());
+                return genericBeanDefinition(MicrometerPluginFactory.class)
+                        .setFactoryMethod("createMicrometerPlugin")
                         .addConstructorArgReference("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             });
@@ -529,12 +529,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerRetryListener(final String id, final Client client) {
         return registry.registerIfAbsent(id, RetryListener.class, () -> {
             if (client.getMetrics().getEnabled()) {
-                return genericBeanDefinition(MetricsPluginFactory.class)
+                return genericBeanDefinition(MicrometerPluginFactory.class)
                         .setFactoryMethod("createRetryListener")
                         .addConstructorArgReference("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
-                return genericBeanDefinition(MetricsPluginFactory.class)
+                return genericBeanDefinition(MicrometerPluginFactory.class)
                         .setFactoryMethod("getDefaultRetryListener");
             }
         });
@@ -543,12 +543,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerCircuitBreakerListener(final String id, final Client client) {
         return registry.registerIfAbsent(id, CircuitBreakerListener.class, () -> {
             if (client.getMetrics().getEnabled()) {
-                return genericBeanDefinition(MetricsPluginFactory.class)
+                return genericBeanDefinition(MicrometerPluginFactory.class)
                         .setFactoryMethod("createCircuitBreakerListener")
                         .addConstructorArgReference("meterRegistry")
                         .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
             } else {
-                return genericBeanDefinition(MetricsPluginFactory.class)
+                return genericBeanDefinition(MicrometerPluginFactory.class)
                         .setFactoryMethod("getDefaultCircuitBreakerListener");
             }
         });

@@ -62,7 +62,7 @@ private Http example;
   - [Jackson 2](https://github.com/FasterXML/jackson)
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
   - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
-  - [Metrics](https://micrometer.io) via [Riptide: Metrics](../riptide-metrics)
+  - [Micrometer](https://micrometer.io) via [Riptide: Micrometer](../riptide-micrometer)
   - SOAP via [Riptide: SOAP](../riptide-soap)
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
@@ -85,7 +85,7 @@ private Http example;
   - Failsafe (optional)
   - Faults (optional)
   - Logbook (optional)
-  - Metrics (optional)
+  - Micrometer (optional)
   - Timeouts (optional)
   - SOAP (optional)
 - Tracer (optional)
@@ -210,11 +210,11 @@ OAuth2 tokens as files in a mounted directory. See
 </dependency>
 ```
 
-#### [Metrics](../riptide-metrics) integration
+#### [Micrometer](../riptide-micrometer) integration
 
 Required when `metrics` is enabled. 
 
-Will activate `micrometer` metrics support for:
+Will activate *Micrometer* metrics support for:
 
 - requests
 - thread pools
@@ -225,7 +225,7 @@ Will activate `micrometer` metrics support for:
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>riptide-metrics</artifactId>
+    <artifactId>riptide-micrometer</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -591,7 +591,7 @@ The following table shows all beans with their respective name (for the `example
 | `exampleExecutorService`          | `ExecutorService`                             |
 | `exampleBackupRequestPlugin`      | `BackupRequestPlugin`                         |
 | `exampleFailsafePlugin`           | `FailsafePlugin`                              |
-| `exampleMetricsPlugin`            | `MetricsPlugin`                               |
+| `exampleMicrometerPlugin`         | `MicrometerPlugin`                            |
 | `exampleOriginalStackTracePlugin` | `OriginalStackTracePlugin`                    |
 | `exampleTimeoutPlugin`            | `TimeoutPlugin`                               |
 | `exampleTransientFaultPlugin`     | `TransientFaultPlugin`                        |

@@ -60,7 +60,7 @@
         <module>riptide-httpclient</module>
         <module>riptide-idempotency</module>
         <module>riptide-logbook</module>
-        <module>riptide-metrics</module>
+        <module>riptide-micrometer</module>
         <module>riptide-opentracing</module>
         <module>riptide-problem</module>
         <module>riptide-soap</module>
@@ -143,7 +143,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-metrics</artifactId>
+                <artifactId>riptide-micrometer</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

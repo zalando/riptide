@@ -1,4 +1,4 @@
-package org.zalando.riptide.metrics;
+package org.zalando.riptide.micrometer;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-final class MetricsPluginTest {
+final class MicrometerPluginTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
@@ -46,7 +46,7 @@ final class MetricsPluginTest {
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new MetricsPlugin(registry)
+            .plugin(new MicrometerPlugin(registry)
                     .withMetricName("http.outgoing-requests")
                     .withDefaultTags(Tag.of("client", "example")))
             .build();
@@ -62,7 +62,7 @@ final class MetricsPluginTest {
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    MetricsPluginTest() {
+    MicrometerPluginTest() {
         this.factory.setReadTimeout(500);
     }
 

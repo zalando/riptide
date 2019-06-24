@@ -1,22 +1,22 @@
-# Riptide: Metrics
+# Riptide: Micrometer
 
 [![Gauge](../docs/gauge.jpg)](https://pixabay.com/en/pressure-gauge-meter-water-column-2644531/)
 
 [![Build Status](https://img.shields.io/travis/zalando/riptide/master.svg)](https://travis-ci.org/zalando/riptide)
 [![Coverage Status](https://img.shields.io/coveralls/zalando/riptide/master.svg)](https://coveralls.io/r/zalando/riptide)
 [![Code Quality](https://img.shields.io/codacy/grade/1fbe3d16ca544c0c8589692632d114de/master.svg)](https://www.codacy.com/app/whiskeysierra/riptide)
-[![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-metrics.svg)](http://www.javadoc.io/doc/org.zalando/riptide-metrics)
+[![Javadoc](https://www.javadoc.io/badge/org.zalando/riptide-micrometer.svg)](http://www.javadoc.io/doc/org.zalando/riptide-micrometer)
 [![Release](https://img.shields.io/github/release/zalando/riptide.svg)](https://github.com/zalando/riptide/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-metrics.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-metrics)
+[![Maven Central](https://img.shields.io/maven-central/v/org.zalando/riptide-micrometer.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/riptide-micrometer)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zalando/riptide/master/LICENSE)
 
-*Riptide: Metrics* adds metrics support to *Riptide*. It allows to record metrics for all remote requests. 
+*Riptide: Micrometer* adds metrics support to *Riptide*. It allows to record metrics for all remote requests and responses. 
 
 ## Example
 
 ```java
 Http.builder()
-    .plugin(new MetricsPlugin(meterRegistry))
+    .plugin(new MicrometerPlugin(meterRegistry))
     .build();
 ```
 
@@ -37,7 +37,7 @@ Add the following dependency to your project:
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
-    <artifactId>riptide-metrics</artifactId>
+    <artifactId>riptide-micrometer</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -47,7 +47,7 @@ Add the following dependency to your project:
 ```java
 Http.builder()
     .baseUrl("https://www.example.com")
-    .plugin(new MetricsPlugin(meterRegistry)
+    .plugin(new MicrometerPlugin(meterRegistry)
     .build();
 ```
 
@@ -55,7 +55,7 @@ It's also possible to specify a custom metrics name with `http.client.requests` 
 and default tags:
 
 ```java
-new MetricsPlugin(meterRegistry)
+new MicrometerPlugin(meterRegistry)
     .withMetricName("http.outgoing-requests")
     .withDefaultTags(Tag.of("aws.region", "eu-central-1"))
 ```

@@ -57,7 +57,7 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
@@ -137,7 +137,7 @@ public class ManualConfiguration {
                                     Arrays.asList(
                                             HttpStatus.INTERNAL_SERVER_ERROR,
                                             HttpStatus.SERVICE_UNAVAILABLE)))),
-                    new MetricsPlugin(meterRegistry)
+                    new MicrometerPlugin(meterRegistry)
                             .withDefaultTags(Tag.of("clientId", "example")),
                     new RequestCompressionPlugin(),
                     new LogbookPlugin(logbook),

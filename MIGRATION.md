@@ -59,6 +59,14 @@ Riptide used to rely on Logbook's integration for the Apache HTTP Client. The us
 `LogbookHttpRequestInterceptor` and `LogbookHttpResponseInterceptor` have been replaced by a
 [`LogbookPlugin`](riptide-logbook/src/main/java/org/zalando/riptide/logbook/LogbookPlugin.java).
 
+## Micrometer
+
+Module, package and plugin was renamed:
+
+- `riptide-metrics` is now `riptide-micrometer`
+- `org.zalando.riptide.metrics` is now `org.zalando.riptide.micrometer`
+- `MetricsPlugin` is now `MicrometerPlugin`
+
 ## OAuth
 
 STUPS OAuth 2.0 Token support has been dropped in favor of

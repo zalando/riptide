@@ -249,7 +249,7 @@ Riptide comes with a way to register extensions in the form of plugins.
 - [`AuthorizationPlugin`](#riptide-auth), adds `Authorization` support
 - [`BackupRequestPlugin`](#riptide-backup), adds backup requests
 - [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
-- [`MetricsPlugin`](riptide-metrics), adds metrics for request duration
+- [`MicrometerPlugin`](riptide-micrometer), adds metrics for request duration
 - [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
 - [`TimeoutPlugin`](riptide-timeout), applies timeouts to the whole call (including retries, network latency, etc.)
 
