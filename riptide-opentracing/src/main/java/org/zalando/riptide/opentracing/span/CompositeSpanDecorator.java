@@ -1,7 +1,6 @@
 package org.zalando.riptide.opentracing.span;
 
 import io.opentracing.Span;
-import io.opentracing.Tracer.SpanBuilder;
 import lombok.Getter;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -20,13 +19,8 @@ final class CompositeSpanDecorator implements SpanDecorator {
     }
 
     @Override
-    public void onStart(final SpanBuilder builder, final RequestArguments arguments) {
-        decorators.forEach(decorator -> decorator.onStart(builder, arguments));
-    }
-
-    @Override
-    public void onStarted(final Span span, final RequestArguments arguments) {
-        decorators.forEach(decorator -> decorator.onStarted(span, arguments));
+    public void onRequest(final Span span, final RequestArguments arguments) {
+        decorators.forEach(decorator -> decorator.onRequest(span, arguments));
 
     }
 

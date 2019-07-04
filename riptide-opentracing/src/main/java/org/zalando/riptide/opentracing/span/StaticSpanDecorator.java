@@ -1,6 +1,6 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.Span;
 import org.zalando.riptide.RequestArguments;
 
 import java.util.Map;
@@ -17,8 +17,8 @@ public final class StaticSpanDecorator implements SpanDecorator {
     }
 
     @Override
-    public void onStart(final SpanBuilder builder, final RequestArguments arguments) {
-        tags.forEach(builder::withTag);
+    public void onRequest(final Span span, final RequestArguments arguments) {
+        tags.forEach(span::setTag);
     }
 
 }

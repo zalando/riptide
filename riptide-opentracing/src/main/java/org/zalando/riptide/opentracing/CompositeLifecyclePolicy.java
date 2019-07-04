@@ -4,10 +4,9 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 import lombok.AllArgsConstructor;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.span.SpanDecorator;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @AllArgsConstructor
@@ -15,18 +14,17 @@ final class CompositeLifecyclePolicy implements LifecyclePolicy {
 
     private final Collection<LifecyclePolicy> policies;
 
-    @Nullable
     @Override
-    public Span start(final Tracer tracer, final RequestArguments arguments, final SpanDecorator decorator) {
+    public Optional<Span> start(final Tracer tracer, final RequestArguments arguments) {
         for (final LifecyclePolicy policy : policies) {
-            @Nullable final Span span = policy.start(tracer, arguments, decorator);
+            final Optional<Span> span = policy.start(tracer, arguments);
 
-            if (span != null) {
-                return new FinishingSpan(span, policy::finish);
+            if (span.isPresent()) {
+                return Optional.of(new FinishingSpan(span.get(), policy::finish));
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     @Override

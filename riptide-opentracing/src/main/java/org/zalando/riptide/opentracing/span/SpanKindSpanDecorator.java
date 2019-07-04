@@ -1,6 +1,6 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.Span;
 import io.opentracing.tag.Tags;
 import org.zalando.riptide.RequestArguments;
 
@@ -22,8 +22,8 @@ public final class SpanKindSpanDecorator implements SpanDecorator {
     }
 
     @Override
-    public void onStart(final SpanBuilder builder, final RequestArguments arguments) {
-        builder.withTag(Tags.SPAN_KIND, kind);
+    public void onRequest(final Span span, final RequestArguments arguments) {
+        span.setTag(Tags.SPAN_KIND, kind);
     }
 
 }

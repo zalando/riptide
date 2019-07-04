@@ -2,7 +2,6 @@ package org.zalando.riptide.opentracing.span;
 
 import com.google.common.collect.Lists;
 import io.opentracing.Span;
-import io.opentracing.Tracer.SpanBuilder;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 
@@ -15,11 +14,7 @@ import static java.util.stream.Collectors.toList;
 
 public interface SpanDecorator {
 
-    default void onStart(final SpanBuilder builder, final RequestArguments arguments) {
-        // nothing to do
-    }
-
-    default void onStarted(final Span span, final RequestArguments arguments) {
+    default void onRequest(final Span span, final RequestArguments arguments) {
         // nothing to do
     }
 
