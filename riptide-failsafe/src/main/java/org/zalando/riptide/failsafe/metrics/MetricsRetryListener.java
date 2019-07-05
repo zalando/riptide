@@ -8,8 +8,8 @@ import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.metrics.DefaultTagGenerator;
-import org.zalando.riptide.metrics.TagGenerator;
+import org.zalando.riptide.micrometer.DefaultTagGenerator;
+import org.zalando.riptide.micrometer.TagGenerator;
 
 import javax.annotation.Nullable;
 import java.time.Duration;

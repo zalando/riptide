@@ -60,7 +60,7 @@
         <module>riptide-httpclient</module>
         <module>riptide-idempotency</module>
         <module>riptide-logbook</module>
-        <module>riptide-metrics</module>
+        <module>riptide-micrometer</module>
         <module>riptide-opentracing</module>
         <module>riptide-problem</module>
         <module>riptide-soap</module>
@@ -76,11 +76,11 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.26</slf4j.version>
         <spring.version>5.1.8.RELEASE</spring.version>
-        <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
         <jackson.version>2.9.9</jackson.version>
         <problem.version>0.23.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
-        <junit-jupiter.version>5.4.2</junit-jupiter.version>
+        <junit-jupiter.version>5.5.0</junit-jupiter.version>
     </properties>
 
     <dependencyManagement>
@@ -143,7 +143,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-metrics</artifactId>
+                <artifactId>riptide-micrometer</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -570,7 +570,7 @@
                 <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>5.0.0</version>
+                    <version>5.1.0</version>
                     <executions>
                         <execution>
                             <goals>

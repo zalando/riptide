@@ -1,4 +1,4 @@
-package org.zalando.riptide.metrics;
+package org.zalando.riptide.micrometer;
 
 import io.micrometer.core.instrument.Tag;
 import org.junit.jupiter.api.Test;

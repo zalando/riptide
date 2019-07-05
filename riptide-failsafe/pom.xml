@@ -36,7 +36,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>riptide-metrics</artifactId>
+            <artifactId>riptide-micrometer</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

@@ -15,6 +15,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.UnexpectedResponseException;
+import org.zalando.riptide.opentracing.span.ErrorMessageSpanDecorator;
 import org.zalando.riptide.opentracing.span.StaticSpanDecorator;
 import org.zalando.riptide.opentracing.span.UriVariablesTagSpanDecorator;
 
@@ -31,6 +32,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
@@ -58,6 +60,7 @@ final class OpenTracingPluginTest {
             .baseUrl(driver.getBaseUrl())
             .plugin(new OpenTracingPlugin(tracer)
                     .withAdditionalSpanDecorators(
+                            new ErrorMessageSpanDecorator(),
                             new StaticSpanDecorator(singletonMap("test.environment", "JUnit")),
                             new UriVariablesTagSpanDecorator()))
             .build();
@@ -188,9 +191,32 @@ final class OpenTracingPluginTest {
         // since we didn't get any response
         assertThat(child.tags(), not(hasKey("http.status_code")));
 
-        final LogEntry log = getOnlyElement(child.logEntries());
-        assertThat(log.fields(), hasEntry("error.kind", "SocketTimeoutException"));
-        assertThat(log.fields(), hasEntry(is("error.object"), is(instanceOf(SocketTimeoutException.class))));
+        final List<LogEntry> logs = child.logEntries();
+        assertThat(logs, hasSize(3));
+
+        for (int i = 0; i < logs.size(); i++) {
+            final LogEntry log = logs.get(i);
+
+            switch (i) {
+                case 0: {
+                    assertThat(log.fields(), hasEntry("error.kind", "SocketTimeoutException"));
+                    assertThat(log.fields(), hasEntry(is("error.object"), is(instanceOf(SocketTimeoutException.class))));
+                    break;
+                }
+                case 1: {
+                    assertThat(log.fields().get("stack").toString(),
+                            containsString("java.net.SocketTimeoutException: Read timed out"));
+                    break;
+                }
+                case 2: {
+                    assertThat(log.fields(), hasEntry("message", "Read timed out"));
+                    break;
+                }
+                default: {
+                    throw new AssertionError();
+                }
+            }
+        }
     }
 
     @Test

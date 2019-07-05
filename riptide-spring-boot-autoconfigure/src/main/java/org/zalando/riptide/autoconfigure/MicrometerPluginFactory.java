@@ -10,17 +10,17 @@ import org.zalando.riptide.failsafe.LoggingRetryListener;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
-import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 
-final class MetricsPluginFactory {
+final class MicrometerPluginFactory {
 
-    private MetricsPluginFactory() {
+    private MicrometerPluginFactory() {
 
     }
 
-    public static Plugin createMetricsPlugin(final MeterRegistry registry,
+    public static Plugin createMicrometerPlugin(final MeterRegistry registry,
             final ImmutableList<Tag> tags) {
-        return new MetricsPlugin(registry).withDefaultTags(tags);
+        return new MicrometerPlugin(registry).withDefaultTags(tags);
     }
 
     public static CircuitBreakerListener createCircuitBreakerListener(final MeterRegistry registry,

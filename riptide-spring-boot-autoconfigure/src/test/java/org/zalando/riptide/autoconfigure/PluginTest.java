@@ -20,7 +20,7 @@ import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.timeout.TimeoutPlugin;
 
@@ -90,7 +90,7 @@ final class PluginTest {
         assertThat(getPlugins(github), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
-                instanceOf(MetricsPlugin.class),
+                instanceOf(MicrometerPlugin.class),
                 instanceOf(TransientFaultPlugin.class),
                 instanceOf(CustomPlugin.class))));
     }
@@ -100,7 +100,7 @@ final class PluginTest {
         assertThat(getPlugins(foo), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
-                instanceOf(MetricsPlugin.class),
+                instanceOf(MicrometerPlugin.class),
                 instanceOf(OpenTracingPlugin.class),
                 instanceOf(FailsafePlugin.class))));
     }
@@ -110,7 +110,7 @@ final class PluginTest {
         assertThat(getPlugins(baz), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
-                instanceOf(MetricsPlugin.class),
+                instanceOf(MicrometerPlugin.class),
                 instanceOf(BackupRequestPlugin.class))));
     }
 
@@ -120,7 +120,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(ChaosPlugin.class),
-                instanceOf(MetricsPlugin.class),
+                instanceOf(MicrometerPlugin.class),
                 instanceOf(RequestCompressionPlugin.class),
                 instanceOf(TimeoutPlugin.class))));
     }
@@ -130,7 +130,7 @@ final class PluginTest {
         assertThat(getPlugins(example), contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
-                instanceOf(MetricsPlugin.class),
+                instanceOf(MicrometerPlugin.class),
                 instanceOf(LogbookPlugin.class),
                 instanceOf(OpenTracingPlugin.class),
                 instanceOf(OriginalStackTracePlugin.class))));

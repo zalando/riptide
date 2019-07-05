@@ -1,11 +1,10 @@
 package org.zalando.riptide;
 
 import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.ObjectArrays.concat;
 import static org.apiguardian.api.API.Status.STABLE;
 import static org.zalando.fauxpas.FauxPas.partially;
@@ -14,24 +13,33 @@ import static org.zalando.fauxpas.FauxPas.partially;
  * Preserves the original stack traces of failed requests. Requests in Riptide are executed asynchronously by default.
  * That has the unfortunate side-effect that stack traces from exceptions that happen when processing the response will
  * not contain everything that is needed to trace back to the caller.
- *
+ * <p>
  * This plugin will modify the stack trace of any thrown exception and appending the stack trace elements of the
  * original stack trace
  */
 @API(status = STABLE)
 public final class OriginalStackTracePlugin implements Plugin {
 
+    /**
+     * {@link Attribute} that allows to access the original stack trace, i.e. the stack trace from the calling thread.
+     */
+    public static final Attribute<Supplier<StackTraceElement[]>> STACK = Attribute.generate();
+
     @Override
     public RequestExecution aroundAsync(final RequestExecution execution) {
         return arguments -> {
-            final CompletableFuture<ClientHttpResponse> future = execution.execute(arguments);
-            // let's do the "heavy" stack trace work while the request is already on its way
             final Supplier<StackTraceElement[]> original = keepOriginalStackTrace();
-            return future.exceptionally(partially(cause -> {
-                cause.setStackTrace(concat(cause.getStackTrace(), original.get(), StackTraceElement.class));
-                throw cause;
-            }));
+
+            return execution.execute(arguments.withAttribute(STACK, original))
+                    .exceptionally(partially(cause -> {
+                        cause.setStackTrace(join(cause, original.get()));
+                        throw cause;
+                    }));
         };
+    }
+
+    private StackTraceElement[] join(final Throwable throwable, final StackTraceElement[] original) {
+        return concat(throwable.getStackTrace(), original, StackTraceElement.class);
     }
 
     /**
@@ -43,7 +51,7 @@ public final class OriginalStackTracePlugin implements Plugin {
      */
     @SuppressWarnings("ThrowableInstanceNeverThrown")
     private Supplier<StackTraceElement[]> keepOriginalStackTrace() {
-        return new Exception()::getStackTrace;
+        return memoize(new Exception()::getStackTrace);
     }
 
 }
