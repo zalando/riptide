@@ -3,16 +3,14 @@ package org.zalando.riptide.opentracing;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.span.SpanDecorator;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 public interface LifecyclePolicy {
 
-    @Nullable
-    Span start(Tracer tracer, RequestArguments arguments, SpanDecorator decorator);
+    Optional<Span> start(Tracer tracer, RequestArguments arguments);
 
     void finish(Span span);
 

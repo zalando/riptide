@@ -8,5 +8,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
 public interface ActivationPolicy {
+
     Runnable activate(Tracer tracer, Span span);
+
 }

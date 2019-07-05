@@ -16,7 +16,7 @@ import static java.util.Collections.singletonMap;
 public final class RetrySpanDecorator implements SpanDecorator {
 
     @Override
-    public void onStarted(final Span span, final RequestArguments arguments) {
+    public void onRequest(final Span span, final RequestArguments arguments) {
         arguments.getAttribute(FailsafePlugin.ATTEMPTS).ifPresent(retries -> {
             span.setTag(ExtensionTags.RETRY, true);
             span.log(singletonMap(ExtensionFields.RETRY_NUMBER, retries));

@@ -79,7 +79,11 @@ public final class OpenTracingPlugin implements Plugin {
     private final SpanDecorator decorator;
 
     public OpenTracingPlugin(final Tracer tracer) {
-        this(tracer, LifecyclePolicy.composite(new ExplicitSpanLifecyclePolicy(), new NewSpanLifecyclePolicy()), new DefaultActivationPolicy(),
+        this(tracer,
+                LifecyclePolicy.composite(
+                        new ExplicitSpanLifecyclePolicy(),
+                        new NewSpanLifecyclePolicy()),
+                new DefaultActivationPolicy(),
                 SpanDecorator.composite(
                         new CallSiteSpanDecorator(),
                         new ComponentSpanDecorator(),
@@ -134,11 +138,13 @@ public final class OpenTracingPlugin implements Plugin {
     @Override
     public RequestExecution aroundDispatch(final RequestExecution execution) {
         return arguments -> {
-            @Nullable final Span span = lifecyclePolicy.start(tracer, arguments, decorator);
+            @Nullable final Span span = lifecyclePolicy.start(tracer, arguments).orElse(null);
 
             if (span == null) {
                 return execution.execute(arguments);
             }
+
+            decorator.onRequest(span, arguments);
 
             final Runnable close = activationPolicy.activate(tracer, span);
             final Runnable finish = () -> lifecyclePolicy.finish(span);

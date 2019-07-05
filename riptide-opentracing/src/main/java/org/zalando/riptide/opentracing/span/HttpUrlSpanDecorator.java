@@ -1,6 +1,6 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.Span;
 import io.opentracing.tag.Tags;
 import org.zalando.riptide.RequestArguments;
 
@@ -12,8 +12,8 @@ import org.zalando.riptide.RequestArguments;
 public final class HttpUrlSpanDecorator implements SpanDecorator {
 
     @Override
-    public void onStart(final SpanBuilder builder, final RequestArguments arguments) {
-        builder.withTag(Tags.HTTP_URL, arguments.getRequestUri().toString());
+    public void onRequest(final Span span, final RequestArguments arguments) {
+        span.setTag(Tags.HTTP_URL, arguments.getRequestUri().toString());
     }
 
 }

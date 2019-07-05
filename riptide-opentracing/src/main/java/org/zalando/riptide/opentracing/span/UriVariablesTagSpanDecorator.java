@@ -2,7 +2,7 @@ package org.zalando.riptide.opentracing.span;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gag.annotation.remark.Hack;
-import io.opentracing.Tracer.SpanBuilder;
+import io.opentracing.Span;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.zalando.riptide.RequestArguments;
 
@@ -24,9 +24,9 @@ import java.util.Map;
 public final class UriVariablesTagSpanDecorator implements SpanDecorator {
 
     @Override
-    public void onStart(final SpanBuilder builder, final RequestArguments arguments) {
+    public void onRequest(final Span span, final RequestArguments arguments) {
         final Map<String, String> variables = extract(arguments);
-        variables.forEach(builder::withTag);
+        variables.forEach(span::setTag);
     }
 
     private Map<String, String> extract(final RequestArguments arguments) {
