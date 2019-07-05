@@ -106,7 +106,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>riptide-metrics</artifactId>
+            <artifactId>riptide-micrometer</artifactId>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>

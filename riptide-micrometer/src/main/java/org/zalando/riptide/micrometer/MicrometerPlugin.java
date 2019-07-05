@@ -1,4 +1,4 @@
-package org.zalando.riptide.metrics;
+package org.zalando.riptide.micrometer;
 
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -16,33 +16,33 @@ import static com.google.common.collect.Iterables.concat;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
-public final class MetricsPlugin implements Plugin {
+public final class MicrometerPlugin implements Plugin {
 
     private final MeterRegistry registry;
     private final String metricName;
     private final ImmutableList<Tag> defaultTags;
     private final TagGenerator generator = new DefaultTagGenerator();
 
-    public MetricsPlugin(final MeterRegistry registry) {
+    public MicrometerPlugin(final MeterRegistry registry) {
         this(registry, "http.client.requests", ImmutableList.of());
     }
 
-    private MetricsPlugin(final MeterRegistry registry, final String metricName, final ImmutableList<Tag> defaultTags) {
+    private MicrometerPlugin(final MeterRegistry registry, final String metricName, final ImmutableList<Tag> defaultTags) {
         this.registry = registry;
         this.metricName = metricName;
         this.defaultTags = defaultTags;
     }
 
-    public MetricsPlugin withMetricName(final String metricName) {
-        return new MetricsPlugin(registry, metricName, defaultTags);
+    public MicrometerPlugin withMetricName(final String metricName) {
+        return new MicrometerPlugin(registry, metricName, defaultTags);
     }
 
-    public MetricsPlugin withDefaultTags(final Tag... defaultTags) {
+    public MicrometerPlugin withDefaultTags(final Tag... defaultTags) {
         return withDefaultTags(ImmutableList.copyOf(defaultTags));
     }
 
-    public MetricsPlugin withDefaultTags(final Iterable<Tag> defaultTags) {
-        return new MetricsPlugin(registry, metricName, ImmutableList.copyOf(defaultTags));
+    public MicrometerPlugin withDefaultTags(final Iterable<Tag> defaultTags) {
+        return new MicrometerPlugin(registry, metricName, ImmutableList.copyOf(defaultTags));
     }
 
     @Override
