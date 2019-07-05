@@ -15,10 +15,10 @@ import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import static java.util.Comparator.comparing;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
@@ -34,7 +34,7 @@ class DefaultRiptideConfigurer {
 
     private void configure(final String id, final RiptideProperties.Client client) {
         if (client.getTracing().getEnabled()) {
-            final BeanDefinition tracerRef = getBeanRef(Tracer.class);
+            final BeanDefinition tracerRef = getBeanRef(Tracer.class, "tracer");
 
             findBeanDefinition(id, TracedExecutorService.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
@@ -47,14 +47,14 @@ class DefaultRiptideConfigurer {
         }
 
         if (client.getLogging().getEnabled()) {
-            final BeanDefinition logbookRef = getBeanRef(Logbook.class);
+            final BeanDefinition logbookRef = getBeanRef(Logbook.class, "logbook");
 
             findBeanDefinition(id, LogbookPlugin.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, LOGBOOK_REF, logbookRef));
         }
 
         if (client.getMetrics().getEnabled()) {
-            final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class);
+            final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class, "meterRegistry");
 
             findBeanDefinition(id, MicrometerPlugin.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
@@ -67,20 +67,29 @@ class DefaultRiptideConfigurer {
         }
     }
 
-    /**
-     * Search for an existing bean definition for the provided type.
-     * Will return the bean annotated with the @Primary annotation,
-     * or if there's few beans present the first one that will be resolved.
-     *
-     * @param type bean type
-     * @return bean definition
-     * @throws NoSuchBeanDefinitionException if bean of specified type is not found
-     */
-    private BeanDefinition getBeanRef(Class type) {
-        return Stream.of(beanFactory.getBeanNamesForType(type))
-                     .map(beanFactory::getBeanDefinition)
-                     .sorted(comparing(BeanDefinition::isPrimary).reversed())
-                     .findFirst().orElseThrow(() -> new NoSuchBeanDefinitionException(type));
+    private BeanDefinition getBeanRef(Class type, String argName) {
+        Map<String, BeanDefinition> definitions = new HashMap<>();
+        // search primary bean definition
+        for (String beanName : beanFactory.getBeanNamesForType(type)) {
+            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+            if (beanDefinition.isPrimary()) {
+                return beanDefinition;
+            }
+            definitions.put(beanName, beanDefinition);
+        }
+
+        // resolve by name
+        BeanDefinition beanDefinition = definitions.get(argName);
+        if (beanDefinition != null) {
+            return beanDefinition;
+        }
+
+        // if only one candidate present use it
+        if (definitions.size() == 1) {
+            return definitions.values().iterator().next();
+        }
+
+        throw new NoSuchBeanDefinitionException(type);
     }
 
     private Optional<BeanDefinition> findBeanDefinition(final String id, final Class<?> type) {
@@ -95,7 +104,8 @@ class DefaultRiptideConfigurer {
         }
     }
 
-    private void replaceConstructorArgumentWithBean(final BeanDefinition bd, final String arg, final BeanDefinition ref) {
+    private void replaceConstructorArgumentWithBean(final BeanDefinition bd, final String arg,
+                                                    final BeanDefinition ref) {
         bd.getConstructorArgumentValues()
           .getIndexedArgumentValues()
           .values().stream()

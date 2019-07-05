@@ -84,9 +84,6 @@ The Apache HTTP client specific `GzipHttpRequestInterceptor` has been replaced w
 Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `tracer` during the construction 
 of appropriate plugins. 
 This behaviour changed to resolution be type. 
-So primary beans of types `MeterRegistry`, `Logbook` or `Tracer` will be injected to appropriate plugins.
-If no primary bean is defined, but multiple beans of required type is present in application context 
-the first one found will be injected.
 
 ### Added `enabled` properties
 
