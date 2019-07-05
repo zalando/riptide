@@ -29,18 +29,18 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
                 from(((ConfigurableEnvironment) environment).getPropertySources());
         final Binder binder = new Binder(sources);
 
-        this.properties = binder.bind("riptide", RiptideProperties.class).orElseCreate(RiptideProperties.class);
+        this.properties = Defaulting.withDefaults(binder.bind("riptide", RiptideProperties.class).orElseCreate(RiptideProperties.class));
     }
 
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
-        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry), Defaulting.withDefaults(properties));
+        final RiptideRegistrar registrar = registrarFactory.apply(new Registry(registry), properties);
         registrar.register();
     }
 
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, Defaulting.withDefaults(properties));
+        final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, properties);
         configurer.register();
     }
 

@@ -1,10 +1,13 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.gag.annotation.remark.Magic;
+
 /**
- * Constants refering to beans that need to be looked up by types during Riptide clients constructions.
+ * Constants referring to beans that need to be looked up by types during Riptide clients constructions.
  * <p>This is an artificial arrangement of 16 unicode characters, with its sole purpose
  * being to never match user-declared values.
  */
+@Magic
 class ValueConstants {
     private ValueConstants() {}
 

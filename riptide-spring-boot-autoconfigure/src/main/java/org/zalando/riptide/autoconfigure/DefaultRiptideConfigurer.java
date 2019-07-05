@@ -12,7 +12,7 @@ import org.zalando.logbook.Logbook;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.metrics.MetricsPlugin;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
 import java.util.Optional;
@@ -56,7 +56,7 @@ class DefaultRiptideConfigurer {
         if (client.getMetrics().getEnabled()) {
             final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class);
 
-            findBeanDefinition(id, MetricsPlugin.class)
+            findBeanDefinition(id, MicrometerPlugin.class)
                     .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
 
             findBeanDefinition(id, RetryListener.class)
