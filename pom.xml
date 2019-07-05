@@ -80,7 +80,7 @@
         <jackson.version>2.9.9</jackson.version>
         <problem.version>0.23.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
-        <junit-jupiter.version>5.4.2</junit-jupiter.version>
+        <junit-jupiter.version>5.5.0</junit-jupiter.version>
     </properties>
 
     <dependencyManagement>
