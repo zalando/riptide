@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.jupiter.api.AfterEach;
@@ -18,10 +19,14 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.opentracing.span.HttpUrlSpanDecorator;
 import org.zalando.riptide.opentracing.span.RetrySpanDecorator;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.ObjIntConsumer;
 
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Collections.singletonMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.stream.Collectors.toList;
@@ -49,7 +54,7 @@ final class OpenTracingPluginRetryTest {
             .plugin(unit)
             .plugin(new FailsafePlugin(
                     ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
-                            .withMaxRetries(1)
+                            .withMaxRetries(2)
                             .handleResultIf(response -> true)),
                     new TracedScheduledExecutorService(newSingleThreadScheduledExecutor(), tracer)))
             .plugin(unit)
@@ -59,12 +64,13 @@ final class OpenTracingPluginRetryTest {
     void shouldTagRetries() {
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
+        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
 
         http.get("/").call(pass()).join();
 
         final List<MockSpan> spans = tracer.finishedSpans();
 
-        assertThat(spans, hasSize(3));
+        assertThat(spans, hasSize(4));
 
         spans.forEach(span -> {
             assertThat(span.generatedErrors(), is(empty()));
@@ -84,7 +90,7 @@ final class OpenTracingPluginRetryTest {
                 .filter(span -> span.parentId() > 0)
                 .collect(toList());
 
-        assertThat(children, hasSize(2));
+        assertThat(children, hasSize(3));
 
         children.forEach(child ->
                 assertThat(child.tags(), hasKey("http.status_code")));
@@ -93,7 +99,19 @@ final class OpenTracingPluginRetryTest {
                 .filter(span -> span.tags().containsKey("retry"))
                 .collect(toList());
 
-        assertThat(retries, hasSize(1));
+        assertThat(retries, hasSize(2));
+
+        forEachWithIndex(retries, (retry, index) -> {
+            final LogEntry log = getOnlyElement(retry.logEntries());
+            assertThat(log.fields(), is(singletonMap("retry_number", index + 1)));
+        });
+    }
+
+    private static <T> void forEachWithIndex(final Collection<T> collection, final ObjIntConsumer<T> consumer) {
+        int index = 0;
+        for (final T element : collection) {
+            consumer.accept(element, index++);
+        }
     }
 
     @AfterEach
