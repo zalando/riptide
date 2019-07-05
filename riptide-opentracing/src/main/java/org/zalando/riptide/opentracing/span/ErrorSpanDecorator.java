@@ -1,6 +1,5 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import io.opentracing.Span;
 import io.opentracing.log.Fields;
@@ -30,9 +29,7 @@ public final class ErrorSpanDecorator implements SpanDecorator {
         span.setTag(Tags.ERROR, true);
         span.log(ImmutableMap.of(
                 Fields.ERROR_KIND, error.getClass().getSimpleName(),
-                Fields.ERROR_OBJECT, error,
-                Fields.MESSAGE, error.getMessage(),
-                Fields.STACK, Throwables.getStackTraceAsString(error)
+                Fields.ERROR_OBJECT, error
         ));
     }
 
