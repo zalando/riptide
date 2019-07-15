@@ -95,11 +95,8 @@ class DefaultRiptideConfigurer {
     }
 
     private Optional<BeanDefinition> findBeanDefinition(final String id, final Class<?> type) {
-        return findBeanDefinition(Name.name(id, type));
-    }
-
-    private Optional<BeanDefinition> findBeanDefinition(final Name name) {
         try {
+            final Name name = Name.name(id, type);
             return Optional.of(beanFactory.getBeanDefinition(name.toNormalizedString()));
         } catch (NoSuchBeanDefinitionException e) {
             return Optional.empty();
