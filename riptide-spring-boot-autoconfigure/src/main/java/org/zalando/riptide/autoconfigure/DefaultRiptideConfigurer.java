@@ -1,5 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
@@ -67,7 +68,8 @@ class DefaultRiptideConfigurer {
         }
     }
 
-    private BeanDefinition getBeanRef(Class type, String argName) {
+    @VisibleForTesting
+    BeanDefinition getBeanRef(Class type, String argName) {
         Map<String, BeanDefinition> definitions = new HashMap<>();
         // search primary bean definition
         for (String beanName : beanFactory.getBeanNamesForType(type)) {
