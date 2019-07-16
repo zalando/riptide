@@ -17,7 +17,7 @@
 
     <properties>
         <logbook.version>2.0.0-RC.1</logbook.version>
-        <tracer.version>2.0.0-RC.1</tracer.version>
+        <tracer.version>2.0.0-RC.2</tracer.version>
     </properties>
 
     <dependencies>
