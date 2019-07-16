@@ -79,6 +79,12 @@ The Apache HTTP client specific `GzipHttpRequestInterceptor` has been replaced w
 
 ## Spring Boot Auto Configuration
 
+### Changed resolution of dependency beans
+
+Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `tracer` during the construction 
+of appropriate plugins. 
+This behaviour changed to resolution be type. 
+
 ### Added `enabled` properties
 
 :warning: **All nested configurations now have an `enabled` flag which is disabled by default**
