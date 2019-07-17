@@ -186,7 +186,7 @@ Required when `logging` is enabled.
 
 #### [Tracer](https://github.com/zalando/tracer) integration
 
-Required when `tracing` is enabled. Requires a `io.opentracing.Tracer` bean named `tracer` in the context.
+Required when `tracing` is enabled.
 
 ```xml
 <dependency>
