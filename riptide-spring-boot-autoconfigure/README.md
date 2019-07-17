@@ -186,6 +186,8 @@ Required when `logging` is enabled.
 
 #### [Tracer](https://github.com/zalando/tracer) integration
 
+Required when `tracing` is enabled.
+
 ```xml
 <dependency>
     <groupId>org.zalando</groupId>
