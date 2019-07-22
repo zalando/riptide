@@ -77,7 +77,7 @@
         <slf4j.version>1.7.26</slf4j.version>
         <spring.version>5.1.8.RELEASE</spring.version>
         <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
-        <jackson.version>2.9.9</jackson.version>
+        <jackson.version>2.10.0.pr1</jackson.version>
         <problem.version>0.23.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
         <junit-jupiter.version>5.5.1</junit-jupiter.version>
