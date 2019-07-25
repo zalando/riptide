@@ -264,9 +264,6 @@
                 <version>2.22.0</version>
                 <configuration>
                     <perCoreThreadCount>false</perCoreThreadCount>
-                    <environmentVariables>
-                        <OAUTH2_ACCESS_TOKENS>example=example,ecb=ecb</OAUTH2_ACCESS_TOKENS>
-                    </environmentVariables>
                 </configuration>
             </plugin>
         </plugins>
