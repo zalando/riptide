@@ -84,6 +84,8 @@ The following tags/logs are supported out of the box:
 | `*`                  | `StaticTagSpanDecorator`       | `aws.region=eu-central-1`         |
 | `*`                  | `UriVariablesTagSpanDecorator` | `user_id=me`                      |
 
+Custom `SpanDecorator` implementations that are registered using [Java's Service Provider Interface](https://docs.oracle.com/javase/tutorial/ext/basics/spi.html) mechanism will be picked up automatically by default.
+
 ### Notice
 
 **Be aware**: The `http.url` tag is disabled by default because the full request URI may contain
