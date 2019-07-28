@@ -600,7 +600,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(configureFirstRequestInterceptors(id, client))
                     .addConstructorArgReference(connectionManager)
                     .addConstructorArgValue(registry.findRef(id, HttpClientCustomizer.class).orElse(null))
-                    .addConstructorArgValue(registry.findRef(id, HttpCacheStorage.class).orElse(null))
+                    .addConstructorArgValue(findCacheStorageReference(id, client).orElse(null))
                     .setDestroyMethodName("close");
         });
     }
@@ -614,6 +614,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         }
 
         return interceptors;
+    }
+
+    private Optional<BeanReference> findCacheStorageReference(final String id, final Client client) {
+        if (client.getCaching().getEnabled()) {
+            return registry.findRef(id, HttpCacheStorage.class);
+        } else {
+            return Optional.empty();
+        }
     }
 
 }

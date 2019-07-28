@@ -73,7 +73,7 @@ final class HttpClientFactory {
             final List<HttpRequestInterceptor> firstRequestInterceptors,
             final HttpClientConnectionManager connectionManager,
             @Nullable final HttpClientCustomizer customizer,
-            @Nullable final HttpCacheStorage cacheStorage) {
+            @Nullable final Object cacheStorage) {
 
         final Caching caching = client.getCaching();
         final HttpClientBuilder builder = caching.getEnabled() ?
@@ -97,8 +97,8 @@ final class HttpClientFactory {
         return builder.build();
     }
 
-    private static CachingHttpClientBuilder configureCaching(final Caching caching,
-            @Nullable final HttpCacheStorage cacheStorage) {
+    private static HttpClientBuilder configureCaching(final Caching caching,
+            @Nullable final Object cacheStorage) {
         final Heuristic heuristic = caching.getHeuristic();
 
         final CacheConfig.Builder config = CacheConfig.custom()
@@ -114,7 +114,7 @@ final class HttpClientFactory {
 
         return CachingHttpClients.custom()
                 .setCacheConfig(config.build())
-                .setHttpCacheStorage(cacheStorage)
+                .setHttpCacheStorage((HttpCacheStorage)cacheStorage)
                 .setCacheDir(Optional.ofNullable(caching.getDirectory())
                         .map(Path::toFile)
                         .orElse(null));
