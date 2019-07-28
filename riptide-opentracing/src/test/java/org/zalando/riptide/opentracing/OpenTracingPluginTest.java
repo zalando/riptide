@@ -102,6 +102,7 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), hasEntry("test", "true"));
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("user", "me"));
+        assertThat(child.tags(), hasEntry("spi", true));
 
         // not active by default
         assertThat(child.tags(), not(hasKey("http.url")));
@@ -146,6 +147,7 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), hasEntry("error", true));
         assertThat(child.tags(), hasEntry("test", "true"));
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
+        assertThat(child.tags(), hasEntry("spi", true));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("http.path")));

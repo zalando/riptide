@@ -34,8 +34,10 @@ import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
 import static java.util.Objects.nonNull;
+import static java.util.ServiceLoader.load;
 import static lombok.AccessLevel.PRIVATE;
 
 @AllArgsConstructor(access = PRIVATE)
@@ -93,7 +95,8 @@ public final class OpenTracingPlugin implements Plugin {
                         new HttpPathSpanDecorator(),
                         new HttpStatusCodeSpanDecorator(),
                         new PeerSpanDecorator(),
-                        new SpanKindSpanDecorator()
+                        new SpanKindSpanDecorator(),
+                        SpanDecorator.composite(copyOf(load(SpanDecorator.class)))
                 ));
     }
 
