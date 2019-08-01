@@ -47,7 +47,9 @@ import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
@@ -80,6 +82,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 
+import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -149,7 +152,10 @@ public class ManualConfiguration {
                                             .handle(TransientFaultException.class)
                                             .handle(RetryException.class)
                                             .withBackoff(50, 2000, MILLIS)
-                                            .withDelay(new RetryAfterDelayFunction(Clock.systemUTC()))
+                                            .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                                                    new RetryAfterDelayFunction(systemUTC()),
+                                                    new RateLimitResetDelayFunction(systemUTC())
+                                            )))
                                             .withMaxRetries(10)
                                             .withMaxDuration(Duration.ofSeconds(2))
                                             .withJitter(0.2),
@@ -158,6 +164,10 @@ public class ManualConfiguration {
                                             .withDelay(Duration.ofSeconds(30))
                                             .withSuccessThreshold(3, 5)
                                             .withTimeout(Duration.ofSeconds(3))
+                                            .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                                                    new RetryAfterDelayFunction(systemUTC()),
+                                                    new RateLimitResetDelayFunction(systemUTC())
+                                            )))
                                             .onOpen(listener::onOpen)
                                             .onHalfOpen(listener::onHalfOpen)
                                             .onClose(listener::onClose)
