@@ -2,7 +2,7 @@ package org.zalando.riptide.failsafe;
 
 import lombok.AllArgsConstructor;
 import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.RetryPolicy.DelayFunction;
+import net.jodah.failsafe.function.DelayFunction;
 import org.apiguardian.api.API;
 
 import java.time.Duration;

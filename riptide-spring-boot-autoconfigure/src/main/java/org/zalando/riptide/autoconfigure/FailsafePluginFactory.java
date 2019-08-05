@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.function.DelayFunction;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
@@ -95,14 +96,9 @@ final class FailsafePluginFactory {
             policy.handle(TransientFaultException.class);
         }
 
-        policy.handle(RetryException.class);
-
-        policy.withDelay(new CompositeDelayFunction<>(Arrays.asList(
-                new RetryAfterDelayFunction(systemUTC()),
-                new RateLimitResetDelayFunction(systemUTC())
-        )));
-
-        return policy;
+        return policy
+                .handle(RetryException.class)
+                .withDelay(delayFunction());
     }
 
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(final Client client,
@@ -123,12 +119,18 @@ final class FailsafePluginFactory {
         Optional.ofNullable(client.getCircuitBreaker().getSuccessThreshold())
                 .ifPresent(threshold -> threshold.applyTo(breaker::withSuccessThreshold));
 
-        breaker
+        return breaker
+                .withDelay(delayFunction())
                 .onOpen(listener::onOpen)
                 .onHalfOpen(listener::onHalfOpen)
                 .onClose(listener::onClose);
+    }
 
-        return breaker;
+    private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {
+        return new CompositeDelayFunction<>(Arrays.asList(
+                new RetryAfterDelayFunction(systemUTC()),
+                new RateLimitResetDelayFunction(systemUTC())
+        ));
     }
 
 }

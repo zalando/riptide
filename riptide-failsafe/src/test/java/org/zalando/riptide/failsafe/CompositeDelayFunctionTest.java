@@ -1,7 +1,9 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.RetryPolicy.DelayFunction;
+import net.jodah.failsafe.function.DelayFunction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -13,6 +15,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 final class CompositeDelayFunctionTest {
 
     @SuppressWarnings("unchecked")
@@ -21,7 +24,8 @@ final class CompositeDelayFunctionTest {
     @SuppressWarnings("unchecked")
     private final DelayFunction<String, Exception> second = (DelayFunction) mock(DelayFunction.class);
 
-    private final DelayFunction<String, Exception> unit = new CompositeDelayFunction<>(Arrays.asList(first, second));
+    private final DelayFunction<String, Exception> unit = new CompositeDelayFunction<>(
+            Arrays.asList(first, second));
 
     @Test
     void shouldUseFirstNonNullDelay() {
