@@ -67,6 +67,7 @@ The following tags/logs are supported out of the box:
 |----------------------|--------------------------------|-----------------------------------|
 | `component`          | `ComponentSpanDecorator`       | `Riptide`                         |
 | `span.kind`          | `SpanKindSpanDecorator`        | `client`                          |
+| `peer.address`       | `PeerSpanDecorator`            | `www.github.com:80`               |
 | `peer.hostname`      | `PeerSpanDecorator`            | `www.github.com`                  |
 | `peer.port`          | `PeerSpanDecorator`            | `80`                              |
 | `http.method`        | `HttpMethodSpanDecorator`      | `GET`                             |

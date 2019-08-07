@@ -3,6 +3,9 @@ package org.zalando.riptide.opentracing;
 import io.opentracing.tag.BooleanTag;
 import io.opentracing.tag.StringTag;
 import io.opentracing.tag.Tag;
+import org.apiguardian.api.API;
+
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 public final class ExtensionTags {
 
@@ -53,6 +56,17 @@ public final class ExtensionTags {
      * A deployment is the combination of a given artifact_version and the environment, usually its configuration.
      */
     public static final Tag<String> DEPLOYMENT_ID = new StringTag("deployment_id");
+
+    /**
+     * Remote "address", suitable for use in a networking client library. This may be a "ip:port", a bare "hostname",
+     * a FQDN, or even a JDBC substring like "mysql://prod-db:3306".
+     *
+     * <strong>Be aware that this will be removed as soon as {@link io.opentracing.tag.Tags} contains it.</strong>
+     *
+     * @see <a href="https://github.com/opentracing/opentracing-java/pull/358">opentracing/opentracing-java#358</a>
+     */
+    @API(status = EXPERIMENTAL)
+    public static final Tag<String> PEER_ADDRESS = new StringTag("peer.address");
 
     private ExtensionTags() {
 

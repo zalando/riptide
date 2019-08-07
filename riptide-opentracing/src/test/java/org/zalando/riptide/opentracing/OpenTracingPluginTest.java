@@ -94,6 +94,7 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
         assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
@@ -140,6 +141,7 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
         assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
@@ -182,6 +184,7 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
         assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
@@ -247,6 +250,7 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
         assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
