@@ -49,6 +49,7 @@ final class BackupRequestPluginTest {
 
     @AfterEach
     void tearDown() throws IOException {
+        driver.verify();
         client.close();
     }
 
@@ -99,16 +100,7 @@ final class BackupRequestPluginTest {
     }
 
     @Test
-    void shouldNotSendBackupRequestForNonSafeRequests() {
-        driver.addExpectation(onRequestTo("/baz").withMethod(PUT), giveEmptyResponse().after(2, SECONDS));
-
-        unit.put("/baz")
-                .call(pass())
-                .join();
-    }
-
-    @Test
-    void shouldNotSendBackupRequestForGetWithBodyWithoutOverride() {
+    void shouldNotSendBackupRequestForNonIdempotentRequests() {
         driver.addExpectation(onRequestTo("/baz").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
 
         unit.post("/baz")

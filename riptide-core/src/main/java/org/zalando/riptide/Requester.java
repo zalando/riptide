@@ -30,9 +30,7 @@ import static org.zalando.fauxpas.FauxPas.throwingFunction;
 final class Requester extends AttributeStage {
 
     private final RequestExecution network;
-    private final MessageReader reader;
     private final RequestArguments arguments;
-
     private final Plugin plugins;
 
     @Override
@@ -122,7 +120,7 @@ final class Requester extends AttributeStage {
     }
 
     private Requester withArguments(final RequestArguments arguments) {
-        return new Requester(network, reader, arguments, plugins);
+        return new Requester(network, arguments, plugins);
     }
 
     @Override
@@ -131,7 +129,7 @@ final class Requester extends AttributeStage {
     }
 
     @Override
-    public <T> DispatchStage body(@Nullable final Entity entity) {
+    public DispatchStage body(@Nullable final Entity entity) {
         return new ResponseDispatcher(arguments.withEntity(entity));
     }
 
@@ -147,16 +145,14 @@ final class Requester extends AttributeStage {
 
         @Override
         public CompletableFuture<ClientHttpResponse> call(final Route route) {
-            final Plugin plugin = Plugin.composite(new DispatchPlugin(route, reader), plugins);
-
             final RequestExecution execution =
-                    plugin.aroundAsync(
-                            plugin.aroundDispatch(
-                                    plugin.aroundSerialization(
-                                            plugin.aroundNetwork(
+                    plugins.aroundAsync(
+                            plugins.aroundDispatch(
+                                    plugins.aroundSerialization(
+                                            plugins.aroundNetwork(
                                                     network))));
 
-            return throwingFunction(execution::execute).apply(arguments);
+            return throwingFunction(execution::execute).apply(arguments.withRoute(route));
         }
 
     }

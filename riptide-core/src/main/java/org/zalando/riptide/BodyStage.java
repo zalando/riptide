@@ -9,6 +9,6 @@ import static org.apiguardian.api.API.Status.STABLE;
 
 @API(status = STABLE)
 public abstract class BodyStage extends DispatchStage {
-    public abstract <T> DispatchStage body(@Nullable Entity entity);
+    public abstract DispatchStage body(@Nullable Entity entity);
     public abstract <T> DispatchStage body(@Nullable T body);
 }

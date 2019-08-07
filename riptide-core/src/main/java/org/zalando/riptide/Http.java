@@ -1,6 +1,7 @@
 package org.zalando.riptide;
 
 import org.apiguardian.api.API;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -32,6 +33,7 @@ public interface Http extends URIStage {
 
     interface ExecutorStage {
         RequestFactoryStage executor(Executor executor);
+        ConfigurationStage asyncRequestFactory(AsyncClientHttpRequestFactory asyncRequestFactory);
     }
 
     interface RequestFactoryStage {

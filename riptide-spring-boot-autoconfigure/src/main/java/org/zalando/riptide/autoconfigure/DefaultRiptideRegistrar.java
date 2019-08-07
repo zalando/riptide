@@ -256,7 +256,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerOpenTracingPlugin(id, client),
                 registerFailsafePlugin(id, client),
                 registerAuthorizationPlugin(id, client),
-                registerBackupPlugin(id, client),
+                registerBackupRequestPlugin(id, client),
                 registerTimeoutPlugin(id, client),
                 registerOriginalStackTracePlugin(id, client),
                 registerCustomPlugin(id));
@@ -421,7 +421,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerBackupPlugin(final String id, final Client client) {
+    private Optional<String> registerBackupRequestPlugin(final String id, final Client client) {
         if (client.getBackupRequest().getEnabled()) {
             log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
             final String pluginId = registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->

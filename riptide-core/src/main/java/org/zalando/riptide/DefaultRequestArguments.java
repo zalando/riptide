@@ -78,9 +78,13 @@ final class DefaultRequestArguments implements RequestArguments {
     @Wither
     Entity entity;
 
-    public DefaultRequestArguments() {
+    @Getter
+    @Wither
+    Route route;
+
+    DefaultRequestArguments() {
         this(null, null, null, null, PersistentVector.empty(), null, PersistentHashMap.empty(),
-                PersistentHashMap.empty(), PersistentTreeMap.empty(CASE_INSENSITIVE_ORDER), null, null);
+                PersistentHashMap.empty(), PersistentTreeMap.empty(CASE_INSENSITIVE_ORDER), null, null, null);
     }
 
     @Override
@@ -156,14 +160,14 @@ final class DefaultRequestArguments implements RequestArguments {
     public RequestArguments replaceUriVariables(final List<Object> additionalUriVariables) {
         return new DefaultRequestArguments(
                 method, baseUrl, urlResolution, uriTemplate, PersistentVector.ofIter(additionalUriVariables), uri,
-                attributes, queryParams, headers, body, entity);
+                attributes, queryParams, headers, body, entity, route);
     }
 
     @Override
     public <T> RequestArguments withAttribute(final Attribute<T> attribute, final T value) {
         return new DefaultRequestArguments(
                 method, baseUrl, urlResolution, uriTemplate, uriVariables, uri, attributes.assoc(attribute, value),
-                queryParams, headers, body, entity);
+                queryParams, headers, body, entity, route);
     }
 
     @Override
@@ -189,7 +193,7 @@ final class DefaultRequestArguments implements RequestArguments {
     private DefaultRequestArguments queryParams(final BaseMap<String, List<String>> queryParams) {
         return new DefaultRequestArguments(
                 method, baseUrl, urlResolution, uriTemplate, uriVariables, uri, attributes,
-                queryParams, headers, body, entity);
+                queryParams, headers, body, entity, route);
     }
 
     @Override
@@ -215,7 +219,7 @@ final class DefaultRequestArguments implements RequestArguments {
     private DefaultRequestArguments headers(final BaseMap<String, List<String>> headers) {
         return new DefaultRequestArguments(
                 method, baseUrl, urlResolution, uriTemplate, uriVariables, uri, attributes, queryParams,
-                headers, body, entity);
+                headers, body, entity, route);
     }
 
     private BaseMap<String, List<String>> merge(final BaseMap<String, List<String>> map,

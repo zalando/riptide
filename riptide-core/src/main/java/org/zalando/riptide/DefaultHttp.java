@@ -1,12 +1,9 @@
 package org.zalando.riptide;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -14,17 +11,13 @@ import static java.util.Objects.requireNonNull;
 final class DefaultHttp implements Http {
 
     private final RequestExecution network;
-    private final MessageReader reader;
-    private final Supplier<URI> baseUrlProvider;
+    private final Supplier<URI> baseUrl;
     private final RequestArguments arguments;
     private final Plugin plugin;
 
-    DefaultHttp(final ClientHttpRequestFactory requestFactory,
-            final List<HttpMessageConverter<?>> converters,
-            final Supplier<URI> baseUrlProvider, final UrlResolution resolution, final Plugin plugin) {
-        this.reader = new DefaultMessageReader(converters);
-        this.network = new GuardedRequestExecution(new NetworkRequestExecution(requestFactory));
-        this.baseUrlProvider = requireNonNull(baseUrlProvider, "base url provider");
+    DefaultHttp(final IO io, final Supplier<URI> baseUrl, final UrlResolution resolution, final Plugin plugin) {
+        this.network = new GuardedRequestExecution(io);
+        this.baseUrl = requireNonNull(baseUrl, "base url provider");
         this.arguments = RequestArguments.create().withUrlResolution(resolution);
         this.plugin = plugin;
     }
@@ -153,7 +146,7 @@ final class DefaultHttp implements Http {
     public AttributeStage execute(final HttpMethod method, final String uriTemplate, final Object... uriVariables) {
         return execute(arguments
                 .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get())
+                .withBaseUrl(baseUrl.get())
                 .withUriTemplate(uriTemplate)
                 .replaceUriVariables(Arrays.asList(uriVariables)));
     }
@@ -162,7 +155,7 @@ final class DefaultHttp implements Http {
     public AttributeStage execute(final HttpMethod method, final URI uri) {
         return execute(arguments
                 .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get())
+                .withBaseUrl(baseUrl.get())
                 .withUri(uri));
     }
 
@@ -170,11 +163,11 @@ final class DefaultHttp implements Http {
     public AttributeStage execute(final HttpMethod method) {
         return execute(arguments
                 .withMethod(method)
-                .withBaseUrl(baseUrlProvider.get()));
+                .withBaseUrl(baseUrl.get()));
     }
 
     private AttributeStage execute(final RequestArguments arguments) {
-        return new Requester(network, reader, arguments, plugin);
+        return new Requester(network, arguments, plugin);
     }
 
 }

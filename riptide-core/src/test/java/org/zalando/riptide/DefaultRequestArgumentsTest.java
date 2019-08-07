@@ -44,7 +44,8 @@ final class DefaultRequestArgumentsTest {
                 new Assertion<>(RequestArguments::withUriTemplate, "/{id}", RequestArguments::getUriTemplate),
                 new Assertion<>(RequestArguments::withUri, URI.create("/123"), RequestArguments::getUri),
                 new Assertion<>(RequestArguments::withBody, new Object(), RequestArguments::getBody),
-                new Assertion<>(RequestArguments::withEntity, mock(Entity.class), RequestArguments::getEntity)
+                new Assertion<>(RequestArguments::withEntity, mock(Entity.class), RequestArguments::getEntity),
+                new Assertion<>(RequestArguments::withRoute, mock(Route.class), RequestArguments::getRoute)
         );
     }
 

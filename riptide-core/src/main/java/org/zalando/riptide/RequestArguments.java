@@ -51,6 +51,8 @@ public interface RequestArguments {
 
     Entity getEntity();
 
+    Route getRoute();
+
     RequestArguments withBaseUrl(@Nullable URI baseUrl);
 
     RequestArguments withUrlResolution(@Nullable UrlResolution resolution);
@@ -84,6 +86,8 @@ public interface RequestArguments {
     RequestArguments withBody(@Nullable Object body);
 
     RequestArguments withEntity(@Nullable Entity entity);
+
+    RequestArguments withRoute(Route route);
 
     static RequestArguments create() {
         return new DefaultRequestArguments();
