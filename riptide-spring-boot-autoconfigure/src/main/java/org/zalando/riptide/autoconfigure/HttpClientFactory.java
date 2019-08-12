@@ -1,8 +1,8 @@
 package org.zalando.riptide.autoconfigure;
 
+import com.google.gag.annotation.remark.Hack;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
@@ -24,8 +24,6 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Ke
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -35,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -112,12 +112,14 @@ final class HttpClientFactory {
             config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));
         }
 
-        return CachingHttpClients.custom()
-                .setCacheConfig(config.build())
-                .setHttpCacheStorage((HttpCacheStorage)cacheStorage)
-                .setCacheDir(Optional.ofNullable(caching.getDirectory())
-                        .map(Path::toFile)
-                        .orElse(null));
+        @Hack("return cast tricks classloader in case of missing httpclient-cache")
+        CachingHttpClientBuilder builder = CachingHttpClients.custom()
+                                                             .setCacheConfig(config.build())
+                                                             .setHttpCacheStorage((HttpCacheStorage) cacheStorage)
+                                                             .setCacheDir(Optional.ofNullable(caching.getDirectory())
+                                                                                  .map(Path::toFile)
+                                                                                  .orElse(null));
+        return HttpClientBuilder.class.cast(builder);
     }
 
     private static SSLContext createSSLContext(final Client client) throws GeneralSecurityException, IOException {
