@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>riptide-spring-boot-starter</artifactId>
-    <packaging>pom</packaging>
 
     <name>Riptide: Spring Boot Starter</name>
     <description>Client side response routing</description>
