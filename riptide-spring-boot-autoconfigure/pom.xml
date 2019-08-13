@@ -119,7 +119,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-concurrent</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.0</version>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
         </dependency>
@@ -251,7 +251,7 @@
         <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-mock</artifactId>
-            <version>0.32.0</version>
+            <version>0.33.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

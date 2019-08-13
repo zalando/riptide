@@ -16,7 +16,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <opentracing.version>0.32.0</opentracing.version>
+        <opentracing.version>0.33.0</opentracing.version>
     </properties>
 
     <dependencies>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-concurrent</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
