@@ -127,7 +127,7 @@ http.get("/me")
 Some resilience patterns like retries, queuing, backup requests and fallbacks introduce delays. Configuring connect and
 socket timeouts in those cases is often not enough. You need consider maximum number of retries, exponential backoff
 delays, jitter, etc. An easy way is to set a *global* timeout that spans all of the things mentioned before. This 
-feature is provided by [riptide-timeout](../riptide-timeout).
+feature is provided by [riptide-failsafe](../riptide-failsafe) and Failsafe's `Timeout` policy.
 
 Given the following sample configuration:
 

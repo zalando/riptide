@@ -42,9 +42,8 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 - [resilience](docs/resilience.md) built into it
   - isolated thread pools, connection pools and bounded queues
   - transient fault detection via [riptide-faults](riptide-faults)
-  - retries and circuit breaker via [Failsafe integration](riptide-failsafe)
+  - retries, circuit breaker and timeouts via [Failsafe integration](riptide-failsafe)
   - backup requests via [riptide-backup](riptide-backup)
-  - [timeouts](riptide-timeout)
 - non-blocking IO (optional)
 - encourages the use of
   - fallbacks
@@ -277,11 +276,9 @@ Riptide comes with a way to register extensions in the form of plugins.
 - `OriginalStackTracePlugin`, preserves stack traces when executing requests asynchronously
 - [`AuthorizationPlugin`](#riptide-auth), adds `Authorization` support
 - [`BackupRequestPlugin`](#riptide-backup), adds backup requests
-- [`FailsafePlugin`](riptide-failsafe), adds retries and circuit breaker support
+- [`FailsafePlugin`](riptide-failsafe), adds retries, circuit breaker and timeout support
 - [`MicrometerPlugin`](riptide-micrometer), adds metrics for request duration
 - [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
-- [`TimeoutPlugin`](riptide-timeout), applies timeouts to the whole call (including retries, network latency, etc.)
-
 Whenever you encounter the need to perform some repetitive task on the futures returned by a remote call,
 you may consider implementing a custom Plugin for it.
 

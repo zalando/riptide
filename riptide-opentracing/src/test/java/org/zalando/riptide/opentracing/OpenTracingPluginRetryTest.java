@@ -3,10 +3,9 @@ package org.zalando.riptide.opentracing;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableList;
+import io.opentracing.Scope;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.jupiter.api.AfterEach;
@@ -26,12 +25,12 @@ import java.util.function.ObjIntConsumer;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.Collections.singletonMap;
+import static java.util.Comparator.comparing;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -55,9 +54,10 @@ final class OpenTracingPluginRetryTest {
             .plugin(new FailsafePlugin(
                     ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
                             .withMaxRetries(2)
-                            .handleResultIf(response -> true)),
-                    new TracedScheduledExecutorService(newSingleThreadScheduledExecutor(), tracer)))
-            .plugin(unit)
+                            .handleResultIf(response -> true)))
+                    .withDecorator(new TracedTaskDecorator(tracer))
+                    //.withScheduler(new TracedScheduler(tracer))
+            )
             .build();
 
     @Test
@@ -66,7 +66,11 @@ final class OpenTracingPluginRetryTest {
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
 
-        http.get("/").call(pass()).join();
+        final MockSpan parent = tracer.buildSpan("test").start();
+        try (final Scope ignored = tracer.activateSpan(parent)) {
+            http.get("/").call(pass()).join();
+        }
+        parent.finish();
 
         final List<MockSpan> spans = tracer.finishedSpans();
 
@@ -74,7 +78,6 @@ final class OpenTracingPluginRetryTest {
 
         spans.forEach(span -> {
             assertThat(span.generatedErrors(), is(empty()));
-            assertThat(span.tags(), hasKey("http.url"));
         });
 
         final List<MockSpan> roots = spans.stream()
@@ -82,32 +85,49 @@ final class OpenTracingPluginRetryTest {
                 .collect(toList());
 
         assertThat(roots, hasSize(1));
+        final MockSpan root = getOnlyElement(roots);
 
-        roots.forEach(root ->
-                assertThat(root.tags(), not(hasKey("http.status_code"))));
+        assertThat(root.parentId(), is(0L));
+        assertThat(root.tags(), not(hasKey("retry")));
 
-        final List<MockSpan> children = spans.stream()
-                .filter(span -> span.parentId() > 0)
+        final Collection<MockSpan> leafs = spans.stream()
+                .filter(span -> span.parentId() != 0)
                 .collect(toList());
 
-        assertThat(children, hasSize(3));
+        assertThat(leafs, hasSize(3));
 
-        children.forEach(child ->
-                assertThat(child.tags(), hasKey("http.status_code")));
+        leafs.forEach(span -> {
+            assertThat(span.tags(), hasKey("http.url"));
+            assertThat(span.tags(), hasKey("http.status_code"));
+        });
 
-        final List<MockSpan> retries = spans.stream()
+        final List<MockSpan> requests = leafs.stream()
+                .filter(span -> !span.tags().containsKey("retry"))
+                .collect(toList());
+
+        assertThat(requests, hasSize(1));
+        final MockSpan request = getOnlyElement(requests);
+        assertThat(request.tags(), not(hasKey("retry")));
+        assertThat(request.logEntries(), is(empty()));
+
+        final List<MockSpan> retries = leafs.stream()
                 .filter(span -> span.tags().containsKey("retry"))
+                .sorted(comparing(MockSpan::startMicros))
                 .collect(toList());
 
         assertThat(retries, hasSize(2));
 
-        forEachWithIndex(retries, (retry, index) -> {
-            final LogEntry log = getOnlyElement(retry.logEntries());
-            assertThat(log.fields(), is(singletonMap("retry_number", index + 1)));
+        forEachWithIndex(retries, (span, index) -> {
+            assertThat(span.tags(), hasKey("retry"));
+            assertThat(getOnlyElement(span.logEntries()).fields(),
+                    hasEntry("retry_number", index + 1));
         });
     }
 
-    private static <T> void forEachWithIndex(final Collection<T> collection, final ObjIntConsumer<T> consumer) {
+    private static <T> void forEachWithIndex(
+            final Iterable<T> collection,
+            final ObjIntConsumer<T> consumer) {
+
         int index = 0;
         for (final T element : collection) {
             consumer.accept(element, index++);

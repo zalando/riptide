@@ -16,13 +16,13 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
+import static org.zalando.riptide.failsafe.TaskDecorator.identity;
 
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
@@ -31,25 +31,28 @@ public final class FailsafePlugin implements Plugin {
     public static final Attribute<Integer> ATTEMPTS = Attribute.generate();
 
     private final ImmutableList<? extends Policy<ClientHttpResponse>> policies;
-    private final ScheduledExecutorService scheduler;
+    private final TaskDecorator decorator;
     private final Predicate<RequestArguments> predicate;
     private final RetryListener listener;
 
-    public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies,
-            final ScheduledExecutorService scheduler) {
-        this(policies, scheduler, new IdempotencyPredicate(), RetryListener.DEFAULT);
+    public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies) {
+        this(policies, identity(), new IdempotencyPredicate(), RetryListener.DEFAULT);
+    }
+
+    public FailsafePlugin withDecorator(final TaskDecorator decorator) {
+        return new FailsafePlugin(policies, decorator, predicate, listener);
     }
 
     public FailsafePlugin withPredicate(final Predicate<RequestArguments> predicate) {
-        return new FailsafePlugin(policies, scheduler, predicate, listener);
+        return new FailsafePlugin(policies, decorator, predicate, listener);
     }
 
     public FailsafePlugin withListener(final RetryListener listener) {
-        return new FailsafePlugin(policies, scheduler, predicate, listener);
+        return new FailsafePlugin(policies, decorator, predicate, listener);
     }
 
     @Override
-    public RequestExecution aroundDispatch(final RequestExecution execution) {
+    public RequestExecution aroundAsync(final RequestExecution execution) {
         return arguments -> {
             final Policy<ClientHttpResponse>[] policies = select(arguments);
 
@@ -58,9 +61,8 @@ public final class FailsafePlugin implements Plugin {
             }
 
             return Failsafe.with(select(arguments))
-                    .with(scheduler)
-                    .getStageAsync(context -> execution
-                            .execute(withAttempts(arguments, context.getAttemptCount())));
+                    .getStageAsync(decorator.decorate(context -> execution
+                            .execute(withAttempts(arguments, context.getAttemptCount()))));
         };
     }
 
@@ -74,6 +76,7 @@ public final class FailsafePlugin implements Plugin {
         return policies;
     }
 
+    // TODO shouldn't be responsibility of this plugin but delegated to policies
     // TODO depends on the exception, e.g. pre-request exceptions are fine!
     private Predicate<Policy<ClientHttpResponse>> skipRetriesIfNeeded(final RequestArguments arguments) {
         return predicate.test(arguments) ?

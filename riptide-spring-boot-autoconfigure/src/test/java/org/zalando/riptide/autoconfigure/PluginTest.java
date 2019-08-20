@@ -22,7 +22,6 @@ import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
-import org.zalando.riptide.timeout.TimeoutPlugin;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -114,19 +113,8 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
-                instanceOf(BackupRequestPlugin.class))));
-    }
-
-    @Test
-    void shouldUseTimeoutPlugin() throws Exception {
-        assertThat(getPlugins(ecb), contains(asList(
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(ChaosPlugin.class),
-                instanceOf(MicrometerPlugin.class),
-                instanceOf(RequestCompressionPlugin.class),
-                instanceOf(TimeoutPlugin.class))));
+                instanceOf(BackupRequestPlugin.class),
+                instanceOf(FailsafePlugin.class)))); // timeouts
     }
 
     @Test

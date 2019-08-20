@@ -17,7 +17,7 @@ and a circuit breaker to every remote call.
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(ImmutableList.of(circuitBreaker, retryPolicy), scheduler))
+    .plugin(new FailsafePlugin(ImmutableList.of(circuitBreaker, retryPolicy)))
     .build();
 ```
 
@@ -59,14 +59,12 @@ Http.builder()
                            .withFailureThreshold(3, 10)
                            .withSuccessThreshold(5)
                            .withDelay(Duration.ofMinutes(1))
-            ),
-            Executors.newScheduledThreadPool(20))
+            ))
             .withListener(myRetryListener))
     .build();
 ```
 
-Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible
-configurations. 
+Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible configurations. 
 
 **Beware** when using `retryOn` to retry conditionally on certain exception types.
 You'll need to register `RetryException` in order for the `retry()` route to work:
@@ -92,13 +90,11 @@ Http.builder()
                              new RetryAfterDelayFunction(clock),
                              new RateLimitResetDelayFunction(clock)
                      )))
-                     .withMaxDuration(Duration.ofSeconds(5))),
-            Executors.newScheduledThreadPool(20)))
+                     .withMaxDuration(Duration.ofSeconds(5)))))
     .build();
 ```
 
-:warning: Make sure you you specify a **max duration** otherwise any value coming from a server
-that is further ahead in the future will make your retry block practically forever.
+:warning: Make sure you you specify a **max duration** otherwise any value coming from a server that is further ahead in the future will make your retry block practically forever.
 
 Make sure you **check out 
 [zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of
@@ -160,7 +156,7 @@ In case those options are insufficient you may specify your own method detector:
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(ImmutableList.of(retryPolicy), scheduler)
+    .plugin(new FailsafePlugin(ImmutableList.of(retryPolicy))
         .withIdempontentMethodDetector(new CustomIdempotentMethodDetector()))
     .build();
 ```

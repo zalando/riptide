@@ -3,22 +3,20 @@ package org.zalando.riptide.autoconfigure;
 import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.zalando.logbook.Logbook;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
-import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.micrometer.MicrometerPlugin;
-import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
@@ -30,50 +28,53 @@ class DefaultRiptideConfigurer {
     private final RiptideProperties properties;
 
     void register() {
-        properties.getClients().forEach(this::configure);
+        final Map<String, BeanDefinition> replacements = replacements();
+
+        Arrays.stream(beanFactory.getBeanDefinitionNames())
+                .map(beanFactory::getBeanDefinition)
+                .map(BeanDefinition::getConstructorArgumentValues)
+                .map(ConstructorArgumentValues::getIndexedArgumentValues)
+                .map(Map::values)
+                .flatMap(Collection::stream)
+                .forEach(holder -> replaceRefs(holder, replacements));
     }
 
-    private void configure(final String id, final RiptideProperties.Client client) {
-        if (client.getTracing().getEnabled()) {
-            final BeanDefinition tracerRef = getBeanRef(Tracer.class, "tracer");
+    private Map<String, BeanDefinition> replacements() {
+        final Map<String, BeanDefinition> replacements = new HashMap<>();
 
-            findBeanDefinition(id, TracedExecutorService.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
-
-            findBeanDefinition(id, OpenTracingPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
-
-            findBeanDefinition(id, TracedScheduledExecutorService.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, TRACER_REF, tracerRef));
+        if (any(client -> client.getTracing().getEnabled())) {
+            replacements.put(TRACER_REF, getBeanRef(Tracer.class, "tracer"));
         }
 
-        if (client.getLogging().getEnabled()) {
-            final BeanDefinition logbookRef = getBeanRef(Logbook.class, "logbook");
-
-            findBeanDefinition(id, LogbookPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, LOGBOOK_REF, logbookRef));
+        if (any(client -> client.getLogging().getEnabled())) {
+            replacements.put(LOGBOOK_REF, getBeanRef(Logbook.class, "logbook"));
         }
 
-        if (client.getMetrics().getEnabled()) {
-            final BeanDefinition meterRegistryRef = getBeanRef(MeterRegistry.class, "meterRegistry");
-
-            findBeanDefinition(id, MicrometerPlugin.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
-
-            findBeanDefinition(id, RetryListener.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
-
-            findBeanDefinition(id, CircuitBreakerListener.class)
-                    .ifPresent(bd -> replaceConstructorArgumentWithBean(bd, METER_REGISTRY_REF, meterRegistryRef));
+        if (any(client -> client.getMetrics().getEnabled())) {
+            replacements.put(METER_REGISTRY_REF, getBeanRef(MeterRegistry.class, "meterRegistry"));
         }
+
+        return replacements;
+    }
+
+    private void replaceRefs(final ValueHolder holder, final Map<String, BeanDefinition> replacements) {
+        Optional.ofNullable(holder.getValue())
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(replacements::get)
+                .ifPresent(holder::setValue);
+    }
+
+    private boolean any(final Predicate<RiptideProperties.Client> predicate) {
+        return properties.getClients().values().stream().anyMatch(predicate);
     }
 
     @VisibleForTesting
-    BeanDefinition getBeanRef(Class type, String argName) {
-        Map<String, BeanDefinition> definitions = new HashMap<>();
+    BeanDefinition getBeanRef(final Class type, final String argName) {
+        final Map<String, BeanDefinition> definitions = new HashMap<>();
         // search primary bean definition
-        for (String beanName : beanFactory.getBeanNamesForType(type)) {
-            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+        for (final String beanName : beanFactory.getBeanNamesForType(type)) {
+            final BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
             if (beanDefinition.isPrimary()) {
                 return beanDefinition;
             }
@@ -81,7 +82,7 @@ class DefaultRiptideConfigurer {
         }
 
         // resolve by name
-        BeanDefinition beanDefinition = definitions.get(argName);
+        final BeanDefinition beanDefinition = definitions.get(argName);
         if (beanDefinition != null) {
             return beanDefinition;
         }
@@ -94,21 +95,4 @@ class DefaultRiptideConfigurer {
         throw new NoSuchBeanDefinitionException(type);
     }
 
-    private Optional<BeanDefinition> findBeanDefinition(final String id, final Class<?> type) {
-        try {
-            final Name name = Name.name(id, type);
-            return Optional.of(beanFactory.getBeanDefinition(name.toNormalizedString()));
-        } catch (NoSuchBeanDefinitionException e) {
-            return Optional.empty();
-        }
-    }
-
-    private void replaceConstructorArgumentWithBean(final BeanDefinition bd, final String arg,
-                                                    final BeanDefinition ref) {
-        bd.getConstructorArgumentValues()
-          .getIndexedArgumentValues()
-          .values().stream()
-          .filter(holder -> arg.equals(holder.getValue()))
-          .forEach(holder -> holder.setValue(ref));
-    }
 }

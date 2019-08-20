@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.Timeout;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -45,6 +46,7 @@ import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
+import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
@@ -54,11 +56,11 @@ import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
+import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
-import org.zalando.riptide.timeout.TimeoutPlugin;
 
 import javax.xml.soap.SOAPConstants;
 import java.net.SocketTimeoutException;
@@ -399,7 +401,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgReference(registerScheduler(id, client))
+                        .addConstructorArgValue(client.getTracing().getEnabled() ?
+                                ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
+                                        genericBeanDefinition(TracedTaskDecorator.class)
+                                                .addConstructorArgValue(TRACER_REF))) :
+                                TaskDecorator.identity())
                         .addConstructorArgValue(registerRetryPolicy(id, client))
                         .addConstructorArgValue(registerCircuitBreaker(id, client))
                         .addConstructorArgReference(registerRetryListener(id, client));
@@ -429,8 +435,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgReference(registerScheduler(id, client))
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
                             .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                            .addConstructorArgValue(new IdempotencyPredicate())
-                            .addConstructorArgReference(registerExecutor(id, client)));
+                            .addConstructorArgValue(new IdempotencyPredicate()));
             return Optional.of(pluginId);
         }
         return Optional.empty();
@@ -438,14 +443,17 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private Optional<String> registerTimeoutPlugin(final String id, final Client client) {
         if (client.getTimeouts().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(id, TimeoutPlugin.class, () -> {
-                log.debug("Client [{}]: Registering [{}]", id, TimeoutPlugin.class.getSimpleName());
+            final String pluginId = registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
+                log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
                 final TimeSpan timeout = client.getTimeouts().getGlobal();
-                return genericBeanDefinition(TimeoutPlugin.class)
-                        .addConstructorArgReference(registerScheduler(id, client))
-                        .addConstructorArgValue(timeout.getAmount())
-                        .addConstructorArgValue(timeout.getUnit())
-                        .addConstructorArgReference(registerExecutor(id, client));
+                return genericBeanDefinition(FailsafePluginFactory.class)
+                        .setFactoryMethod("create")
+                        .addConstructorArgValue(client.getTracing().getEnabled() ?
+                                ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
+                                        genericBeanDefinition(TracedTaskDecorator.class)
+                                                .addConstructorArgValue(TRACER_REF))) :
+                                TaskDecorator.identity())
+                        .addConstructorArgValue(Timeout.of(timeout.toDuration()).withCancel(true));
             });
             return Optional.of(pluginId);
         }

@@ -30,10 +30,14 @@ riptide:
     ecb:
       base-url: http://www.ecb.europa.eu
       request-compression.enabled: true
+      backup-request:
+        enabled: true
+        delay: 100 milliseconds
       timeouts:
         enabled: true
         global: 1 seconds
       tracing:
+        enabled: true
         propagate-flow-id: true
       chaos:
         latency:
@@ -85,3 +89,6 @@ riptide:
       backup-request:
         enabled: true
         delay: 100 milliseconds
+      timeouts:
+        enabled: true
+        global: 1 seconds
