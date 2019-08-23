@@ -1,5 +1,10 @@
 package org.zalando.riptide.opentracing;
 
+import org.apiguardian.api.API;
+
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+
+@API(status = EXPERIMENTAL)
 public final class ExtensionFields {
 
     /**

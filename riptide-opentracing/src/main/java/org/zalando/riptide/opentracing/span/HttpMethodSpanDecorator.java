@@ -15,4 +15,5 @@ public final class HttpMethodSpanDecorator implements SpanDecorator {
     public void onRequest(final Span span, final RequestArguments arguments) {
         span.setTag(Tags.HTTP_METHOD, arguments.getMethod().name());
     }
+
 }

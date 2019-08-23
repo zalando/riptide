@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.util.Collections.emptyList;
 import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
 
@@ -183,7 +182,7 @@ final class LocalRequest implements HttpRequest, Entity {
     @Override
     public String getContentType() {
         return Iterables.getFirst(
-                firstNonNull(arguments.getHeaders().get("Content-Type"), emptyList()), null);
+                arguments.getHeaders().getOrDefault("Content-Type", emptyList()), null);
     }
 
     @Override

@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.zalando.riptide.opentracing.span.SpanDecorator.composite;
+import static org.zalando.riptide.opentracing.span.CompositeSpanDecorator.composite;
 
 @SuppressWarnings("unused")
 final class OpenTracingPluginFactory {

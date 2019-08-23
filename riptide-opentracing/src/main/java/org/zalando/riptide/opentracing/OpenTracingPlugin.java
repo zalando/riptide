@@ -7,6 +7,7 @@ import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.TextMapAdapter;
 import lombok.AllArgsConstructor;
+import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingBiConsumer;
 import org.zalando.riptide.Attribute;
@@ -16,12 +17,21 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentracing.span.CallSiteSpanDecorator;
 import org.zalando.riptide.opentracing.span.ComponentSpanDecorator;
+import org.zalando.riptide.opentracing.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentracing.span.ErrorSpanDecorator;
 import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpContentLanguageSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpContentLengthSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpMethodOverrideSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPathSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpPreferSpanDecorator;
+import org.zalando.riptide.opentracing.span.RateLimitSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpRetryAfterSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
+import org.zalando.riptide.opentracing.span.HttpWarningSpanDecorator;
 import org.zalando.riptide.opentracing.span.PeerSpanDecorator;
+import org.zalando.riptide.opentracing.span.ServiceLoaderSpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
 
@@ -34,12 +44,12 @@ import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import static com.google.common.collect.ImmutableList.copyOf;
 import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
 import static java.util.Objects.nonNull;
-import static java.util.ServiceLoader.load;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
+@API(status = EXPERIMENTAL)
 @AllArgsConstructor(access = PRIVATE)
 public final class OpenTracingPlugin implements Plugin {
 
@@ -86,17 +96,24 @@ public final class OpenTracingPlugin implements Plugin {
                         new ExplicitSpanLifecyclePolicy(),
                         new NewSpanLifecyclePolicy()),
                 new DefaultActivationPolicy(),
-                SpanDecorator.composite(
+                CompositeSpanDecorator.composite(
                         new CallSiteSpanDecorator(),
                         new ComponentSpanDecorator(),
                         new ErrorSpanDecorator(),
                         new ErrorStackSpanDecorator(),
+                        new HttpContentLengthSpanDecorator(),
+                        new HttpContentLanguageSpanDecorator(),
+                        new HttpMethodOverrideSpanDecorator(),
                         new HttpMethodSpanDecorator(),
                         new HttpPathSpanDecorator(),
+                        new HttpPreferSpanDecorator(),
+                        new HttpRetryAfterSpanDecorator(),
                         new HttpStatusCodeSpanDecorator(),
+                        new HttpWarningSpanDecorator(),
                         new PeerSpanDecorator(),
-                        new SpanKindSpanDecorator(),
-                        SpanDecorator.composite(copyOf(load(SpanDecorator.class)))
+                        new RateLimitSpanDecorator(),
+                        new ServiceLoaderSpanDecorator(),
+                        new SpanKindSpanDecorator()
                 ));
     }
 
@@ -121,7 +138,7 @@ public final class OpenTracingPlugin implements Plugin {
     @CheckReturnValue
     public OpenTracingPlugin withAdditionalSpanDecorators(final SpanDecorator first,
             final SpanDecorator... decorators) {
-        return withSpanDecorators(decorator, SpanDecorator.composite(first, decorators));
+        return withSpanDecorators(decorator, CompositeSpanDecorator.composite(first, decorators));
     }
 
     /**
@@ -135,7 +152,7 @@ public final class OpenTracingPlugin implements Plugin {
     @CheckReturnValue
     public OpenTracingPlugin withSpanDecorators(final SpanDecorator decorator, final SpanDecorator... decorators) {
         return new OpenTracingPlugin(tracer,
-                lifecyclePolicy, activationPolicy, SpanDecorator.composite(decorator, decorators));
+                lifecyclePolicy, activationPolicy, CompositeSpanDecorator.composite(decorator, decorators));
     }
 
     @Override
@@ -146,8 +163,6 @@ public final class OpenTracingPlugin implements Plugin {
             if (span == null) {
                 return execution.execute(arguments);
             }
-
-            decorator.onRequest(span, arguments);
 
             final Runnable close = activationPolicy.activate(tracer, span);
             final Runnable finish = () -> lifecyclePolicy.finish(span);
@@ -165,6 +180,8 @@ public final class OpenTracingPlugin implements Plugin {
             if (span == null) {
                 return execution.execute(arguments);
             }
+
+            decorator.onRequest(span, arguments);
 
             return execution.execute(inject(arguments, span.context()))
                     .whenComplete(decorate(span, arguments));
