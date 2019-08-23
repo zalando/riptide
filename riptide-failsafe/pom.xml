@@ -16,7 +16,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <failsafe.version>2.3.0</failsafe.version>
+        <failsafe.version>2.3.1</failsafe.version>
     </properties>
 
     <dependencies>
