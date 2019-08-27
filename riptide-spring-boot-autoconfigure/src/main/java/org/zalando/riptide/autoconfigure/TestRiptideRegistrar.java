@@ -1,13 +1,12 @@
 package org.zalando.riptide.autoconfigure;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.http.client.ClientHttpRequestFactory;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.beans.factory.support.*;
+import org.springframework.http.client.*;
 
-import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
-import static org.zalando.riptide.autoconfigure.RiptideTestAutoConfiguration.REST_TEMPLATE_BEAN_NAME;
-import static org.zalando.riptide.autoconfigure.RiptideTestAutoConfiguration.SERVER_BEAN_NAME;
+import static org.springframework.beans.factory.support.BeanDefinitionBuilder.*;
+import static org.zalando.riptide.autoconfigure.RiptideTestAutoConfiguration.*;
 
 @Slf4j
 @AllArgsConstructor

@@ -1,11 +1,11 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.client.ClientHttpResponse;
+import lombok.*;
+import org.springframework.http.client.*;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
-import static org.zalando.riptide.CompletableFutures.exceptionallyCompletedFuture;
+import static org.zalando.riptide.CompletableFutures.*;
 
 @AllArgsConstructor
 final class GuardedRequestExecution implements RequestExecution {

@@ -1,11 +1,11 @@
 package org.zalando.riptide.logbook;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpOutputMessage;
-import org.zalando.riptide.RequestArguments;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.zalando.riptide.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class LocalRequestTest {
 

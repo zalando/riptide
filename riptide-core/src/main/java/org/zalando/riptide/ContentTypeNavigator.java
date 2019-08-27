@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
 
-import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
+import static org.springframework.http.MediaType.*;
 
 /**
  * @see Navigators#contentType()

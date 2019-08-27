@@ -1,20 +1,17 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.ClientHttpResponse;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.*;
 
-import static com.google.common.io.ByteStreams.toByteArray;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.OK;
+import static com.google.common.io.ByteStreams.*;
+import static java.nio.charset.StandardCharsets.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.*;
 
 final class ForwardingClientHttpResponseTest {
 

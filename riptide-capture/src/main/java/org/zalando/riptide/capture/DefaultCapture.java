@@ -1,8 +1,8 @@
 package org.zalando.riptide.capture;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
 final class DefaultCapture<T> implements Capture<T> {
 

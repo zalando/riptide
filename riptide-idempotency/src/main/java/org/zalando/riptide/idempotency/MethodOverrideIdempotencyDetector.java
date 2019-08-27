@@ -1,19 +1,17 @@
 package org.zalando.riptide.idempotency;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apiguardian.api.API;
-import org.springframework.http.HttpMethod;
-import org.zalando.riptide.RequestArguments;
+import lombok.extern.slf4j.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import javax.annotation.*;
+import java.util.*;
+import java.util.function.*;
 
-import static java.util.Collections.emptyList;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.springframework.http.HttpMethod.POST;
+import static java.util.Collections.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.springframework.http.HttpMethod.*;
 
 /**
  * @see <a href="https://opensocial.github.io/spec/2.5.1/Core-API-Server.xml#rfc.section.2.1.1.1">OpenSocial Core API Server Specification 2.5.1, Section 2.1.1.1</a>

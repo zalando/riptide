@@ -2,38 +2,33 @@ package org.zalando.riptide.autoconfigure.metrics;
 
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.RiptideClientTest;
-import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import io.micrometer.core.instrument.simple.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.boot.autoconfigure.jackson.*;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.*;
+import org.springframework.test.web.client.*;
+import org.zalando.logbook.autoconfigure.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.autoconfigure.*;
+import org.zalando.riptide.faults.*;
+import org.zalando.tracer.autoconfigure.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.*;
 
-import static com.google.common.collect.Ordering.from;
-import static java.util.Comparator.comparing;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.RetryRoute.retry;
+import static com.google.common.collect.Ordering.*;
+import static java.util.Comparator.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.failsafe.RetryRoute.*;
 
 @RiptideClientTest
 @ActiveProfiles("default")

@@ -1,14 +1,13 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.Span;
+import io.opentracing.*;
 import io.opentracing.tag.Tags;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.util.Collections;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ForwardingSpanTest {
 

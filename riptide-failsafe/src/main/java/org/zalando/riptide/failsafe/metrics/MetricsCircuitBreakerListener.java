@@ -1,23 +1,19 @@
 package org.zalando.riptide.failsafe.metrics;
 
-import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Timer.Sample;
-import net.jodah.failsafe.CircuitBreaker.State;
-import org.apiguardian.api.API;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import com.google.common.collect.*;
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.Timer.*;
+import net.jodah.failsafe.CircuitBreaker.*;
+import org.apiguardian.api.*;
+import org.zalando.riptide.failsafe.*;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
-import static com.google.common.collect.Iterables.concat;
-import static io.micrometer.core.instrument.Timer.start;
-import static java.util.Collections.singleton;
-import static net.jodah.failsafe.CircuitBreaker.State.CLOSED;
-import static net.jodah.failsafe.CircuitBreaker.State.HALF_OPEN;
-import static net.jodah.failsafe.CircuitBreaker.State.OPEN;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.apiguardian.api.API.Status.INTERNAL;
+import static com.google.common.collect.Iterables.*;
+import static io.micrometer.core.instrument.Timer.*;
+import static java.util.Collections.*;
+import static net.jodah.failsafe.CircuitBreaker.State.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class MetricsCircuitBreakerListener implements CircuitBreakerListener {

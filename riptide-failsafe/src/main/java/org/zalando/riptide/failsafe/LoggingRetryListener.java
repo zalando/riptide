@@ -1,13 +1,12 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import org.apiguardian.api.API;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import net.jodah.failsafe.event.*;
+import org.apiguardian.api.*;
+import org.slf4j.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class LoggingRetryListener implements RetryListener {

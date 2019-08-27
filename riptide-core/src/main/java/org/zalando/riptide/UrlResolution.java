@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.apiguardian.api.*;
+import org.springframework.web.util.*;
 
-import javax.annotation.Nullable;
-import java.net.URI;
+import javax.annotation.*;
+import java.net.*;
 
-import static com.google.common.base.Strings.nullToEmpty;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static com.google.common.base.Strings.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public enum UrlResolution {

@@ -1,32 +1,22 @@
 package org.zalando.riptide.timeout;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import com.fasterxml.jackson.databind.*;
+import com.github.restdriver.clientdriver.*;
+import org.apache.http.impl.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.converter.json.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.httpclient.*;
 
-import java.io.IOException;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.io.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class TimeoutPluginTest {
 

@@ -1,15 +1,14 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.AllArgsConstructor;
-import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.function.DelayFunction;
-import org.apiguardian.api.API;
+import lombok.*;
+import net.jodah.failsafe.*;
+import net.jodah.failsafe.function.*;
+import org.apiguardian.api.*;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Objects;
+import java.time.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor

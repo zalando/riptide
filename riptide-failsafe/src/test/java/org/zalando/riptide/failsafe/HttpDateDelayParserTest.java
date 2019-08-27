@@ -1,14 +1,12 @@
 package org.zalando.riptide.failsafe;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.time.Clock;
-import java.time.Duration;
+import java.time.*;
 
-import static java.time.Instant.parse;
-import static java.time.ZoneOffset.UTC;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static java.time.Instant.*;
+import static java.time.ZoneOffset.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class HttpDateDelayParserTest {
 

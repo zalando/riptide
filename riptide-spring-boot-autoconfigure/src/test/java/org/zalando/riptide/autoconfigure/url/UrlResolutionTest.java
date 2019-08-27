@@ -1,26 +1,21 @@
 package org.zalando.riptide.autoconfigure.url;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.RiptideClientTest;
-import org.zalando.riptide.opentracing.span.HttpUrlSpanDecorator;
-import org.zalando.riptide.opentracing.span.SpanDecorator;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.boot.autoconfigure.jackson.*;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.*;
+import org.springframework.test.web.client.*;
+import org.zalando.logbook.autoconfigure.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.autoconfigure.*;
+import org.zalando.riptide.opentracing.span.*;
+import org.zalando.tracer.autoconfigure.*;
 
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.PassRoute.pass;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.PassRoute.*;
 
 @RiptideClientTest
 @ActiveProfiles("default")

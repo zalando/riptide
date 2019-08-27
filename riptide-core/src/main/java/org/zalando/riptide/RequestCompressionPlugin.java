@@ -1,17 +1,15 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpOutputMessage;
-import org.zalando.riptide.RequestArguments.Entity;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
+import javax.annotation.*;
+import java.io.*;
+import java.util.zip.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class RequestCompressionPlugin implements Plugin {

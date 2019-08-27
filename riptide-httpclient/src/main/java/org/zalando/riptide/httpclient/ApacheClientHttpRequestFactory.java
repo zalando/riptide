@@ -1,38 +1,21 @@
 package org.zalando.riptide.httpclient;
 
-import com.google.common.collect.ImmutableMap;
-import lombok.AllArgsConstructor;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apiguardian.api.API;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpRequestFactory;
+import com.google.common.collect.*;
+import lombok.*;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.*;
+import org.apiguardian.api.*;
+import org.springframework.beans.factory.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
-import java.util.function.Function;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.HEAD;
-import static org.springframework.http.HttpMethod.OPTIONS;
-import static org.springframework.http.HttpMethod.PATCH;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
-import static org.springframework.http.HttpMethod.TRACE;
+import static org.apiguardian.api.API.Status.*;
+import static org.springframework.http.HttpMethod.*;
 
 @API(status = STABLE)
 @AllArgsConstructor

@@ -1,11 +1,11 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import io.opentracing.tag.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Sets the <code>http.status_code</code> span tag.

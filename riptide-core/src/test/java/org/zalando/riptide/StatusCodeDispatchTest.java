@@ -1,21 +1,20 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.web.client.MockRestServiceServer;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
+import org.springframework.http.*;
+import org.springframework.test.web.client.*;
 
-import java.net.URI;
-import java.util.List;
+import java.net.*;
+import java.util.*;
 
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.statusCode;
+import static java.util.stream.Collectors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
 
 final class StatusCodeDispatchTest {
 

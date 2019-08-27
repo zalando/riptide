@@ -1,13 +1,13 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.collect.ImmutableMap;
-import io.opentracing.Span;
-import io.opentracing.log.Fields;
-import io.opentracing.tag.Tags;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import com.google.common.collect.*;
+import io.opentracing.*;
+import io.opentracing.log.*;
+import io.opentracing.tag.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Sets the <code>error</code> span tag as well as the <code>error.kind</code> and <code>error.object</code> span logs.

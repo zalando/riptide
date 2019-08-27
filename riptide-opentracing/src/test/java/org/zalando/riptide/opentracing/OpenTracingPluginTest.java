@@ -1,49 +1,31 @@
 package org.zalando.riptide.opentracing;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import io.opentracing.Scope;
-import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockSpan.LogEntry;
-import io.opentracing.mock.MockTracer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.UnexpectedResponseException;
-import org.zalando.riptide.opentracing.span.ErrorMessageSpanDecorator;
-import org.zalando.riptide.opentracing.span.StaticSpanDecorator;
-import org.zalando.riptide.opentracing.span.UriVariablesTagSpanDecorator;
+import com.github.restdriver.clientdriver.*;
+import io.opentracing.*;
+import io.opentracing.contrib.concurrent.*;
+import io.opentracing.mock.*;
+import io.opentracing.mock.MockSpan.*;
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.opentracing.span.*;
 
-import java.net.SocketTimeoutException;
-import java.net.URI;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.Collections.singletonMap;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.zalando.riptide.NoRoute.noRoute;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static com.google.common.collect.Iterables.*;
+import static java.util.Collections.*;
+import static java.util.concurrent.Executors.*;
+import static java.util.concurrent.TimeUnit.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.NoRoute.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class OpenTracingPluginTest {
 

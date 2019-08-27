@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public interface CircuitBreakerListener {

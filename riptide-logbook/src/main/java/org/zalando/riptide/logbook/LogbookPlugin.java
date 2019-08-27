@@ -1,23 +1,20 @@
 package org.zalando.riptide.logbook;
 
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.http.HttpOutputMessage;
-import org.zalando.logbook.Logbook;
-import org.zalando.logbook.Logbook.RequestWritingStage;
-import org.zalando.logbook.Logbook.ResponseProcessingStage;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestArguments.Entity;
-import org.zalando.riptide.RequestExecution;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.zalando.logbook.*;
+import org.zalando.logbook.Logbook.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+import java.io.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.fauxpas.FauxPas.throwingConsumer;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor

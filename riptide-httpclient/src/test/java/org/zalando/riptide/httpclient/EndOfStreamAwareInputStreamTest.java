@@ -1,14 +1,11 @@
 package org.zalando.riptide.httpclient;
 
-import org.junit.jupiter.api.Test;
-import org.zalando.riptide.httpclient.EndOfStreamAwareInputStream.Closer;
+import org.junit.jupiter.api.*;
+import org.zalando.riptide.httpclient.EndOfStreamAwareInputStream.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 final class EndOfStreamAwareInputStreamTest {

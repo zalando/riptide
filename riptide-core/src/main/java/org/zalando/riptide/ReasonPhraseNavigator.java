@@ -1,9 +1,9 @@
 package org.zalando.riptide;
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
+import javax.annotation.*;
+import java.io.*;
 
 enum ReasonPhraseNavigator implements EqualityNavigator<String> {
 

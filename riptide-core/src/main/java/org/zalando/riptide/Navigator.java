@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * A Navigator chooses among the {@link Binding bindings} of a {@link RoutingTree routing tree}. The act of traversing

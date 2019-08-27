@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import com.google.common.io.ByteStreams;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.common.io.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.fauxpas.TryWith.tryWith;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.TryWith.*;
 
 @API(status = STABLE)
 public final class PassRoute implements Route {

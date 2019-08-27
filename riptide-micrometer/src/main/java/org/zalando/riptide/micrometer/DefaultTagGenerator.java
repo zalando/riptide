@@ -1,16 +1,16 @@
 package org.zalando.riptide.micrometer;
 
-import io.micrometer.core.instrument.Tag;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import io.micrometer.core.instrument.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Arrays;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static com.google.common.base.MoreObjects.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class DefaultTagGenerator implements TagGenerator {

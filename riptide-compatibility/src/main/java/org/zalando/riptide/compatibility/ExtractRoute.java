@@ -1,12 +1,12 @@
 package org.zalando.riptide.compatibility;
 
-import org.springframework.web.client.ResponseExtractor;
-import org.zalando.riptide.Route;
-import org.zalando.riptide.capture.Capture;
+import org.springframework.web.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.capture.*;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
-import static org.zalando.fauxpas.TryWith.tryWith;
+import static org.zalando.fauxpas.TryWith.*;
 
 final class ExtractRoute {
 

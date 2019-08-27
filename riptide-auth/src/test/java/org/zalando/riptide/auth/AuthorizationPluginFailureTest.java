@@ -1,22 +1,17 @@
 package org.zalando.riptide.auth;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.zalando.riptide.Http;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.nio.file.NoSuchFileException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
+import java.nio.file.*;
+import java.util.concurrent.*;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.zalando.riptide.PassRoute.pass;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class AuthorizationPluginFailureTest {
 

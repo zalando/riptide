@@ -1,34 +1,28 @@
 package org.zalando.riptide.soap;
 
-import org.apache.http.impl.client.HttpClients;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.capture.Capture;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import org.apache.http.impl.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.springframework.web.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.capture.*;
+import org.zalando.riptide.httpclient.*;
 
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPFaultException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
+import javax.xml.soap.*;
+import javax.xml.ws.*;
+import javax.xml.ws.soap.*;
+import java.util.concurrent.*;
 
-import static java.util.Collections.singleton;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.springframework.http.MediaType.TEXT_XML;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.soap.SOAPRoute.soap;
+import static java.util.Collections.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.soap.SOAPRoute.*;
 
 final class SOAPTest {
 

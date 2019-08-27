@@ -1,17 +1,13 @@
 package org.zalando.riptide.faults;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.SocketTimeoutException;
+import javax.net.ssl.*;
+import java.io.*;
+import java.net.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 final class DefaultFaultClassifierTest {
 

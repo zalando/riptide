@@ -2,22 +2,21 @@ package org.zalando.riptide.failsafe.metrics;
 
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.CircuitBreaker;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import io.micrometer.core.instrument.simple.*;
+import net.jodah.failsafe.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.failsafe.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.*;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Ordering.from;
-import static java.util.Comparator.comparing;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.google.common.collect.Iterables.*;
+import static com.google.common.collect.Ordering.*;
+import static java.util.Comparator.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class MetricsCircuitBreakerListenerTest {
 

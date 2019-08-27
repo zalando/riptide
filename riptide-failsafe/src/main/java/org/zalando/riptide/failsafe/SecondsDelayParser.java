@@ -1,10 +1,10 @@
 package org.zalando.riptide.failsafe;
 
-import com.google.common.base.CharMatcher;
+import com.google.common.base.*;
 
-import java.time.Duration;
+import java.time.*;
 
-import static java.lang.Long.parseLong;
+import static java.lang.Long.*;
 
 final class SecondsDelayParser implements DelayParser {
 

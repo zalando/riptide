@@ -1,18 +1,16 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.beans.factory.support.*;
+import org.springframework.boot.context.properties.bind.*;
+import org.springframework.boot.context.properties.source.*;
+import org.springframework.context.*;
+import org.springframework.core.env.*;
 
-import java.util.function.BiFunction;
+import java.util.function.*;
 
-import static org.springframework.boot.context.properties.source.ConfigurationPropertySources.from;
+import static org.springframework.boot.context.properties.source.ConfigurationPropertySources.*;
 
 final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 

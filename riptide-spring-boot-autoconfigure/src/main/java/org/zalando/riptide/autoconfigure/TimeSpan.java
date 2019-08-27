@@ -1,23 +1,17 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.google.common.collect.*;
+import lombok.*;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.*;
+import java.time.temporal.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.regex.*;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
+import static java.util.function.Function.*;
+import static java.util.stream.Collectors.*;
 
 @AllArgsConstructor(staticName = "of")
 @Getter

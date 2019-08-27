@@ -1,13 +1,11 @@
 package org.zalando.riptide.auth;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 
-import static com.google.common.base.Preconditions.checkElementIndex;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.google.common.base.Preconditions.*;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * A special {@link AuthorizationProvider authorization provider} built for Zalando's Platform IAM which provides

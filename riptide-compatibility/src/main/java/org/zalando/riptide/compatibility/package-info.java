@@ -1,4 +1,4 @@
 @ParametersAreNonnullByDefault
 package org.zalando.riptide.compatibility;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.*;

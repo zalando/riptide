@@ -1,21 +1,18 @@
 package org.zalando.riptide.problem;
 
-import org.apiguardian.api.API;
-import org.springframework.http.MediaType;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.Problem;
-import org.zalando.riptide.Navigators;
-import org.zalando.riptide.Route;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.zalando.fauxpas.*;
+import org.zalando.problem.*;
+import org.zalando.riptide.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.springframework.http.MediaType.parseMediaType;
-import static org.zalando.riptide.Bindings.anyContentType;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.contentType;
-import static org.zalando.riptide.NoRoute.noRoute;
-import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.RoutingTree.dispatch;
+import static org.apiguardian.api.API.Status.*;
+import static org.springframework.http.MediaType.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.NoRoute.*;
+import static org.zalando.riptide.Route.*;
+import static org.zalando.riptide.RoutingTree.*;
 
 @API(status = STABLE)
 public final class ProblemRoute {

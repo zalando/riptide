@@ -1,10 +1,9 @@
 package org.zalando.riptide.httpclient;
 
-import org.apache.http.client.methods.HttpUriRequest;
-import org.springframework.http.HttpHeaders;
+import org.apache.http.client.methods.*;
+import org.springframework.http.*;
 
-import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
-import static org.springframework.http.HttpHeaders.TRANSFER_ENCODING;
+import static org.springframework.http.HttpHeaders.*;
 
 final class Headers {
 

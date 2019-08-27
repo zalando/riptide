@@ -1,13 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.UrlResolution;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.zalando.riptide.*;
 
-import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.*;
+import java.util.concurrent.*;
 
 @SuppressWarnings("unused")
 final class HttpFactory {

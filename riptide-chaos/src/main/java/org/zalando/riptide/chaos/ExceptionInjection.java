@@ -1,18 +1,16 @@
 package org.zalando.riptide.chaos;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestExecution;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor

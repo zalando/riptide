@@ -1,23 +1,16 @@
 package org.zalando.riptide.soap;
 
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.*;
+import org.springframework.http.converter.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
-import java.io.IOException;
+import javax.annotation.*;
+import javax.xml.soap.*;
+import java.io.*;
 
-import static java.lang.ThreadLocal.withInitial;
-import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
-import static org.springframework.http.MediaType.TEXT_XML;
-import static org.zalando.fauxpas.FauxPas.throwingSupplier;
+import static java.lang.ThreadLocal.*;
+import static javax.xml.soap.SOAPConstants.*;
+import static org.springframework.http.MediaType.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 public final class SOAPFaultHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 

@@ -1,14 +1,12 @@
 package org.zalando.riptide.failsafe;
 
-import javax.annotation.Nullable;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
+import javax.annotation.*;
+import java.time.*;
+import java.time.format.*;
 
-import static java.time.Duration.between;
-import static java.time.Instant.now;
-import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
+import static java.time.Duration.*;
+import static java.time.Instant.*;
+import static java.time.format.DateTimeFormatter.*;
 
 final class HttpDateDelayParser implements DelayParser {
 

@@ -1,12 +1,12 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.function.Function.identity;
-import static org.zalando.fauxpas.FauxPas.throwingSupplier;
+import static java.util.concurrent.CompletableFuture.*;
+import static java.util.function.Function.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @AllArgsConstructor
 final class AsyncPlugin implements Plugin {

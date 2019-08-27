@@ -1,21 +1,17 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import com.github.restdriver.clientdriver.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.Collections.emptyMap;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.*;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.Collections.*;
+import static java.util.concurrent.Executors.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class EmptyEntityTest {
 

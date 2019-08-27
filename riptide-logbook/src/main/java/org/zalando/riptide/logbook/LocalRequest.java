@@ -1,27 +1,22 @@
 package org.zalando.riptide.logbook;
 
-import com.google.common.collect.Iterables;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
+import com.google.common.collect.*;
+import lombok.*;
+import org.springframework.http.*;
 import org.zalando.logbook.HttpRequest;
-import org.zalando.logbook.Origin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestArguments.Entity;
+import org.zalando.logbook.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static java.util.Collections.emptyList;
-import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
+import static com.google.common.base.MoreObjects.*;
+import static java.util.Collections.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @AllArgsConstructor
 final class LocalRequest implements HttpRequest, Entity {

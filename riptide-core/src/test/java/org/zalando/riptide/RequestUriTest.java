@@ -1,42 +1,32 @@
 package org.zalando.riptide;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ObjectArrays;
-import com.google.common.collect.Sets;
-import lombok.Value;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.test.web.client.MockRestServiceServer;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import lombok.*;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.test.web.client.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.List;
+import javax.annotation.*;
+import java.net.*;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 import static java.util.EnumSet.allOf;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.UrlResolution.APPEND;
-import static org.zalando.riptide.UrlResolution.RFC;
+import static java.util.stream.Collectors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.UrlResolution.*;
 
 final class RequestUriTest {
 

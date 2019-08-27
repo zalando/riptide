@@ -1,36 +1,25 @@
 package org.zalando.riptide.logbook;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.mockito.ArgumentCaptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.zalando.logbook.Correlation;
+import com.github.restdriver.clientdriver.*;
+import org.mockito.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 import org.zalando.logbook.HttpRequest;
-import org.zalando.logbook.HttpResponse;
-import org.zalando.logbook.Logbook;
-import org.zalando.logbook.Precorrelation;
-import org.zalando.logbook.Sink;
-import org.zalando.logbook.Strategy;
-import org.zalando.riptide.Http;
+import org.zalando.logbook.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import java.io.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.io.ByteStreams.toByteArray;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.is;
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.*;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static com.google.common.io.ByteStreams.*;
+import static java.nio.charset.StandardCharsets.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
 

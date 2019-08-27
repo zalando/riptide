@@ -1,15 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.springframework.http.HttpStatus;
+import com.google.common.collect.*;
+import org.springframework.http.*;
 
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.*;
+import java.util.stream.*;
 
-import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
-import static org.springframework.http.HttpStatus.REQUEST_ENTITY_TOO_LARGE;
-import static org.springframework.http.HttpStatus.REQUEST_URI_TOO_LONG;
+import static org.springframework.http.HttpStatus.*;
 
 final class HttpStatuses {
 

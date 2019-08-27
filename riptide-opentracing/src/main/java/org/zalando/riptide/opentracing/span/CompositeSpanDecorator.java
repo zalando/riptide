@@ -1,13 +1,13 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import lombok.Getter;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import lombok.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.util.Collection;
+import java.util.*;
 
-import static org.zalando.fauxpas.FauxPas.throwingConsumer;
+import static org.zalando.fauxpas.FauxPas.*;
 
 final class CompositeSpanDecorator implements SpanDecorator {
 

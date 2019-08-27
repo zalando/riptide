@@ -1,14 +1,13 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.Multimap;
-import org.apiguardian.api.API;
-import org.springframework.http.MediaType;
+import com.google.common.collect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
 
-import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.Map;
+import java.time.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public abstract class HeaderStage extends BodyStage {

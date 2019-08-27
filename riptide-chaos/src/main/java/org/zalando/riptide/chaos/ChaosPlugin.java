@@ -1,11 +1,10 @@
 package org.zalando.riptide.chaos;
 
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestExecution;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor

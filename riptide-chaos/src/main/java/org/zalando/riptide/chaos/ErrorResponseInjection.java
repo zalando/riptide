@@ -1,21 +1,20 @@
 package org.zalando.riptide.chaos;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apiguardian.api.API;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
-import org.zalando.riptide.RequestExecution;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.util.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nonnull;
-import java.io.InputStream;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor

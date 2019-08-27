@@ -1,24 +1,22 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
+import org.junit.jupiter.api.*;
+import org.springframework.core.io.*;
+import org.springframework.http.client.*;
+import org.springframework.test.web.client.*;
 
-import java.io.IOException;
-import java.net.URI;
+import java.io.*;
+import java.net.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.PassRoute.pass;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class AnyDispatchTest {
 

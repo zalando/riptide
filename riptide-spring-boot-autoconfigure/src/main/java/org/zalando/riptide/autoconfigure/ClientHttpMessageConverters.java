@@ -1,11 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.apiguardian.api.API;
-import org.springframework.http.converter.HttpMessageConverter;
+import org.apiguardian.api.*;
+import org.springframework.http.converter.*;
 
-import java.util.List;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public final class ClientHttpMessageConverters {

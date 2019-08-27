@@ -1,22 +1,19 @@
 package org.zalando.riptide;
 
-import com.google.common.io.ByteStreams;
-import org.apiguardian.api.API;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.RestClientException;
+import com.google.common.io.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.web.client.*;
 
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
 
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.fauxpas.TryWith.tryWith;
+import static java.nio.charset.StandardCharsets.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.TryWith.*;
 
 @API(status = STABLE)
 public abstract class HttpResponseException extends RestClientException {

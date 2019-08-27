@@ -1,19 +1,13 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.apiguardian.api.API.Status.STABLE;
+import static java.util.Arrays.*;
+import static java.util.stream.Collectors.*;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * A routing tree is a nested {@link Route route} that consists of a {@link Navigator navigator} and a set of

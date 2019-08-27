@@ -1,37 +1,28 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.TestPropertySource;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.OriginalStackTracePlugin;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestCompressionPlugin;
-import org.zalando.riptide.backup.BackupRequestPlugin;
-import org.zalando.riptide.chaos.ChaosPlugin;
-import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.faults.DefaultFaultClassifier;
-import org.zalando.riptide.faults.FaultClassifier;
-import org.zalando.riptide.faults.TransientFaultPlugin;
-import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.micrometer.MicrometerPlugin;
-import org.zalando.riptide.opentracing.OpenTracingPlugin;
-import org.zalando.riptide.timeout.TimeoutPlugin;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.test.context.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.backup.*;
+import org.zalando.riptide.chaos.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.faults.*;
+import org.zalando.riptide.logbook.*;
+import org.zalando.riptide.micrometer.*;
+import org.zalando.riptide.opentracing.*;
+import org.zalando.riptide.timeout.*;
 
-import java.lang.reflect.Field;
-import java.util.List;
+import java.lang.reflect.*;
+import java.util.*;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static java.util.Arrays.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 @SpringBootTest(classes = PluginTest.TestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {

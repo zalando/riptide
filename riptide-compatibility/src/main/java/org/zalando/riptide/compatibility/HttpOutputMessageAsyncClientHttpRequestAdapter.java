@@ -1,14 +1,13 @@
 package org.zalando.riptide.compatibility;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 import lombok.experimental.Delegate;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.util.concurrent.*;
 
-import javax.annotation.Nonnull;
-import java.net.URI;
+import javax.annotation.*;
+import java.net.*;
 
 @AllArgsConstructor
 final class HttpOutputMessageAsyncClientHttpRequestAdapter implements AsyncClientHttpRequest {

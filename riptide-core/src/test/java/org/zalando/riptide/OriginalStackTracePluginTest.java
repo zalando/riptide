@@ -1,28 +1,17 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import com.github.restdriver.clientdriver.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.base.Throwables.getStackTraceAsString;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.zalando.riptide.Navigators.contentType;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static com.google.common.base.Throwables.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.Navigators.*;
 
 final class OriginalStackTracePluginTest {
 

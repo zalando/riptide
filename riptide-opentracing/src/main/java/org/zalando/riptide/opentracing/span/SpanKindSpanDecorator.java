@@ -1,8 +1,8 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import io.opentracing.tag.*;
+import org.zalando.riptide.*;
 
 /**
  * Sets the <code>span.kind</code> span tag.

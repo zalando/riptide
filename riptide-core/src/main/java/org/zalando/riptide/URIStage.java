@@ -1,11 +1,11 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.HttpMethod;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
 
-import java.net.URI;
+import java.net.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public interface URIStage {

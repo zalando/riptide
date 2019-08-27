@@ -1,13 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.fauxpas.ThrowingRunnable;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.fauxpas.TryWith.tryWith;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.TryWith.*;
 
 /**
  *

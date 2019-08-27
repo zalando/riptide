@@ -2,23 +2,22 @@ package org.zalando.riptide.failsafe.metrics;
 
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.RetryListener;
+import io.micrometer.core.instrument.simple.*;
+import net.jodah.failsafe.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.failsafe.*;
 
-import java.net.URI;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
+import java.util.stream.*;
 
-import static com.google.common.collect.Ordering.from;
-import static java.util.Comparator.comparing;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.google.common.collect.Ordering.*;
+import static java.util.Comparator.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class MetricsRetryListenerTest {
 

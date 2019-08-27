@@ -1,13 +1,11 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
 
 final class StreamSpliterator<T> implements Spliterator<T> {
 

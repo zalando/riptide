@@ -1,11 +1,11 @@
 package org.zalando.riptide.idempotency;
 
-import org.apiguardian.api.API;
-import org.zalando.riptide.RequestArguments;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import java.util.function.Predicate;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public interface IdempotencyDetector {

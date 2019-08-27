@@ -1,40 +1,31 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.CircuitBreakerOpenException;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.OriginalStackTracePlugin;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import com.fasterxml.jackson.databind.*;
+import com.github.restdriver.clientdriver.*;
+import com.google.common.collect.*;
+import net.jodah.failsafe.*;
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.json.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.httpclient.*;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.time.Duration;
-import java.util.concurrent.CompletionException;
+import java.io.*;
+import java.net.*;
+import java.time.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.zalando.fauxpas.FauxPas.partially;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.concurrent.Executors.*;
+import static java.util.concurrent.TimeUnit.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.zalando.fauxpas.FauxPas.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class FailsafePluginCircuitBreakerTest {
 

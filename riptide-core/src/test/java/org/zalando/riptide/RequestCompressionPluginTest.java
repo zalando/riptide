@@ -1,24 +1,18 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import com.github.restdriver.clientdriver.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.Matchers.emptyString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.*;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class RequestCompressionPluginTest {
 

@@ -1,8 +1,7 @@
 package org.zalando.riptide;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.BiFunction;
+import java.util.*;
+import java.util.function.*;
 
 final class CompositePlugin implements Plugin {
 

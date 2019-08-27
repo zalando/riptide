@@ -1,14 +1,13 @@
 package org.zalando.riptide.autoconfigure.testing;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.zalando.riptide.Http;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
+import org.zalando.riptide.*;
 
-import static org.springframework.http.HttpStatus.OK;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.PassRoute.pass;
+import static org.springframework.http.HttpStatus.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
 
 @Component
 public class TestService {

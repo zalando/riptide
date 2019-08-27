@@ -1,24 +1,17 @@
 package org.zalando.riptide.timeout;
 
-import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestExecution;
+import com.google.gag.annotation.remark.*;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.BiConsumer;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static java.util.Arrays.stream;
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.riptide.CompletableFutures.forwardTo;
+import static java.util.Arrays.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.riptide.CompletableFutures.*;
 
 /**
  * @see "CompletableFuture#orTimeout(long, TimeUnit)"

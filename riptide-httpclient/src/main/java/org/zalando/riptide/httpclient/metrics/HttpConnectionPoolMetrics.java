@@ -1,21 +1,17 @@
 package org.zalando.riptide.httpclient.metrics;
 
-import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.binder.MeterBinder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.apiguardian.api.API;
+import com.google.common.collect.*;
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.binder.*;
+import org.apache.http.impl.conn.*;
+import org.apache.http.pool.*;
+import org.apiguardian.api.*;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
-import static com.google.common.base.Suppliers.memoizeWithExpiration;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.apiguardian.api.API.Status.INTERNAL;
+import static com.google.common.base.Suppliers.*;
+import static java.util.concurrent.TimeUnit.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class HttpConnectionPoolMetrics implements MeterBinder {

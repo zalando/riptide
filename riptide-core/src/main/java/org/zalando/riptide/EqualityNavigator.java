@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 @FunctionalInterface

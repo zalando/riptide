@@ -1,17 +1,15 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.concurrent.ListenableFuture;
+import lombok.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.util.concurrent.*;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
+import java.io.*;
+import java.net.*;
+import java.util.concurrent.*;
 
-import static org.springframework.util.CollectionUtils.toMultiValueMap;
+import static org.springframework.util.CollectionUtils.*;
 
 @AllArgsConstructor
 final class NonBlockingIO implements IO {

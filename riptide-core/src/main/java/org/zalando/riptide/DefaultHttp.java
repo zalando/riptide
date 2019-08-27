@@ -1,12 +1,12 @@
 package org.zalando.riptide;
 
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.function.Supplier;
+import java.net.*;
+import java.util.*;
+import java.util.function.*;
 
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
 
 final class DefaultHttp implements Http {
 

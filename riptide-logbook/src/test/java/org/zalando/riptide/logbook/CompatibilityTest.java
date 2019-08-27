@@ -1,18 +1,12 @@
 package org.zalando.riptide.logbook;
 
-import lombok.Value;
-import org.junit.jupiter.api.Test;
-import org.zalando.logbook.Correlation;
-import org.zalando.logbook.HttpRequest;
-import org.zalando.logbook.HttpResponse;
-import org.zalando.logbook.Precorrelation;
-import org.zalando.logbook.Sink;
-import org.zalando.logbook.Strategy;
+import lombok.*;
+import org.junit.jupiter.api.*;
+import org.zalando.logbook.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 interface CompatibilityTest {
 

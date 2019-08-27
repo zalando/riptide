@@ -1,13 +1,13 @@
 package org.zalando.riptide.idempotency;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.riptide.Http;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.util.ServiceConfigurationError;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class IdempotencyPluginTest {
     @Test

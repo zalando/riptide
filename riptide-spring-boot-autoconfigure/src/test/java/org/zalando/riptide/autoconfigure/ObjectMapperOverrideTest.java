@@ -1,20 +1,16 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static org.zalando.riptide.autoconfigure.Mocks.isMock;
+import static org.hamcrest.MatcherAssert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.zalando.riptide.autoconfigure.Mocks.*;
 
 @SpringBootTest(webEnvironment = NONE)
 @Component

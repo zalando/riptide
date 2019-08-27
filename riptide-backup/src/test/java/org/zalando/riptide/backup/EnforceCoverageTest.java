@@ -1,13 +1,11 @@
 package org.zalando.riptide.backup;
 
-import com.google.gag.annotation.remark.Hack;
-import com.google.gag.annotation.remark.OhNoYouDidnt;
-import org.junit.jupiter.api.Test;
+import com.google.gag.annotation.remark.*;
+import org.junit.jupiter.api.*;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @Hack
 @OhNoYouDidnt

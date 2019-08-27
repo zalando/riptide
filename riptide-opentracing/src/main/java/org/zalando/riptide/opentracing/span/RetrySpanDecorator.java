@@ -1,12 +1,11 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.opentracing.ExtensionFields;
-import org.zalando.riptide.opentracing.ExtensionTags;
+import io.opentracing.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.opentracing.*;
 
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 
 /**
  * @see FailsafePlugin#ATTEMPTS

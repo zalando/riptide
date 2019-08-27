@@ -1,15 +1,14 @@
 package org.zalando.riptide.chaos;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.*;
+import org.junit.jupiter.api.*;
 
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.*;
 
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.partitioningBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static java.util.stream.Collectors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 @Slf4j
 class FixedProbabilityTest {

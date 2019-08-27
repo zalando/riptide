@@ -1,26 +1,21 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import io.netty.channel.nio.NioEventLoopGroup;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.zalando.riptide.Http.ConfigurationStage;
+import com.github.restdriver.clientdriver.*;
+import io.netty.channel.nio.*;
+import org.apache.http.impl.nio.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.Http.*;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.lang.Thread.currentThread;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.lang.Thread.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
 
 final class ThreadAffinityTest {
 

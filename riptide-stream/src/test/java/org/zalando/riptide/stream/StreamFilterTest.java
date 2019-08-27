@@ -1,12 +1,12 @@
 package org.zalando.riptide.stream;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.jupiter.api.*;
+import org.springframework.core.io.*;
 
-import java.io.InputStream;
+import java.io.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 final class StreamFilterTest {
 

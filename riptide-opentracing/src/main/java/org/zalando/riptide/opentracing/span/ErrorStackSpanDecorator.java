@@ -1,15 +1,15 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.annotations.VisibleForTesting;
-import io.opentracing.Span;
-import io.opentracing.log.Fields;
-import org.zalando.riptide.RequestArguments;
+import com.google.common.annotations.*;
+import io.opentracing.*;
+import io.opentracing.log.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nullable;
-import java.io.PrintWriter;
+import javax.annotation.*;
+import java.io.*;
 
-import static java.util.Collections.singletonMap;
-import static org.zalando.riptide.OriginalStackTracePlugin.STACK;
+import static java.util.Collections.*;
+import static org.zalando.riptide.OriginalStackTracePlugin.*;
 
 /**
  * Sets the <code>stack</code> span log.

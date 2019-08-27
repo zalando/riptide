@@ -1,14 +1,12 @@
 package org.zalando.riptide.faults;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import javax.net.ssl.*;
+import java.io.*;
+import java.net.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 @AllArgsConstructor
 public final class DefaultFaultClassifier implements FaultClassifier {

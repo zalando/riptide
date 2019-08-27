@@ -1,11 +1,10 @@
 package org.zalando.riptide.failsafe;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.time.Duration;
+import java.time.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class SecondsDelayParserTest {
 

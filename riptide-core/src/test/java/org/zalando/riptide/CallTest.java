@@ -1,36 +1,30 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.fauxpas.ThrowingRunnable;
-import org.zalando.riptide.model.AccountBody;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.springframework.core.io.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.test.web.client.*;
+import org.zalando.fauxpas.*;
+import org.zalando.riptide.model.*;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CompletionException;
+import java.io.*;
+import java.net.*;
+import java.util.concurrent.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Types.responseEntityOf;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.Types.*;
 
 final class CallTest {
 

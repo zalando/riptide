@@ -1,17 +1,15 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.collect.ImmutableMap;
-import org.junit.jupiter.api.Test;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
+import com.google.common.collect.*;
+import org.junit.jupiter.api.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class HttpClientFactoryTest {
 

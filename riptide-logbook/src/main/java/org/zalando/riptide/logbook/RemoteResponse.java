@@ -1,29 +1,18 @@
 package org.zalando.riptide.logbook;
 
-import com.google.common.io.ByteStreams;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.logbook.HttpResponse;
-import org.zalando.logbook.Origin;
+import com.google.common.io.*;
+import lombok.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.zalando.logbook.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
-import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @AllArgsConstructor
 final class RemoteResponse implements HttpResponse {

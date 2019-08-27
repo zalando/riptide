@@ -1,35 +1,23 @@
 package org.zalando.riptide;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Singular;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.Wither;
-import org.apiguardian.api.API;
-import org.organicdesign.fp.collections.BaseMap;
-import org.organicdesign.fp.collections.ImList;
-import org.organicdesign.fp.collections.PersistentHashMap;
-import org.organicdesign.fp.collections.PersistentTreeMap;
-import org.organicdesign.fp.collections.PersistentVector;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.util.UriComponentsBuilder;
+import lombok.*;
+import lombok.experimental.*;
+import org.apiguardian.api.*;
+import org.organicdesign.fp.collections.*;
+import org.springframework.http.*;
+import org.springframework.web.util.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.*;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.String.CASE_INSENSITIVE_ORDER;
-import static org.apiguardian.api.API.Status.INTERNAL;
-import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
-import static org.springframework.web.util.UriUtils.encode;
-import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
+import static com.google.common.base.Preconditions.*;
+import static java.lang.String.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.springframework.web.util.UriComponentsBuilder.*;
+import static org.springframework.web.util.UriUtils.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @API(status = INTERNAL)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)

@@ -1,26 +1,19 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.GenericHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.type.*;
+import org.springframework.http.*;
+import org.springframework.http.converter.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import javax.annotation.*;
+import java.io.*;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.stream.*;
 
-import static org.zalando.fauxpas.FauxPas.throwingRunnable;
-import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
+import static org.zalando.fauxpas.FauxPas.*;
+import static org.zalando.riptide.stream.Streams.*;
 
 final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>> {
 

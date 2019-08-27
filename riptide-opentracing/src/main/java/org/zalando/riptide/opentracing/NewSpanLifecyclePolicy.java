@@ -1,13 +1,12 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import lombok.AllArgsConstructor;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import lombok.*;
+import org.zalando.riptide.*;
 
-import java.util.Optional;
+import java.util.*;
 
-import static org.zalando.riptide.opentracing.OpenTracingPlugin.OPERATION_NAME;
+import static org.zalando.riptide.opentracing.OpenTracingPlugin.*;
 
 @AllArgsConstructor
 final class NewSpanLifecyclePolicy implements LifecyclePolicy {

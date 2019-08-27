@@ -1,44 +1,35 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import com.fasterxml.jackson.databind.*;
+import com.github.restdriver.clientdriver.*;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import net.jodah.failsafe.*;
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.json.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.httpclient.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.time.Clock;
-import java.time.Duration;
+import java.time.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.time.Instant.parse;
-import static java.time.ZoneOffset.UTC;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.jupiter.api.Assertions.assertTimeout;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.zalando.riptide.Bindings.anySeries;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.RetryRoute.retry;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.time.Instant.*;
+import static java.time.ZoneOffset.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.failsafe.RetryRoute.*;
 
 final class RateLimitResetDelayFunctionTest {
 

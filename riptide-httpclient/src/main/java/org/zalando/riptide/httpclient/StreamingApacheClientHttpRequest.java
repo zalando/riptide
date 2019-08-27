@@ -1,29 +1,21 @@
 package org.zalando.riptide.httpclient;
 
-import lombok.AllArgsConstructor;
-import org.apache.http.Header;
+import lombok.*;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.*;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.*;
+import org.apache.http.message.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.StreamingHttpOutputMessage;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Objects;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpHeaders.*;
 
 @AllArgsConstructor
 final class StreamingApacheClientHttpRequest implements ClientHttpRequest, StreamingHttpOutputMessage {

@@ -1,19 +1,15 @@
 package org.zalando.riptide.micrometer;
 
-import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
+import com.google.common.collect.*;
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.Timer.*;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import static com.google.common.collect.Iterables.concat;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static com.google.common.collect.Iterables.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class MicrometerPlugin implements Plugin {

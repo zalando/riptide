@@ -1,12 +1,11 @@
 package org.zalando.riptide.chaos;
 
-import org.apiguardian.api.API;
-import org.zalando.riptide.RequestExecution;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public interface FailureInjection {

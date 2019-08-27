@@ -1,12 +1,10 @@
 package org.zalando.riptide.auth;
 
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import static com.google.common.net.HttpHeaders.AUTHORIZATION;
+import static com.google.common.net.HttpHeaders.*;
 
 public final class AuthorizationPlugin implements Plugin {
 

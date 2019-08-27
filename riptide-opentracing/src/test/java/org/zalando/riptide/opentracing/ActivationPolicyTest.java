@@ -1,25 +1,17 @@
 package org.zalando.riptide.opentracing;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.mock.MockTracer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestExecution;
+import com.github.restdriver.clientdriver.*;
+import io.opentracing.contrib.concurrent.*;
+import io.opentracing.mock.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class ActivationPolicyTest {
 

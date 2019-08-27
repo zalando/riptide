@@ -1,12 +1,10 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ForwardingObject;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.common.collect.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 abstract class ForwardingClientHttpResponse extends ForwardingObject implements ClientHttpResponse {
 

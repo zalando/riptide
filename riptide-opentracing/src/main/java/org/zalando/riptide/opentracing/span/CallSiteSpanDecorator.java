@@ -1,10 +1,10 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.OpenTracingPlugin;
+import io.opentracing.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.opentracing.*;
 
-import java.util.Collections;
+import java.util.*;
 
 public final class CallSiteSpanDecorator implements SpanDecorator {
 

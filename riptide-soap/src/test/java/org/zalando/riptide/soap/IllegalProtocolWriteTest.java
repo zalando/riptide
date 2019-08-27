@@ -1,22 +1,17 @@
 package org.zalando.riptide.soap;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.zalando.riptide.Http;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.zalando.riptide.*;
 
-import javax.xml.ws.Endpoint;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
+import javax.xml.ws.*;
+import java.util.concurrent.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.zalando.riptide.soap.SOAPRoute.soap;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.soap.SOAPRoute.*;
 
 final class IllegalProtocolWriteTest {
 

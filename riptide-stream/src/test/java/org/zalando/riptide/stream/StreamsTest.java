@@ -1,48 +1,32 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Http;
+import com.fasterxml.jackson.databind.*;
+import org.junit.jupiter.api.*;
+import org.springframework.core.io.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.test.web.client.*;
+import org.zalando.fauxpas.*;
+import org.zalando.riptide.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletionException;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static java.util.Collections.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyStatus;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.Types.listOf;
-import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
-import static org.zalando.riptide.stream.Streams.APPLICATION_X_JSON_STREAM;
-import static org.zalando.riptide.stream.Streams.forEach;
-import static org.zalando.riptide.stream.Streams.streamConverter;
-import static org.zalando.riptide.stream.Streams.streamOf;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.Types.*;
+import static org.zalando.riptide.stream.Streams.*;
 
 final class StreamsTest {
 

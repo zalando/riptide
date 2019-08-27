@@ -1,19 +1,18 @@
 package org.zalando.riptide.autoconfigure;
 
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.context.ActiveProfiles;
-import org.zalando.riptide.Http;
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.simple.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.http.client.*;
+import org.springframework.test.context.*;
+import org.zalando.riptide.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static org.zalando.riptide.Route.call;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.zalando.riptide.Route.*;
 
 @SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @ActiveProfiles("default")

@@ -1,8 +1,8 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @AllArgsConstructor
 final class DispatchPlugin implements Plugin {

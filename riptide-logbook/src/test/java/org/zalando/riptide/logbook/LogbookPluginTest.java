@@ -1,42 +1,26 @@
 package org.zalando.riptide.logbook;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.zalando.logbook.Correlation;
-import org.zalando.logbook.DefaultSink;
-import org.zalando.logbook.HttpLogWriter;
-import org.zalando.logbook.Logbook;
-import org.zalando.logbook.Precorrelation;
-import org.zalando.logbook.json.JsonHttpLogFormatter;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.RequestCompressionPlugin;
+import com.github.restdriver.clientdriver.*;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.zalando.logbook.*;
+import org.zalando.logbook.json.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
+import java.io.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.*;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static java.util.concurrent.Executors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.zalando.riptide.PassRoute.pass;
+import static org.mockito.Mockito.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class LogbookPluginTest {
 

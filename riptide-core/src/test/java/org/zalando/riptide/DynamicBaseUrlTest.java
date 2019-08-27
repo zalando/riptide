@@ -1,21 +1,18 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.test.web.client.MockRestServiceServer;
+import org.junit.jupiter.api.*;
+import org.springframework.test.web.client.*;
 
-import java.net.URI;
-import java.util.function.Supplier;
+import java.net.*;
+import java.util.function.*;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class DynamicBaseUrlTest {
 

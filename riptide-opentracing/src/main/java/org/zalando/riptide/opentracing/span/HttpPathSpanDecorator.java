@@ -1,10 +1,10 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.ExtensionTags;
+import io.opentracing.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.opentracing.*;
 
-import static java.util.Objects.nonNull;
+import static java.util.Objects.*;
 
 /**
  * Sets the <code>http.path</code> span tag, based on {@link RequestArguments#getUriTemplate()}.

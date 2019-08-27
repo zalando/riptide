@@ -1,18 +1,15 @@
 package org.zalando.riptide.autoconfigure;
 
-import io.opentracing.Tracer;
-import io.opentracing.noop.NoopTracerFactory;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import io.opentracing.*;
+import io.opentracing.noop.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.context.annotation.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class DefaultRiptideConfigurerTest {
     @TestConfiguration

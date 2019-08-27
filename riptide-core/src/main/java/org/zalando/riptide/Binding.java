@@ -1,11 +1,10 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
-import static org.apiguardian.api.API.Status.INTERNAL;
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * Bindings are the building blocks of {@link RoutingTree routing trees}. They bind an {@link #getAttribute() attribute}

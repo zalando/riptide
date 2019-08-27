@@ -1,33 +1,22 @@
 package org.zalando.riptide.autoconfigure;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apiguardian.api.API;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.zalando.riptide.UrlResolution;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
+import lombok.*;
+import org.apache.http.impl.client.cache.*;
+import org.apiguardian.api.*;
+import org.springframework.boot.context.properties.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.*;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.*;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.*;
+import java.util.*;
 
-import static java.util.Collections.emptyMap;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apiguardian.api.API.Status.INTERNAL;
+import static java.util.Collections.*;
+import static java.util.concurrent.TimeUnit.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = INTERNAL)
 @Getter

@@ -1,43 +1,34 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.zalando.riptide.Http;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.*;
+import com.github.restdriver.clientdriver.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
+import java.util.stream.*;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.io.Resources.getResource;
-import static java.util.Collections.singletonList;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.reasonPhrase;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.stream.Streams.streamConverter;
-import static org.zalando.riptide.stream.Streams.streamOf;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.*;
+import static com.fasterxml.jackson.databind.DeserializationFeature.*;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static com.google.common.io.Resources.*;
+import static java.util.Collections.*;
+import static java.util.concurrent.Executors.*;
+import static java.util.stream.Collectors.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.springframework.http.MediaType.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.stream.Streams.*;
 
 final class StreamIOTest {
 

@@ -1,43 +1,21 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Logging;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
-import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
-import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
-import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Tracing;
-import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
+import com.google.common.annotations.*;
+import com.google.common.collect.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.*;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BinaryOperator;
+import javax.annotation.*;
+import java.util.*;
+import java.util.function.*;
 
-import static com.google.common.collect.Maps.transformValues;
-import static java.lang.Math.max;
-import static java.util.Objects.requireNonNull;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.CircuitBreaker;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Client;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
+import static com.google.common.collect.Maps.*;
+import static java.lang.Math.*;
+import static java.util.Objects.*;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.*;
 
 final class Defaulting {
 

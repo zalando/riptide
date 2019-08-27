@@ -1,35 +1,28 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMap;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClientException;
-import org.zalando.riptide.model.Success;
+import com.google.common.collect.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.converter.xml.*;
+import org.springframework.test.web.client.*;
+import org.springframework.web.client.*;
+import org.zalando.riptide.model.*;
 
-import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.concurrent.CompletionException;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.contentType;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
+import static java.nio.charset.StandardCharsets.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
 
 final class ExecuteTest {
 

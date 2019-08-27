@@ -1,13 +1,12 @@
 package org.zalando.riptide.compatibility;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 import lombok.experimental.Delegate;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nonnull;
-import java.net.URI;
+import javax.annotation.*;
+import java.net.*;
 
 @AllArgsConstructor
 final class HttpOutputMessageClientHttpRequestAdapter implements ClientHttpRequest {

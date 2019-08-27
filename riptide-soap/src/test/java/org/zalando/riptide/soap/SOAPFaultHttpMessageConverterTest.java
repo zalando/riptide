@@ -1,10 +1,10 @@
 package org.zalando.riptide.soap;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.mock.http.MockHttpOutputMessage;
+import org.junit.jupiter.api.*;
+import org.springframework.http.converter.*;
+import org.springframework.mock.http.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class SOAPFaultHttpMessageConverterTest {
 

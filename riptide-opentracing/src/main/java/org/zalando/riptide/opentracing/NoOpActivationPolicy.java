@@ -1,7 +1,6 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.Span;
-import io.opentracing.Tracer;
+import io.opentracing.*;
 
 public final class NoOpActivationPolicy implements ActivationPolicy {
 

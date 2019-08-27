@@ -1,8 +1,8 @@
 package org.zalando.riptide;
 
-import java.net.NoRouteToHostException;
+import java.net.*;
 
-import static org.zalando.fauxpas.FauxPas.partially;
+import static org.zalando.fauxpas.FauxPas.*;
 
 final class NoRouteToHostPlugin implements Plugin {
 

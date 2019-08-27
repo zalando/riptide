@@ -1,11 +1,10 @@
 package org.zalando.riptide.logbook;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
-import static org.zalando.fauxpas.TryWith.tryWith;
+import static org.zalando.fauxpas.TryWith.*;
 
 @AllArgsConstructor
 final class TeeOutputStream extends OutputStream {

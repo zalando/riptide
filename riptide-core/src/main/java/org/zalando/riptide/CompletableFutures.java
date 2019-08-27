@@ -1,12 +1,12 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static java.util.Objects.nonNull;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static java.util.Objects.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class CompletableFutures {

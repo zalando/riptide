@@ -1,11 +1,9 @@
 package org.zalando.riptide.logbook;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.*;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.OutputStream;
+import javax.annotation.*;
+import java.io.*;
 
 final class TeeHttpOutputMessage implements HttpOutputMessage {
 

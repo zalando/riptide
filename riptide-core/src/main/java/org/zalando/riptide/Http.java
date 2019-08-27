@@ -1,17 +1,16 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.springframework.web.client.*;
 
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import javax.annotation.*;
+import java.net.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * Central class for actual asynchronous HTTP-based communication. Http is loosely modeled after the HTTP protocol,

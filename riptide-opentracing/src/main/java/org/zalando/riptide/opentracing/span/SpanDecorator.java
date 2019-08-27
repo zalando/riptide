@@ -1,16 +1,15 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.collect.Lists;
-import io.opentracing.Span;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import com.google.common.collect.*;
+import io.opentracing.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.stream.Stream;
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 public interface SpanDecorator {
 

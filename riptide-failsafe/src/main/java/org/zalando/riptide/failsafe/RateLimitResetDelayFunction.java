@@ -1,18 +1,16 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.extern.slf4j.Slf4j;
-import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.function.DelayFunction;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.HttpResponseException;
+import lombok.extern.slf4j.*;
+import net.jodah.failsafe.*;
+import net.jodah.failsafe.function.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Optional;
+import java.time.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * @see <a href="https://opensource.zalando.com/restful-api-guidelines/#153">Zalando RESTful API Guidelines, Rule #153 Use Code 429 with Headers for Rate Limits</a>

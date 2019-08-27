@@ -1,6 +1,6 @@
 package org.zalando.riptide.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 
 public final class Success {
 

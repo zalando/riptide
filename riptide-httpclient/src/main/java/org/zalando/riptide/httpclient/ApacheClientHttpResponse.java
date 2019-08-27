@@ -1,22 +1,17 @@
 package org.zalando.riptide.httpclient;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.conn.ConnectionReleaseTrigger;
+import org.apache.http.*;
+import org.apache.http.conn.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.AbstractClientHttpResponse;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
 
-import static org.springframework.util.StreamUtils.emptyInput;
-import static org.zalando.fauxpas.FauxPas.throwingConsumer;
-import static org.zalando.fauxpas.FauxPas.throwingRunnable;
+import static org.springframework.util.StreamUtils.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
 

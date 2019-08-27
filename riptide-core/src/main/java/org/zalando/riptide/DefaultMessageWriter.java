@@ -1,16 +1,15 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestClientException;
+import lombok.*;
+import org.springframework.http.*;
+import org.springframework.http.converter.*;
+import org.springframework.web.client.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.List;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
 
-import static java.lang.String.format;
+import static java.lang.String.*;
 
 @AllArgsConstructor
 final class DefaultMessageWriter implements MessageWriter {

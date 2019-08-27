@@ -1,22 +1,18 @@
 package org.zalando.riptide.failsafe;
 
-import com.google.gag.annotation.remark.Hack;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenerAdapter;
+import com.google.gag.annotation.remark.*;
+import net.jodah.failsafe.*;
+import org.junit.jupiter.api.*;
+import org.slf4j.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.failsafe.FailsafePlugin.*;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 final class LoggingRetryListenerTest {
 

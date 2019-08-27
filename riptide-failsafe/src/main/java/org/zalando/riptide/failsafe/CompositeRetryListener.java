@@ -1,14 +1,13 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
+import net.jodah.failsafe.event.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class CompositeRetryListener implements RetryListener {

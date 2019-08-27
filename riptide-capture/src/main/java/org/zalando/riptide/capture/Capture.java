@@ -1,13 +1,13 @@
 package org.zalando.riptide.capture;
 
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingConsumer;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
 
-import javax.annotation.Nullable;
-import java.util.function.Function;
+import javax.annotation.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public interface Capture<T> extends ThrowingConsumer<T, RuntimeException>, Function<ClientHttpResponse, T> {

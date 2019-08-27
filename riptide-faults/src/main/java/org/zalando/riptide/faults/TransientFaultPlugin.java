@@ -1,11 +1,10 @@
 package org.zalando.riptide.faults;
 
-import org.apiguardian.api.API;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestExecution;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.fauxpas.FauxPas.partially;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @API(status = STABLE)
 public final class TransientFaultPlugin implements Plugin {

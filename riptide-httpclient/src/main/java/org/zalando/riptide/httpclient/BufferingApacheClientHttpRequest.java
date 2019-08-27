@@ -1,20 +1,16 @@
 package org.zalando.riptide.httpclient;
 
-import lombok.AllArgsConstructor;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
+import lombok.*;
+import org.apache.http.*;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nonnull;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
+import javax.annotation.*;
+import java.io.*;
+import java.net.*;
 
 @AllArgsConstructor
 final class BufferingApacheClientHttpRequest implements ClientHttpRequest {

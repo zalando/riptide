@@ -1,6 +1,6 @@
 package org.zalando.riptide.faults;
 
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 
 import java.util.function.Predicate;
 

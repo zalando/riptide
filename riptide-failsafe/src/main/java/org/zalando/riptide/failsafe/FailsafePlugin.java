@@ -1,28 +1,22 @@
 package org.zalando.riptide.failsafe;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import lombok.AllArgsConstructor;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import net.jodah.failsafe.function.CheckedConsumer;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Attribute;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.idempotency.IdempotencyPredicate;
+import com.google.common.annotations.*;
+import com.google.common.collect.*;
+import lombok.*;
+import net.jodah.failsafe.*;
+import net.jodah.failsafe.event.*;
+import net.jodah.failsafe.function.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.idempotency.*;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-import static lombok.AccessLevel.PRIVATE;
-import static org.apiguardian.api.API.Status.MAINTAINED;
+import static lombok.AccessLevel.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)

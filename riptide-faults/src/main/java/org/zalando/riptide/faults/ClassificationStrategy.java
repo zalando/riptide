@@ -1,6 +1,6 @@
 package org.zalando.riptide.faults;
 
-import java.util.function.Predicate;
+import java.util.function.*;
 
 public interface ClassificationStrategy {
 

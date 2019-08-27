@@ -1,11 +1,11 @@
 package org.zalando.riptide.stream;
 
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.Http;
+import org.springframework.http.converter.*;
+import org.springframework.test.web.client.*;
+import org.springframework.web.client.*;
+import org.zalando.riptide.*;
 
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 final class MockSetup {
 

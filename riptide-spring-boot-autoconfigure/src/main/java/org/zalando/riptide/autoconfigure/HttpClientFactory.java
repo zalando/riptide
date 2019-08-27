@@ -1,43 +1,34 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.gag.annotation.remark.Hack;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.client.cache.CachingHttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import com.google.gag.annotation.remark.*;
+import lombok.extern.slf4j.*;
+import org.apache.http.*;
+import org.apache.http.client.cache.*;
+import org.apache.http.client.config.*;
+import org.apache.http.config.*;
+import org.apache.http.conn.*;
+import org.apache.http.conn.socket.*;
+import org.apache.http.conn.ssl.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.cache.*;
+import org.apache.http.impl.conn.*;
 import org.apache.http.ssl.SSLContexts;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
-import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
+import org.zalando.riptide.autoconfigure.RiptideProperties.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
+import javax.annotation.*;
+import javax.net.ssl.*;
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
+import java.security.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.lang.String.*;
+import static java.util.concurrent.TimeUnit.*;
 
 @SuppressWarnings("unused")
 @Slf4j

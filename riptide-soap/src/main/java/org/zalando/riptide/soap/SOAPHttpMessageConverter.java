@@ -1,33 +1,21 @@
 package org.zalando.riptide.soap;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.w3c.dom.Document;
+import com.google.common.cache.*;
+import org.springframework.http.*;
+import org.springframework.http.converter.*;
+import org.w3c.dom.*;
 
-import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
-import java.io.IOException;
+import javax.annotation.*;
+import javax.xml.bind.*;
+import javax.xml.bind.annotation.*;
+import javax.xml.parsers.*;
+import javax.xml.soap.*;
+import java.io.*;
 
-import static java.lang.ThreadLocal.withInitial;
-import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
-import static org.springframework.http.MediaType.TEXT_XML;
-import static org.zalando.fauxpas.FauxPas.throwingSupplier;
+import static java.lang.ThreadLocal.*;
+import static javax.xml.soap.SOAPConstants.*;
+import static org.springframework.http.MediaType.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 

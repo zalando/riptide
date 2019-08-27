@@ -1,16 +1,13 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gag.annotation.remark.Hack;
-import io.opentracing.Span;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.zalando.riptide.RequestArguments;
+import com.google.common.collect.*;
+import com.google.gag.annotation.remark.*;
+import io.opentracing.*;
+import org.springframework.web.util.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.*;
+import java.util.*;
 
 /**
  * A {@link SpanDecorator decorator} that extracts contextual tags from the used

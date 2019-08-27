@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static java.util.Arrays.asList;
-import static org.apiguardian.api.API.Status.STABLE;
+import static java.util.Arrays.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public abstract class DispatchStage {

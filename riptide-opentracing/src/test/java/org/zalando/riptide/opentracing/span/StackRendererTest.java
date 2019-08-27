@@ -1,14 +1,13 @@
 package org.zalando.riptide.opentracing.span;
 
-import org.junit.jupiter.api.Test;
-import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator.StackRenderer;
+import org.junit.jupiter.api.*;
+import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator.*;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
+import java.io.*;
+import java.net.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 class StackRendererTest {
 

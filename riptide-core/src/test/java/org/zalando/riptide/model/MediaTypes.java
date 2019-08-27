@@ -1,8 +1,8 @@
 package org.zalando.riptide.model;
 
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 
-import static org.springframework.http.MediaType.parseMediaType;
+import static org.springframework.http.MediaType.*;
 
 public final class MediaTypes {
 

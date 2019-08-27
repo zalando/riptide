@@ -1,37 +1,32 @@
 package org.zalando.riptide.problem;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.ThrowableProblem;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.Route;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.*;
+import org.mockito.*;
+import org.mockito.junit.jupiter.*;
+import org.springframework.core.io.*;
+import org.springframework.http.*;
+import org.springframework.test.web.client.*;
+import org.zalando.fauxpas.*;
+import org.zalando.problem.*;
+import org.zalando.riptide.*;
 
-import java.net.URI;
-import java.util.concurrent.CompletionException;
+import java.net.*;
+import java.util.concurrent.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.zalando.riptide.Bindings.anySeries;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.problem.ProblemRoute.problemHandling;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.problem.ProblemRoute.*;
 
 @ExtendWith(MockitoExtension.class)
 final class ProblemRouteTest {

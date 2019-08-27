@@ -1,28 +1,21 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.annotations.VisibleForTesting;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.opentracing.Tracer;
-import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.zalando.logbook.Logbook;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
-import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.logbook.LogbookPlugin;
-import org.zalando.riptide.micrometer.MicrometerPlugin;
-import org.zalando.riptide.opentracing.OpenTracingPlugin;
+import com.google.common.annotations.*;
+import io.micrometer.core.instrument.*;
+import io.opentracing.*;
+import io.opentracing.contrib.concurrent.*;
+import lombok.*;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
+import org.zalando.logbook.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.logbook.*;
+import org.zalando.riptide.micrometer.*;
+import org.zalando.riptide.opentracing.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
-import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
-import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.*;
 
 @AllArgsConstructor
 class DefaultRiptideConfigurer {

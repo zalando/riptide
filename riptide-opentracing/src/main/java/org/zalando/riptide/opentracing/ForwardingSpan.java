@@ -1,12 +1,11 @@
 package org.zalando.riptide.opentracing;
 
-import com.google.common.collect.ForwardingObject;
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
-import io.opentracing.tag.Tag;
-import lombok.AllArgsConstructor;
+import com.google.common.collect.*;
+import io.opentracing.*;
+import io.opentracing.tag.*;
+import lombok.*;
 
-import java.util.Map;
+import java.util.*;
 
 @AllArgsConstructor
 abstract class ForwardingSpan extends ForwardingObject implements Span {

@@ -1,23 +1,20 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpResponse;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.function.UnaryOperator;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.zalando.fauxpas.FauxPas.partially;
-import static org.zalando.riptide.Plugin.composite;
+import static java.util.concurrent.CompletableFuture.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.zalando.fauxpas.FauxPas.*;
+import static org.zalando.riptide.Plugin.*;
 
 final class PluginTest {
 

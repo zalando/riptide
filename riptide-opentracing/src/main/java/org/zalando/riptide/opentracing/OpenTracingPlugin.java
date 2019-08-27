@@ -1,44 +1,27 @@
 package org.zalando.riptide.opentracing;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Multimaps;
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.TextMapAdapter;
-import lombok.AllArgsConstructor;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingBiConsumer;
-import org.zalando.riptide.Attribute;
-import org.zalando.riptide.AttributeStage;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.opentracing.span.CallSiteSpanDecorator;
-import org.zalando.riptide.opentracing.span.ComponentSpanDecorator;
-import org.zalando.riptide.opentracing.span.ErrorSpanDecorator;
-import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpMethodSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpPathSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
-import org.zalando.riptide.opentracing.span.PeerSpanDecorator;
-import org.zalando.riptide.opentracing.span.SpanDecorator;
-import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
+import com.google.common.annotations.*;
+import com.google.common.collect.*;
+import io.opentracing.*;
+import io.opentracing.propagation.*;
+import lombok.*;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.opentracing.span.*;
 
-import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletionException;
-import java.util.function.BiConsumer;
-import java.util.stream.Stream;
+import javax.annotation.*;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
-import static java.util.Objects.nonNull;
-import static java.util.ServiceLoader.load;
-import static lombok.AccessLevel.PRIVATE;
+import static com.google.common.collect.ImmutableList.*;
+import static io.opentracing.propagation.Format.Builtin.*;
+import static java.util.Objects.*;
+import static java.util.ServiceLoader.*;
+import static lombok.AccessLevel.*;
 
 @AllArgsConstructor(access = PRIVATE)
 public final class OpenTracingPlugin implements Plugin {

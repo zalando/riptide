@@ -1,15 +1,14 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.apiguardian.api.API;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.apiguardian.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.context.annotation.*;
+import org.springframework.test.web.client.*;
+import org.springframework.web.client.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.springframework.test.web.client.MockRestServiceServer.createServer;
+import static org.apiguardian.api.API.Status.*;
+import static org.springframework.test.web.client.MockRestServiceServer.*;
 
 @API(status = EXPERIMENTAL)
 @Configuration

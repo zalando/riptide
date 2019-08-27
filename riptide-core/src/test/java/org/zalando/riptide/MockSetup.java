@@ -1,18 +1,16 @@
 package org.zalando.riptide;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.*;
+import org.springframework.http.converter.*;
+import org.springframework.http.converter.json.*;
+import org.springframework.test.web.client.*;
+import org.springframework.web.client.*;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executors;
+import javax.annotation.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.MoreObjects.*;
 
 final class MockSetup {
 

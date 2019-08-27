@@ -1,10 +1,10 @@
 package org.zalando.riptide;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpOutputMessage;
-import org.zalando.riptide.RequestArguments.Entity;
+import lombok.*;
+import org.springframework.http.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import java.io.IOException;
+import java.io.*;
 
 @AllArgsConstructor
 final class SerializationPlugin implements Plugin {

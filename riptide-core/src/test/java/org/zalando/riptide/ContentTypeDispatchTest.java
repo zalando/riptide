@@ -1,36 +1,27 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.test.web.client.MockRestServiceServer;
+import org.junit.jupiter.api.*;
+import org.springframework.core.io.*;
+import org.springframework.http.client.*;
+import org.springframework.test.web.client.*;
 import org.zalando.riptide.model.Error;
-import org.zalando.riptide.model.Problem;
-import org.zalando.riptide.model.Success;
+import org.zalando.riptide.model.*;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.atomic.AtomicReference;
+import java.io.*;
+import java.net.*;
+import java.util.concurrent.atomic.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
-import static org.springframework.http.MediaType.parseMediaType;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.anyContentType;
-import static org.zalando.riptide.Bindings.anySeries;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.contentType;
-import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.model.MediaTypes.ERROR;
-import static org.zalando.riptide.model.MediaTypes.PROBLEM;
-import static org.zalando.riptide.model.MediaTypes.SUCCESS;
-import static org.zalando.riptide.model.MediaTypes.SUCCESS_V1;
-import static org.zalando.riptide.model.MediaTypes.SUCCESS_V2;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.http.HttpStatus.Series.*;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.PassRoute.*;
+import static org.zalando.riptide.model.MediaTypes.*;
 
 final class ContentTypeDispatchTest {
 

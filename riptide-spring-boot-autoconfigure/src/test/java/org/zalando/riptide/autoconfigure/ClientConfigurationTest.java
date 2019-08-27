@@ -1,23 +1,19 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.*;
+import org.apache.http.client.config.*;
 import org.apache.http.client.methods.Configurable;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.AsyncRestOperations;
-import org.springframework.web.client.RestOperations;
-import org.zalando.riptide.Http;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.stereotype.*;
+import org.springframework.test.context.*;
+import org.springframework.web.client.*;
+import org.zalando.riptide.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
 
 @SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
 @TestPropertySource(properties = {

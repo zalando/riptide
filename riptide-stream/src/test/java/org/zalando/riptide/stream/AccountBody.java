@@ -1,6 +1,6 @@
 package org.zalando.riptide.stream;
 
-import lombok.Value;
+import lombok.*;
 
 @Value
 public final class AccountBody {

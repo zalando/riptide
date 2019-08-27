@@ -1,18 +1,16 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.extern.slf4j.Slf4j;
-import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.function.DelayFunction;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.HttpResponseException;
+import lombok.extern.slf4j.*;
+import net.jodah.failsafe.*;
+import net.jodah.failsafe.function.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Optional;
+import java.time.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * @see <a href="https://tools.ietf.org/html/rfc7231#section-7.1.3">RFC 7231, section 7.1.3: Retry-After</a>

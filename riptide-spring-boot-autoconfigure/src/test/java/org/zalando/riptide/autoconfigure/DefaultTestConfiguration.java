@@ -1,11 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ActiveProfiles;
-import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.boot.autoconfigure.jackson.*;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.*;
+import org.zalando.logbook.autoconfigure.*;
+import org.zalando.tracer.autoconfigure.*;
 
 @Configuration
 @ImportAutoConfiguration({

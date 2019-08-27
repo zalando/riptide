@@ -1,33 +1,23 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.*;
 import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.function.DelayFunction;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
-import org.zalando.riptide.failsafe.CompositeDelayFunction;
-import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
-import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
-import org.zalando.riptide.failsafe.RetryException;
-import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.faults.TransientFaultException;
+import net.jodah.failsafe.*;
+import net.jodah.failsafe.function.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.faults.*;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import javax.annotation.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static java.time.Clock.systemUTC;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.time.Clock.*;
+import static java.time.temporal.ChronoUnit.*;
+import static java.util.concurrent.TimeUnit.*;
 
 @SuppressWarnings("unused")
 final class FailsafePluginFactory {

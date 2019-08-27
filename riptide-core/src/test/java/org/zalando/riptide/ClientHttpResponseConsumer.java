@@ -1,7 +1,7 @@
 package org.zalando.riptide;
 
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingConsumer;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
 
 @FunctionalInterface
 interface ClientHttpResponseConsumer extends ThrowingConsumer<ClientHttpResponse, Exception> {

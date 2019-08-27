@@ -1,30 +1,22 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import lombok.AllArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments.Entity;
+import com.google.common.collect.*;
+import lombok.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import javax.annotation.Nullable;
-import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
+import javax.annotation.*;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import static com.google.common.net.HttpHeaders.ACCEPT;
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.google.common.net.HttpHeaders.IF_MATCH;
-import static com.google.common.net.HttpHeaders.IF_MODIFIED_SINCE;
-import static com.google.common.net.HttpHeaders.IF_NONE_MATCH;
-import static com.google.common.net.HttpHeaders.IF_UNMODIFIED_SINCE;
-import static java.lang.String.join;
-import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
-import static java.util.stream.Collectors.joining;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static com.google.common.net.HttpHeaders.*;
+import static java.lang.String.*;
+import static java.time.ZoneOffset.*;
+import static java.time.format.DateTimeFormatter.*;
+import static java.util.stream.Collectors.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 @AllArgsConstructor
 final class Requester extends AttributeStage {

@@ -1,6 +1,6 @@
 package org.zalando.riptide.failsafe;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 final class CircuitBreakerListenerTest {
 

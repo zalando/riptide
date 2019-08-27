@@ -1,17 +1,15 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.MediaType;
-import org.zalando.fauxpas.ThrowingConsumer;
+import com.fasterxml.jackson.databind.*;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
+import org.zalando.fauxpas.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to

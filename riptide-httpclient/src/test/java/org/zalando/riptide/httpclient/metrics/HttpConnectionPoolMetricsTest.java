@@ -1,29 +1,23 @@
 package org.zalando.riptide.httpclient.metrics;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.github.restdriver.clientdriver.*;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.simple.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.httpclient.*;
 
-import java.io.IOException;
-import java.util.concurrent.Executors;
+import java.io.*;
+import java.util.concurrent.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.zalando.riptide.Route.call;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.Route.*;
 
 final class HttpConnectionPoolMetricsTest {
 

@@ -1,17 +1,16 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.zalando.riptide.Http;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
+import org.zalando.riptide.*;
 
-import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
+import javax.annotation.*;
+import java.util.*;
+import java.util.stream.*;
 
-import static java.util.stream.Collectors.toSet;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.zalando.riptide.autoconfigure.Name.name;
+import static java.util.stream.Collectors.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.zalando.riptide.autoconfigure.Name.*;
 
 final class NameTest {
 

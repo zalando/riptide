@@ -1,15 +1,13 @@
 package org.zalando.riptide.failsafe;
 
-import com.google.common.base.CharMatcher;
+import com.google.common.base.*;
 
-import javax.annotation.Nullable;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
+import javax.annotation.*;
+import java.time.*;
 
-import static java.lang.Long.parseLong;
-import static java.time.Duration.between;
-import static java.time.Instant.now;
+import static java.lang.Long.*;
+import static java.time.Duration.*;
+import static java.time.Instant.*;
 
 final class EpochSecondsDelayParser implements DelayParser {
 

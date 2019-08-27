@@ -1,14 +1,13 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.fauxpas.ThrowingRunnable;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * A partial {@link Binding binding} that already has an attribute associated but is missing a {@link Route route}.

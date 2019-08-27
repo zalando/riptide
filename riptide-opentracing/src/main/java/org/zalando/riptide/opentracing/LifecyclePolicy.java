@@ -1,12 +1,9 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import org.zalando.riptide.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 public interface LifecyclePolicy {
 

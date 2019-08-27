@@ -1,11 +1,9 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.tag.BooleanTag;
-import io.opentracing.tag.StringTag;
-import io.opentracing.tag.Tag;
-import org.apiguardian.api.API;
+import io.opentracing.tag.*;
+import org.apiguardian.api.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 public final class ExtensionTags {
 

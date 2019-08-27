@@ -1,12 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public interface MessageReader {

@@ -1,11 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.zalando.riptide.autoconfigure.Dependencies.ifPresent;
+import static org.mockito.Mockito.*;
+import static org.zalando.riptide.autoconfigure.Dependencies.*;
 
 final class DependenciesTest {
 

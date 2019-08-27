@@ -1,16 +1,15 @@
 package org.zalando.riptide.soap;
 
-import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.riptide.Route;
+import org.zalando.fauxpas.*;
+import org.zalando.riptide.*;
 
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.soap.SOAPFaultException;
+import javax.xml.soap.*;
+import javax.xml.ws.soap.*;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.OK;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.status;
-import static org.zalando.riptide.RoutingTree.dispatch;
+import static org.springframework.http.HttpStatus.*;
+import static org.zalando.riptide.Bindings.*;
+import static org.zalando.riptide.Navigators.*;
+import static org.zalando.riptide.RoutingTree.*;
 
 public final class SOAPRoute {
 

@@ -1,16 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
-import org.zalando.riptide.failsafe.CompositeRetryListener;
-import org.zalando.riptide.failsafe.LoggingRetryListener;
-import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
-import org.zalando.riptide.micrometer.MicrometerPlugin;
+import com.google.common.collect.*;
+import io.micrometer.core.instrument.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.failsafe.metrics.*;
+import org.zalando.riptide.micrometer.*;
 
 final class MicrometerPluginFactory {
 

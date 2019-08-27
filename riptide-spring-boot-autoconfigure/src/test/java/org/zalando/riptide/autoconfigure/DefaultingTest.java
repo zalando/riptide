@@ -1,19 +1,15 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.jupiter.api.Test;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
-import org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
+import org.junit.jupiter.api.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.*;
+import org.zalando.riptide.autoconfigure.RiptideProperties.*;
 
-import java.nio.file.Paths;
+import java.nio.file.*;
 
-import static java.util.concurrent.TimeUnit.HOURS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasToString;
-import static org.hamcrest.Matchers.is;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
+import static java.util.concurrent.TimeUnit.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.*;
 
 /**
  * defaults connections max total = max(defaults connections max per route, ...)

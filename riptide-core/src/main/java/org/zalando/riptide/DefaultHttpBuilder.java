@@ -1,30 +1,22 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableList;
-import lombok.AllArgsConstructor;
-import org.organicdesign.fp.collections.ImList;
-import org.organicdesign.fp.collections.PersistentVector;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
-import org.zalando.riptide.Http.ConfigurationStage;
-import org.zalando.riptide.Http.ExecutorStage;
-import org.zalando.riptide.Http.FinalStage;
-import org.zalando.riptide.Http.RequestFactoryStage;
+import com.google.common.collect.*;
+import lombok.*;
+import org.organicdesign.fp.collections.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.springframework.web.client.*;
+import org.zalando.riptide.Http.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import javax.annotation.*;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.zalando.riptide.Plugin.composite;
+import static com.google.common.base.MoreObjects.*;
+import static com.google.common.base.Preconditions.*;
+import static org.zalando.riptide.Plugin.*;
 
 @AllArgsConstructor
 final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, ConfigurationStage, FinalStage {

@@ -1,11 +1,11 @@
 package org.zalando.riptide.faults;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public interface FaultClassifier {

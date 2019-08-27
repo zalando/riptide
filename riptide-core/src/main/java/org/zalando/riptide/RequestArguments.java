@@ -1,18 +1,14 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpOutputMessage;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import javax.annotation.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public interface RequestArguments {

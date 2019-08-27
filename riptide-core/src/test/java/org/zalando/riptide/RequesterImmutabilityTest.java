@@ -1,12 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.collect.ImmutableMultimap;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
+import com.google.common.collect.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
 
-import java.time.OffsetDateTime;
+import java.time.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class RequesterImmutabilityTest {
 

@@ -1,20 +1,16 @@
 package org.zalando.riptide.idempotency;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.http.HttpMethod;
-import org.zalando.riptide.RequestArguments;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
+import org.springframework.http.*;
+import org.zalando.riptide.*;
 
-import java.util.function.Predicate;
+import java.util.function.*;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.zalando.riptide.idempotency.IdempotencyPredicate.IDEMPOTENT;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpMethod.*;
+import static org.zalando.riptide.idempotency.IdempotencyPredicate.*;
 
 final class IdempotencyPredicateTest {
 

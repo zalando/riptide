@@ -1,11 +1,10 @@
 package org.zalando.riptide.autoconfigure;
 
-import io.opentracing.Tracer;
-import io.opentracing.mock.MockTracer;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import io.opentracing.*;
+import io.opentracing.mock.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.context.annotation.*;
+import org.zalando.tracer.autoconfigure.*;
 
 @Configuration
 @AutoConfigureBefore(TracerAutoConfiguration.class)

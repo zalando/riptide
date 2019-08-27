@@ -1,6 +1,6 @@
 package org.zalando.riptide.httpclient;
 
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.*;
 
 final class BufferingApacheClientHttpRequestFactoryTest extends AbstractApacheClientHttpRequestFactoryTest {
 

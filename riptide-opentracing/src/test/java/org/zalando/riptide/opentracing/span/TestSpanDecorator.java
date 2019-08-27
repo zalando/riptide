@@ -1,7 +1,7 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import org.zalando.riptide.*;
 
 public final class TestSpanDecorator implements SpanDecorator {
 

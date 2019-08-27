@@ -1,10 +1,10 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import io.opentracing.log.Fields;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import io.opentracing.log.*;
+import org.zalando.riptide.*;
 
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 
 /**
  * Sets the <code>message</code> span log.

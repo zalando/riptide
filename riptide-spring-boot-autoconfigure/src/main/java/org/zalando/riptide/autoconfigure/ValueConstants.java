@@ -1,6 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.gag.annotation.remark.Hack;
+import com.google.gag.annotation.remark.*;
 
 /**
  * Constants referring to beans that need to be looked up by types during Riptide clients constructions.

@@ -1,11 +1,10 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.MAINTAINED;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * Plugins allow to modify {@link RequestExecution executions of requests} in order to inject specific behaviour.

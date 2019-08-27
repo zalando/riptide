@@ -1,7 +1,7 @@
 package org.zalando.riptide.chaos;
 
-import java.time.Duration;
-import java.util.concurrent.CancellationException;
+import java.time.*;
+import java.util.concurrent.*;
 
 final class Sleeper {
 

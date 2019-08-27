@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
-import javax.annotation.Nullable;
-import java.time.Duration;
+import javax.annotation.*;
+import java.time.*;
 
 interface DelayParser {
 

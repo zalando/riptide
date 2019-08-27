@@ -1,28 +1,22 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.impl.client.cache.BasicHttpCacheStorage;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ActiveProfiles;
-import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.riptide.Http;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
+import com.github.restdriver.clientdriver.*;
+import org.apache.http.client.cache.*;
+import org.apache.http.impl.client.cache.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.boot.autoconfigure.jackson.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.*;
+import org.zalando.logbook.autoconfigure.*;
+import org.zalando.riptide.*;
+import org.zalando.tracer.autoconfigure.*;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static org.zalando.riptide.PassRoute.pass;
+import static com.github.restdriver.clientdriver.RestClientDriver.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.zalando.riptide.PassRoute.*;
 
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("caching")

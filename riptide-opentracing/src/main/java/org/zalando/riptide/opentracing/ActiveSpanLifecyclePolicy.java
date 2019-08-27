@@ -1,14 +1,13 @@
 package org.zalando.riptide.opentracing;
 
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.zalando.riptide.RequestArguments;
+import io.opentracing.*;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import java.util.Optional;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * @see Tracer#activeSpan()

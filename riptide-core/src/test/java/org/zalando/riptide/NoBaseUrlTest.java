@@ -1,15 +1,14 @@
 package org.zalando.riptide;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.springframework.http.client.*;
 
-import java.net.URI;
+import java.net.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class NoBaseUrlTest {
 

@@ -1,11 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.util.ReflectionUtils;
+import org.junit.jupiter.api.*;
+import org.springframework.util.*;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class NoCachingTest {
     @Test

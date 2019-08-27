@@ -1,10 +1,10 @@
 package org.zalando.riptide.autoconfigure;
 
-import org.hamcrest.Matcher;
-import org.mockito.Mockito;
+import org.hamcrest.*;
+import org.mockito.*;
 
-import static org.hamcrest.Matchers.is;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.hamcrest.Matchers.*;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.*;
 
 final class Mocks {
 

@@ -1,16 +1,15 @@
 package org.zalando.riptide.idempotency;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.collect.ImmutableMap;
-import org.apiguardian.api.API;
-import org.zalando.riptide.RequestArguments;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import org.apiguardian.api.*;
+import org.zalando.riptide.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
-import static java.util.Collections.emptyList;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static java.util.Collections.*;
+import static org.apiguardian.api.API.Status.*;
 
 /**
  * @see <a href="https://tools.ietf.org/html/rfc7232">Hypertext Transfer Protocol (HTTP/1.1): Conditional Requests</a>

@@ -1,8 +1,6 @@
 package org.zalando.riptide.stream;
 
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 final class StreamFilter extends FilterInputStream {
 

@@ -1,13 +1,13 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
+import org.apiguardian.api.*;
 
-import java.util.function.Supplier;
+import java.util.function.*;
 
-import static com.google.common.base.Suppliers.memoize;
-import static com.google.common.collect.ObjectArrays.concat;
-import static org.apiguardian.api.API.Status.STABLE;
-import static org.zalando.fauxpas.FauxPas.partially;
+import static com.google.common.base.Suppliers.*;
+import static com.google.common.collect.ObjectArrays.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.fauxpas.FauxPas.*;
 
 /**
  * Preserves the original stack traces of failed requests. Requests in Riptide are executed asynchronously by default.

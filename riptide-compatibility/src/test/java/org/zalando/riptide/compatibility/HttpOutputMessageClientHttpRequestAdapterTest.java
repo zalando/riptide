@@ -1,11 +1,11 @@
 package org.zalando.riptide.compatibility;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.client.ClientHttpRequest;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class HttpOutputMessageClientHttpRequestAdapterTest {
 

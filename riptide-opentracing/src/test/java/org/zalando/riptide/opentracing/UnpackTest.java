@@ -1,13 +1,13 @@
 package org.zalando.riptide.opentracing;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.io.IOException;
-import java.util.concurrent.CompletionException;
+import java.io.*;
+import java.util.concurrent.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.zalando.riptide.opentracing.OpenTracingPlugin.unpack;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.zalando.riptide.opentracing.OpenTracingPlugin.*;
 
 final class UnpackTest {
 

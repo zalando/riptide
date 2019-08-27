@@ -1,6 +1,6 @@
 package org.zalando.riptide.model;
 
-import java.net.URI;
+import java.net.*;
 
 public final class Error {
 

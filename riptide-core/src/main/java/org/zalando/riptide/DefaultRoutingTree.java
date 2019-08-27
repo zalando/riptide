@@ -1,16 +1,12 @@
 package org.zalando.riptide;
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.*;
 
-import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import javax.annotation.*;
+import java.util.*;
 
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 
 final class DefaultRoutingTree<A> implements RoutingTree<A> {
 

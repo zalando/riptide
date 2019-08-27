@@ -1,10 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 
-import static org.springframework.util.ClassUtils.getDefaultClassLoader;
-import static org.springframework.util.ClassUtils.isPresent;
+import static org.springframework.util.ClassUtils.*;
 
 final class Dependencies {
 

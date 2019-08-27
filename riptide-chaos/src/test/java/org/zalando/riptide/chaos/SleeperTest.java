@@ -1,18 +1,14 @@
 package org.zalando.riptide.chaos;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.time.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SleeperTest {
 

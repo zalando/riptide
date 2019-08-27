@@ -1,22 +1,20 @@
 package org.zalando.riptide.failsafe.metrics;
 
-import com.google.common.collect.ImmutableList;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.RetryListener;
-import org.zalando.riptide.micrometer.DefaultTagGenerator;
-import org.zalando.riptide.micrometer.TagGenerator;
+import com.google.common.collect.*;
+import io.micrometer.core.instrument.*;
+import net.jodah.failsafe.event.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.micrometer.*;
 
-import javax.annotation.Nullable;
-import java.time.Duration;
+import javax.annotation.*;
+import java.time.*;
 
-import static com.google.common.collect.Iterables.concat;
-import static java.util.Collections.singleton;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
+import static com.google.common.collect.Iterables.*;
+import static java.util.Collections.*;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = EXPERIMENTAL)
 public final class MetricsRetryListener implements RetryListener {

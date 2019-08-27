@@ -1,23 +1,17 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeToken;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.client.HttpMessageConverterExtractor;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestClientException;
+import com.google.common.reflect.*;
+import lombok.*;
+import org.springframework.http.*;
+import org.springframework.http.client.*;
+import org.springframework.http.converter.*;
+import org.springframework.web.client.*;
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.List;
+import java.io.*;
+import java.lang.reflect.*;
+import java.util.*;
 
-import static com.google.common.base.Throwables.propagateIfPossible;
+import static com.google.common.base.Throwables.*;
 
 @AllArgsConstructor
 final class DefaultMessageReader implements MessageReader {

@@ -1,8 +1,8 @@
 package org.zalando.riptide;
 
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.*;
 
-import java.io.IOException;
+import java.io.*;
 
 /**
  * @see Navigators#status()

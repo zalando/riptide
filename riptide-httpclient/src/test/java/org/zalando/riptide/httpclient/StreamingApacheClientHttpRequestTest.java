@@ -1,17 +1,15 @@
 package org.zalando.riptide.httpclient;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.StreamingHttpOutputMessage;
-import org.springframework.http.StreamingHttpOutputMessage.Body;
-import org.springframework.http.client.ClientHttpRequest;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.*;
+import org.junit.jupiter.api.*;
+import org.springframework.http.*;
+import org.springframework.http.StreamingHttpOutputMessage.*;
+import org.springframework.http.client.*;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 final class StreamingApacheClientHttpRequestTest {
 

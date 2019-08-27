@@ -1,11 +1,9 @@
 package org.zalando.riptide.compatibility;
 
-import com.google.gag.annotation.remark.Hack;
-import org.springframework.web.util.UriComponentsBuilder;
+import com.google.gag.annotation.remark.*;
+import org.springframework.web.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 final class UriVariables {
 

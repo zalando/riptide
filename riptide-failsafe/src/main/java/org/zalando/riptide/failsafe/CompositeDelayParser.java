@@ -1,10 +1,9 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.*;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Objects;
+import java.time.*;
+import java.util.*;
 
 @Slf4j
 final class CompositeDelayParser implements DelayParser {

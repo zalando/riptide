@@ -1,13 +1,12 @@
 package org.zalando.riptide;
 
-import com.google.common.reflect.TypeParameter;
-import com.google.common.reflect.TypeToken;
-import org.apiguardian.api.API;
-import org.springframework.http.ResponseEntity;
+import com.google.common.reflect.*;
+import org.apiguardian.api.*;
+import org.springframework.http.*;
 
-import java.util.List;
+import java.util.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public final class Types {

@@ -1,11 +1,11 @@
 package org.zalando.riptide;
 
-import org.apiguardian.api.API;
-import org.zalando.riptide.RequestArguments.Entity;
+import org.apiguardian.api.*;
+import org.zalando.riptide.RequestArguments.*;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
-import static org.apiguardian.api.API.Status.STABLE;
+import static org.apiguardian.api.API.Status.*;
 
 @API(status = STABLE)
 public abstract class BodyStage extends DispatchStage {

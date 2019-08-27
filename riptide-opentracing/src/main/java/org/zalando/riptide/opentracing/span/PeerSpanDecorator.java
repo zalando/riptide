@@ -1,11 +1,11 @@
 package org.zalando.riptide.opentracing.span;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.ExtensionTags;
+import io.opentracing.*;
+import io.opentracing.tag.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.opentracing.*;
 
-import java.net.URI;
+import java.net.*;
 
 /**
  * Sets the <code>peer.hostname</code> and <code>peer.port</code> span tags.

@@ -1,13 +1,11 @@
 package org.zalando.riptide.auth;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.io.IOException;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
+import java.io.*;
+import java.nio.file.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 final class PlatformCredentialsAuthorizationProviderTest {
 

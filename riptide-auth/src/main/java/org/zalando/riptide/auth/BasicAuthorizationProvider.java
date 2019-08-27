@@ -1,10 +1,10 @@
 package org.zalando.riptide.auth;
 
-import java.nio.charset.CharsetEncoder;
-import java.util.Base64;
+import java.nio.charset.*;
+import java.util.*;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static com.google.common.base.Preconditions.*;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @see <a href="https://tools.ietf.org/html/rfc7617">RFC 7617</a>

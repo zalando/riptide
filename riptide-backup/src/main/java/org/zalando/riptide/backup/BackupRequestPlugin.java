@@ -1,27 +1,19 @@
 package org.zalando.riptide.backup;
 
-import lombok.AllArgsConstructor;
-import org.apiguardian.api.API;
-import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingRunnable;
-import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.idempotency.IdempotencyPredicate;
+import lombok.*;
+import org.apiguardian.api.*;
+import org.springframework.http.client.*;
+import org.zalando.fauxpas.*;
+import org.zalando.riptide.*;
+import org.zalando.riptide.idempotency.*;
 
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
+import java.io.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 
-import static lombok.AccessLevel.PRIVATE;
-import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.riptide.CompletableFutures.forwardTo;
+import static lombok.AccessLevel.*;
+import static org.apiguardian.api.API.Status.*;
+import static org.zalando.riptide.CompletableFutures.*;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor(access = PRIVATE)
