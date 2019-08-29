@@ -6,6 +6,7 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.zalando.logbook.HttpRequest;
 import org.zalando.logbook.Origin;
+import org.zalando.riptide.CharsetExtractor;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestArguments.Entity;
 
@@ -25,6 +26,8 @@ import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
 
 @AllArgsConstructor
 final class LocalRequest implements HttpRequest, Entity {
+
+    private static final CharsetExtractor EXTRACTOR = new CharsetExtractor();
 
     private final AtomicReference<State> state = new AtomicReference<>(new Unbuffered());
 
@@ -187,7 +190,7 @@ final class LocalRequest implements HttpRequest, Entity {
     public Charset getCharset() {
         return Optional.ofNullable(getContentType())
                 .map(MediaType::parseMediaType)
-                .map(MediaType::getCharset)
+                .flatMap(EXTRACTOR::getCharset)
                 .orElse(StandardCharsets.UTF_8);
     }
 

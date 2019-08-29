@@ -46,8 +46,7 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
 
         return tree.keySet().stream()
                 .filter(mediaType -> mediaType.includes(contentType))
-                .sorted(SPECIFICITY_COMPARATOR)
-                .findFirst()
+                .min(SPECIFICITY_COMPARATOR)
                 .flatMap(tree::get);
     }
 }

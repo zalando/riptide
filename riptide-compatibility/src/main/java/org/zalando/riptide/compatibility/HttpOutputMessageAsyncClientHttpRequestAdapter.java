@@ -2,6 +2,7 @@ package org.zalando.riptide.compatibility;
 
 import lombok.AllArgsConstructor;
 import lombok.experimental.Delegate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
@@ -23,8 +24,13 @@ final class HttpOutputMessageAsyncClientHttpRequestAdapter implements AsyncClien
     }
 
     @Nonnull
-    @Override
+    // TODO(Spring 5): @Override
     public String getMethodValue() {
+        throw new UnsupportedOperationException();
+    }
+
+    // TODO(Spring 4): @Override
+    public HttpMethod getMethod() {
         throw new UnsupportedOperationException();
     }
 

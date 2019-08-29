@@ -7,6 +7,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
@@ -26,9 +27,15 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     private final HttpUriRequest request;
 
     @Nonnull
-    @Override
+    @SuppressWarnings("WeakerAccess")
+    // TODO(Spring 5) @Override
     public String getMethodValue() {
         return request.getMethod();
+    }
+
+    // TODO(Spring 4) @Override
+    public HttpMethod getMethod() {
+        return HttpMethod.valueOf(getMethodValue());
     }
 
     @Nonnull

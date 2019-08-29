@@ -67,7 +67,8 @@ public final class SOAPHttpMessageConverter extends AbstractHttpMessageConverter
             final Unmarshaller unmarshaller = contexts.getUnchecked(type).createUnmarshaller();
             return unmarshaller.unmarshal(document);
         } catch (final SOAPException | JAXBException e) {
-            throw new HttpMessageNotReadableException(e.getMessage(), e, message);
+            // TODO should ideally pass message when running against Spring 5
+            throw new HttpMessageNotReadableException(e.getMessage(), e);
         }
     }
 

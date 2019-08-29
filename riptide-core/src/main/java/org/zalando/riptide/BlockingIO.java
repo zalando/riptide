@@ -11,7 +11,6 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.springframework.util.CollectionUtils.toMultiValueMap;
 
 @AllArgsConstructor
 final class BlockingIO implements IO {
@@ -25,7 +24,7 @@ final class BlockingIO implements IO {
 
         final ClientHttpRequest request = requestFactory.createRequest(uri, method);
 
-        request.getHeaders().addAll(toMultiValueMap(arguments.getHeaders()));
+        copyTo(arguments.getHeaders(), request.getHeaders());
         arguments.getEntity().writeTo(request);
 
         return completedFuture(request.execute());

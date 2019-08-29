@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
-import static org.springframework.util.CollectionUtils.toMultiValueMap;
-
 @AllArgsConstructor
 final class NonBlockingIO implements IO {
 
@@ -25,7 +23,7 @@ final class NonBlockingIO implements IO {
 
         final AsyncClientHttpRequest request = requestFactory.createAsyncRequest(uri, method);
 
-        request.getHeaders().addAll(toMultiValueMap(arguments.getHeaders()));
+        copyTo(arguments.getHeaders(), request.getHeaders());
         arguments.getEntity().writeTo(request);
 
         return toCompletable(request.executeAsync());

@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import com.google.common.net.UrlEscapers;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,10 +15,13 @@ import org.organicdesign.fp.collections.PersistentTreeMap;
 import org.organicdesign.fp.collections.PersistentVector;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +32,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
-import static org.springframework.web.util.UriUtils.encode;
+import static org.springframework.web.util.UriUtils.encodeQueryParam;
 import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
+import static org.zalando.fauxpas.FauxPas.throwingConsumer;
 
 @API(status = INTERNAL)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -143,8 +148,8 @@ final class DefaultRequestArguments implements RequestArguments {
             final UriComponentsBuilder components = UriComponentsBuilder.newInstance();
             // encode query params
             getQueryParams().forEach(throwingBiConsumer((key, values) ->
-                    values.forEach(value ->
-                            components.queryParam(key, encode(value, "UTF-8")))));
+                    values.forEach(throwingConsumer(value ->
+                            components.queryParam(key, encode(value))))));
 
             // build request uri
             final URI requestUri = components.uri(resolvedUri)
@@ -154,6 +159,25 @@ final class DefaultRequestArguments implements RequestArguments {
 
             return requestUri;
         });
+    }
+
+    /**
+     * Older spring versions don't allow {@code +} signs in query parameters even though that is technically
+     * allowed and valid. In order to have a consistent behavior across different Spring versions
+     * they will be encoded as {@code %2B}.
+     *
+     * @see UriUtils#encodeQueryParam(String, String)
+     * @see URLEncoder
+     * @see UrlEscapers#urlFragmentEscaper()
+     * @see <a href="https://tools.ietf.org/html/rfc3986">RFC 3986: Uniform Resource Identifier (URI): Generic Syntax</a>
+     * @see <a href="https://www.w3.org/TR/html4/interact/forms.html#h-17.13.4">HTML 4 specification: Form content types</a>
+     * @see <a href="https://github.com/spring-projects/spring-framework/issues/20750">spring-projects/spring-framework#20750</a>
+     * @see <a href="https://github.com/spring-projects/spring-framework/issues/21259">spring-projects/spring-framework#21259</a>
+     * @param value the query parameter value
+     * @return the encoded value
+     */
+    private String encode(final String value) throws UnsupportedEncodingException {
+        return encodeQueryParam(value, "UTF-8").replace("+", "%2B");
     }
 
     @Override

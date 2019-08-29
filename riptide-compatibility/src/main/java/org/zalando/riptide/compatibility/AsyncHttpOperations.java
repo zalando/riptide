@@ -10,7 +10,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestOperations;
@@ -24,6 +23,7 @@ import org.zalando.riptide.capture.Capture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +32,6 @@ import java.util.function.Function;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.springframework.core.ParameterizedTypeReference.forType;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
@@ -281,6 +280,15 @@ public final class AsyncHttpOperations implements AsyncRestOperations {
         return execute(url, method, toEntity(callback), route(extractTo(extractor, capture)), capture);
     }
 
+    private static <T> ParameterizedTypeReference<T> forType(final Type type) {
+        return new ParameterizedTypeReference<T>() {
+            @Override
+            public Type getType() {
+                return type;
+            }
+        };
+    }
+
     private <T> ListenableFuture<T> execute(final String url, final HttpMethod method,
             final Route route, final Function<ClientHttpResponse, T> function, final Object[] uriVariables) {
         return execute(url, method, (HttpEntity) null, route, function, uriVariables);
@@ -340,7 +348,7 @@ public final class AsyncHttpOperations implements AsyncRestOperations {
     }
 
     private HttpHeaders getHeaders(@Nullable final HttpEntity<?> entity) {
-        return entity == null ? HttpHeaders.EMPTY : entity.getHeaders();
+        return entity == null ? new HttpHeaders() : entity.getHeaders();
     }
 
     private Object getBody(@Nullable final HttpEntity<?> entity) {
