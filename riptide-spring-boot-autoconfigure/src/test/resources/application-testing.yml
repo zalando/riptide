@@ -14,6 +14,9 @@ riptide:
       circuit-breaker:
         enabled: true
         failure-threshold: 1
+      tracing:
+        tags:
+          test: true
     other:
       retry:
         enabled: true

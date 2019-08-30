@@ -25,15 +25,14 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -72,7 +71,7 @@ final class FailsafePluginRetriesTest {
     private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
-            .executor(newCachedThreadPool())
+            .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
@@ -87,8 +86,7 @@ final class FailsafePluginRetriesTest {
                                     .withFailureThreshold(3, 10)
                                     .withSuccessThreshold(5)
                                     .withDelay(Duration.ofMinutes(1))
-                    ),
-                    new ScheduledThreadPoolExecutor(2))
+                    ))
                     .withListener(listeners))
             .build();
 
@@ -146,8 +144,7 @@ final class FailsafePluginRetriesTest {
                                 new RetryPolicy<ClientHttpResponse>()
                                         .withDelay(Duration.ofMillis(500))
                                         .withMaxRetries(1)
-                        ),
-                        newSingleThreadScheduledExecutor())
+                        ))
                         .withPredicate(arguments ->
                                 arguments.getHeaders().getOrDefault("Idempotent", emptyList()).contains("true"))
                         .withListener(listeners))

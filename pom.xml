@@ -67,7 +67,6 @@
         <module>riptide-spring-boot-autoconfigure</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
-        <module>riptide-timeout</module>
     </modules>
 
     <properties>
@@ -174,11 +173,6 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-stream</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>riptide-timeout</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

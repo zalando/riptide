@@ -11,7 +11,6 @@ import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -31,18 +30,13 @@ public final class BackupRequestPlugin implements Plugin {
     private final long delay;
     private final TimeUnit unit;
     private final Predicate<RequestArguments> predicate;
-    private final Executor executor;
 
     public BackupRequestPlugin(final ScheduledExecutorService scheduler, final long delay, final TimeUnit unit) {
-        this(scheduler, delay, unit, new IdempotencyPredicate(), Runnable::run);
+        this(scheduler, delay, unit, new IdempotencyPredicate());
     }
 
     public BackupRequestPlugin withPredicate(final Predicate<RequestArguments> predicate) {
-        return new BackupRequestPlugin(scheduler, delay, unit, predicate, executor);
-    }
-
-    public BackupRequestPlugin withExecutor(final Executor executor) {
-        return new BackupRequestPlugin(scheduler, delay, unit, predicate, executor);
+        return new BackupRequestPlugin(scheduler, delay, unit, predicate);
     }
 
     @Override
@@ -63,15 +57,15 @@ public final class BackupRequestPlugin implements Plugin {
 
         final Future<?> scheduledBackup = delay(backup(execution, arguments, backup));
 
-        original.whenCompleteAsync(cancel(scheduledBackup), executor);
-        backup.whenCompleteAsync(cancel(original), executor);
+        original.whenComplete(cancel(scheduledBackup));
+        backup.whenComplete(cancel(original));
 
         return anyOf(original, backup);
     }
 
     private ThrowingRunnable<IOException> backup(final RequestExecution execution,
             final RequestArguments arguments, final CompletableFuture<ClientHttpResponse> target) {
-        return () -> execution.execute(arguments).whenCompleteAsync(forwardTo(target), executor);
+        return () -> execution.execute(arguments).whenComplete(forwardTo(target));
     }
 
     private ScheduledFuture<?> delay(final Runnable task) {
@@ -87,7 +81,7 @@ public final class BackupRequestPlugin implements Plugin {
         final CompletableFuture<T> any = new CompletableFuture<>();
 
         for (final CompletableFuture<? extends T> future : futures) {
-            future.whenCompleteAsync(forwardTo(any), executor);
+            future.whenComplete(forwardTo(any));
         }
 
         return any;

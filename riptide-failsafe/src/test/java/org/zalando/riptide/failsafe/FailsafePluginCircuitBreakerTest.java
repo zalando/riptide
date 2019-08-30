@@ -26,7 +26,6 @@ import java.util.concurrent.CompletionException;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -55,8 +54,8 @@ final class FailsafePluginCircuitBreakerTest {
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin(
                     ImmutableList.of(new CircuitBreaker<ClientHttpResponse>()
-                            .withDelay(Duration.ofSeconds(1))),
-                    newSingleThreadScheduledExecutor())
+                            .withDelay(Duration.ofSeconds(1))))
+                    .withDecorator(TaskDecorator.identity())
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();

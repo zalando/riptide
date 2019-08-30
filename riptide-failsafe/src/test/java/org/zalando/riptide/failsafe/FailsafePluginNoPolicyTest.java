@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
@@ -46,7 +45,7 @@ final class FailsafePluginNoPolicyTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(ImmutableList.of(), newSingleThreadScheduledExecutor())
+            .plugin(new FailsafePlugin(ImmutableList.of())
                     .withListener(listeners))
             .plugin(new OriginalStackTracePlugin())
             .build();

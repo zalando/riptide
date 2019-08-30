@@ -28,7 +28,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
@@ -64,8 +63,7 @@ final class RetryAfterDelayFunctionTest {
                                     .withDelay(Duration.ofSeconds(2))
                                     .withDelay(new RetryAfterDelayFunction(clock))
                                     .withMaxDuration(Duration.ofSeconds(5))
-                                    .withMaxRetries(4)),
-                    newSingleThreadScheduledExecutor()))
+                                    .withMaxRetries(4))))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

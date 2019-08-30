@@ -17,7 +17,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.PUT;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
@@ -44,7 +43,7 @@ final class BackupRequestPluginTest {
             .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS).withExecutor(executor))
+            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS))
             .build();
 
     @AfterEach
@@ -129,8 +128,7 @@ final class BackupRequestPluginTest {
                 .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS)
                         .withPredicate(arguments ->
                                 arguments.getHeaders()
-                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true"))
-                        .withExecutor(executor))
+                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();
 
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));

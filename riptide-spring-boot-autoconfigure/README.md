@@ -69,7 +69,7 @@ private Http example;
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
   - Backup requests via [Riptide: Backup](../riptide-backup)
   - HTTP JSON Streaming via [Riptide: Stream](../riptide-stream)
-  - Timeouts via [Riptide: Timeout](../riptide-timeout)
+  - Timeouts via [Riptide: Failsafe](../riptide-failsafe)
   - Platform IAM OAuth tokens via [Riptide: Auth](../riptide-auth)
 - SSL certificate pinning
 - Sensible defaults
@@ -108,7 +108,7 @@ You will need to add declare the following dependencies, in order to enable some
 
 #### [Failsafe](../riptide-failsafe) integration
 
-Required for `retry` and `circuit-breaker` support.
+Required for `retry`, `circuit-breaker` and `timeout` support. Timeout is not to be confused with `connect-timeout` and `socket-timeout`, those are supported out of the box.
 
 ```xml
 <dependency>
@@ -138,19 +138,6 @@ Required when `backup-request` is enabled:
 <dependency>
     <groupId>org.zalando</groupId>
     <artifactId>riptide-backup</artifactId>
-    <version>${riptide.version}</version>
-</dependency>
-```
-
-#### [Timeout](../riptide-timeout) support
-
-Required when `timeout` is enabled. Not to be confused with `connect-timeout` and `socket-timeout`, those are
-supported out of the box.
-
-```xml
-<dependency>
-    <groupId>org.zalando</groupId>
-    <artifactId>riptide-timeout</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```

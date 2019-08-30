@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.Timeout;
 import net.jodah.failsafe.function.DelayFunction;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
@@ -17,12 +18,12 @@ import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryListener;
+import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.faults.TransientFaultException;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.Clock.systemUTC;
@@ -36,8 +37,9 @@ final class FailsafePluginFactory {
 
     }
 
+    // TODO we could break up those two into two separate plugin registrations
     public static Plugin create(
-            final ScheduledExecutorService scheduler,
+            final TaskDecorator decorator,
             @Nullable final RetryPolicy<ClientHttpResponse> retryPolicy,
             @Nullable final CircuitBreaker<ClientHttpResponse> circuitBreaker,
             final RetryListener listener) {
@@ -52,8 +54,19 @@ final class FailsafePluginFactory {
             policies.add(circuitBreaker);
         }
 
-        return new FailsafePlugin(policies.build(), scheduler)
+        return new FailsafePlugin(policies.build())
+                .withDecorator(decorator)
                 .withListener(listener);
+    }
+
+    public static Plugin create(
+            final TaskDecorator decorator,
+            final Timeout<ClientHttpResponse> timeout) {
+
+        final ImmutableList<Policy<ClientHttpResponse>> policies = ImmutableList.of(timeout);
+
+        return new FailsafePlugin(policies)
+                .withDecorator(decorator);
     }
 
     public static RetryPolicy<ClientHttpResponse> createRetryPolicy(final Client client) {

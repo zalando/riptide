@@ -64,8 +64,7 @@ final class RateLimitResetDelayFunctionTest {
                                     .withDelay(Duration.ofSeconds(2))
                                     .withDelay(new RateLimitResetDelayFunction(clock))
                                     .withMaxDuration(Duration.ofSeconds(5))
-                                    .withMaxRetries(4)),
-                    newSingleThreadScheduledExecutor()))
+                                    .withMaxRetries(4))))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

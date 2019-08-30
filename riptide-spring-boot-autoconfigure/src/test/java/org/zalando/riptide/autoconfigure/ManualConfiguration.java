@@ -11,6 +11,7 @@ import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.Timeout;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -61,10 +62,10 @@ import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
+import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
-import org.zalando.riptide.timeout.TimeoutPlugin;
 import org.zalando.tracer.Flow;
 import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 import org.zalando.tracer.httpclient.FlowHttpRequestInterceptor;
@@ -171,16 +172,15 @@ public class ManualConfiguration {
                                             .onOpen(listener::onOpen)
                                             .onHalfOpen(listener::onHalfOpen)
                                             .onClose(listener::onClose)
-                            ),
-                            scheduler)
+                            ))
+                            .withDecorator(new TracedTaskDecorator(tracer))
                             .withPredicate(new IdempotencyPredicate())
                             .withListener(new MetricsRetryListener(meterRegistry)
                                     .withDefaultTags(Tag.of("clientId", "example"))),
                     new BackupRequestPlugin(scheduler, 10, MILLISECONDS)
-                            .withExecutor(executor)
                             .withPredicate(new IdempotencyPredicate()),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
-                    new TimeoutPlugin(scheduler, 3, SECONDS, executor),
+                    new FailsafePlugin(ImmutableList.of(Timeout.of(Duration.ofSeconds(3)))),
                     new OriginalStackTracePlugin(),
                     new CustomPlugin());
         }
