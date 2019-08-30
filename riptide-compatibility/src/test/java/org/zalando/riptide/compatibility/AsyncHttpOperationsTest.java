@@ -91,7 +91,10 @@ final class AsyncHttpOperationsTest {
 
         driver.addExpectation(onRequestTo("/users/1"), response);
 
-        final User user = test.apply(new AsyncHttpOperations(http)).get().getBody();
+        final ListenableFuture<ResponseEntity<User>> future = test.apply(new AsyncHttpOperations(http));
+
+        final User user = future
+                .get().getBody();
 
         assertNotNull(user);
         assertEquals("D. Fault", user.getName());

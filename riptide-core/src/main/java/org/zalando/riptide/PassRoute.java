@@ -5,8 +5,10 @@ import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.apiguardian.api.API.Status.STABLE;
+import static org.zalando.fauxpas.FauxPas.throwingConsumer;
 import static org.zalando.fauxpas.TryWith.tryWith;
 
 @API(status = STABLE)
@@ -24,7 +26,9 @@ public final class PassRoute implements Route {
     }
 
     private void exhaust(final ClientHttpResponse response) throws IOException {
-        ByteStreams.exhaust(response.getBody());
+        // needed for spring versions prior to 4.3.14
+        Optional.ofNullable(response.getBody())
+                .ifPresent(throwingConsumer(ByteStreams::exhaust));
     }
 
     /**

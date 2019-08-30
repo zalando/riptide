@@ -23,6 +23,7 @@ import org.zalando.riptide.capture.Capture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,6 @@ import java.util.function.Function;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.springframework.core.ParameterizedTypeReference.forType;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
@@ -186,19 +186,19 @@ public final class HttpOperations implements RestOperations {
         exchange(url, PUT, new HttpEntity<>(body, null), Void.class);
     }
 
-    @Override
+    // TODO(Spring 5): @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Object... uriVariables) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
     }
 
-    @Override
+    // TODO(Spring 5): @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Map<String, ?> uriVariables) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
     }
 
-    @Override
+    // TODO(Spring 5): @Override
     public <T> T patchForObject(final URI url, @Nullable final Object body, final Class<T> responseType) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType).getBody();
     }
@@ -326,6 +326,15 @@ public final class HttpOperations implements RestOperations {
         return execute(url, method, toEntity(callback), ExtractRoute.extractTo(extractor, capture), capture);
     }
 
+    private static <T> ParameterizedTypeReference<T> forType(final Type type) {
+        return new ParameterizedTypeReference<T>() {
+            @Override
+            public Type getType() {
+                return type;
+            }
+        };
+    }
+
     private <T> ResponseEntity<T> exchange(final String url, final HttpMethod method,
             @Nullable final HttpEntity<?> entity, final TypeToken<T> type, final Object[] uriVariables) {
         final Capture<ResponseEntity<T>> capture = Capture.empty();
@@ -379,7 +388,7 @@ public final class HttpOperations implements RestOperations {
     }
 
     private HttpHeaders getHeaders(@Nullable final HttpEntity<?> entity) {
-        return entity == null ? HttpHeaders.EMPTY : entity.getHeaders();
+        return entity == null ? new HttpHeaders() : entity.getHeaders();
     }
 
     private Object getBody(@Nullable final HttpEntity<?> entity) {

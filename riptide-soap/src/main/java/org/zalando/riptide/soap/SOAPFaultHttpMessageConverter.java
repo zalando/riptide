@@ -51,7 +51,8 @@ public final class SOAPFaultHttpMessageConverter extends AbstractHttpMessageConv
             final SOAPMessage soapMessage = messageFactory.get().createMessage(null, message.getBody());
             return soapMessage.getSOAPBody().getFault();
         } catch (final SOAPException e) {
-            throw new HttpMessageNotReadableException(e.getMessage(), e, message);
+            // TODO should ideally pass message when running against Spring 5
+            throw new HttpMessageNotReadableException(e.getMessage(), e);
         }
     }
 

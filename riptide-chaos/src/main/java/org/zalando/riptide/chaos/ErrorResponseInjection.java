@@ -6,16 +6,17 @@ import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
 import org.zalando.riptide.RequestExecution;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static org.zalando.riptide.chaos.EmptyInputStream.EMPTY;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
@@ -28,24 +29,40 @@ public final class ErrorResponseInjection implements FailureInjection {
     @Override
     public RequestExecution inject(final RequestExecution execution) {
         if (probability.test()) {
-            return arguments ->
-                    execution.execute(arguments).thenApply(throwingFunction(original -> {
-                        if (original.getStatusCode().isError()) {
-                            // only inject error response if not failed already
-                            return original;
-                        }
-
-                        try {
-                            final HttpStatus status = choose();
-                            log.debug("Injecting '{}' error response", status);
-                            return new ErrorClientHttpResponse(status);
-                        } finally {
-                            original.close();
-                        }
-                    }));
+            return arguments -> execution.execute(arguments)
+                    .thenApply(throwingFunction(this::injectIfNecessary));
         }
 
         return execution;
+    }
+
+    private ClientHttpResponse injectIfNecessary(
+            final ClientHttpResponse response) throws IOException {
+
+        final HttpStatus statusCode = response.getStatusCode();
+
+        if (isError(statusCode)) {
+            // only inject error response if not failed already
+            return response;
+        }
+
+        try {
+            final HttpStatus status = choose();
+            log.debug("Injecting '{}' error response", status);
+            return new ErrorClientHttpResponse(status);
+        } finally {
+            response.close();
+        }
+    }
+
+    private boolean isError(final HttpStatus status) {
+        switch (status.series()) {
+            case CLIENT_ERROR:
+            case SERVER_ERROR:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private HttpStatus choose() {
@@ -83,7 +100,7 @@ public final class ErrorResponseInjection implements FailureInjection {
         @Nonnull
         @Override
         public InputStream getBody() {
-            return StreamUtils.emptyInput();
+            return EMPTY;
         }
 
         @Override

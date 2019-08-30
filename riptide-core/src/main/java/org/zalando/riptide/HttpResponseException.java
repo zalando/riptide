@@ -3,7 +3,6 @@ package org.zalando.riptide;
 import com.google.common.io.ByteStreams;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClientException;
 
@@ -20,6 +19,8 @@ import static org.zalando.fauxpas.TryWith.tryWith;
 
 @API(status = STABLE)
 public abstract class HttpResponseException extends RestClientException {
+
+    private static final CharsetExtractor EXTRACTOR = new CharsetExtractor();
 
     private static final int MAX_BODY_BYTES_TO_READ = 8192;
 
@@ -58,7 +59,7 @@ public abstract class HttpResponseException extends RestClientException {
 
     private static Charset extractCharset(final ClientHttpResponse response) {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(MediaType::getCharset)
+                .flatMap(EXTRACTOR::getCharset)
                 .orElse(ISO_8859_1);
     }
 

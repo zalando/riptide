@@ -8,8 +8,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
 
@@ -38,7 +41,12 @@ final class MicrometerPluginTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
-    private final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    private final ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
+            HttpClientBuilder.create()
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                            .setSocketTimeout(500)
+                            .build())
+            .build());
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
     private final Http unit = Http.builder()
@@ -60,10 +68,6 @@ final class MicrometerPluginTest {
     private static ObjectMapper createObjectMapper() {
         return new ObjectMapper().findAndRegisterModules()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    }
-
-    MicrometerPluginTest() {
-        this.factory.setReadTimeout(500);
     }
 
     @Test

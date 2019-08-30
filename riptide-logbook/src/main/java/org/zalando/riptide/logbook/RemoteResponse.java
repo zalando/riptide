@@ -4,10 +4,10 @@ import com.google.common.io.ByteStreams;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.logbook.HttpResponse;
 import org.zalando.logbook.Origin;
+import org.zalando.riptide.CharsetExtractor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,6 +27,8 @@ import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
 
 @AllArgsConstructor
 final class RemoteResponse implements HttpResponse {
+
+    private static final CharsetExtractor EXTRACTOR = new CharsetExtractor();
 
     private final AtomicReference<State> state = new AtomicReference<>(new Unbuffered());
 
@@ -169,7 +171,7 @@ final class RemoteResponse implements HttpResponse {
     @Override
     public Charset getCharset() {
         return Optional.ofNullable(response.getHeaders().getContentType())
-                .map(MediaType::getCharset)
+                .flatMap(EXTRACTOR::getCharset)
                 .orElse(StandardCharsets.UTF_8);
     }
 

@@ -2,7 +2,6 @@ package org.zalando.riptide.compatibility;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.client.ClientHttpRequest;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -10,7 +9,10 @@ import static org.mockito.Mockito.mock;
 class HttpOutputMessageClientHttpRequestAdapterTest {
 
     private final HttpOutputMessage message = mock(HttpOutputMessage.class);
-    private final ClientHttpRequest unit = new HttpOutputMessageClientHttpRequestAdapter(message);
+
+    // need concrete type here to see both getMethod and getMethodValue
+    private final HttpOutputMessageClientHttpRequestAdapter unit =
+            new HttpOutputMessageClientHttpRequestAdapter(message);
 
     @Test
     void execute() {
@@ -20,6 +22,11 @@ class HttpOutputMessageClientHttpRequestAdapterTest {
     @Test
     void getMethodValue() {
         assertThrows(UnsupportedOperationException.class, unit::getMethodValue);
+    }
+
+    @Test
+    void getMethod() {
+        assertThrows(UnsupportedOperationException.class, unit::getMethod);
     }
 
     @Test

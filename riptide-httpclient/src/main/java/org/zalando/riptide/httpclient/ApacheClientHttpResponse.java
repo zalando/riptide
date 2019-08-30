@@ -14,9 +14,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
-import static org.springframework.util.StreamUtils.emptyInput;
 import static org.zalando.fauxpas.FauxPas.throwingConsumer;
 import static org.zalando.fauxpas.FauxPas.throwingRunnable;
+import static org.zalando.riptide.httpclient.EmptyInputStream.EMPTY;
 
 final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
 
@@ -37,7 +37,7 @@ final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
         @Nullable final HttpEntity entity = response.getEntity();
 
         if (entity == null) {
-            return emptyInput();
+            return EMPTY;
         }
 
         return new EndOfStreamAwareInputStream(entity.getContent(), (body, endOfStreamDetected) -> {

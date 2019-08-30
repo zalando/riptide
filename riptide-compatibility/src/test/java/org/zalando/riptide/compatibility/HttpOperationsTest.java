@@ -184,7 +184,8 @@ final class HttpOperationsTest {
         test.accept(new HttpOperations(http));
     }
 
-    static Iterable<Function<RestOperations, User>> patchForObject() {
+    // needs concrete type to see patchForObject
+    static Iterable<Function<HttpOperations, User>> patchForObject() {
         final User user = new User(null, "1984-09-13");
 
         return Arrays.asList(
