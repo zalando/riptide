@@ -6,7 +6,6 @@ import org.springframework.http.HttpMethod;
 import org.zalando.riptide.RequestArguments;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -41,7 +40,7 @@ public final class MethodOverrideIdempotencyDetector implements IdempotencyDetec
     private HttpMethod getOverride(final RequestArguments arguments) {
         final Map<String, List<String>> headers = arguments.getHeaders();
         final String name = "X-HTTP-Method-Override";
-        final Collection<String> overrides = headers.getOrDefault(name, emptyList());
+        final List<String> overrides = headers.getOrDefault(name, emptyList());
 
         @Nullable final String override = overrides.stream().findFirst().orElse(null);
 

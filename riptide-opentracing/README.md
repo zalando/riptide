@@ -63,29 +63,43 @@ By default a new span will be started for each request and it will be activated.
 
 The following tags/logs are supported out of the box:
 
-| Tag/Log Field        | Decorator                      | Example                           |
-|----------------------|--------------------------------|-----------------------------------|
-| `component`          | `ComponentSpanDecorator`       | `Riptide`                         |
-| `span.kind`          | `SpanKindSpanDecorator`        | `client`                          |
-| `peer.address`       | `PeerSpanDecorator`            | `www.github.com:80`               |
-| `peer.hostname`      | `PeerSpanDecorator`            | `www.github.com`                  |
-| `peer.port`          | `PeerSpanDecorator`            | `80`                              |
-| `http.method`        | `HttpMethodSpanDecorator`      | `GET`                             |
-| `http.url`           | `HttpUrlSpanDecorator`         | `https://www.github.com/users/me` |
-| `http.path`          | `HttpPathSpanDecorator`        | `/users/{user_id}`                |
-| `http.status_code`   | `HttpStatusCodeSpanDecorator`  | `200`                             |
-| `error`              | `ErrorSpanDecorator`           | `false`                           |
-| `error.kind` (log)   | `ErrorSpanDecorator`           | `SocketTimeoutException`          |
-| `error.object` (log) | `ErrorSpanDecorator`           | (exception instance)              |
-| `message` (log)      | `ErrorMessageSpanDecorator`    | `Connection timed out`            |
-| `stack` (log)        | `ErrorStackSpanDecorator`      | `SocketTimeoutException at [...]` |
-| `retry`              | `RetrySpanDecorator`           | `true`                            |
-| `retry_number` (log) | `RetrySpanDecorator`           | `3`                               |
-| `*`                  | `CallSiteSpanDecorator`        | `admin=true`                      |
-| `*`                  | `StaticTagSpanDecorator`       | `aws.region=eu-central-1`         |
-| `*`                  | `UriVariablesTagSpanDecorator` | `user_id=me`                      |
+| Tag/Log Field                | Decorator                          | Example                           |
+|------------------------------|------------------------------------|-----------------------------------|
+|                              | `CallSiteSpanDecorator`            | `admin=true`                      |
+| `component`                  | `ComponentSpanDecorator`           | `Riptide`                         |
+|                              | `CompositeSpanDecorator`³          |                                   |
+| `message` (log)              | `ErrorMessageSpanDecorator`¹       | `Connection timed out`            |
+| `error`                      | `ErrorSpanDecorator`               | `false`                           |
+| `error.kind` (log)           | `ErrorSpanDecorator`               | `SocketTimeoutException`          |
+| `error.object` (log)         | `ErrorSpanDecorator`               | (exception instance)              |
+| `stack` (log)                | `ErrorStackSpanDecorator`          | `SocketTimeoutException at [...]` |
+| `http.content_language`      | `HttpContentLanguageSpanDecorator` | `en-DE`                           |
+| `http.content_length` (log)  | `HttpContentLengthSpanDecorator`   | `1337`                            |
+| `http.method_override`       | `HttpMethodOverrideSpanDecorator`  | `GET`                             |
+| `http.method`                | `HttpMethodSpanDecorator`          | `POST`                            |
+| `http.url`                   | `HttpUrlSpanDecorator`¹            | `https://www.github.com/users/me` |
+| `http.path`                  | `HttpPathSpanDecorator`            | `/users/{user_id}`                |
+| `http.prefer`                | `HttpPreferSpanDecorator`          | `respond-async`                   |
+| `http.retry_after` (log)     | `HttpRetryAfterSpanDecorator`      | `120`                             |
+| `http.status_code`           | `HttpStatusCodeSpanDecorator`      | `200`                             |
+| `http.warning`               | `HttpWarningSpanDecorator`         | `110 - "Response is Stale"`       |
+| `peer.address`               | `PeerSpanDecorator`                | `www.github.com:80`               |
+| `peer.hostname`              | `PeerSpanDecorator`                | `www.github.com`                  |
+| `peer.port`                  | `PeerSpanDecorator`                | `80`                              |
+| `rate_limit.limit` (log)     | `RateLimitSpanDecorator`           | `100`                             |
+| `rate_limit.remaining` (log) | `RateLimitSpanDecorator`           | `99`                              |
+| `rate_limit.reset` (log)     | `RateLimitSpanDecorator`           | `3600`                            |
+| `retry`                      | `RetrySpanDecorator`¹              | `true`                            |
+| `retry_number` (log)         | `RetrySpanDecorator`¹              | `3`                               |
+|                              | `ServiceLoaderSpanDecorator`²      |                                   |
+| `span.kind`                  | `SpanKindSpanDecorator`            | `client`                          |
+|                              | `StaticTagSpanDecorator`¹          | `zone=aws:eu-central-1a`          |
+|                              | `UriVariablesTagSpanDecorator`¹    | `user_id=me`                      |
 
-Custom `SpanDecorator` implementations that are registered using [Java's Service Provider Interface](https://docs.oracle.com/javase/tutorial/ext/basics/spi.html) mechanism will be picked up automatically by default.
+
+¹ **Not** registered by default.  
+² The `ServiceLoaderSpanDecorator` will load all custom `SpanDecorator` implementations that are registered using [Java's Service Provider Interface](https://docs.oracle.com/javase/tutorial/ext/basics/spi.html) mechanism and delegate to them.  
+³ The `CompositeSpanDecorator` allows to treat multiple decorators as one.
 
 ### Notice
 

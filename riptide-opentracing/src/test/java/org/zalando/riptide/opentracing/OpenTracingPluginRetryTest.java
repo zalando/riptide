@@ -108,7 +108,6 @@ final class OpenTracingPluginRetryTest {
         assertThat(requests, hasSize(1));
         final MockSpan request = getOnlyElement(requests);
         assertThat(request.tags(), not(hasKey("retry")));
-        assertThat(request.logEntries(), is(empty()));
 
         final List<MockSpan> retries = leafs.stream()
                 .filter(span -> span.tags().containsKey("retry"))
@@ -119,7 +118,7 @@ final class OpenTracingPluginRetryTest {
 
         forEachWithIndex(retries, (span, index) -> {
             assertThat(span.tags(), hasKey("retry"));
-            assertThat(getOnlyElement(span.logEntries()).fields(),
+            assertThat(span.logEntries().get(0).fields(),
                     hasEntry("retry_number", index + 1));
         });
     }
