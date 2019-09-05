@@ -349,14 +349,14 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
 | `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
-| `│   │   └── queue-size`                | `int`          | `0`                                              |
+| `│   │   └── queue-size`                | `int`          | `0` (unbounded)                                  |
 | `│   ├── oauth`                         |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── credentials-directory`     | `Path`         | `/meta/credentials`                              |
 | `│   ├── transient-fault-detection`     |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── stack-trace-preservation`      |                |                                                  |
-| `│   │   └── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   └── enabled`                   | `boolean`      | `true`                                           |
 | `│   ├── metrics`                       |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── logging`                       |                |                                                  |
@@ -370,7 +370,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   │   ├── max-delay`             | `TimeSpan`     | none, requires `backoff.delay`                   |
 | `│   │   │   └── delay-factor`          | `double`       | `2.0`                                            |
 | `│   │   ├── max-retries`               | `int`          | none                                             |
-| `│   │   ├── max-duration`              | `TimeSpan`     | none                                             |
+| `│   │   ├── max-duration`              | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── jitter-factor`             | `double`       | none, mutually exclusive to `jitter`             |
 | `│   │   └── jitter`                    | `TimeSpan`     | none, mutually exclusive to `jitter-factor`      |
 | `│   ├── circuit-breaker`               |                |                                                  |
