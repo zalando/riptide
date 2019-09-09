@@ -112,7 +112,7 @@ final class DefaultingTest {
 
         assertThat(actual.getEnabled(), is(false));
         assertThat(actual.getShared(), is(true));
-        assertThat(actual.getDirectory(), hasToString("/var/cache/http"));
+        assertThat(actual.getDirectory(), is(Paths.get("/var/cache/http")));
         assertThat(actual.getMaxObjectSize(), is(4096));
         assertThat(actual.getMaxCacheEntries(), is(100));
         assertThat(actual.getHeuristic().getEnabled(), is(false));
