@@ -540,12 +540,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerRetryListener(final String id, final Client client) {
         return registry.registerIfAbsent(id, RetryListener.class, () -> {
             if (client.getMetrics().getEnabled()) {
-                return genericBeanDefinition(MicrometerPluginFactory.class)
+                return genericBeanDefinition(MicrometerFailsafeFactory.class)
                         .setFactoryMethod("createRetryListener")
                         .addConstructorArgValue(METER_REGISTRY_REF)
                         .addConstructorArgValue(ImmutableList.of(clientId(id)));
             } else {
-                return genericBeanDefinition(MicrometerPluginFactory.class)
+                return genericBeanDefinition(MicrometerFailsafeFactory.class)
                         .setFactoryMethod("getDefaultRetryListener");
             }
         });
@@ -554,12 +554,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerCircuitBreakerListener(final String id, final Client client) {
         return registry.registerIfAbsent(id, CircuitBreakerListener.class, () -> {
             if (client.getMetrics().getEnabled()) {
-                return genericBeanDefinition(MicrometerPluginFactory.class)
+                return genericBeanDefinition(MicrometerFailsafeFactory.class)
                         .setFactoryMethod("createCircuitBreakerListener")
                         .addConstructorArgValue(METER_REGISTRY_REF)
                         .addConstructorArgValue(ImmutableList.of(clientId(id), clientName(id, client)));
             } else {
-                return genericBeanDefinition(MicrometerPluginFactory.class)
+                return genericBeanDefinition(MicrometerFailsafeFactory.class)
                         .setFactoryMethod("getDefaultCircuitBreakerListener");
             }
         });
