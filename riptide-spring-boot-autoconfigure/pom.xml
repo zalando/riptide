@@ -272,6 +272,7 @@
                             </includes>
                             <excludes>
                                 <exclude>**/NoCachingTest.java</exclude>
+                                <exclude>**/NoRiptideFailsafeTest.java</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -286,6 +287,19 @@
                                 <include>**/NoCachingTest.java</include>
                             </includes>
                             <classpathDependencyExcludes>org.apache.httpcomponents:httpclient-cache</classpathDependencyExcludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>missing-riptide-failsafe</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/NoRiptideFailsafeTest.java</include>
+                            </includes>
+                            <classpathDependencyExcludes>org.zalando:riptide-failsafe</classpathDependencyExcludes>
                         </configuration>
                     </execution>
                 </executions>
