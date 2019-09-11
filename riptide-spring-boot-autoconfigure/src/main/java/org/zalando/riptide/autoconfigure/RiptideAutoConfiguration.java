@@ -29,23 +29,24 @@ import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanP
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
         "org.zalando.logbook.autoconfigure.LogbookAutoConfiguration",
         "org.zalando.tracer.autoconfigure.TracerAutoConfiguration",
-        "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration",
 })
 @AutoConfigureBefore(name = {
-        "org.springframework.scheduling.annotation.SchedulingConfiguration",
         "org.zalando.actuate.autoconfigure.failsafe.CircuitBreakersEndpointAutoConfiguration"
 })
 public class RiptideAutoConfiguration {
 
     @API(status = INTERNAL)
     @Bean
-    public static RiptidePostProcessor restClientPostProcessor() {
+    public static RiptidePostProcessor riptidePostProcessor() {
         return new RiptidePostProcessor(DefaultRiptideRegistrar::new);
     }
 
     @Hack("We need to 'rename' the existing meter registry so we can find it by name...")
     @Configuration
     @ConditionalOnClass(MeterRegistry.class)
+    @AutoConfigureAfter(name = {
+            "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration"
+    })
     static class MetricsAutoConfiguration {
 
         @Bean
@@ -62,6 +63,10 @@ public class RiptideAutoConfiguration {
     // see https://github.com/zalando/riptide/issues/319 for details
     @Configuration
     @ConditionalOnClass(Scheduled.class)
+    @AutoConfigureBefore(name = {
+            "org.springframework.scheduling.annotation.SchedulingConfiguration",
+            "org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration" // Spring Boot 2.x
+    })
     static class SchedulingAutoConfiguration {
 
         @Bean(name = DEFAULT_TASK_SCHEDULER_BEAN_NAME, destroyMethod = "shutdown")
