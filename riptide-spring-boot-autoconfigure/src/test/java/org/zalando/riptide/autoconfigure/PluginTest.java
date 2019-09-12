@@ -12,9 +12,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
-import org.zalando.riptide.RequestCompressionPlugin;
-import org.zalando.riptide.backup.BackupRequestPlugin;
-import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
@@ -113,7 +110,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
-                instanceOf(BackupRequestPlugin.class),
+                instanceOf(FailsafePlugin.class), // backup requests
                 instanceOf(FailsafePlugin.class)))); // timeouts
     }
 

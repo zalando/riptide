@@ -8,7 +8,6 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.Timeout;
@@ -39,7 +38,6 @@ import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.PluginTest.CustomPlugin;
-import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
@@ -47,6 +45,7 @@ import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
+import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -78,8 +77,6 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 
@@ -122,7 +119,7 @@ public class ManualConfiguration {
 
         @Bean
         public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Logbook logbook,
-                final Tracer tracer, final ScheduledExecutorService scheduler, final Executor executor) {
+                final Tracer tracer) {
 
             final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
                     .withDefaultTags(Tag.of("clientId", "example"));
@@ -171,14 +168,13 @@ public class ManualConfiguration {
                                             )))
                                             .onOpen(listener::onOpen)
                                             .onHalfOpen(listener::onHalfOpen)
-                                            .onClose(listener::onClose)
+                                            .onClose(listener::onClose),
+                                    new BackupRequest<>(10, MILLISECONDS)
                             ))
                             .withDecorator(new TracedTaskDecorator(tracer))
                             .withPredicate(new IdempotencyPredicate())
                             .withListener(new MetricsRetryListener(meterRegistry)
                                     .withDefaultTags(Tag.of("clientId", "example"))),
-                    new BackupRequestPlugin(scheduler, 10, MILLISECONDS)
-                            .withPredicate(new IdempotencyPredicate()),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
                     new FailsafePlugin(ImmutableList.of(Timeout.of(Duration.ofSeconds(3)))),
                     new OriginalStackTracePlugin(),
@@ -232,20 +228,6 @@ public class ManualConfiguration {
         @Bean
         public MeterBinder executorServiceMetrics(final ExecutorService executor) {
             return new ExecutorServiceMetrics(executor, "http-example", singleton(Tag.of("clientId", "example")));
-        }
-
-        @Bean(destroyMethod = "shutdown")
-        public ScheduledExecutorService scheduler(final Tracer tracer) {
-            return new TracedScheduledExecutorService(
-                    Executors.newScheduledThreadPool(
-                            20,
-                            new CustomizableThreadFactory("http-example-scheduler-")),
-                    tracer);
-        }
-
-        @Bean
-        public MeterBinder scheduledExecutorServiceMetrics(final ScheduledExecutorService executor) {
-            return new ExecutorServiceMetrics(executor, "http-example-scheduler", singleton(Tag.of("clientId", "example")));
         }
 
         @Bean

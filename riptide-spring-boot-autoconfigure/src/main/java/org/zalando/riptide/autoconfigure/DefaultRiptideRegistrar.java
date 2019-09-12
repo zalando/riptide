@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import io.opentracing.contrib.concurrent.TracedScheduledExecutorService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
@@ -35,7 +34,6 @@ import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
-import org.zalando.riptide.backup.BackupRequestPlugin;
 import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
@@ -43,6 +41,7 @@ import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
+import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RetryListener;
@@ -52,7 +51,6 @@ import org.zalando.riptide.faults.FaultClassifier;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
-import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
@@ -73,8 +71,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
@@ -256,10 +252,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerLogbookPlugin(id, client),
                 registerTransientFaultPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
-                registerFailsafePlugin(id, client),
+                registerCircuitBreakerFailsafePlugin(id, client),
+                registerRetryPolicyFailsafePlugin(id, client),
                 registerAuthorizationPlugin(id, client),
-                registerBackupRequestPlugin(id, client),
-                registerTimeoutPlugin(id, client),
+                registerBackupRequestFailsafePlugin(id, client),
+                registerTimeoutFailsafePlugin(id, client),
                 registerOriginalStackTracePlugin(id, client),
                 registerCustomPlugin(id));
 
@@ -395,19 +392,29 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerFailsafePlugin(final String id, final Client client) {
-        if (client.getRetry().getEnabled() || client.getCircuitBreaker().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
-                log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
+    private Optional<String> registerCircuitBreakerFailsafePlugin(final String id, final Client client) {
+        if (client.getCircuitBreaker().getEnabled()) {
+            final String pluginId = registry.registerIfAbsent(name(id, CircuitBreaker.class, FailsafePlugin.class),
+                    () -> {
+                        log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
+                        return genericBeanDefinition(FailsafePluginFactory.class)
+                                .setFactoryMethod("create")
+                                .addConstructorArgValue(createTaskDecorator(id, client))
+                                .addConstructorArgValue(registerCircuitBreaker(id, client));
+                    });
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerRetryPolicyFailsafePlugin(final String id, final Client client) {
+        if (client.getRetry().getEnabled()) {
+            final String pluginId = registry.registerIfAbsent(name(id, RetryPolicy.class, FailsafePlugin.class), () -> {
+                log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(client.getTracing().getEnabled() ?
-                                ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
-                                        genericBeanDefinition(TracedTaskDecorator.class)
-                                                .addConstructorArgValue(TRACER_REF))) :
-                                TaskDecorator.identity())
+                        .addConstructorArgValue(createTaskDecorator(id, client))
                         .addConstructorArgValue(registerRetryPolicy(id, client))
-                        .addConstructorArgValue(registerCircuitBreaker(id, client))
                         .addConstructorArgReference(registerRetryListener(id, client));
             });
             return Optional.of(pluginId);
@@ -427,32 +434,31 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerBackupRequestPlugin(final String id, final Client client) {
+    private Optional<String> registerBackupRequestFailsafePlugin(final String id, final Client client) {
         if (client.getBackupRequest().getEnabled()) {
-            log.debug("Client [{}]: Registering [{}]", id, BackupRequestPlugin.class.getSimpleName());
-            final String pluginId = registry.registerIfAbsent(id, BackupRequestPlugin.class, () ->
-                    genericBeanDefinition(BackupRequestPlugin.class)
-                            .addConstructorArgReference(registerScheduler(id, client))
-                            .addConstructorArgValue(client.getBackupRequest().getDelay().getAmount())
-                            .addConstructorArgValue(client.getBackupRequest().getDelay().getUnit())
-                            .addConstructorArgValue(new IdempotencyPredicate()));
+            final String pluginId = registry.registerIfAbsent(name(id, BackupRequest.class, FailsafePlugin.class),
+                    () -> {
+                        log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
+                        return genericBeanDefinition(FailsafePluginFactory.class)
+                                .setFactoryMethod("create")
+                                .addConstructorArgValue(createTaskDecorator(id, client))
+                                .addConstructorArgValue(new BackupRequest<>(
+                                        client.getBackupRequest().getDelay().getAmount(),
+                                        client.getBackupRequest().getDelay().getUnit()));
+                    });
             return Optional.of(pluginId);
         }
         return Optional.empty();
     }
 
-    private Optional<String> registerTimeoutPlugin(final String id, final Client client) {
+    private Optional<String> registerTimeoutFailsafePlugin(final String id, final Client client) {
         if (client.getTimeouts().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(id, FailsafePlugin.class, () -> {
-                log.debug("Client [{}]: Registering [{}]", id, FailsafePlugin.class.getSimpleName());
+            final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
+                log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
                 final TimeSpan timeout = client.getTimeouts().getGlobal();
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(client.getTracing().getEnabled() ?
-                                ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
-                                        genericBeanDefinition(TracedTaskDecorator.class)
-                                                .addConstructorArgValue(TRACER_REF))) :
-                                TaskDecorator.identity())
+                        .addConstructorArgValue(createTaskDecorator(id, client))
                         .addConstructorArgValue(Timeout.of(timeout.toDuration()).withCancel(true));
             });
             return Optional.of(pluginId);
@@ -481,60 +487,28 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         genericBeanDefinition(DefaultFaultClassifier.class)));
     }
 
-    private String registerScheduler(final String id, final Client client) {
-        // we allow users to use their own ScheduledExecutorService, but they don't have to configure tracing
-        final String name = "http-" + id + "-scheduler";
-
-        final String executorId = registry.registerIfAbsent(id, ScheduledExecutorService.class, () -> {
-            final CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(name + "-");
-            threadFactory.setDaemon(true);
-
-            return genericBeanDefinition(ScheduledThreadPoolExecutor.class)
-                    .addConstructorArgValue(client.getThreads().getMaxSize())
-                    .addConstructorArgValue(threadFactory)
-                    .addPropertyValue("removeOnCancelPolicy", true)
-                    .setDestroyMethodName("shutdown");
-        });
-
-        if (client.getMetrics().getEnabled()) {
-            registry.registerIfAbsent(name(id, "Scheduled", ExecutorServiceMetrics.class), () ->
-                    genericBeanDefinition(ExecutorServiceMetrics.class)
-                            .addConstructorArgReference(executorId)
-                            .addConstructorArgValue(name)
-                            .addConstructorArgValue(ImmutableList.of(clientId(id))));
-        }
-
+    private Object createTaskDecorator(final String id, final Client client) {
         if (client.getTracing().getEnabled()) {
-            return registry.registerIfAbsent(id, TracedScheduledExecutorService.class, () ->
-                    genericBeanDefinition(TracedScheduledExecutorService.class)
-                            .addConstructorArgReference(executorId)
-                            .addConstructorArgValue(TRACER_REF));
+            return ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
+                    genericBeanDefinition(TracedTaskDecorator.class)
+                            .addConstructorArgValue(TRACER_REF)));
         }
-
-        return executorId;
+        return TaskDecorator.identity();
     }
 
     private BeanMetadataElement registerRetryPolicy(final String id, final Client client) {
-        if (client.getRetry().getEnabled()) {
-            return ref(registry.registerIfAbsent(id, RetryPolicy.class, () ->
-                    genericBeanDefinition(FailsafePluginFactory.class)
-                            .setFactoryMethod("createRetryPolicy")
-                            .addConstructorArgValue(client)));
-        }
-        return null;
-
+        return ref(registry.registerIfAbsent(id, RetryPolicy.class, () ->
+                genericBeanDefinition(FailsafePluginFactory.class)
+                        .setFactoryMethod("createRetryPolicy")
+                        .addConstructorArgValue(client)));
     }
 
     private BeanMetadataElement registerCircuitBreaker(final String id, final Client client) {
-        if (client.getCircuitBreaker().getEnabled()) {
-            return ref(registry.registerIfAbsent(id, CircuitBreaker.class, () ->
-                    genericBeanDefinition(FailsafePluginFactory.class)
-                            .setFactoryMethod("createCircuitBreaker")
-                            .addConstructorArgValue(client)
-                            .addConstructorArgReference(registerCircuitBreakerListener(id, client))));
-        }
-        return null;
-
+        return ref(registry.registerIfAbsent(id, CircuitBreaker.class, () ->
+                genericBeanDefinition(FailsafePluginFactory.class)
+                        .setFactoryMethod("createCircuitBreaker")
+                        .addConstructorArgValue(client)
+                        .addConstructorArgReference(registerCircuitBreakerListener(id, client))));
     }
 
     private String registerRetryListener(final String id, final Client client) {

@@ -13,15 +13,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.apiguardian.api.API.Status.STABLE;
-import static org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor.DEFAULT_TASK_SCHEDULER_BEAN_NAME;
 
 @API(status = STABLE)
 @Configuration
@@ -55,25 +51,6 @@ public class RiptideAutoConfiguration {
         @ConditionalOnMissingBean(name = "meterRegistry")
         public CompositeMeterRegistry meterRegistry(final Clock clock, final List<MeterRegistry> registries) {
             return new CompositeMeterRegistry(clock, registries);
-        }
-
-    }
-
-    // needed because @Scheduled would silently use the single-thread scheduler needed for retries/circuit breakers
-    // see https://github.com/zalando/riptide/issues/319 for details
-    @Configuration
-    @ConditionalOnClass(Scheduled.class)
-    @AutoConfigureBefore(name = {
-            "org.springframework.scheduling.annotation.SchedulingConfiguration",
-            "org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration" // Spring Boot 2.x
-    })
-    static class SchedulingAutoConfiguration {
-
-        @Bean(name = DEFAULT_TASK_SCHEDULER_BEAN_NAME, destroyMethod = "shutdown")
-        @ConditionalOnMissingBean(name = DEFAULT_TASK_SCHEDULER_BEAN_NAME)
-        public ScheduledExecutorService taskScheduler() {
-            final int corePoolSize = Runtime.getRuntime().availableProcessors();
-            return Executors.newScheduledThreadPool(corePoolSize);
         }
 
     }

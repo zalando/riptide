@@ -67,7 +67,6 @@ private Http example;
 - [Spring Boot](http://projects.spring.io/spring-boot/) Auto Configuration
 - Automatically integrates and supports:
   - Transient fault detection via [Riptide: Faults](../riptide-faults)
-  - Backup requests via [Riptide: Backup](../riptide-backup)
   - HTTP JSON Streaming via [Riptide: Stream](../riptide-stream)
   - Timeouts via [Riptide: Failsafe](../riptide-failsafe)
   - Platform IAM OAuth tokens via [Riptide: Auth](../riptide-auth)
@@ -108,7 +107,7 @@ You will need to add declare the following dependencies, in order to enable some
 
 #### [Failsafe](../riptide-failsafe) integration
 
-Required for `retry`, `circuit-breaker` and `timeout` support. Timeout is not to be confused with `connect-timeout` and `socket-timeout`, those are supported out of the box.
+Required for `retry`, `circuit-breaker`, `backup-request` and `timeout` support. Timeout is not to be confused with `connect-timeout` and `socket-timeout`, those are supported out of the box.
 
 ```xml
 <dependency>
@@ -126,18 +125,6 @@ Required when `transient-fault-detection` is enabled.
 <dependency>
     <groupId>org.zalando</groupId>
     <artifactId>riptide-faults</artifactId>
-    <version>${riptide.version}</version>
-</dependency>
-```
-
-#### [Backup Requests](../riptide-backup)
-
-Required when `backup-request` is enabled:
-
-```xml
-<dependency>
-    <groupId>org.zalando</groupId>
-    <artifactId>riptide-backup</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
@@ -578,11 +565,9 @@ The following table shows all beans with their respective name (for the `example
 | `exampleHttpMessageConverters`    | `ClientHttpMessageConverters`                 |
 | `exampleHttpClient`               | `HttpClient`                                  |
 | `exampleExecutorService`          | `ExecutorService`                             |
-| `exampleBackupRequestPlugin`      | `BackupRequestPlugin`                         |
 | `exampleFailsafePlugin`           | `FailsafePlugin`                              |
 | `exampleMicrometerPlugin`         | `MicrometerPlugin`                            |
 | `exampleOriginalStackTracePlugin` | `OriginalStackTracePlugin`                    |
-| `exampleTimeoutPlugin`            | `TimeoutPlugin`                               |
 | `exampleTransientFaultPlugin`     | `TransientFaultPlugin`                        |
 | `examplePlugin`                   | `Plugin` (optional, additional custom plugin) |
 | `exampleScheduledExecutorService` | `ScheduledExecutorService`                    |

@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.Timeout;
 import net.jodah.failsafe.function.DelayFunction;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
@@ -37,33 +36,21 @@ final class FailsafePluginFactory {
 
     }
 
-    // TODO we could break up those two into two separate plugin registrations
     public static Plugin create(
             final TaskDecorator decorator,
-            @Nullable final RetryPolicy<ClientHttpResponse> retryPolicy,
-            @Nullable final CircuitBreaker<ClientHttpResponse> circuitBreaker,
+            final Policy<ClientHttpResponse> policy,
             final RetryListener listener) {
 
-        final ImmutableList.Builder<Policy<ClientHttpResponse>> policies = ImmutableList.builder();
-
-        if (retryPolicy != null) {
-            policies.add(retryPolicy);
-        }
-
-        if (circuitBreaker != null) {
-            policies.add(circuitBreaker);
-        }
-
-        return new FailsafePlugin(policies.build())
+        return new FailsafePlugin(ImmutableList.of(policy))
                 .withDecorator(decorator)
                 .withListener(listener);
     }
 
     public static Plugin create(
             final TaskDecorator decorator,
-            final Timeout<ClientHttpResponse> timeout) {
+            final Policy<ClientHttpResponse> policy) {
 
-        final ImmutableList<Policy<ClientHttpResponse>> policies = ImmutableList.of(timeout);
+        final ImmutableList<Policy<ClientHttpResponse>> policies = ImmutableList.of(policy);
 
         return new FailsafePlugin(policies)
                 .withDecorator(decorator);

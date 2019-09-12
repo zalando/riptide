@@ -1,10 +1,4 @@
 [HttpClient{bg:greenyellow}]
-[GzippingHttpRequestInterceptor{bg:deepskyblue}]
-[LogbookHttpRequestInterceptor]
-[LogbookHttpResponseInterceptor]
-[TracerHttpRequestInterceptor]
+[FlowHttpRequestInterceptor]
 
-[HttpClient]-.->[GzippingHttpRequestInterceptor]
-[HttpClient]-.->[LogbookHttpRequestInterceptor]
-[HttpClient]-.->[LogbookHttpResponseInterceptor]
-[HttpClient]-.->[TracerHttpRequestInterceptor]
+[HttpClient]-.->[FlowHttpRequestInterceptor]
