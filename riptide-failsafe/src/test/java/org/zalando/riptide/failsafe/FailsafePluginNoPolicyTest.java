@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -24,7 +23,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
@@ -38,15 +36,12 @@ final class FailsafePluginNoPolicyTest {
                     .build())
             .build();
 
-    private final RetryListener listeners = mock(RetryListener.class);
-
     private final Http unit = Http.builder()
             .executor(newSingleThreadExecutor())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(ImmutableList.of())
-                    .withListener(listeners))
+            .plugin(new FailsafePlugin())
             .plugin(new OriginalStackTracePlugin())
             .build();
 

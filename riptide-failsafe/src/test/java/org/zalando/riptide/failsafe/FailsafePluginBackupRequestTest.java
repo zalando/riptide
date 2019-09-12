@@ -2,7 +2,6 @@ package org.zalando.riptide.failsafe;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -43,9 +42,8 @@ final class FailsafePluginBackupRequestTest {
             .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .plugin(new FailsafePlugin(ImmutableList.of(
-                    new BackupRequest<>(1, SECONDS)
-            )))
+            .plugin(new FailsafePlugin()
+                .withPolicy(new BackupRequest<>(1, SECONDS)))
             .build();
 
     @AfterEach
@@ -127,9 +125,8 @@ final class FailsafePluginBackupRequestTest {
                 .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
-                .plugin(new FailsafePlugin(ImmutableList.of(
-                        new BackupRequest<>(1, SECONDS)
-                )).withPredicate(arguments ->
+                .plugin(new FailsafePlugin()
+                    .withPolicy(new BackupRequest<>(1, SECONDS), arguments ->
                         arguments.getHeaders()
                                 .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();

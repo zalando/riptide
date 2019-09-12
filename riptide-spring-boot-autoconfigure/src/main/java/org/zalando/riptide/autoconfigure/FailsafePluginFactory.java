@@ -1,6 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
@@ -10,15 +9,19 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
+import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
+import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryListener;
+import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.faults.TransientFaultException;
+import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -37,26 +40,18 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin create(
-            final TaskDecorator decorator,
-            final Policy<ClientHttpResponse> policy,
-            final RetryListener listener) {
+            final RequestPolicy policy,
+            final TaskDecorator decorator) {
 
-        return new FailsafePlugin(ImmutableList.of(policy))
-                .withDecorator(decorator)
-                .withListener(listener);
-    }
-
-    public static Plugin create(
-            final TaskDecorator decorator,
-            final Policy<ClientHttpResponse> policy) {
-
-        final ImmutableList<Policy<ClientHttpResponse>> policies = ImmutableList.of(policy);
-
-        return new FailsafePlugin(policies)
+        return new FailsafePlugin()
+                .withPolicy(policy)
                 .withDecorator(decorator);
     }
 
-    public static RetryPolicy<ClientHttpResponse> createRetryPolicy(final Client client) {
+    public static RequestPolicy createRetryPolicy(
+            final Client client,
+            final RetryListener listener) {
+
         final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
         final Retry config = client.getRetry();
@@ -96,13 +91,17 @@ final class FailsafePluginFactory {
             policy.handle(TransientFaultException.class);
         }
 
-        return policy
-                .handle(RetryException.class)
-                .withDelay(delayFunction());
+        policy.handle(RetryException.class);
+        policy.withDelay(delayFunction());
+
+        return new RetryRequestPolicy(policy)
+                .withListener(listener);
     }
 
-    public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(final Client client,
+    public static RequestPolicy createCircuitBreaker(
+            final Client client,
             final CircuitBreakerListener listener) {
+
         final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
 
         Optional.ofNullable(client.getTimeouts())
@@ -119,11 +118,20 @@ final class FailsafePluginFactory {
         Optional.ofNullable(client.getCircuitBreaker().getSuccessThreshold())
                 .ifPresent(threshold -> threshold.applyTo(breaker::withSuccessThreshold));
 
-        return breaker
-                .withDelay(delayFunction())
-                .onOpen(listener::onOpen)
-                .onHalfOpen(listener::onHalfOpen)
-                .onClose(listener::onClose);
+        breaker.withDelay(delayFunction());
+        breaker.onOpen(listener::onOpen);
+        breaker.onHalfOpen(listener::onHalfOpen);
+        breaker.onClose(listener::onClose);
+
+        return RequestPolicy.of(breaker);
+    }
+
+    public static RequestPolicy createBackupRequest(final Client client) {
+        return RequestPolicy.of(
+                new BackupRequest<>(
+                        client.getBackupRequest().getDelay().getAmount(),
+                        client.getBackupRequest().getDelay().getUnit()),
+                new IdempotencyPredicate());
     }
 
     private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {
