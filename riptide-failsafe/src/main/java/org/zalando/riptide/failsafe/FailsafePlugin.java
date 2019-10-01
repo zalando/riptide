@@ -81,7 +81,8 @@ public final class FailsafePlugin implements Plugin {
     private Predicate<Policy<ClientHttpResponse>> skipRetriesIfNeeded(final RequestArguments arguments) {
         return predicate.test(arguments) ?
                 policy -> true :
-                policy -> !(policy instanceof RetryPolicy);
+                policy -> !(policy instanceof RetryPolicy)
+                        && !(policy instanceof BackupRequest);
     }
 
     private UnaryOperator<Policy<ClientHttpResponse>> withRetryListener(final RequestArguments arguments) {

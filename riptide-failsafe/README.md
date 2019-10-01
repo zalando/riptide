@@ -66,6 +66,8 @@ Http.builder()
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible configurations. 
 
+### Retries
+
 **Beware** when using `retryOn` to retry conditionally on certain exception types.
 You'll need to register `RetryException` in order for the `retry()` route to work:
 
@@ -99,6 +101,17 @@ Http.builder()
 Make sure you **check out 
 [zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of
 Failsafe and Spring Boot.
+
+### Backup Requests
+
+The `BackupRequest` policy implements the [*backup request*][abstract] pattern, also known as [*hedged requests*][article]:
+
+```java
+Http.builder()
+    .plugin(new FailsafePlugin(
+            ImmutableList.of(new BackupRequest<>(1, SECONDS))))
+    .build();
+```
 
 ## Usage
 
@@ -169,3 +182,12 @@ If you have questions, concerns, bug reports, etc., please file an issue in this
 
 To contribute, simply open a pull request and add a brief description (1-2 sentences) of your addition or change. For
 more details, check the [contribution guidelines](../.github/CONTRIBUTING.md).
+
+## Credits and references
+
+- [Jeffrey Dean: Achieving Rapid Response Times in Large Online Services][abstract]
+- [Jeffrey Dean and Luiz André Barroso: The Tail at Scale][article]
+- [Uwe Friedrichsen: Patterns of Resilience - Fan Out, Quickest Reply](https://www.slideshare.net/ufried/patterns-of-resilience/61)
+
+[abstract]: https://research.google.com/people/jeff/latency.html
+[article]: http://www.cs.duke.edu/courses/cps296.4/fall13/838-CloudPapers/dean_longtail.pdf

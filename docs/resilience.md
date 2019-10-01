@@ -93,7 +93,7 @@ riptide.clients:
 > 
 > [Jeffrey Dean and Luiz André Barroso: The Tail at Scale](http://www.cs.duke.edu/courses/cps296.4/fall13/838-CloudPapers/dean_longtail.pdf)
 
-Provided by [riptide-backup](../riptide-backup)
+Provided as `BackupRequest` policy in [riptide-failsafe](../riptide-failsafe)
 
 ```yaml
 riptide.clients:

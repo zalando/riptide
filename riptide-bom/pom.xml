@@ -25,11 +25,6 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>riptide-backup</artifactId>
-                <version>3.0.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
                 <artifactId>riptide-capture</artifactId>
                 <version>3.0.0-SNAPSHOT</version>
             </dependency>

@@ -1,7 +1,8 @@
-package org.zalando.riptide.backup;
+package org.zalando.riptide.failsafe;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -21,7 +22,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyRespo
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,7 +31,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 
-final class BackupRequestPluginTest {
+final class FailsafePluginBackupRequestTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
@@ -43,7 +43,9 @@ final class BackupRequestPluginTest {
             .executor(executor)
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS))
+            .plugin(new FailsafePlugin(ImmutableList.of(
+                    new BackupRequest<>(1, SECONDS)
+            )))
             .build();
 
     @AfterEach
@@ -125,10 +127,11 @@ final class BackupRequestPluginTest {
                 .executor(executor)
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
-                .plugin(new BackupRequestPlugin(newSingleThreadScheduledExecutor(), 1, SECONDS)
-                        .withPredicate(arguments ->
-                                arguments.getHeaders()
-                                        .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
+                .plugin(new FailsafePlugin(ImmutableList.of(
+                        new BackupRequest<>(1, SECONDS)
+                )).withPredicate(arguments ->
+                        arguments.getHeaders()
+                                .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();
 
         driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
