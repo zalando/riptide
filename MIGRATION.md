@@ -48,9 +48,16 @@ Client(RestOperations example) {
 
 **Riptide now requires Logbook 2.0**
 
-Riptide used to rely on Logbook's integration for the Apache HTTP Client. The usages of the 
-`LogbookHttpRequestInterceptor` and `LogbookHttpResponseInterceptor` have been replaced by a
-[`LogbookPlugin`](riptide-logbook/src/main/java/org/zalando/riptide/logbook/LogbookPlugin.java).
+Riptide used to rely on Logbook's integration for the Apache HTTP Client. The usages of the `LogbookHttpRequestInterceptor` and `LogbookHttpResponseInterceptor` have been replaced by a [`LogbookPlugin`](riptide-logbook/src/main/java/org/zalando/riptide/logbook/LogbookPlugin.java).
+
+:warning: Please be aware that for tests you will need to register a `Logbook` instance by hand, e.g. by doing this:
+
+```java
+@ImportAutoConfiguration(LogbookAutoConfiguration.class)
+class MyTest {
+    // ...
+}
+```
 
 ## Micrometer
 
