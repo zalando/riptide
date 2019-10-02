@@ -44,6 +44,10 @@ Client(RestOperations example) {
 
 **Riptide now requires Failsafe 2.x**
 
+- The `TimeoutPlugin` (`riptide-timeout`) has been removed in favor of Failsafe's `Timeout` policy
+- The `BackupRequestPlugin` (`riptide-backup`) has been removed in favor of a custom Failsafe `BackupRequest` policy
+- The `FailsafePlugin` no longer needs a custom scheduler but rather uses Failsafe's default
+
 ## Logbook
 
 **Riptide now requires Logbook 2.0**
