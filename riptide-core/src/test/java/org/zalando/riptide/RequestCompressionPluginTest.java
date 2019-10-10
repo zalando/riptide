@@ -36,6 +36,7 @@ final class RequestCompressionPluginTest {
     void tearDown() throws Exception {
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS);
+        driver.verify();
     }
 
     @Test
