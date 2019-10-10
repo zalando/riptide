@@ -39,6 +39,11 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
+            <artifactId>riptide-httpclient</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
             <artifactId>logbook-json</artifactId>
             <version>${logbook.version}</version>
             <scope>test</scope>

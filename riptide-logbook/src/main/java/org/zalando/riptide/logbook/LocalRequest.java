@@ -23,8 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Collections.emptyList;
 import static org.zalando.fauxpas.FauxPas.throwingUnaryOperator;
 
+// TODO remove Entity interface here
 @AllArgsConstructor
-final class LocalRequest implements HttpRequest, Entity {
+final class LocalRequest implements HttpRequest {
 
     private static final CharsetExtractor EXTRACTOR = new CharsetExtractor();
 
@@ -75,9 +76,14 @@ final class LocalRequest implements HttpRequest, Entity {
         }
 
         @Override
-        public State buffer(final Entity entity, final HttpOutputMessage message) throws IOException {
+        public State buffer(
+                final Entity entity,
+                final HttpOutputMessage message) throws IOException {
+
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            entity.writeTo(new TeeHttpOutputMessage(message, buffer));
+            entity.writeTo(new SimpleHttpOutputMessage(
+                    message.getHeaders(),
+                    new TeeOutputStream(message.getBody(), buffer)));
             return new Buffering(buffer.toByteArray());
         }
 
@@ -86,7 +92,7 @@ final class LocalRequest implements HttpRequest, Entity {
     @AllArgsConstructor
     private static final class Buffering implements State {
 
-        private byte[] body;
+        private final byte[] body;
 
         @Override
         public State without() {
@@ -193,10 +199,9 @@ final class LocalRequest implements HttpRequest, Entity {
                 .orElse(StandardCharsets.UTF_8);
     }
 
-    @Override
-    public void writeTo(final HttpOutputMessage message) {
+    void writeTo(final Entity entity, final HttpOutputMessage message) {
         state.updateAndGet(throwingUnaryOperator(state ->
-                state.buffer(arguments.getEntity(), message)));
+                state.buffer(entity, message)));
     }
 
     @Override
