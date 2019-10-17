@@ -8,7 +8,6 @@ import org.zalando.riptide.RequestArguments;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static java.util.Collections.emptyList;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
@@ -22,15 +21,15 @@ import static org.springframework.http.HttpMethod.POST;
 public final class MethodOverrideIdempotencyDetector implements IdempotencyDetector {
 
     @Override
-    public boolean test(final RequestArguments arguments, final Predicate<RequestArguments> root) {
+    public Decision test(final RequestArguments arguments, final Test root) {
         if (arguments.getMethod() != POST) {
-            return false;
+            return Decision.NEUTRAL;
         }
 
         @Nullable final HttpMethod method = getOverride(arguments);
 
         if (method == null) {
-            return false;
+            return Decision.NEUTRAL;
         }
 
         return root.test(arguments.withMethod(method));
