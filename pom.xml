@@ -74,7 +74,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.28</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
-        <spring-boot.version>2.1.9.RELEASE</spring-boot.version>
+        <spring-boot.version>2.2.0.RELEASE</spring-boot.version>
         <jackson.version>2.10.0</jackson.version>
         <problem.version>0.23.0</problem.version>
         <fauxpas.version>0.8.0</fauxpas.version>
@@ -329,8 +329,8 @@
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
-                <artifactId>java-hamcrest</artifactId>
-                <version>2.0.0.0</version>
+                <artifactId>hamcrest</artifactId>
+                <version>2.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -476,7 +476,7 @@
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>java-hamcrest</artifactId>
+            <artifactId>hamcrest</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hobsoft.hamcrest</groupId>
