@@ -137,7 +137,7 @@ final class IdempotencyPredicateTest {
     }
 
     @Test
-    void shouldNotdetectNegativeCallSiteOverride() {
+    void shouldNotDetectNegativeCallSiteOverride() {
         assertFalse(unit.test(RequestArguments.create()
                 .withMethod(GET)
                 .withAttribute(IDEMPOTENT, false)));

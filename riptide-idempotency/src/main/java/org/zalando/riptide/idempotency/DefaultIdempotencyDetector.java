@@ -3,8 +3,6 @@ package org.zalando.riptide.idempotency;
 import org.apiguardian.api.API;
 import org.zalando.riptide.RequestArguments;
 
-import java.util.function.Predicate;
-
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -15,7 +13,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 public final class DefaultIdempotencyDetector implements IdempotencyDetector {
 
     @Override
-    public boolean test(final RequestArguments arguments, final Predicate<RequestArguments> root) {
+    public Decision test(final RequestArguments arguments, final Test root) {
         switch (arguments.getMethod()) {
             case DELETE:
             case GET:
@@ -23,9 +21,9 @@ public final class DefaultIdempotencyDetector implements IdempotencyDetector {
             case OPTIONS:
             case PUT:
             case TRACE:
-                return true;
+                return Decision.ACCEPT;
             default:
-                return false;
+                return Decision.NEUTRAL;
         }
     }
 

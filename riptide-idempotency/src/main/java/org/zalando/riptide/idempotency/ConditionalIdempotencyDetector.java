@@ -58,15 +58,17 @@ public final class ConditionalIdempotencyDetector implements IdempotencyDetector
     );
 
     @Override
-    public boolean test(final RequestArguments arguments, final Predicate<RequestArguments> root) {
+    public Decision test(final RequestArguments arguments, final Test root) {
         final Map<String, List<String>> headers = arguments.getHeaders();
-        return conditionals.entrySet().stream()
+        final boolean conditional = conditionals.entrySet().stream()
                 .anyMatch(entry -> {
                     final String name = entry.getKey();
                     final Predicate<String> predicate = entry.getValue();
                     final List<String> values = headers.getOrDefault(name, emptyList());
                     return values.stream().anyMatch(predicate);
                 });
+
+        return conditional ? Decision.ACCEPT : Decision.NEUTRAL;
     }
 
 }
