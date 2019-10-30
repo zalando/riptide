@@ -50,6 +50,7 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Connections connections = new Connections(
+                TimeSpan.of(1, SECONDS),
                 TimeSpan.of(5, SECONDS),
                 TimeSpan.of(5, SECONDS),
                 TimeSpan.of(30, SECONDS),
@@ -191,6 +192,7 @@ public final class RiptideProperties {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Connections {
+        private TimeSpan leaseRequestTimeout;
         private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan timeToLive;

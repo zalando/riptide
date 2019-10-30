@@ -326,6 +326,7 @@ For a complete overview of available properties, they type and default value ple
 | `├── defaults`                          |                |                                                  |
 | `│   ├── url-resolution`                | `String`       | `rfc`                                            |
 | `│   ├── connections`                   |                |                                                  |
+| `│   │   ├── lease-request-timeout`     | `TimeSpan`     | `1 second`                                       |
 | `│   │   ├── connect-timeout`           | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── socket-timeout`            | `TimeSpan`     | `5 seconds`                                      |
 | `│   │   ├── time-to-live`              | `TimeSpan`     | `30 seconds`                                     |
@@ -396,6 +397,7 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── base-url`                  | `URI`          | none                                             |
 | `        ├── url-resolution`            | `String`       | see `defaults`                                   |
 | `        ├── connections`               |                |                                                  |
+| `        │   ├── lease-request-timeout` | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── connect-timeout`       | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── socket-timeout`        | `TimeSpan`     | see `defaults`                                   |
 | `        │   ├── time-to-live`          | `TimeSpan`     | see `defaults`                                   |
