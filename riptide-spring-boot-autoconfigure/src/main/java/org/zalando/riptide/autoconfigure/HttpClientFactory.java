@@ -85,6 +85,7 @@ final class HttpClientFactory {
         firstRequestInterceptors.forEach(builder::addInterceptorFirst);
 
         final Connections connections = client.getConnections();
+        config.setConnectionRequestTimeout((int) connections.getLeaseRequestTimeout().to(MILLISECONDS));
         config.setConnectTimeout((int) connections.getConnectTimeout().to(MILLISECONDS));
         config.setSocketTimeout((int) connections.getSocketTimeout().to(MILLISECONDS));
 
