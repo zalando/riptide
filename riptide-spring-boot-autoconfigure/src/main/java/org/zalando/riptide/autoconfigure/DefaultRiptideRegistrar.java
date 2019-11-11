@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +54,7 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
+import org.zalando.riptide.micrometer.ThreadPoolMetrics;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
@@ -163,10 +163,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
 
         if (client.getMetrics().getEnabled()) {
-            registry.registerIfAbsent(id, ExecutorServiceMetrics.class, () ->
-                    genericBeanDefinition(ExecutorServiceMetrics.class)
+            registry.registerIfAbsent(id, ThreadPoolMetrics.class, () ->
+                    genericBeanDefinition(ThreadPoolMetrics.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgValue(name)
+                            .addConstructorArgValue("http.client.threads")
                             .addConstructorArgValue(ImmutableList.of(clientId(id))));
         }
 

@@ -43,7 +43,7 @@ final class HttpConnectionPoolMetricsTest {
             .baseUrl(driver.getBaseUrl())
             .build();
 
-    private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+    private final MeterRegistry registry = new SimpleMeterRegistry();
 
     @AfterEach
     void closeClient() throws IOException {
@@ -55,7 +55,7 @@ final class HttpConnectionPoolMetricsTest {
         new HttpConnectionPoolMetrics(connectionManager)
                 .withMetricName("connection-pool")
                 .withDefaultTags(Tag.of("version", "1"))
-                .bindTo(meterRegistry);
+                .bindTo(registry);
 
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse());
 
@@ -63,12 +63,14 @@ final class HttpConnectionPoolMetricsTest {
 
         assertThat(gauge("connection-pool.available").value(), is(1.0));
         assertThat(gauge("connection-pool.leased").value(), is(0.0));
+        assertThat(gauge("connection-pool.total").value(), is(1.0));
+        assertThat(gauge("connection-pool.min").value(), is(0.0));
         assertThat(gauge("connection-pool.max").value(), is(20.0));
-        assertThat(gauge("connection-pool.pending").value(), is(0.0));
+        assertThat(gauge("connection-pool.queued").value(), is(0.0));
     }
 
     private Gauge gauge(final String name) {
-        return meterRegistry.find(name).tag("version", "1").gauge();
+        return registry.find(name).tag("version", "1").gauge();
     }
 
 }
