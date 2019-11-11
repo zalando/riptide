@@ -7,7 +7,6 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.riptide.Attribute;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
@@ -20,13 +19,12 @@ import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.organicdesign.fp.StaticImports.vec;
+import static org.zalando.riptide.Attributes.RETRIES;
 import static org.zalando.riptide.failsafe.TaskDecorator.identity;
 
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
 public final class FailsafePlugin implements Plugin {
-
-    public static final Attribute<Integer> ATTEMPTS = Attribute.generate();
 
     private final ImList<RequestPolicy> policies;
     private final TaskDecorator decorator;
@@ -91,7 +89,7 @@ public final class FailsafePlugin implements Plugin {
             return arguments;
         }
 
-        return arguments.withAttribute(ATTEMPTS, attempts);
+        return arguments.withAttribute(RETRIES, attempts);
     }
 
 }

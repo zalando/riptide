@@ -42,7 +42,7 @@ final class NetworkMetricsTest {
     }
 
     private Gauge gauge(final String name) {
-        return registry.find(name).tag("clientId", "foo").gauge();
+        return registry.find(name).tag("client_id", "foo").gauge();
     }
 
 }

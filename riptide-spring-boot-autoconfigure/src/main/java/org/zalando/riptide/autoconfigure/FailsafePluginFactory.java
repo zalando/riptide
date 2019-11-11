@@ -49,8 +49,7 @@ final class FailsafePluginFactory {
     }
 
     public static RequestPolicy createRetryPolicy(
-            final Client client,
-            final RetryListener listener) {
+            final Client client) {
 
         final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
@@ -94,8 +93,7 @@ final class FailsafePluginFactory {
         policy.handle(RetryException.class);
         policy.withDelay(delayFunction());
 
-        return new RetryRequestPolicy(policy)
-                .withListener(listener);
+        return new RetryRequestPolicy(policy);
     }
 
     public static RequestPolicy createCircuitBreaker(

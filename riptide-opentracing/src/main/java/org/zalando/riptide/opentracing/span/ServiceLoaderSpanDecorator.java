@@ -4,6 +4,7 @@ import org.apiguardian.api.API;
 
 import java.util.ServiceLoader;
 
+import static java.util.ServiceLoader.load;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.zalando.riptide.opentracing.span.CompositeSpanDecorator.composite;
 
@@ -14,7 +15,7 @@ import static org.zalando.riptide.opentracing.span.CompositeSpanDecorator.compos
 public final class ServiceLoaderSpanDecorator extends ForwardingSpanDecorator {
 
     public ServiceLoaderSpanDecorator() {
-        super(composite(ServiceLoader.load(SpanDecorator.class)));
+        super(composite(load(SpanDecorator.class)));
     }
 
 }

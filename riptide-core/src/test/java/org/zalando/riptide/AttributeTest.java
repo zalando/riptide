@@ -17,8 +17,6 @@ final class AttributeTest {
     private final Http unit;
     private final MockRestServiceServer server;
 
-    private final Attribute<String> attribute = Attribute.generate();
-
     AttributeTest() {
         final MockSetup setup = new MockSetup();
         this.server = setup.getServer();
@@ -27,8 +25,11 @@ final class AttributeTest {
                     @Override
                     public RequestExecution aroundNetwork(final RequestExecution execution) {
                         return arguments -> {
-                            final String secret = arguments.getAttribute(attribute).orElse("unknown");
-                            return execution.execute(arguments.withHeader("Secret", secret));
+                            final boolean idempotent = arguments
+                                    .getAttribute(Attributes.IDEMPOTENT)
+                                    .orElse(false);
+                            return execution.execute(arguments
+                                    .withHeader("Idempotent", String.valueOf(idempotent)));
                         };
                     }
                 })
@@ -43,12 +44,12 @@ final class AttributeTest {
     @Test
     void shouldPassAttribute() {
         server.expect(requestTo("https://api.example.com"))
-                .andExpect(header("Secret", "dXNlcjpzZWNyZXQK"))
+                .andExpect(header("Idempotent", "false"))
                 .andRespond(withSuccess());
 
         unit.trace("https://api.example.com")
-                .attribute(attribute, "dXNlcjpzZWNyZXQK")
-                .attribute(attribute, "dXNlcjpzZWNyZXQK")
+                .attribute(Attributes.IDEMPOTENT, true)
+                .attribute(Attributes.IDEMPOTENT, false)
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
                 .join();
@@ -57,7 +58,7 @@ final class AttributeTest {
     @Test
     void shouldNotPassAttribute() {
         server.expect(requestTo("https://api.example.com"))
-                .andExpect(header("Secret", "unknown"))
+                .andExpect(header("Idempotent", "false"))
                 .andRespond(withSuccess());
 
         unit.trace("https://api.example.com")

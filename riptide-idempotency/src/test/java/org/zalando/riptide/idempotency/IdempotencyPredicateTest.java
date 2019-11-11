@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
-import static org.zalando.riptide.idempotency.IdempotencyPredicate.IDEMPOTENT;
+import static org.zalando.riptide.Attributes.IDEMPOTENT;
 
 final class IdempotencyPredicateTest {
 

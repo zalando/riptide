@@ -53,12 +53,12 @@ import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
+import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
@@ -138,7 +138,8 @@ public class ManualConfiguration {
                                             HttpStatus.INTERNAL_SERVER_ERROR,
                                             HttpStatus.SERVICE_UNAVAILABLE)))),
                     new MicrometerPlugin(meterRegistry)
-                            .withDefaultTags(Tag.of("clientId", "example")),
+                            .withDefaultTags(Tag.of("clientId", "example"))
+                            .withAdditionalTagGenerators(new RetryTagGenerator()),
                     new RequestCompressionPlugin(),
                     new LogbookPlugin(logbook),
                     new TransientFaultPlugin(),
@@ -155,9 +156,7 @@ public class ManualConfiguration {
                                             )))
                                             .withMaxRetries(10)
                                             .withMaxDuration(Duration.ofSeconds(2))
-                                            .withJitter(0.2))
-                                    .withListener(new MetricsRetryListener(meterRegistry)
-                                            .withDefaultTags(Tag.of("clientId", "example"))))
+                                            .withJitter(0.2)))
                             .withPolicy(new CircuitBreaker<ClientHttpResponse>()
                                     .withFailureThreshold(5, 5)
                                     .withDelay(Duration.ofSeconds(30))

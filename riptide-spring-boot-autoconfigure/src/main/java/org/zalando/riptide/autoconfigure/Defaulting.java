@@ -161,7 +161,8 @@ final class Defaulting {
 
     private static Metrics merge(final Metrics base, final Metrics defaults) {
         return new Metrics(
-                either(base.getEnabled(), defaults.getEnabled())
+                either(base.getEnabled(), defaults.getEnabled()),
+                merge(base.getTags(), defaults.getTags(), Defaulting::merge)
         );
     }
 
@@ -266,7 +267,7 @@ final class Defaulting {
         );
     }
 
-    private static  <K, V> Map<K, V> merge(final Map<K, V> base, final Map<K, V> defaults) {
+    private static <K, V> Map<K, V> merge(final Map<K, V> base, final Map<K, V> defaults) {
         final Map<K, V> map = new HashMap<>();
         map.putAll(defaults);
         map.putAll(base);

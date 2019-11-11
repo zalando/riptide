@@ -1,13 +1,14 @@
 package org.zalando.riptide.idempotency;
 
 import org.apiguardian.api.API;
+import org.zalando.riptide.Attributes;
 import org.zalando.riptide.RequestArguments;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.riptide.idempotency.IdempotencyPredicate.IDEMPOTENT;
+import static org.zalando.riptide.Attributes.IDEMPOTENT;
 
 /**
- * @see IdempotencyPredicate#IDEMPOTENT
+ * @see Attributes#IDEMPOTENT
  */
 @API(status = EXPERIMENTAL)
 public final class ExplicitIdempotencyDetector implements IdempotencyDetector {

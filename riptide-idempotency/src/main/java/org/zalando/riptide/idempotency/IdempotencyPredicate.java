@@ -19,14 +19,6 @@ import static org.zalando.riptide.idempotency.Decision.NEUTRAL;
 @AllArgsConstructor
 public final class IdempotencyPredicate implements Predicate<RequestArguments> {
 
-    /**
-     * Allows to override idempotency detection from a call site by specifying the attribute. This might be useful in
-     * situation where the caller knows that a certain operation is idempotent, but it's undetectable using other means.
-     *
-     * @see <a href="https://nakadi.io/manual.html#/subscriptions/subscription_id/cursors_post">Nakadi API: Endpoint for committing offsets</a>
-     */
-    public static final Attribute<Boolean> IDEMPOTENT = Attribute.generate();
-
     private final Collection<IdempotencyDetector> detectors;
 
     public IdempotencyPredicate() {

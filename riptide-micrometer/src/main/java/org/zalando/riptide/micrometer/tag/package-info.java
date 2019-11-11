@@ -1,4 +1,4 @@
 @ParametersAreNonnullByDefault
-package org.zalando.riptide.failsafe.metrics;
+package org.zalando.riptide.micrometer.tag;
 
 import javax.annotation.ParametersAreNonnullByDefault;
