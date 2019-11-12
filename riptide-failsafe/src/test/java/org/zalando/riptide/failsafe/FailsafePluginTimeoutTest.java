@@ -43,9 +43,8 @@ final class FailsafePluginTimeoutTest {
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(ImmutableList.<Policy<ClientHttpResponse>>of(
-                    Timeout.of(Duration.ofSeconds(1))
-            )))
+            .plugin(new FailsafePlugin()
+                    .withPolicy(Timeout.of(Duration.ofSeconds(1))))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

@@ -17,7 +17,9 @@ and a circuit breaker to every remote call.
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(ImmutableList.of(circuitBreaker, retryPolicy)))
+    .plugin(new FailsafePlugin()
+        .withPolicy(circuitBreaker)
+        .withPolicy(new RetryRequestPolicy(retryPolicy)))
     .build();
 ```
 
@@ -49,18 +51,19 @@ The failsafe plugin will not perform retries nor apply circuit breakers unless t
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(
-            ImmutableList.of(
-                   new RetryPolicy<ClientHttpResponse>()
-                           .withDelay(Duration.ofMillis(25))
-                           .withDelay(new RetryAfterDelayFunction(clock))
-                           .withMaxRetries(4),
-                   new CircuitBreaker<ClientHttpResponse>()
-                           .withFailureThreshold(3, 10)
-                           .withSuccessThreshold(5)
-                           .withDelay(Duration.ofMinutes(1))
-            ))
-            .withListener(myRetryListener))
+    .plugin(new FailsafePlugin()
+        .withPolicy(
+            new RetryRequestPolicy(
+                new RetryPolicy<ClientHttpResponse>()
+                   .withDelay(Duration.ofMillis(25))
+                   .withDelay(new RetryAfterDelayFunction(clock))
+                   .withMaxRetries(4))
+                .withListener(myRetryListener))
+        .withPolicy(
+            new CircuitBreaker<ClientHttpResponse>()
+                .withFailureThreshold(3, 10)
+                .withSuccessThreshold(5)
+                .withDelay(Duration.ofMinutes(1)))
     .build();
 ```
 
@@ -85,14 +88,13 @@ Riptide: Failsafe offers implementations that understand:
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(
-            ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
-                     .withDelay(Duration.ofMillis(25))
-                     .withDelay(new CompositeDelayFunction<>(Arrays.asList(
-                             new RetryAfterDelayFunction(clock),
-                             new RateLimitResetDelayFunction(clock)
-                     )))
-                     .withMaxDuration(Duration.ofSeconds(5)))))
+    .plugin(new FailsafePlugin()
+        .withPolicy(new RetryPolicy<ClientHttpResponse>()
+            .withDelay(composite(
+                new RetryAfterDelayFunction(clock),
+                new RateLimitResetDelayFunction(clock)
+            ))
+            .withMaxDuration(Duration.ofSeconds(5))))
     .build();
 ```
 
@@ -108,8 +110,8 @@ The `BackupRequest` policy implements the [*backup request*][abstract] pattern, 
 
 ```java
 Http.builder()
-    .plugin(new FailsafePlugin(
-            ImmutableList.of(new BackupRequest<>(1, SECONDS))))
+    .plugin(new FailsafePlugin()
+        .withPolicy(new BackupRequest(1, SECONDS)))
     .build();
 ```
 

@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -52,12 +51,12 @@ import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
+import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.failsafe.metrics.MetricsRetryListener;
 import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
-import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
@@ -144,8 +143,8 @@ public class ManualConfiguration {
                     new LogbookPlugin(logbook),
                     new TransientFaultPlugin(),
                     new OpenTracingPlugin(tracer),
-                    new FailsafePlugin(
-                            ImmutableList.of(
+                    new FailsafePlugin()
+                            .withPolicy(new RetryRequestPolicy(
                                     new RetryPolicy<ClientHttpResponse>()
                                             .handle(TransientFaultException.class)
                                             .handle(RetryException.class)
@@ -156,27 +155,26 @@ public class ManualConfiguration {
                                             )))
                                             .withMaxRetries(10)
                                             .withMaxDuration(Duration.ofSeconds(2))
-                                            .withJitter(0.2),
-                                    new CircuitBreaker<ClientHttpResponse>()
-                                            .withFailureThreshold(5, 5)
-                                            .withDelay(Duration.ofSeconds(30))
-                                            .withSuccessThreshold(3, 5)
-                                            .withTimeout(Duration.ofSeconds(3))
-                                            .withDelay(new CompositeDelayFunction<>(Arrays.asList(
-                                                    new RetryAfterDelayFunction(systemUTC()),
-                                                    new RateLimitResetDelayFunction(systemUTC())
-                                            )))
-                                            .onOpen(listener::onOpen)
-                                            .onHalfOpen(listener::onHalfOpen)
-                                            .onClose(listener::onClose),
-                                    new BackupRequest<>(10, MILLISECONDS)
-                            ))
-                            .withDecorator(new TracedTaskDecorator(tracer))
-                            .withPredicate(new IdempotencyPredicate())
-                            .withListener(new MetricsRetryListener(meterRegistry)
-                                    .withDefaultTags(Tag.of("clientId", "example"))),
+                                            .withJitter(0.2))
+                                    .withListener(new MetricsRetryListener(meterRegistry)
+                                            .withDefaultTags(Tag.of("clientId", "example"))))
+                            .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                                    .withFailureThreshold(5, 5)
+                                    .withDelay(Duration.ofSeconds(30))
+                                    .withSuccessThreshold(3, 5)
+                                    .withTimeout(Duration.ofSeconds(3))
+                                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                                            new RetryAfterDelayFunction(systemUTC()),
+                                            new RateLimitResetDelayFunction(systemUTC())
+                                    )))
+                                    .onOpen(listener::onOpen)
+                                    .onHalfOpen(listener::onHalfOpen)
+                                    .onClose(listener::onClose))
+                            .withPolicy(new BackupRequest<>(10, MILLISECONDS))
+                            .withDecorator(new TracedTaskDecorator(tracer)),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
-                    new FailsafePlugin(ImmutableList.of(Timeout.of(Duration.ofSeconds(3)))),
+                    new FailsafePlugin()
+                            .withPolicy(Timeout.of(Duration.ofSeconds(3))),
                     new OriginalStackTracePlugin(),
                     new CustomPlugin());
         }

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.failsafe.FailsafePlugin.RetryListenerAdapter;
+import org.zalando.riptide.failsafe.RetryRequestPolicy.RetryListenerAdapter;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;

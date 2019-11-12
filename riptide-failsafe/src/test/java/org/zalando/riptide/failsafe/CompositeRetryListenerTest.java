@@ -33,7 +33,7 @@ final class CompositeRetryListenerTest {
 
         Failsafe.with(new RetryPolicy<ClientHttpResponse>()
                 .withMaxRetries(3)
-                .onRetry(new FailsafePlugin.RetryListenerAdapter(unit, arguments)))
+                .onRetry(new RetryRequestPolicy.RetryListenerAdapter(unit, arguments)))
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;

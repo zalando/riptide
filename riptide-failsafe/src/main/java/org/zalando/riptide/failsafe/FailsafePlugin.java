@@ -1,14 +1,11 @@
 package org.zalando.riptide.failsafe;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import net.jodah.failsafe.function.CheckedConsumer;
 import org.apiguardian.api.API;
+import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Attribute;
 import org.zalando.riptide.Plugin;
@@ -16,12 +13,13 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
+import static org.organicdesign.fp.StaticImports.vec;
 import static org.zalando.riptide.failsafe.TaskDecorator.identity;
 
 @API(status = MAINTAINED)
@@ -30,33 +28,45 @@ public final class FailsafePlugin implements Plugin {
 
     public static final Attribute<Integer> ATTEMPTS = Attribute.generate();
 
-    private final ImmutableList<? extends Policy<ClientHttpResponse>> policies;
+    private final ImList<RequestPolicy> policies;
     private final TaskDecorator decorator;
-    private final Predicate<RequestArguments> predicate;
-    private final RetryListener listener;
 
-    public FailsafePlugin(final ImmutableList<? extends Policy<ClientHttpResponse>> policies) {
-        this(policies, identity(), new IdempotencyPredicate(), RetryListener.DEFAULT);
+    public FailsafePlugin() {
+        this(vec(), identity());
+    }
+
+    public FailsafePlugin withPolicy(final BackupRequest<ClientHttpResponse> policy) {
+        return withPolicy(policy, new IdempotencyPredicate());
+    }
+
+    public FailsafePlugin withPolicy(final RetryPolicy<ClientHttpResponse> policy) {
+        return withPolicy(new RetryRequestPolicy(policy));
+    }
+
+    public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
+        return withPolicy(RequestPolicy.of(policy));
+    }
+
+    public FailsafePlugin withPolicy(
+            final Policy<ClientHttpResponse> policy,
+            final Predicate<RequestArguments> predicate) {
+        return withPolicy(RequestPolicy.of(policy, predicate));
+    }
+
+    public FailsafePlugin withPolicy(final RequestPolicy policy) {
+        return new FailsafePlugin(policies.append(policy), decorator);
     }
 
     public FailsafePlugin withDecorator(final TaskDecorator decorator) {
-        return new FailsafePlugin(policies, decorator, predicate, listener);
-    }
-
-    public FailsafePlugin withPredicate(final Predicate<RequestArguments> predicate) {
-        return new FailsafePlugin(policies, decorator, predicate, listener);
-    }
-
-    public FailsafePlugin withListener(final RetryListener listener) {
-        return new FailsafePlugin(policies, decorator, predicate, listener);
+        return new FailsafePlugin(policies, decorator);
     }
 
     @Override
     public RequestExecution aroundAsync(final RequestExecution execution) {
         return arguments -> {
-            final Policy<ClientHttpResponse>[] policies = select(arguments);
+            final List<Policy<ClientHttpResponse>> policies = select(arguments);
 
-            if (policies.length == 0) {
+            if (policies.isEmpty()) {
                 return execution.execute(arguments);
             }
 
@@ -66,55 +76,22 @@ public final class FailsafePlugin implements Plugin {
         };
     }
 
-    private Policy<ClientHttpResponse>[] select(final RequestArguments arguments) {
-        final Stream<Policy<ClientHttpResponse>> stream = policies.stream()
-                .filter(skipRetriesIfNeeded(arguments))
-                .map(withRetryListener(arguments));
-
-        @SuppressWarnings("unchecked") final Policy<ClientHttpResponse>[] policies = stream.toArray(Policy[]::new);
-
-        return policies;
+    private List<Policy<ClientHttpResponse>> select(final RequestArguments arguments) {
+        return policies.stream()
+                .filter(policy -> policy.applies(arguments))
+                .map(policy -> policy.prepare(arguments))
+                .collect(toList());
     }
 
-    // TODO shouldn't be responsibility of this plugin but delegated to policies
-    // TODO depends on the exception, e.g. pre-request exceptions are fine!
-    private Predicate<Policy<ClientHttpResponse>> skipRetriesIfNeeded(final RequestArguments arguments) {
-        return predicate.test(arguments) ?
-                policy -> true :
-                policy -> !(policy instanceof RetryPolicy)
-                        && !(policy instanceof BackupRequest);
-    }
+    private RequestArguments withAttempts(
+            final RequestArguments arguments,
+            final int attempts) {
 
-    private UnaryOperator<Policy<ClientHttpResponse>> withRetryListener(final RequestArguments arguments) {
-        return policy -> {
-            if (policy instanceof RetryPolicy) {
-                final RetryPolicy<ClientHttpResponse> retryPolicy = (RetryPolicy<ClientHttpResponse>) policy;
-                return retryPolicy.copy()
-                        .onFailedAttempt(new RetryListenerAdapter(listener, arguments));
-            } else {
-                return policy;
-            }
-        };
-    }
-
-    private RequestArguments withAttempts(final RequestArguments arguments, final int attempts) {
         if (attempts == 0) {
             return arguments;
         }
 
         return arguments.withAttribute(ATTEMPTS, attempts);
-    }
-
-    @VisibleForTesting
-    @AllArgsConstructor
-    static final class RetryListenerAdapter implements CheckedConsumer<ExecutionAttemptedEvent<ClientHttpResponse>> {
-        private final RetryListener listener;
-        private final RequestArguments arguments;
-
-        @Override
-        public void accept(final ExecutionAttemptedEvent<ClientHttpResponse> event) {
-            listener.onRetry(arguments, event);
-        }
     }
 
 }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
@@ -28,7 +27,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
@@ -57,14 +55,13 @@ final class RateLimitResetDelayFunctionTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(
-                    ImmutableList.of(
-                            new CircuitBreaker<ClientHttpResponse>(),
-                            new RetryPolicy<ClientHttpResponse>()
-                                    .withDelay(Duration.ofSeconds(2))
-                                    .withDelay(new RateLimitResetDelayFunction(clock))
-                                    .withMaxDuration(Duration.ofSeconds(5))
-                                    .withMaxRetries(4))))
+            .plugin(new FailsafePlugin()
+                    .withPolicy(new CircuitBreaker<>())
+                    .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                            .withDelay(Duration.ofSeconds(2))
+                            .withDelay(new RateLimitResetDelayFunction(clock))
+                            .withMaxDuration(Duration.ofSeconds(5))
+                            .withMaxRetries(4)))
             .build();
 
     private static MappingJackson2HttpMessageConverter createJsonConverter() {

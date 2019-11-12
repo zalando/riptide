@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
@@ -31,7 +30,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 
@@ -45,18 +43,16 @@ final class FailsafePluginCircuitBreakerTest {
                     .build())
             .build();
 
-    private final RetryListener listeners = mock(RetryListener.class);
 
     private final Http unit = Http.builder()
             .executor(newSingleThreadExecutor())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(
-                    ImmutableList.of(new CircuitBreaker<ClientHttpResponse>()
-                            .withDelay(Duration.ofSeconds(1))))
-                    .withDecorator(TaskDecorator.identity())
-                    .withListener(listeners))
+            .plugin(new FailsafePlugin()
+                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                            .withDelay(Duration.ofSeconds(1)))
+                    .withDecorator(TaskDecorator.identity()))
             .plugin(new OriginalStackTracePlugin())
             .build();
 

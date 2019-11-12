@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
@@ -32,7 +31,6 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -75,19 +73,18 @@ final class FailsafePluginRetriesTest {
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
-            .plugin(new FailsafePlugin(
-                    ImmutableList.of(
+            .plugin(new FailsafePlugin()
+                    .withPolicy(new RetryRequestPolicy(
                             new RetryPolicy<ClientHttpResponse>()
                                     .withDelay(Duration.ofMillis(500))
                                     .withMaxRetries(4)
                                     .handle(Exception.class)
-                                    .handleResultIf(this::isBadGateway),
-                            new CircuitBreaker<ClientHttpResponse>()
-                                    .withFailureThreshold(3, 10)
-                                    .withSuccessThreshold(5)
-                                    .withDelay(Duration.ofMinutes(1))
-                    ))
-                    .withListener(listeners))
+                                    .handleResultIf(this::isBadGateway))
+                            .withListener(listeners))
+                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                            .withFailureThreshold(3, 10)
+                            .withSuccessThreshold(5)
+                            .withDelay(Duration.ofMinutes(1))))
             .build();
 
     @SneakyThrows
@@ -139,15 +136,15 @@ final class FailsafePluginRetriesTest {
                 .requestFactory(new ApacheClientHttpRequestFactory(client))
                 .baseUrl(driver.getBaseUrl())
                 .converter(createJsonConverter())
-                .plugin(new FailsafePlugin(
-                        ImmutableList.of(
+                .plugin(new FailsafePlugin().withPolicy(
+                        new RetryRequestPolicy(
                                 new RetryPolicy<ClientHttpResponse>()
                                         .withDelay(Duration.ofMillis(500))
-                                        .withMaxRetries(1)
-                        ))
-                        .withPredicate(arguments ->
-                                arguments.getHeaders().getOrDefault("Idempotent", emptyList()).contains("true"))
-                        .withListener(listeners))
+                                        .withMaxRetries(1))
+                                .withPredicate(arguments ->
+                                        arguments.getHeaders().getOrDefault("Idempotent",
+                                                emptyList()).contains(
+                                                "true"))))
                 .build();
 
         driver.addExpectation(onRequestTo("/foo").withMethod(POST), giveEmptyResponse().after(800, MILLISECONDS));

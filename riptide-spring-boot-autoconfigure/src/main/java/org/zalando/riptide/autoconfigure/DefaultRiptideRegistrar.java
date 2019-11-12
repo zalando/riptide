@@ -19,6 +19,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -44,6 +45,7 @@ import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.faults.DefaultFaultClassifier;
@@ -399,8 +401,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("create")
-                                .addConstructorArgValue(createTaskDecorator(id, client))
-                                .addConstructorArgValue(registerCircuitBreaker(id, client));
+                                .addConstructorArgValue(registerCircuitBreaker(id, client))
+                                .addConstructorArgValue(createTaskDecorator(id, client));
                     });
             return Optional.of(pluginId);
         }
@@ -413,9 +415,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(createTaskDecorator(id, client))
                         .addConstructorArgValue(registerRetryPolicy(id, client))
-                        .addConstructorArgReference(registerRetryListener(id, client));
+                        .addConstructorArgValue(createTaskDecorator(id, client));
             });
             return Optional.of(pluginId);
         }
@@ -441,10 +442,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("create")
-                                .addConstructorArgValue(createTaskDecorator(id, client))
-                                .addConstructorArgValue(new BackupRequest<>(
-                                        client.getBackupRequest().getDelay().getAmount(),
-                                        client.getBackupRequest().getDelay().getUnit()));
+                                .addConstructorArgValue(genericBeanDefinition(FailsafePluginFactory.class)
+                                        .setFactoryMethod("createBackupRequest")
+                                        .addConstructorArgValue(client)
+                                        .getBeanDefinition())
+                                .addConstructorArgValue(createTaskDecorator(id, client));
                     });
             return Optional.of(pluginId);
         }
@@ -458,8 +460,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 final TimeSpan timeout = client.getTimeouts().getGlobal();
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(createTaskDecorator(id, client))
-                        .addConstructorArgValue(Timeout.of(timeout.toDuration()).withCancel(true));
+                        .addConstructorArgValue(RequestPolicy.of(
+                                Timeout.<ClientHttpResponse>of(timeout.toDuration())
+                                        .withCancel(true)))
+                        .addConstructorArgValue(createTaskDecorator(id, client));
             });
             return Optional.of(pluginId);
         }
@@ -500,7 +504,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return ref(registry.registerIfAbsent(id, RetryPolicy.class, () ->
                 genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createRetryPolicy")
-                        .addConstructorArgValue(client)));
+                        .addConstructorArgValue(client)
+                        .addConstructorArgReference(registerRetryListener(id, client))));
     }
 
     private BeanMetadataElement registerCircuitBreaker(final String id, final Client client) {

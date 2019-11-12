@@ -2,7 +2,6 @@ package org.zalando.riptide.opentracing;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.google.common.collect.ImmutableList;
 import io.opentracing.Scope;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockSpan;
@@ -51,13 +50,11 @@ final class OpenTracingPluginRetryTest {
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .plugin(unit)
-            .plugin(new FailsafePlugin(
-                    ImmutableList.of(new RetryPolicy<ClientHttpResponse>()
+            .plugin(new FailsafePlugin()
+                    .withPolicy(new RetryPolicy<ClientHttpResponse>()
                             .withMaxRetries(2)
-                            .handleResultIf(response -> true)))
-                    .withDecorator(new TracedTaskDecorator(tracer))
-                    //.withScheduler(new TracedScheduler(tracer))
-            )
+                            .handleResultIf(response -> true))
+                    .withDecorator(new TracedTaskDecorator(tracer)))
             .build();
 
     @Test
@@ -76,9 +73,8 @@ final class OpenTracingPluginRetryTest {
 
         assertThat(spans, hasSize(4));
 
-        spans.forEach(span -> {
-            assertThat(span.generatedErrors(), is(empty()));
-        });
+        spans.forEach(span ->
+                assertThat(span.generatedErrors(), is(empty())));
 
         final List<MockSpan> roots = spans.stream()
                 .filter(span -> span.parentId() == 0)

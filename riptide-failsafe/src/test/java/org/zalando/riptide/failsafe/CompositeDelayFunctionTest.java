@@ -2,11 +2,8 @@ package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.function.DelayFunction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -14,18 +11,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.zalando.riptide.failsafe.CompositeDelayFunction.composite;
 
-@ExtendWith(MockitoExtension.class)
 final class CompositeDelayFunctionTest {
 
     @SuppressWarnings("unchecked")
-    private final DelayFunction<String, Exception> first = (DelayFunction) mock(DelayFunction.class);
+    private final DelayFunction<String, Exception> first =
+            (DelayFunction) mock(DelayFunction.class);
 
     @SuppressWarnings("unchecked")
-    private final DelayFunction<String, Exception> second = (DelayFunction) mock(DelayFunction.class);
+    private final DelayFunction<String, Exception> second =
+            (DelayFunction) mock(DelayFunction.class);
 
-    private final DelayFunction<String, Exception> unit = new CompositeDelayFunction<>(
-            Arrays.asList(first, second));
+    private final DelayFunction<String, Exception> unit = composite(first, second);
 
     @Test
     void shouldUseFirstNonNullDelay() {
