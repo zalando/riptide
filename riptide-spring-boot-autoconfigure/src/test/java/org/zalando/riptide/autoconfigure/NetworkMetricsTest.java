@@ -35,8 +35,10 @@ final class NetworkMetricsTest {
 
         assertThat(gauge("http.client.connections.available").value(), is(1.0));
         assertThat(gauge("http.client.connections.leased").value(), is(1.0));
+        assertThat(gauge("http.client.connections.total").value(), is(2.0));
+        assertThat(gauge("http.client.connections.min").value(), is(0.0));
         assertThat(gauge("http.client.connections.max").value(), is(20.0));
-        assertThat(gauge("http.client.connections.pending").value(), is(0.0));
+        assertThat(gauge("http.client.connections.queued").value(), is(0.0));
     }
 
     private Gauge gauge(final String name) {
