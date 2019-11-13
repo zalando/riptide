@@ -1,11 +1,13 @@
 package org.zalando.riptide.opentracing.span;
 
 import io.opentracing.Span;
-import io.opentracing.tag.Tags;
 import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.opentracing.ExtensionTags;
 
 import java.net.URI;
+
+import static io.opentracing.tag.Tags.PEER_HOSTNAME;
+import static io.opentracing.tag.Tags.PEER_PORT;
+import static org.zalando.riptide.opentracing.ExtensionTags.PEER_ADDRESS;
 
 /**
  * Sets the <code>peer.hostname</code> and <code>peer.port</code> span tags.
@@ -16,10 +18,17 @@ public final class PeerSpanDecorator implements SpanDecorator {
 
     @Override
     public void onRequest(final Span span, final RequestArguments arguments) {
-        final URI requestUri = arguments.getRequestUri();
-        span.setTag(ExtensionTags.PEER_ADDRESS, requestUri.getHost() + ":" + requestUri.getPort());
-        span.setTag(Tags.PEER_HOSTNAME, requestUri.getHost());
-        span.setTag(Tags.PEER_PORT, requestUri.getPort());
+        final URI uri = arguments.getRequestUri();
+        final int port = uri.getPort();
+
+        span.setTag(PEER_HOSTNAME, uri.getHost());
+
+        if (port == -1) {
+            span.setTag(PEER_ADDRESS, uri.getHost());
+        } else {
+            span.setTag(PEER_ADDRESS, uri.getHost() + ":" + port);
+            span.setTag(PEER_PORT, port);
+        }
     }
 
 }
