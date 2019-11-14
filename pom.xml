@@ -54,6 +54,7 @@
         <module>riptide-compatibility</module>
         <module>riptide-core</module>
         <module>riptide-chaos</module>
+        <module>riptide-compression</module>
         <module>riptide-failsafe</module>
         <module>riptide-faults</module>
         <module>riptide-httpclient</module>
@@ -102,6 +103,11 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-compatibility</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>riptide-compression</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -607,7 +613,6 @@
                     <configuration>
                         <compilerArgs>
                             <compilerArg>-Xlint:unchecked</compilerArg>
-                            <compilerArg>-Werror</compilerArg>
                             <compilerArg>-parameters</compilerArg>
                         </compilerArgs>
                     </configuration>

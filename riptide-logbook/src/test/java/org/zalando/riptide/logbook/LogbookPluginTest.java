@@ -16,7 +16,7 @@ import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Precorrelation;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.RequestCompressionPlugin;
+import org.zalando.riptide.compression.RequestCompressionPlugin;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
