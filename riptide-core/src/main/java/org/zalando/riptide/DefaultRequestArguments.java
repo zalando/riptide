@@ -5,8 +5,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Singular;
+import lombok.With;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.Wither;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.BaseMap;
 import org.organicdesign.fp.collections.ImList;
@@ -35,6 +35,7 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 import static org.springframework.web.util.UriUtils.encodeQueryParam;
 import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
 import static org.zalando.fauxpas.FauxPas.throwingConsumer;
+import static org.zalando.riptide.UrlResolution.RFC;
 
 @API(status = INTERNAL)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -42,19 +43,19 @@ import static org.zalando.fauxpas.FauxPas.throwingConsumer;
 final class DefaultRequestArguments implements RequestArguments {
 
     @Getter
-    @Wither
+    @With
     HttpMethod method;
 
     @Getter
-    @Wither
+    @With
     URI baseUrl;
 
     @Getter
-    @Wither
+    @With
     UrlResolution urlResolution;
 
     @Getter
-    @Wither
+    @With
     String uriTemplate;
 
     @Getter
@@ -62,7 +63,7 @@ final class DefaultRequestArguments implements RequestArguments {
     ImList<Object> uriVariables;
 
     @Getter
-    @Wither
+    @With
     URI uri;
 
     BaseMap<Attribute<?>, Object> attributes;
@@ -76,19 +77,19 @@ final class DefaultRequestArguments implements RequestArguments {
     BaseMap<String, List<String>> headers;
 
     @Getter
-    @Wither
+    @With
     Object body;
 
     @Getter
-    @Wither
+    @With
     Entity entity;
 
     @Getter
-    @Wither
+    @With
     Route route;
 
     DefaultRequestArguments() {
-        this(null, null, null, null, PersistentVector.empty(), null, PersistentHashMap.empty(),
+        this(null, null, RFC, null, PersistentVector.empty(), null, PersistentHashMap.empty(),
                 PersistentHashMap.empty(), PersistentTreeMap.empty(CASE_INSENSITIVE_ORDER), null, null, null);
     }
 
