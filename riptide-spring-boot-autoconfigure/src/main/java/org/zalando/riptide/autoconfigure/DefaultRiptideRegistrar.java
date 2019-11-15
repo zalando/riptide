@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,6 @@ import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RequestPolicy;
-import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.faults.DefaultFaultClassifier;
 import org.zalando.riptide.faults.FaultClassifier;
@@ -55,6 +55,7 @@ import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.micrometer.ThreadPoolMetrics;
+import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
@@ -332,14 +333,31 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(id, MicrometerPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, MicrometerPlugin.class.getSimpleName());
                 return genericBeanDefinition(MicrometerPluginFactory.class)
-                        .setFactoryMethod("createMicrometerPlugin")
+                        .setFactoryMethod("create")
                         .addConstructorArgValue(METER_REGISTRY_REF)
-                        .addConstructorArgValue(ImmutableList.of(clientId(id)));
+                        .addConstructorArgValue(Tags.of(clientId(id))
+                                .and(tags(client.getMetrics().getTags())))
+                        .addConstructorArgValue(registerRetryTagGenerator(client));
             });
 
             return Optional.of(pluginId);
         }
         return Optional.empty();
+    }
+
+    private static Iterable<Tag> tags(final Map<String, String> tags) {
+        return tags.entrySet().stream()
+                .map(e -> Tag.of(e.getKey(), e.getValue()))
+                .collect(toList());
+    }
+
+    private List<BeanMetadataElement> registerRetryTagGenerator(final Client client) {
+        if (client.getRetry().getEnabled()) {
+            return list(genericBeanDefinition(RetryTagGenerator.class)
+                    .getBeanDefinition());
+        } else {
+            return list();
+        }
     }
 
     private Optional<String> registerLogbookPlugin(final String id, final Client client) {
@@ -504,8 +522,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return ref(registry.registerIfAbsent(id, RetryPolicy.class, () ->
                 genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createRetryPolicy")
-                        .addConstructorArgValue(client)
-                        .addConstructorArgReference(registerRetryListener(id, client))));
+                        .addConstructorArgValue(client)));
     }
 
     private BeanMetadataElement registerCircuitBreaker(final String id, final Client client) {
@@ -514,20 +531,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .setFactoryMethod("createCircuitBreaker")
                         .addConstructorArgValue(client)
                         .addConstructorArgReference(registerCircuitBreakerListener(id, client))));
-    }
-
-    private String registerRetryListener(final String id, final Client client) {
-        return registry.registerIfAbsent(id, RetryListener.class, () -> {
-            if (client.getMetrics().getEnabled()) {
-                return genericBeanDefinition(MicrometerFailsafeFactory.class)
-                        .setFactoryMethod("createRetryListener")
-                        .addConstructorArgValue(METER_REGISTRY_REF)
-                        .addConstructorArgValue(ImmutableList.of(clientId(id)));
-            } else {
-                return genericBeanDefinition(MicrometerFailsafeFactory.class)
-                        .setFactoryMethod("getDefaultRetryListener");
-            }
-        });
     }
 
     private String registerCircuitBreakerListener(final String id, final Client client) {
@@ -545,7 +548,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private Tag clientId(final String id) {
-        return Tag.of("clientId", id);
+        return Tag.of("client_id", id);
     }
 
     private Tag clientName(final String id, final Client client) {

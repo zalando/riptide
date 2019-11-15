@@ -1,38 +1,47 @@
 package org.zalando.riptide.micrometer;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
+import org.zalando.riptide.micrometer.tag.StaticTagDecorator;
 
 import javax.annotation.Nullable;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.util.Collections.singleton;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.fauxpas.FauxPas.throwingPredicate;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
@@ -47,32 +56,30 @@ final class MicrometerPluginTest {
                             .setSocketTimeout(500)
                             .build())
             .build());
+
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
     private final Http unit = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
-            .converter(createJsonConverter())
             .plugin(new MicrometerPlugin(registry)
                     .withMetricName("http.outgoing-requests")
-                    .withDefaultTags(Tag.of("client", "example")))
+                    .withDefaultTags(Tag.of("client", "example"))
+                    .withAdditionalTagGenerators(
+                            new StaticTagDecorator(singleton(Tag.of("test", "true"))))
+                    .withAdditionalTagGenerators(new RetryTagGenerator()))
+            .plugin(new FailsafePlugin()
+                .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                        .handleIf(error -> false)
+                        .handleResultIf(throwingPredicate(response ->
+                                response.getStatusCode().is5xxServerError()))))
             .build();
-
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(createObjectMapper());
-        return converter;
-    }
-
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    }
 
     @Test
     void shouldRecordSuccessResponseMetric() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().withStatus(200));
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse().withStatus(200));
 
         unit.get("/foo")
                 .call(pass())
@@ -81,12 +88,51 @@ final class MicrometerPluginTest {
         @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
 
         assertThat(timer, is(notNullValue()));
-        assertThat(timer.getId().getTag("method"), is("GET"));
-        assertThat(timer.getId().getTag("uri"), is("/foo"));
-        assertThat(timer.getId().getTag("status"), is("200"));
-        assertThat(timer.getId().getTag("clientName"), is("localhost"));
+        assertThat(timer.getId().getTag("http.method"), is("GET"));
+        assertThat(timer.getId().getTag("http.path"), is("/foo"));
+        assertThat(timer.getId().getTag("http.status_code"), is("200"));
+        assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
         assertThat(timer.getId().getTag("client"), is("example"));
+        assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+    }
+
+    @Test
+    void shouldRecordRetryNumberMetricTag() {
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse().withStatus(500));
+        driver.addExpectation(onRequestTo("/foo"),
+                giveEmptyResponse().withStatus(200));
+
+        unit.get("/foo")
+                .call(pass())
+                .join();
+
+        final List<Timer> timers = new ArrayList<>(registry.find("http.outgoing-requests").timers());
+
+        assertThat(timers, hasSize(2));
+
+        {
+            final Timer timer = timers.get(0);
+            assertThat(timer, is(notNullValue()));
+            assertThat(timer.getId().getTag("http.method"), is("GET"));
+            assertThat(timer.getId().getTag("http.path"), is("/foo"));
+            assertThat(timer.getId().getTag("http.status_code"), is("500"));
+            assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+            assertThat(timer.getId().getTag("retry_number"), is(nullValue()));
+            assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+        }
+
+        {
+            final Timer timer = timers.get(1);
+            assertThat(timer, is(notNullValue()));
+            assertThat(timer.getId().getTag("http.method"), is("GET"));
+            assertThat(timer.getId().getTag("http.path"), is("/foo"));
+            assertThat(timer.getId().getTag("http.status_code"), is("200"));
+            assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+            assertThat(timer.getId().getTag("retry_number"), is("1"));
+            assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+        }
     }
 
     @Test
@@ -94,7 +140,7 @@ final class MicrometerPluginTest {
         driver.addExpectation(onRequestTo("/bar").withMethod(POST),
                 giveEmptyResponse().withStatus(503));
 
-        unit.post("/bar")
+        unit.post(URI.create("/bar"))
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()))
                 .exceptionally(e -> null)
@@ -103,11 +149,12 @@ final class MicrometerPluginTest {
         @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
 
         assertThat(timer, is(notNullValue()));
-        assertThat(timer.getId().getTag("method"), is("POST"));
-        assertThat(timer.getId().getTag("uri"), is("/bar"));
-        assertThat(timer.getId().getTag("status"), is("503"));
-        assertThat(timer.getId().getTag("clientName"), is("localhost"));
+        assertThat(timer.getId().getTag("http.method"), is("POST"));
+        assertThat(timer.getId().getTag("http.path"), is(nullValue()));
+        assertThat(timer.getId().getTag("http.status_code"), is("503"));
+        assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
         assertThat(timer.getId().getTag("client"), is("example"));
+        assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
     }
 
@@ -124,11 +171,13 @@ final class MicrometerPluginTest {
         @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
 
         assertThat(timer, is(notNullValue()));
-        assertThat(timer.getId().getTag("method"), is("GET"));
-        assertThat(timer.getId().getTag("uri"), is("/err"));
-        assertThat(timer.getId().getTag("status"), is("CLIENT_ERROR"));
-        assertThat(timer.getId().getTag("clientName"), is("localhost"));
+        assertThat(timer.getId().getTag("http.method"), is("GET"));
+        assertThat(timer.getId().getTag("http.path"), is("/err"));
+        assertThat(timer.getId().getTag("http.status"), is(nullValue()));
+        assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+        assertThat(timer.getId().getTag("error.kind"), is("SocketTimeoutException"));
         assertThat(timer.getId().getTag("client"), is("example"));
+        assertThat(timer.getId().getTag("test"), is("true"));
     }
 
 }

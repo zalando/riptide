@@ -4,15 +4,18 @@ import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer.Sample;
+import lombok.AllArgsConstructor;
 import net.jodah.failsafe.CircuitBreaker.State;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.concat;
 import static io.micrometer.core.instrument.Timer.start;
 import static java.util.Collections.singleton;
+import static lombok.AccessLevel.PRIVATE;
 import static net.jodah.failsafe.CircuitBreaker.State.CLOSED;
 import static net.jodah.failsafe.CircuitBreaker.State.HALF_OPEN;
 import static net.jodah.failsafe.CircuitBreaker.State.OPEN;
@@ -20,6 +23,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.apiguardian.api.API.Status.INTERNAL;
 
 @API(status = EXPERIMENTAL)
+@AllArgsConstructor(access = PRIVATE)
 public final class MetricsCircuitBreakerListener implements CircuitBreakerListener {
 
     private final MeterRegistry registry;
@@ -34,12 +38,13 @@ public final class MetricsCircuitBreakerListener implements CircuitBreakerListen
     }
 
     @API(status = INTERNAL)
-    MetricsCircuitBreakerListener(final MeterRegistry registry, final String metricName,
+    MetricsCircuitBreakerListener(
+            final MeterRegistry registry,
+            final String metricName,
             final ImmutableList<Tag> defaultTags) {
-        this.registry = registry;
-        this.metricName = metricName;
-        this.defaultTags = defaultTags;
-        this.sample = new AtomicReference<>(start(registry));
+
+        this(registry, metricName, defaultTags,
+                new AtomicReference<>(start(registry)));
     }
 
     public MetricsCircuitBreakerListener withMetricName(final String metricName) {
@@ -47,11 +52,11 @@ public final class MetricsCircuitBreakerListener implements CircuitBreakerListen
     }
 
     public MetricsCircuitBreakerListener withDefaultTags(final Tag... defaultTags) {
-        return withDefaultTags(ImmutableList.copyOf(defaultTags));
+        return withDefaultTags(copyOf(defaultTags));
     }
 
     public MetricsCircuitBreakerListener withDefaultTags(final Iterable<Tag> defaultTags) {
-        return new MetricsCircuitBreakerListener(registry, metricName, ImmutableList.copyOf(defaultTags));
+        return new MetricsCircuitBreakerListener(registry, metricName, copyOf(defaultTags));
     }
 
     @Override

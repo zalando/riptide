@@ -72,7 +72,7 @@ public final class RiptideProperties {
         private StackTracePreservation stackTracePreservation = new StackTracePreservation(true);
 
         @NestedConfigurationProperty
-        private Metrics metrics = new Metrics(false);
+        private Metrics metrics = new Metrics(false, emptyMap());
 
         @NestedConfigurationProperty
         private Logging logging = new Logging(false);
@@ -247,6 +247,7 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class Metrics {
         private Boolean enabled;
+        private Map<String, String> tags;
     }
 
     @Getter

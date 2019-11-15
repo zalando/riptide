@@ -72,13 +72,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <fauxpas.version>0.8.0</fauxpas.version>
+        <jackson.version>2.10.1</jackson.version>
+        <junit-jupiter.version>5.5.2</junit-jupiter.version>
+        <micrometer.version>1.3.0</micrometer.version>
+        <problem.version>0.23.0</problem.version>
         <slf4j.version>1.7.29</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <spring-boot.version>2.2.1.RELEASE</spring-boot.version>
-        <jackson.version>2.10.1</jackson.version>
-        <problem.version>0.23.0</problem.version>
-        <fauxpas.version>0.8.0</fauxpas.version>
-        <junit-jupiter.version>5.5.2</junit-jupiter.version>
     </properties>
 
     <dependencyManagement>
@@ -306,6 +308,13 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- monitoring -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
             </dependency>
 
             <!-- testing: common -->
