@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
-import org.zalando.riptide.compression.Compression.OutputStreamDecorator;
+import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +21,10 @@ import static org.mockito.Mockito.when;
 class WrappingHttpOutputMessageTest {
 
     private final HttpOutputMessage message = mock(HttpOutputMessage.class);
-    private final OutputStreamDecorator wrapper = mock(OutputStreamDecorator.class);
+
+    @SuppressWarnings("unchecked")
+    private final ThrowingUnaryOperator<OutputStream, IOException> wrapper = mock(ThrowingUnaryOperator.class);
+
     private final WrappingHttpOutputMessage unit = new WrappingHttpOutputMessage(message, wrapper);
 
     @BeforeEach
@@ -39,7 +42,7 @@ class WrappingHttpOutputMessageTest {
     @Test
     void shouldReturnWrapped() throws IOException {
         final OutputStream wrappedStream = mock(OutputStream.class);
-        when(wrapper.wrap(any())).thenReturn(wrappedStream);
+        when(wrapper.apply(any())).thenReturn(wrappedStream);
 
         assertThat(unit.getBody(), equalTo(wrappedStream));
         assertThat(unit.getBody(), equalTo(wrappedStream));
@@ -48,19 +51,19 @@ class WrappingHttpOutputMessageTest {
     @Test
     void shouldWrapOnFirstAccessOnly() throws IOException {
         final OutputStream wrappedStream = mock(OutputStream.class);
-        when(wrapper.wrap(any())).thenReturn(wrappedStream);
+        when(wrapper.apply(any())).thenReturn(wrappedStream);
 
         unit.getBody();
         unit.getBody();
 
-        verify(wrapper).wrap(message.getBody());
+        verify(wrapper).apply(message.getBody());
         verifyNoMoreInteractions(wrapper);
     }
 
     @Test
     void shouldNotCloseStreamIfNeverAccessed() throws IOException {
         final OutputStream wrappedStream = mock(OutputStream.class);
-        when(wrapper.wrap(any())).thenReturn(wrappedStream);
+        when(wrapper.apply(any())).thenReturn(wrappedStream);
 
         unit.close();
 

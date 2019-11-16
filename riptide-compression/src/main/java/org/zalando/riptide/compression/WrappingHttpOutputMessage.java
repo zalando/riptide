@@ -2,6 +2,7 @@ package org.zalando.riptide.compression;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
+import org.zalando.fauxpas.ThrowingUnaryOperator;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -10,10 +11,10 @@ import java.io.OutputStream;
 final class WrappingHttpOutputMessage implements HttpOutputMessage, AutoCloseable {
 
     private final HttpOutputMessage message;
-    private final Compression.OutputStreamDecorator wrapper;
+    private final ThrowingUnaryOperator<OutputStream, IOException> wrapper;
     private OutputStream stream;
 
-    WrappingHttpOutputMessage(HttpOutputMessage message, Compression.OutputStreamDecorator wrapper) {
+    WrappingHttpOutputMessage(HttpOutputMessage message, ThrowingUnaryOperator<OutputStream, IOException> wrapper) {
         this.message = message;
         this.wrapper = wrapper;
     }
@@ -22,7 +23,7 @@ final class WrappingHttpOutputMessage implements HttpOutputMessage, AutoCloseabl
     @Override
     public OutputStream getBody() throws IOException {
         if (stream == null) {
-            stream = wrapper.wrap(message.getBody());
+            stream = wrapper.apply(message.getBody());
         }
         return stream;
     }
