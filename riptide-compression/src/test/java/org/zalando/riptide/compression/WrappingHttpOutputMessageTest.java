@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
-import org.zalando.riptide.compression.Compression.OutputStreamWrapper;
+import org.zalando.riptide.compression.Compression.OutputStreamDecorator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class WrappingHttpOutputMessageTest {
 
     private final HttpOutputMessage message = mock(HttpOutputMessage.class);
-    private final OutputStreamWrapper wrapper = mock(OutputStreamWrapper.class);
+    private final OutputStreamDecorator wrapper = mock(OutputStreamDecorator.class);
     private final WrappingHttpOutputMessage unit = new WrappingHttpOutputMessage(message, wrapper);
 
     @BeforeEach

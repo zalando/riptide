@@ -10,10 +10,10 @@ import java.io.OutputStream;
 final class WrappingHttpOutputMessage implements HttpOutputMessage, AutoCloseable {
 
     private final HttpOutputMessage message;
-    private final Compression.OutputStreamWrapper wrapper;
+    private final Compression.OutputStreamDecorator wrapper;
     private OutputStream stream;
 
-    WrappingHttpOutputMessage(HttpOutputMessage message, Compression.OutputStreamWrapper wrapper) {
+    WrappingHttpOutputMessage(HttpOutputMessage message, Compression.OutputStreamDecorator wrapper) {
         this.message = message;
         this.wrapper = wrapper;
     }

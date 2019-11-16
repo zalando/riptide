@@ -14,10 +14,10 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 @Getter
 public final class Compression {
     private final String contentEncoding;
-    private final OutputStreamWrapper outputStreamWrapper;
+    private final OutputStreamDecorator outputStreamDecorator;
 
     @FunctionalInterface
-    public interface OutputStreamWrapper {
+    public interface OutputStreamDecorator {
         OutputStream wrap(final OutputStream stream) throws IOException;
     }
 }

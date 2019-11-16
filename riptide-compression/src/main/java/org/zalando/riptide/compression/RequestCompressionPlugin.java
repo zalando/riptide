@@ -66,7 +66,7 @@ public final class RequestCompressionPlugin implements Plugin {
 
         private void writeToCompressing(HttpOutputMessage message) throws IOException {
             try (final WrappingHttpOutputMessage compressingMessage =
-                         new WrappingHttpOutputMessage(message, compression.getOutputStreamWrapper())) {
+                         new WrappingHttpOutputMessage(message, compression.getOutputStreamDecorator())) {
                 entity.writeTo(compressingMessage);
             }
         }
