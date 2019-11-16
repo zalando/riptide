@@ -13,11 +13,11 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 @Hack
 final class GzipClientDriver extends ClientDriver {
 
+    private int port;
+
     static ClientDriver create() {
         return new GzipClientDriver(new DefaultClientDriverJettyHandler(new DefaultRequestMatcher()));
     }
-
-    private int port;
 
     private GzipClientDriver(ClientDriverJettyHandler handler) {
         super(handler);

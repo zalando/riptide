@@ -36,7 +36,7 @@ public final class RequestCompressionPlugin implements Plugin {
         return arguments -> {
             final Entity entity = arguments.getEntity();
 
-            if (entity.isEmpty()) {
+            if (entity.isEmpty() || arguments.getHeaders().containsKey(CONTENT_ENCODING)) {
                 return execution.execute(arguments);
             }
 

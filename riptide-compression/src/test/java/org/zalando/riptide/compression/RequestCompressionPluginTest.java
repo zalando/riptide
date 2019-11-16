@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
@@ -30,6 +29,7 @@ import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
 
 class RequestCompressionPluginTest {
@@ -46,7 +46,7 @@ class RequestCompressionPluginTest {
 
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
-    void shouldCompressRequestUsingFactory(final ClientHttpRequestFactory factory) {
+    void shouldCompressRequestBody(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
                         .withMethod(POST)
                         .withHeader("X-Content-Encoding", "gzip") // written by Jetty's GzipHandler
@@ -63,16 +63,17 @@ class RequestCompressionPluginTest {
 
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
-    void shouldNotCompressEmptyBody(final ClientHttpRequestFactory factory) {
+    void shouldNotCompressEmptyRequestBody(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
-                        .withBody(emptyString(), "text/plain")
+                        .withMethod(POST)
+                        .withBody(emptyString(), "application/json")
                         .withoutHeader("Content-Encoding")
                         .withoutHeader("X-Content-Encoding"),
                 giveResponse("", "text/plain"));
 
         final Http http = buildHttp(factory, new RequestCompressionPlugin());
-        http.get("/")
-                .contentType(MediaType.TEXT_PLAIN)
+        http.post("/")
+                .contentType(MediaType.APPLICATION_JSON)
                 .call(pass())
                 .join();
     }
@@ -95,6 +96,25 @@ class RequestCompressionPluginTest {
                 .join();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(RequestFactorySource.class)
+    void shouldBackOffIfAlreadyEncoded(final ClientHttpRequestFactory factory) {
+        driver.addExpectation(onRequestTo("/")
+                        .withMethod(POST)
+                        .withHeader("Content-Encoding", "custom") // not handled by Jetty
+                        .withoutHeader("X-Content-Encoding")
+                        .withBody(equalTo("{}"), "application/json"),
+                giveResponse("", "text/plain"));
+
+        final Http http = buildHttp(factory, new RequestCompressionPlugin());
+        http.post("/")
+                .header(CONTENT_ENCODING, "custom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new HashMap<>())
+                .call(pass())
+                .join();
+    }
+
     private Http buildHttp(final ClientHttpRequestFactory factory, final Plugin... plugins) {
         return Http.builder()
                 .executor(executor)
@@ -109,7 +129,7 @@ class RequestCompressionPluginTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
                     new SimpleClientHttpRequestFactory(),
-                    new Netty4ClientHttpRequestFactory(),
+                    // new Netty4ClientHttpRequestFactory(), # broken, see #823
                     new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()),
                     new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.BUFFERING),
                     new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.STREAMING)

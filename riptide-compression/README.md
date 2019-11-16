@@ -50,6 +50,27 @@ In order to specify the compression algorithm you can pass in a custom `Compress
 new RequestCompressionPlugin(Compression.of("br", BrotliOutputStream::new));
 ```
 
+## Usage
+
+```java
+http.post("/events")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(asList(events))
+        .call(pass())
+        .join();
+```
+
+All request bodies will be compressed using the configured compression method using `chunked` transfer-encoding.
+
+If there is already a `Content-Encoding` specified on the request, the plugin does nothing.
+
+### Limitations
+
+* You must only configure a single `RequestCompressionPlugin` as only a single encoding is applied currently.
+* Starting with Spring 4.3 the `Netty4ClientHttpRequestFactory` unconditionally adds a `Content-Length` header,
+which breaks if used together with  `RequestCompressionPlugin`. Use `riptide-httpclient` instead.
+
+
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
