@@ -80,7 +80,7 @@ private Http example;
 - Riptide
   - Core
   - (Apache) HTTP Client
-  - Compression (optional)
+  - Compression
   - Backup (optional)
   - Failsafe (optional)
   - Faults (optional)
@@ -126,18 +126,6 @@ Required when `transient-fault-detection` is enabled.
 <dependency>
     <groupId>org.zalando</groupId>
     <artifactId>riptide-faults</artifactId>
-    <version>${riptide.version}</version>
-</dependency>
-```
-
-#### [Compression](../riptide-compression) support
-
-Required when `request-compression` is enabled.
-
-```xml
-<dependency>
-    <groupId>org.zalando</groupId>
-    <artifactId>riptide-compression</artifactId>
     <version>${riptide.version}</version>
 </dependency>
 ```
