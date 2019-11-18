@@ -3,7 +3,6 @@ package org.zalando.riptide.soap;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -26,6 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_XML;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.soap.SOAPRoute.soap;
@@ -87,7 +87,7 @@ final class SOAPTest {
     @Test
     void shouldFailToWriteIncompatibleMediaType() {
         final CompletableFuture<ClientHttpResponse> future = unit.post()
-                .contentType(MediaType.APPLICATION_XML)
+                .contentType(APPLICATION_XML)
                 .body(new SayHello("Riptide"))
                 .call(soap(SayHelloResponse.class, System.out::println));
 
@@ -98,6 +98,7 @@ final class SOAPTest {
     @Test
     void shouldFailToWriteFault() {
         final CompletableFuture<ClientHttpResponse> future = unit.post()
+                .accept(TEXT_XML)
                 .body(mock(SOAPFault.class))
                 .call(pass());
 

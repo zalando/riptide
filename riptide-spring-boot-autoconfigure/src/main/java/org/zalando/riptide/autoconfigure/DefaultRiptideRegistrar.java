@@ -195,20 +195,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             final String objectMapperId = findObjectMapper(id);
 
-            log.debug("Client [{}]: Registering MappingJackson2HttpMessageConverter referencing [{}]", id,
-                    objectMapperId);
-            list.add(genericBeanDefinition(MappingJackson2HttpMessageConverter.class)
-                    .addConstructorArgReference(objectMapperId)
-                    .getBeanDefinition());
-
-            ifPresent("org.zalando.riptide.stream.Streams", () -> {
-                log.debug("Client [{}]: Registering StreamConverter referencing [{}]", id, objectMapperId);
-                list.add(genericBeanDefinition(Streams.class)
-                        .setFactoryMethod("streamConverter")
-                        .addConstructorArgReference(objectMapperId)
-                        .getBeanDefinition());
-            });
-
             if (client.getSoap().getEnabled()) {
                 final Map<String, String> protocols = ImmutableMap.of(
                         "1.1", SOAPConstants.SOAP_1_1_PROTOCOL,
@@ -228,6 +214,20 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgValue(protocol)
                         .getBeanDefinition());
             }
+
+            log.debug("Client [{}]: Registering MappingJackson2HttpMessageConverter referencing [{}]", id,
+                    objectMapperId);
+            list.add(genericBeanDefinition(MappingJackson2HttpMessageConverter.class)
+                    .addConstructorArgReference(objectMapperId)
+                    .getBeanDefinition());
+
+            ifPresent("org.zalando.riptide.stream.Streams", () -> {
+                log.debug("Client [{}]: Registering StreamConverter referencing [{}]", id, objectMapperId);
+                list.add(genericBeanDefinition(Streams.class)
+                        .setFactoryMethod("streamConverter")
+                        .addConstructorArgReference(objectMapperId)
+                        .getBeanDefinition());
+            });
 
             log.debug("Client [{}]: Registering StringHttpMessageConverter", id);
             list.add(genericBeanDefinition(StringHttpMessageConverter.class)

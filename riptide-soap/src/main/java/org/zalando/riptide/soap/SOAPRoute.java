@@ -10,6 +10,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.RoutingTree.dispatch;
 
 public final class SOAPRoute {
@@ -18,9 +19,15 @@ public final class SOAPRoute {
 
     }
 
-    public static <T> Route soap(final Class<T> type, final ThrowingConsumer<T, ? extends Exception> consumer) {
+    public static <T> Route soap(
+            final Class<T> type,
+            final ThrowingConsumer<T, ? extends Exception> consumer) {
+        return soap(call(type, consumer));
+    }
+
+    public static <T> Route soap(final Route route) {
         return dispatch(status(),
-                on(OK).call(type, consumer),
+                on(OK).call(route),
                 on(INTERNAL_SERVER_ERROR).call(SOAPFault.class, fault -> {
                     throw new SOAPFaultException(fault);
                 }));
