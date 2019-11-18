@@ -80,6 +80,14 @@ http.post()
         }))
 ```
 
+In case the response is not interesting it can be discarded:
+
+```java
+http.post()
+    .body(new PlaceOrderRequest(order))
+    .call(soap(pass()));
+```
+
 ## Getting Help
 
 If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../../issues).
