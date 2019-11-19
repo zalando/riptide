@@ -34,8 +34,5 @@ jobs:
       run: ./mvnw clean test-compile --no-transfer-progress
     - name: Test
       run: ./mvnw verify ${{ matrix.profile }} --no-transfer-progress 
-    #- name: Coverage
-    #  uses: coverallsapp/github-action@master
-    #  with:
-    #    github-token: ${{ secrets.GITHUB_TOKEN }}
-
+    - name: Coverage
+      run: ./mvnw coveralls:report --no-transfer-progress -D repoToken=${{ secrets.GITHUB_TOKEN }} -D serviceName=Github -D branch=${{ github.ref }}
