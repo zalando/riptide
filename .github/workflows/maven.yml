@@ -29,5 +29,7 @@ jobs:
     - name: Test
       run: ./mvnw verify ${{ matrix.profile }} --no-transfer-progress 
     - name: Coverage
-      run: ./mvnw coveralls:report --no-transfer-progress
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
