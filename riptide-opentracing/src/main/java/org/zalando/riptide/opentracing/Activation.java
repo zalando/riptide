@@ -1,5 +1,6 @@
 package org.zalando.riptide.opentracing;
 
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import org.apiguardian.api.API;
@@ -7,13 +8,8 @@ import org.apiguardian.api.API;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
-public final class NoOpActivationPolicy implements ActivationPolicy {
+public interface Activation {
 
-    @Override
-    public Runnable activate(final Tracer tracer, final Span span) {
-        return () -> {
-            // nothing to do
-        };
-    }
+    Scope activate(Tracer tracer, Span span);
 
 }

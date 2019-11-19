@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.zalando.riptide.PassRoute.pass;
 
-final class ActivationPolicyTest {
+final class ActivationTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
     private final MockTracer tracer = new MockTracer();
@@ -31,7 +31,7 @@ final class ActivationPolicyTest {
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .plugin(new OpenTracingPlugin(tracer)
-                .withActivationPolicy(new NoOpActivationPolicy()))
+                .withActivation(new NoOpActivation()))
             .plugin(new Plugin() {
                 @Override
                 public RequestExecution aroundNetwork(final RequestExecution execution) {

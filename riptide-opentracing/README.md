@@ -53,8 +53,8 @@ Add the following dependency to your project:
 Http.builder()
     .baseUrl("https://www.example.com")
     .plugin(new OpenTracingPlugin(tracer)
-        .withLifecyclePolicy(new NewSpanLifecyclePolicy())
-        .withActivationPolicy(new NoOpActivationPolicy())
+        .withLifecycle(new NewSpanLifecycle())
+        .withActivation(new NoOpActivation())
         .withAdditionalSpanDecorators(new HttpUrlSpanDecorator))
     .build();
 ```
@@ -116,25 +116,25 @@ new OpenTracingPlugin(tracer)
     .withAdditionalSpanDecorators(new HttpUrlSpanDecorator())
 ```
 
-### Lifecycle Policy
+### Lifecycle 
 
 A lifecycle policy can be used to specify which spans are reused or whether a new one is created:
 
 ```java
 new OpenTracingPlugin(tracer)
-    .withLifecyclePolicy(new NewSpanLifecyclePolicy());
+    .withLifecycle(new NewSpanLifecycle());
 ```
 
-#### Active Span Lifecycle Policy
+#### Active Span Lifecycle 
 
-The `ActiveSpanLifecyclePolicy` reuses the current active span. This approach might be useful if some other
+The `ActiveSpanLifecycle` reuses the current active span. This approach might be useful if some other
 facility already provided a span that can be used to decorate with *tags*.
 
 ```java
 Http http = Http.builder()
     .baseUrl("https://www.example.com")
     .plugin(new OpenTracingPlugin(tracer)
-        .withLifecyclePolicy(new ActiveSpanLifecyclePolicy()))
+        .withLifecycle(new ActiveSpanLifecycle()))
     .build();
 
 Span span = tracer.buildSpan("test").start();
@@ -148,9 +148,9 @@ try (final Scope ignored = tracer.activateSpan(span)) {
 }
 ```
 
-#### Explicit Span Lifecycle Policy
+#### Explicit Span Lifecycle 
 
-The `ExplicitSpanLifecyclePolicy` reuses the span passed with the `OpenTracingPlugin.SPAN` attribute.
+The `ExplicitSpanLifecycle` reuses the span passed with the `OpenTracingPlugin.SPAN` attribute.
 That allows to pass a span explicitly rather than implicitly via the *active span* mechanism. This might be needed
 for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop based reactive applications.
 
@@ -158,7 +158,7 @@ for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop
 Http http = Http.builder()
     .baseUrl("https://www.example.com")
     .plugin(new OpenTracingPlugin(tracer)
-        .withLifecyclePolicy(new ExplicitSpanLifecyclePolicy()))
+        .withLifecycle(new ExplicitSpanLifecycle()))
     .build();
 
 Span span = tracer.buildSpan("test").start();
@@ -171,16 +171,15 @@ http.get("/users/{user}", "me")
 span.finish();
 ```
 
-#### New Span Lifecycle Policy
+#### New Span Lifecycle 
 
-The `NewSpanLifecyclePolicy` starts and finishes a new span for every request. This policy is the most common
-approach and therefore the default (in conjunction with the `ExplicitSpanLifecyclePolicy`).
+The `NewSpanLifecycle` starts and finishes a new span for every request. This policy is the most common approach and therefore the default (in conjunction with the `ExplicitSpanLifecycle`).
 
 ```java
 Http http = Http.builder()
     .baseUrl("https://www.example.com")
     .plugin(new OpenTracingPlugin(tracer)
-        .withLifecyclePolicy(new NewSpanLifecyclePolicy()))
+        .withLifecycle(new NewSpanLifecycle()))
     .build();
 
 http.get("/users/{user}", "me")
@@ -188,37 +187,42 @@ http.get("/users/{user}", "me")
         .join();
 ```
 
-#### Lifecycle Policy composition
+#### Lifecycle composition
 
 Different lifecycle policies can be chained together:
 
 ```java
 new OpenTracingPlugin(tracer)
-    .withLifecyclePolicy(LifecyclePolicy.composite(
-            new ActiveSpanLifecyclePolicy(),
-            new ExplicitSpanLifecyclePolicy(),
-            new NewSpanLifecyclePolicy()
+    .withLifecycle(Lifecycle.composite(
+            new ActiveSpanLifecycle(),
+            new ExplicitSpanLifecycle(),
+            new NewSpanLifecycle()
     ));
 ```
 
-If a policy doesn't produce a span the next one will be used and so on and so forth. Tracing will effectively
-be disabled if none of the policies produces a span. 
+If a policy doesn't produce a span the next one will be used and so on and so forth. Tracing will effectively be disabled if none of the policies produces a span. 
 
-### Activation Policy
+### Activation 
 
-An activation policy can be used to specify whether a span will be activated or not. This might be desired
-for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop based reactive applications.
+An activation policy can be used to specify whether a span will be activated or not. This might be desired for system that can't rely on `ThreadLocal` state, e.g. non-blocking, event-loop based reactive applications.
 
 ```java
 new OpenTracingPlugin(tracer)
-    .withActivationPolicy(new NoOpActivationPolicy());
+    .withActivation(new NoOpActivation());
+```
+
+### Span Context Injection
+
+An injection policy can be used to specify whether (or how) the span context will be injected into outgoing requests. The default configuration enables span context propagation, but it's not always desired and can be disabled:
+
+```java
+new OpenTracingPlugin(tracer)
+    .withInjection(new NoOpInjection())
 ```
 
 ### Span Decorators
 
-Span decorators are a simple, yet powerful tool to manipulate the span, i.e. they allow you to
-add tags, logs and baggage to spans. The default set of decorators can be extended by using 
-`OpenTracingPlugin#withAdditionalSpanDecorators(..)`:
+Span decorators are a simple, yet powerful tool to manipulate the span, i.e. they allow you to add tags, logs and baggage to spans. The default set of decorators can be extended by using `OpenTracingPlugin#withAdditionalSpanDecorators(..)`:
 
 ```java
 new OpenTracingPlugin(tracer)
@@ -227,8 +231,7 @@ new OpenTracingPlugin(tracer)
     )))
 ```
 
-If the default span decorators are not desired you can replace them completely using
-`OpenTracingPlugin#withSpanDecorators(..)`:
+If the default span decorators are not desired you can replace them completely using `OpenTracingPlugin#withSpanDecorators(..)`:
 
 ```java
 new OpenTracingPlugin(tracer)
@@ -246,8 +249,7 @@ new OpenTracingPlugin(tracer)
 
 ## Usage
 
-Typically you won't need to do anything at the call-site regarding OpenTracing, i.e.
-your usages of Riptide should work exactly as before:
+Typically you won't need to do anything at the call-site regarding OpenTracing, i.e. your usages of Riptide should work exactly as before:
 
 ```java
 http.get("/users/{id}", userId)
@@ -258,9 +260,7 @@ http.get("/users/{id}", userId)
 
 ### Operation Name
 
-By default the HTTP method will be used as the operation name, which might not fit your needs.
-Since deriving a meaningful operation name from request arguments alone is unreliable, you can
-specify the `OpenTracingPlugin.OPERATION_NAME` request attribute to override the default:
+By default the HTTP method will be used as the operation name, which might not fit your needs. Since deriving a meaningful operation name from request arguments alone is unreliable, you can specify the `OpenTracingPlugin.OPERATION_NAME` request attribute to override the default:
 
 ```java
 http.get("/users/{id}", userId)
@@ -272,9 +272,7 @@ http.get("/users/{id}", userId)
 
 ### Call-Site Tags
 
-Assuming you have the [`CallSiteSpanDecorator`](#span-decorators) registered (it is by default), you can also
-specify custom tags based on context information which wouldn't be available within the plugin
-anymore:
+Assuming you have the [`CallSiteSpanDecorator`](#span-decorators) registered (it is by default), you can also specify custom tags based on context information which wouldn't be available within the plugin anymore:
 
 ```java
 http.get("/users/{id}", userId)
@@ -286,9 +284,7 @@ http.get("/users/{id}", userId)
 
 ### URI Variables as Tags
 
-URI templates are not just safer to use (see [Configuration](#notice)), they can also be used to
-generate tags from URI variables. Given you have the `UriVariablesTagSpanDecorator` registered
-then the following will produce a `user_id=123` tag:
+URI templates are not just safer to use (see [Configuration](#notice)), they can also be used to generate tags from URI variables. Given you have the `UriVariablesTagSpanDecorator` registered then the following will produce a `user_id=123` tag:
 
 ```java
 http.get("/users/{user_id}", 123)

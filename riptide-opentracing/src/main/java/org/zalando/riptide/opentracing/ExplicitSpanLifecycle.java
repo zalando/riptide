@@ -9,23 +9,19 @@ import org.zalando.riptide.RequestArguments;
 import java.util.Optional;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.riptide.opentracing.OpenTracingPlugin.OPERATION_NAME;
 
+/**
+ * @see OpenTracingPlugin#SPAN
+ */
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
-public final class NewSpanLifecyclePolicy implements LifecyclePolicy {
+public final class ExplicitSpanLifecycle implements Lifecycle {
 
     @Override
     public Optional<Span> start(final Tracer tracer, final RequestArguments arguments) {
-        final String operationName = arguments.getAttribute(OPERATION_NAME)
-                .orElse(arguments.getMethod().name());
-
-        return Optional.of(tracer.buildSpan(operationName).start());
-    }
-
-    @Override
-    public void finish(final Span span) {
-        span.finish();
+        return arguments.getAttribute(OpenTracingPlugin.SPAN)
+                // we don't want to finish an explicitly passed span
+                .map(NonFinishingSpan::new);
     }
 
 }

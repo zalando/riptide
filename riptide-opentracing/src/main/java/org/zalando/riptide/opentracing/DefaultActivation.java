@@ -14,11 +14,11 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  */
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
-public final class DefaultActivationPolicy implements ActivationPolicy {
+public final class DefaultActivation implements Activation {
 
     @Override
-    public Runnable activate(final Tracer tracer, final Span span) {
-        return tracer.activateSpan(span)::close;
+    public Scope activate(final Tracer tracer, final Span span) {
+        return tracer.activateSpan(span);
     }
 
 }
