@@ -41,4 +41,4 @@ jobs:
         -D repoToken=${{ secrets.COVERALLS_TOKEN }} \
         -D serviceName=Github \
         -D serviceBuildUrl=https://github.com/${{ github.repository }}/commit/${{ github.sha }}/checks \
-        -D branch=${{ github.ref }}
+        -D branch=${{ github.base_ref || github.ref }}
