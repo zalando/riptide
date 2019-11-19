@@ -80,6 +80,7 @@ private Http example;
 - Riptide
   - Core
   - (Apache) HTTP Client
+  - Compression
   - Backup (optional)
   - Failsafe (optional)
   - Faults (optional)

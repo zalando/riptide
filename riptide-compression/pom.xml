@@ -10,14 +10,10 @@
         <version>3.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>riptide-logbook</artifactId>
+    <artifactId>riptide-compression</artifactId>
 
-    <name>Riptide: Logbook</name>
-    <description>Client side response routing</description>
-
-    <properties>
-        <logbook.version>2.0.0-RC.5</logbook.version>
-    </properties>
+    <name>Riptide: Request Compression</name>
+    <description>Client side response routing with stream support</description>
 
     <dependencies>
         <dependency>
@@ -26,8 +22,14 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>logbook-core</artifactId>
-            <version>${logbook.version}</version>
+            <artifactId>riptide-httpclient</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.43.Final</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -36,22 +38,6 @@
         <dependency>
             <groupId>com.github.rest-driver</groupId>
             <artifactId>rest-client-driver</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>riptide-httpclient</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>riptide-compression</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>logbook-json</artifactId>
-            <version>${logbook.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
