@@ -24,7 +24,7 @@ jobs:
     - name: Cache
       uses: actions/cache@v1
       with:
-        path: $HOME/.m2
+        path: ~/.m2
         key: m2
     - name: Set up JDK
       uses: actions/setup-java@v1
