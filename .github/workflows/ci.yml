@@ -34,8 +34,8 @@ jobs:
       run: ./mvnw clean test-compile --no-transfer-progress
     - name: Test
       run: ./mvnw verify ${{ matrix.profile }} --no-transfer-progress 
-    - name: Coverage
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    #- name: Coverage
+    #  uses: coverallsapp/github-action@master
+    #  with:
+    #    github-token: ${{ secrets.GITHUB_TOKEN }}
 
