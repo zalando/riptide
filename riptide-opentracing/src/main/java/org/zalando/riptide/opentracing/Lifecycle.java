@@ -12,18 +12,16 @@ import java.util.Optional;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
-public interface LifecyclePolicy {
+public interface Lifecycle {
 
     Optional<Span> start(Tracer tracer, RequestArguments arguments);
 
-    void finish(Span span);
-
-    static LifecyclePolicy composite(final LifecyclePolicy... lifecyclePolicies) {
+    static Lifecycle composite(final Lifecycle... lifecyclePolicies) {
         return composite(Arrays.asList(lifecyclePolicies));
     }
 
-    static LifecyclePolicy composite(final Collection<LifecyclePolicy> lifecyclePolicies) {
-        return new CompositeLifecyclePolicy(lifecyclePolicies);
+    static Lifecycle composite(final Collection<Lifecycle> lifecyclePolicies) {
+        return new CompositeLifecycle(lifecyclePolicies);
     }
 
 }

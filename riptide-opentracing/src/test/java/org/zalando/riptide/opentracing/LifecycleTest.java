@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.zalando.riptide.PassRoute.pass;
 
-final class LifecyclePolicyTest {
+final class LifecycleTest {
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
     private final MockTracer tracer = new MockTracer();
@@ -31,9 +31,9 @@ final class LifecyclePolicyTest {
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
             .baseUrl(driver.getBaseUrl())
             .plugin(new OpenTracingPlugin(tracer)
-                .withLifecyclePolicy(LifecyclePolicy.composite(
-                        new ExplicitSpanLifecyclePolicy(),
-                        new ActiveSpanLifecyclePolicy()
+                .withLifecycle(Lifecycle.composite(
+                        new ExplicitSpanLifecycle(),
+                        new ActiveSpanLifecycle()
                 )))
             .build();
 

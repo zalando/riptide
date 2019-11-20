@@ -1,11 +1,10 @@
 package org.zalando.riptide.opentracing;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Multimaps;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-import io.opentracing.propagation.TextMapAdapter;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
@@ -26,11 +25,11 @@ import org.zalando.riptide.opentracing.span.HttpMethodOverrideSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPathSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPreferSpanDecorator;
-import org.zalando.riptide.opentracing.span.RateLimitSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpRetryAfterSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpWarningSpanDecorator;
 import org.zalando.riptide.opentracing.span.PeerSpanDecorator;
+import org.zalando.riptide.opentracing.span.RateLimitSpanDecorator;
 import org.zalando.riptide.opentracing.span.ServiceLoaderSpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
@@ -38,13 +37,11 @@ import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 
-import static io.opentracing.propagation.Format.Builtin.HTTP_HEADERS;
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
@@ -83,19 +80,21 @@ public final class OpenTracingPlugin implements Plugin {
     /**
      * Internal: Allows to pass span objects between stages.
      */
-    private static final Attribute<Span> INTERNAL_SPAN = Attribute.generate();
+    private final Attribute<Span> internalSpan = Attribute.generate();
 
     private final Tracer tracer;
-    private final LifecyclePolicy lifecyclePolicy;
-    private final ActivationPolicy activationPolicy;
+    private final Lifecycle lifecycle;
+    private final Activation activation;
+    private final Injection injection;
     private final SpanDecorator decorator;
 
     public OpenTracingPlugin(final Tracer tracer) {
         this(tracer,
-                LifecyclePolicy.composite(
-                        new ExplicitSpanLifecyclePolicy(),
-                        new NewSpanLifecyclePolicy()),
-                new DefaultActivationPolicy(),
+                Lifecycle.composite(
+                        new ExplicitSpanLifecycle(),
+                        new NewSpanLifecycle()),
+                new DefaultActivation(),
+                new DefaultInjection(),
                 CompositeSpanDecorator.composite(
                         new CallSiteSpanDecorator(),
                         new ComponentSpanDecorator(),
@@ -118,17 +117,23 @@ public final class OpenTracingPlugin implements Plugin {
     }
 
     @CheckReturnValue
-    public OpenTracingPlugin withLifecyclePolicy(final LifecyclePolicy lifecyclePolicy) {
-        return new OpenTracingPlugin(tracer, lifecyclePolicy, activationPolicy, decorator);
+    public OpenTracingPlugin withLifecycle(final Lifecycle lifecycle) {
+        return new OpenTracingPlugin(tracer, lifecycle, activation, injection, decorator);
     }
 
     @CheckReturnValue
-    public OpenTracingPlugin withActivationPolicy(final ActivationPolicy activationPolicy) {
-        return new OpenTracingPlugin(tracer, lifecyclePolicy, activationPolicy, decorator);
+    public OpenTracingPlugin withActivation(final Activation activation) {
+        return new OpenTracingPlugin(tracer, lifecycle, activation, injection, decorator);
+    }
+
+    @CheckReturnValue
+    public OpenTracingPlugin withInjection(final Injection injection) {
+        return new OpenTracingPlugin(tracer, lifecycle, activation, injection, decorator);
     }
 
     /**
-     * Creates a new {@link OpenTracingPlugin plugin} by <strong>combining</strong> the {@link SpanDecorator decorator(s)} of
+     * Creates a new {@link OpenTracingPlugin plugin} by
+     * <strong>combining</strong> the {@link SpanDecorator decorator(s)} of
      * {@code this} plugin with the supplied ones.
      *
      * @param first      first decorator
@@ -138,11 +143,13 @@ public final class OpenTracingPlugin implements Plugin {
     @CheckReturnValue
     public OpenTracingPlugin withAdditionalSpanDecorators(final SpanDecorator first,
             final SpanDecorator... decorators) {
-        return withSpanDecorators(decorator, CompositeSpanDecorator.composite(first, decorators));
+        return withSpanDecorators(decorator,
+                CompositeSpanDecorator.composite(first, decorators));
     }
 
     /**
-     * Creates a new {@link OpenTracingPlugin plugin} by <strong>replacing</strong> the {@link SpanDecorator decorator(s)} of
+     * Creates a new {@link OpenTracingPlugin plugin} by
+     * <strong>replacing</strong> the {@link SpanDecorator decorator(s)} of
      * {@code this} plugin with the supplied ones.
      *
      * @param decorator  first decorator
@@ -150,65 +157,83 @@ public final class OpenTracingPlugin implements Plugin {
      * @return a new {@link OpenTracingPlugin}
      */
     @CheckReturnValue
-    public OpenTracingPlugin withSpanDecorators(final SpanDecorator decorator, final SpanDecorator... decorators) {
+    public OpenTracingPlugin withSpanDecorators(
+            final SpanDecorator decorator, final SpanDecorator... decorators) {
         return new OpenTracingPlugin(tracer,
-                lifecyclePolicy, activationPolicy, CompositeSpanDecorator.composite(decorator, decorators));
+                lifecycle, activation, injection,
+                CompositeSpanDecorator.composite(decorator, decorators));
     }
 
     @Override
     public RequestExecution aroundDispatch(final RequestExecution execution) {
-        return arguments -> {
-            @Nullable final Span span = lifecyclePolicy.start(tracer, arguments).orElse(null);
+        return arguments -> trace(execution, arguments);
+    }
 
-            if (span == null) {
-                return execution.execute(arguments);
-            }
+    private CompletableFuture<ClientHttpResponse> trace(
+            final RequestExecution execution,
+            final RequestArguments arguments) throws IOException {
 
-            final Runnable close = activationPolicy.activate(tracer, span);
-            final Runnable finish = () -> lifecyclePolicy.finish(span);
+        @Nullable final Span span = lifecycle.start(tracer, arguments)
+                .orElse(null);
 
-            return execution.execute(arguments.withAttribute(INTERNAL_SPAN, span))
-                    .whenComplete(perform(close, finish));
-        };
+        if (span == null) {
+            return execution.execute(arguments);
+        }
+
+        final Scope scope = activation.activate(tracer, span);
+        return execution.execute(arguments.withAttribute(internalSpan, span))
+                .whenComplete(run(scope::close))
+                .whenComplete(run(span::finish));
+    }
+
+    private <T, U> BiConsumer<T, U> run(final Runnable runnable) {
+        return (t, U) -> runnable.run();
     }
 
     @Override
     public RequestExecution aroundNetwork(final RequestExecution execution) {
-        return arguments -> {
-            @Nullable final Span span = arguments.getAttribute(INTERNAL_SPAN).orElse(null);
-
-            if (span == null) {
-                return execution.execute(arguments);
-            }
-
-            decorator.onRequest(span, arguments);
-
-            return execution.execute(inject(arguments, span.context()))
-                    .whenComplete(decorate(span, arguments));
-        };
+        return arguments -> inject(execution, arguments);
     }
 
-    private RequestArguments inject(final RequestArguments arguments, final SpanContext context) {
-        final Map<String, String> headers = new HashMap<>();
-        tracer.inject(context, HTTP_HEADERS, new TextMapAdapter(headers));
-        return arguments.withHeaders(Multimaps.forMap(headers).asMap());
+    private CompletableFuture<ClientHttpResponse> inject(
+            final RequestExecution execution,
+            final RequestArguments arguments) throws IOException {
+
+        @Nullable final Span span = arguments.getAttribute(internalSpan)
+                .orElse(null);
+
+        if (span == null) {
+            return execution.execute(arguments);
+        }
+
+        decorator.onRequest(span, arguments);
+
+        final SpanContext context = span.context();
+        return execution.execute(injection.inject(tracer, arguments, context))
+                .whenComplete(decorateOnResponse(span, arguments))
+                .whenComplete(decorateOnError(span, arguments));
     }
 
-    private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> decorate(final Span span,
+    private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> decorateOnResponse(
+            final Span span,
             final RequestArguments arguments) {
 
         return (response, error) -> {
             if (nonNull(response)) {
                 decorator.onResponse(span, arguments, response);
             }
+        };
+    }
+
+    private BiConsumer<ClientHttpResponse, Throwable> decorateOnError(
+            final Span span,
+            final RequestArguments arguments) {
+
+        return (response, error) -> {
             if (nonNull(error)) {
                 decorator.onError(span, arguments, unpack(error));
             }
         };
-    }
-
-    private static <T, U> BiConsumer<T, U> perform(final Runnable... runnables) {
-        return (t, u) -> Stream.of(runnables).forEach(Runnable::run);
     }
 
     @VisibleForTesting

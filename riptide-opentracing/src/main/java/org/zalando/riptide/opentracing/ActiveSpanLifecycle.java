@@ -11,20 +11,17 @@ import java.util.Optional;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
- * @see OpenTracingPlugin#SPAN
+ * @see Tracer#activeSpan()
  */
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
-public final class ExplicitSpanLifecyclePolicy implements LifecyclePolicy {
+public final class ActiveSpanLifecycle implements Lifecycle {
 
     @Override
     public Optional<Span> start(final Tracer tracer, final RequestArguments arguments) {
-        return arguments.getAttribute(OpenTracingPlugin.SPAN);
-    }
-
-    @Override
-    public void finish(final Span span) {
-        // nothing to do since we don't want to finish an explicitly passed span
+        return Optional.ofNullable(tracer.activeSpan())
+                // we don't want to finish the active span
+                .map(NonFinishingSpan::new);
     }
 
 }
