@@ -9,8 +9,9 @@ jobs:
   pull-request:
     runs-on: ubuntu-latest
     steps:
-    - name: pull-request-action
-      uses: vsoch/pull-request-action@master
+    - name: Create pull request
+      uses: vsoch/pull-request-action@1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PULL_REQUEST_TITLE: Release ${{ github.ref }}
+        PULL_REQUEST_BODY: Bump version
