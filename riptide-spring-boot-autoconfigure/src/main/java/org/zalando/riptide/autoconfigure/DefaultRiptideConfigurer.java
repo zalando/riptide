@@ -4,8 +4,10 @@ import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.opentracing.Tracer;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
@@ -28,7 +30,7 @@ class DefaultRiptideConfigurer {
     private final RiptideProperties properties;
 
     void register() {
-        final Map<String, BeanDefinition> replacements = replacements();
+        final Map<String, BeanMetadataElement> replacements = replacements();
 
         Arrays.stream(beanFactory.getBeanDefinitionNames())
                 .map(beanFactory::getBeanDefinition)
@@ -39,8 +41,8 @@ class DefaultRiptideConfigurer {
                 .forEach(holder -> replaceRefs(holder, replacements));
     }
 
-    private Map<String, BeanDefinition> replacements() {
-        final Map<String, BeanDefinition> replacements = new HashMap<>();
+    private Map<String, BeanMetadataElement> replacements() {
+        final Map<String, BeanMetadataElement> replacements = new HashMap<>();
 
         if (any(client -> client.getTracing().getEnabled())) {
             replacements.put(TRACER_REF, getBeanRef(Tracer.class, "tracer"));
@@ -57,7 +59,7 @@ class DefaultRiptideConfigurer {
         return replacements;
     }
 
-    private void replaceRefs(final ValueHolder holder, final Map<String, BeanDefinition> replacements) {
+    private void replaceRefs(final ValueHolder holder, final Map<String, BeanMetadataElement> replacements) {
         Optional.ofNullable(holder.getValue())
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
@@ -70,13 +72,13 @@ class DefaultRiptideConfigurer {
     }
 
     @VisibleForTesting
-    BeanDefinition getBeanRef(final Class type, final String argName) {
+    BeanReference getBeanRef(final Class type, final String argName) {
         final Map<String, BeanDefinition> definitions = new HashMap<>();
         // search primary bean definition
         for (final String beanName : beanFactory.getBeanNamesForType(type)) {
             final BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
             if (beanDefinition.isPrimary()) {
-                return beanDefinition;
+                return Registry.ref(beanName);
             }
             definitions.put(beanName, beanDefinition);
         }
@@ -84,12 +86,12 @@ class DefaultRiptideConfigurer {
         // resolve by name
         final BeanDefinition beanDefinition = definitions.get(argName);
         if (beanDefinition != null) {
-            return beanDefinition;
+            return Registry.ref(argName);
         }
 
         // if only one candidate present use it
         if (definitions.size() == 1) {
-            return definitions.values().iterator().next();
+            return Registry.ref(definitions.keySet().iterator().next());
         }
 
         throw new NoSuchBeanDefinitionException(type);

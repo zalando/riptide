@@ -4,7 +4,7 @@ import io.opentracing.Tracer;
 import io.opentracing.noop.NoopTracerFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -57,8 +57,8 @@ final class DefaultRiptideConfigurerTest {
         context.refresh();
         final ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
         final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, null);
-        final BeanDefinition bd = configurer.getBeanRef(Tracer.class, "tracer");
-        assertThat(bd.isPrimary()).isTrue();
+        final BeanReference bd = configurer.getBeanRef(Tracer.class, "tracer");
+        assertThat(bd.getBeanName()).isEqualTo("primaryTracer");
     }
 
     @Test
@@ -68,8 +68,8 @@ final class DefaultRiptideConfigurerTest {
         context.refresh();
         final ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
         final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, null);
-        final BeanDefinition bd = configurer.getBeanRef(Tracer.class, "tracer");
-        assertThat(bd.getFactoryMethodName()).isEqualTo("opentracingTracer");
+        final BeanReference bd = configurer.getBeanRef(Tracer.class, "tracer");
+        assertThat(bd.getBeanName()).isEqualTo("opentracingTracer");
     }
 
     @Test
@@ -79,8 +79,8 @@ final class DefaultRiptideConfigurerTest {
         context.refresh();
         final ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
         final DefaultRiptideConfigurer configurer = new DefaultRiptideConfigurer(beanFactory, null);
-        final BeanDefinition bd = configurer.getBeanRef(Tracer.class, "tracer");
-        assertThat(bd.getFactoryMethodName()).isEqualTo("tracer");
+        final BeanReference bd = configurer.getBeanRef(Tracer.class, "tracer");
+        assertThat(bd.getBeanName()).isEqualTo("tracer");
     }
 
     @Test
