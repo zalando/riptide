@@ -77,10 +77,12 @@
         <fauxpas.version>0.8.0</fauxpas.version>
         <jackson.version>2.10.1</jackson.version>
         <junit-jupiter.version>5.5.2</junit-jupiter.version>
+        <logbook.version>2.0.0-RC.6</logbook.version>
         <micrometer.version>1.3.1</micrometer.version>
         <problem.version>0.23.0</problem.version>
         <slf4j.version>1.7.29</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
+        <spring5.version>5.2.1.RELEASE</spring5.version>
         <spring-boot.version>2.2.1.RELEASE</spring-boot.version>
     </properties>
 
@@ -715,7 +717,7 @@
         <profile>
             <id>spring5</id>
             <properties>
-                <spring.version>5.1.9.RELEASE</spring.version>
+                <spring.version>${spring5.version}</spring.version>
             </properties>
         </profile>
         <profile>

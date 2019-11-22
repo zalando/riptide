@@ -15,10 +15,6 @@
     <name>Riptide: Logbook</name>
     <description>Client side response routing</description>
 
-    <properties>
-        <logbook.version>2.0.0-RC.6</logbook.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>
