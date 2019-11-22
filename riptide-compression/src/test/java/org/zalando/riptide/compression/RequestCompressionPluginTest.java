@@ -1,36 +1,35 @@
 package org.zalando.riptide.compression;
 
 import com.github.restdriver.clientdriver.ClientDriver;
-import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.apache.http.impl.client.HttpClients.createDefault;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode.BUFFERING;
+import static org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode.STREAMING;
 
 class RequestCompressionPluginTest {
 
@@ -44,8 +43,18 @@ class RequestCompressionPluginTest {
         driver.verify();
     }
 
+    static Iterable<ClientHttpRequestFactory> factories() {
+        return Arrays.asList(
+                new SimpleClientHttpRequestFactory(),
+                new Netty4ClientHttpRequestFactory(),
+                new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()),
+                new ApacheClientHttpRequestFactory(createDefault(), BUFFERING),
+                new ApacheClientHttpRequestFactory(createDefault(), STREAMING)
+        );
+    }
+
     @ParameterizedTest
-    @ArgumentsSource(RequestFactorySource.class)
+    @MethodSource("factories")
     void shouldCompressRequestBody(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
                         .withMethod(POST)
@@ -62,7 +71,7 @@ class RequestCompressionPluginTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RequestFactorySource.class)
+    @MethodSource("factories")
     void shouldNotCompressEmptyRequestBody(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
                         .withMethod(POST)
@@ -79,7 +88,7 @@ class RequestCompressionPluginTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RequestFactorySource.class)
+    @MethodSource("factories")
     void shouldCompressWithGivenAlgorithm(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
                         .withMethod(POST)
@@ -97,7 +106,7 @@ class RequestCompressionPluginTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(RequestFactorySource.class)
+    @MethodSource("factories")
     void shouldBackOffIfAlreadyEncoded(final ClientHttpRequestFactory factory) {
         driver.addExpectation(onRequestTo("/")
                         .withMethod(POST)
@@ -122,19 +131,6 @@ class RequestCompressionPluginTest {
                 .baseUrl(driver.getBaseUrl())
                 .plugins(asList(plugins))
                 .build();
-    }
-
-    static class RequestFactorySource implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return Stream.of(
-                    new SimpleClientHttpRequestFactory(),
-                    // new Netty4ClientHttpRequestFactory(), # broken, see #823
-                    new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()),
-                    new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.BUFFERING),
-                    new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.STREAMING)
-            ).map(Arguments::of);
-        }
     }
 
 }
