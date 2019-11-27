@@ -9,7 +9,7 @@ riptide:
       propagate-flow-id: false
   clients:
     example:
-      base-url: https://example.com/foo
+      base-url: ${EXAMPLE_BASE_URL:https://example.com/foo}
       url-resolution: append
       connections:
         connection-timout: 2000 milliseconds
