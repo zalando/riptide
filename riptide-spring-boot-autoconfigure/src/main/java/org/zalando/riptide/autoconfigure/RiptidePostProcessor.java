@@ -5,6 +5,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.bind.PropertySourcesPlaceholdersResolver;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -27,9 +28,10 @@ final class RiptidePostProcessor implements BeanDefinitionRegistryPostProcessor,
     public void setEnvironment(final Environment environment) {
         final Iterable<ConfigurationPropertySource> sources =
                 from(((ConfigurableEnvironment) environment).getPropertySources());
-        final Binder binder = new Binder(sources);
+        final Binder binder = new Binder(sources,
+                new PropertySourcesPlaceholdersResolver(environment));
 
-        this.properties = Defaulting.withDefaults(binder.bind("riptide", RiptideProperties.class).orElseCreate(RiptideProperties.class));
+        this.properties = Defaulting.withDefaults(binder.bindOrCreate("riptide", RiptideProperties.class));
     }
 
     @Override
