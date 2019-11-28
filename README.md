@@ -73,7 +73,7 @@ Go checkout the [concept document](docs/concepts.md) for more details.
 ## Dependencies
 
 - Spring 4.1 or higher
-  - .warning: Spring Boot integration requires Spring 5
+  - :warning: Spring Boot integration requires Spring 5
 
 ## Installation
 
