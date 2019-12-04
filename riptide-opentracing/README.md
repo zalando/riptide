@@ -73,8 +73,6 @@ The following tags/logs are supported out of the box:
 | `error.kind` (log)           | `ErrorSpanDecorator`               | `SocketTimeoutException`          |
 | `error.object` (log)         | `ErrorSpanDecorator`               | (exception instance)              |
 | `stack` (log)                | `ErrorStackSpanDecorator`          | `SocketTimeoutException at [...]` |
-| `http.content_language`      | `HttpContentLanguageSpanDecorator` | `en-DE`                           |
-| `http.content_length` (log)  | `HttpContentLengthSpanDecorator`   | `1337`                            |
 | `http.method_override`       | `HttpMethodOverrideSpanDecorator`  | `GET`                             |
 | `http.method`                | `HttpMethodSpanDecorator`          | `POST`                            |
 | `http.url`                   | `HttpUrlSpanDecorator`¹            | `https://www.github.com/users/me` |
@@ -82,13 +80,9 @@ The following tags/logs are supported out of the box:
 | `http.prefer`                | `HttpPreferSpanDecorator`          | `respond-async`                   |
 | `http.retry_after` (log)     | `HttpRetryAfterSpanDecorator`      | `120`                             |
 | `http.status_code`           | `HttpStatusCodeSpanDecorator`      | `200`                             |
-| `http.warning`               | `HttpWarningSpanDecorator`         | `110 - "Response is Stale"`       |
 | `peer.address`               | `PeerSpanDecorator`                | `www.github.com:80`               |
 | `peer.hostname`              | `PeerSpanDecorator`                | `www.github.com`                  |
 | `peer.port`                  | `PeerSpanDecorator`                | `80`                              |
-| `rate_limit.limit` (log)     | `RateLimitSpanDecorator`           | `100`                             |
-| `rate_limit.remaining` (log) | `RateLimitSpanDecorator`           | `99`                              |
-| `rate_limit.reset` (log)     | `RateLimitSpanDecorator`           | `3600`                            |
 | `retry`                      | `RetrySpanDecorator`¹              | `true`                            |
 | `retry_number` (log)         | `RetrySpanDecorator`¹              | `3`                               |
 |                              | `ServiceLoaderSpanDecorator`²      |                                   |

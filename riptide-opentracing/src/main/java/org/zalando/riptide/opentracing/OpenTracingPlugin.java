@@ -19,17 +19,13 @@ import org.zalando.riptide.opentracing.span.ComponentSpanDecorator;
 import org.zalando.riptide.opentracing.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentracing.span.ErrorSpanDecorator;
 import org.zalando.riptide.opentracing.span.ErrorStackSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpContentLanguageSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpContentLengthSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpMethodOverrideSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPathSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpPreferSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpRetryAfterSpanDecorator;
 import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
-import org.zalando.riptide.opentracing.span.HttpWarningSpanDecorator;
 import org.zalando.riptide.opentracing.span.PeerSpanDecorator;
-import org.zalando.riptide.opentracing.span.RateLimitSpanDecorator;
 import org.zalando.riptide.opentracing.span.ServiceLoaderSpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
@@ -100,17 +96,13 @@ public final class OpenTracingPlugin implements Plugin {
                         new ComponentSpanDecorator(),
                         new ErrorSpanDecorator(),
                         new ErrorStackSpanDecorator(),
-                        new HttpContentLengthSpanDecorator(),
-                        new HttpContentLanguageSpanDecorator(),
                         new HttpMethodOverrideSpanDecorator(),
                         new HttpMethodSpanDecorator(),
                         new HttpPathSpanDecorator(),
                         new HttpPreferSpanDecorator(),
                         new HttpRetryAfterSpanDecorator(),
                         new HttpStatusCodeSpanDecorator(),
-                        new HttpWarningSpanDecorator(),
                         new PeerSpanDecorator(),
-                        new RateLimitSpanDecorator(),
                         new ServiceLoaderSpanDecorator(),
                         new SpanKindSpanDecorator()
                 ));
