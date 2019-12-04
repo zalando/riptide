@@ -419,7 +419,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("create")
-                                .addConstructorArgValue(registerCircuitBreaker(id, client))
+                                .addConstructorArgValue(genericBeanDefinition(RequestPolicy.class)
+                                        .setFactoryMethod("of")
+                                        .addConstructorArgValue(registerCircuitBreaker(id, client))
+                                        .getBeanDefinition())
                                 .addConstructorArgValue(createTaskDecorator(id, client));
                     });
             return Optional.of(pluginId);
