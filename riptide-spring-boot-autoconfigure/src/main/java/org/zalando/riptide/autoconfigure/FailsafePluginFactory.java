@@ -96,7 +96,7 @@ final class FailsafePluginFactory {
         return new RetryRequestPolicy(policy);
     }
 
-    public static RequestPolicy createCircuitBreaker(
+    public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
             final Client client,
             final CircuitBreakerListener listener) {
 
@@ -121,7 +121,7 @@ final class FailsafePluginFactory {
         breaker.onHalfOpen(listener::onHalfOpen);
         breaker.onClose(listener::onClose);
 
-        return RequestPolicy.of(breaker);
+        return breaker;
     }
 
     public static RequestPolicy createBackupRequest(final Client client) {
