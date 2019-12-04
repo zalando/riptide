@@ -73,12 +73,7 @@ final class OpenTracingPluginTest {
                         .withHeader("spanid", notNullValue(String.class)),
                 giveResponse("Hello, world!", "text/plain")
                         .withStatus(200)
-                        .withHeader("Content-Language", "en")
-                        .withHeader("RateLimit-Limit", "10")
-                        .withHeader("RateLimit-Remaining", "0")
-                        .withHeader("RateLimit-Reset", "60")
-                        .withHeader("Retry-After", "60")
-                        .withHeader("Warning", "110 - \"Response is Stale\""));
+                        .withHeader("Retry-After", "60"));
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
@@ -107,13 +102,11 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
         assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
-        assertThat(child.tags(), hasEntry("http.content_language", "en"));
         assertThat(child.tags(), hasEntry("http.method", "POST"));
         assertThat(child.tags(), hasEntry("http.method_override", "GET"));
         assertThat(child.tags(), hasEntry("http.path", "/users/{user}"));
         assertThat(child.tags(), hasEntry("http.prefer", "respond-async"));
         assertThat(child.tags(), hasEntry("http.status_code", 200));
-        assertThat(child.tags(), hasEntry("http.warning", "110 - \"Response is Stale\""));
         assertThat(child.tags(), hasEntry("test", "true"));
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("user", "me"));
@@ -123,7 +116,7 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), not(hasKey("http.url")));
 
         final List<LogEntry> entries = child.logEntries();
-        assertThat(entries, hasSize(4));
+        assertThat(entries, hasSize(2));
 
         {
             final LogEntry log = entries.get(0);
@@ -132,19 +125,7 @@ final class OpenTracingPluginTest {
 
         {
             final LogEntry log = entries.get(1);
-            assertThat(log.fields(), hasEntry("http.content_length", "13"));
-        }
-
-        {
-            final LogEntry log = entries.get(2);
             assertThat(log.fields(), hasEntry("http.retry_after", "60"));
-        }
-
-        {
-            final LogEntry log = entries.get(3);
-            assertThat(log.fields(), hasEntry("rate_limit.limit", "10"));
-            assertThat(log.fields(), hasEntry("rate_limit.remaining", "0"));
-            assertThat(log.fields(), hasEntry("rate_limit.reset", "60"));
         }
     }
 
@@ -190,7 +171,7 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), not(hasKey("http.path")));
 
         final List<LogEntry> logs = child.logEntries();
-        assertThat(logs, hasSize(2)); // http.content_length + retry_number
+        assertThat(logs, hasSize(1));
         final LogEntry log = logs.get(0);
         assertThat(log.fields(), hasEntry("retry_number", 2));
     }
