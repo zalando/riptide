@@ -86,7 +86,6 @@ The following tags/logs are supported out of the box:
 | `retry`                      | `RetrySpanDecorator`¹              | `true`                            |
 | `retry_number` (log)         | `RetrySpanDecorator`¹              | `3`                               |
 |                              | `ServiceLoaderSpanDecorator`²      |                                   |
-| `span.kind`                  | `SpanKindSpanDecorator`            | `client`                          |
 |                              | `StaticTagSpanDecorator`¹          | `zone=aws:eu-central-1a`          |
 |                              | `UriVariablesTagSpanDecorator`¹    | `user_id=me`                      |
 
@@ -231,7 +230,6 @@ If the default span decorators are not desired you can replace them completely u
 new OpenTracingPlugin(tracer)
         .withSpanDecorators(
             new ComponentSpanDecorator("MSIE"),
-            new SpanKindSpanDecorator(Tags.SPAN_KIND_CONSUMER),
             new PeerSpanDecorator(),
             new HttpMethodSpanDecorator(),
             new HttpPathSpanDecorator(),

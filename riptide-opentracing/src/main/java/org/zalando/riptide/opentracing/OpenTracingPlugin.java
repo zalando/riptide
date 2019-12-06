@@ -28,7 +28,6 @@ import org.zalando.riptide.opentracing.span.HttpStatusCodeSpanDecorator;
 import org.zalando.riptide.opentracing.span.PeerSpanDecorator;
 import org.zalando.riptide.opentracing.span.ServiceLoaderSpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
-import org.zalando.riptide.opentracing.span.SpanKindSpanDecorator;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -103,8 +102,7 @@ public final class OpenTracingPlugin implements Plugin {
                         new HttpRetryAfterSpanDecorator(),
                         new HttpStatusCodeSpanDecorator(),
                         new PeerSpanDecorator(),
-                        new ServiceLoaderSpanDecorator(),
-                        new SpanKindSpanDecorator()
+                        new ServiceLoaderSpanDecorator()
                 ));
     }
 
