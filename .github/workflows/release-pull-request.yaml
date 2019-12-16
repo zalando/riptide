@@ -9,8 +9,8 @@ jobs:
   pull-request:
     runs-on: ubuntu-latest
     steps:
-    - name: Create pull request
-      uses: vsoch/pull-request-action@1.0.1
+    - name: pull-request-action
+      uses: vsoch/pull-request-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PULL_REQUEST_TITLE: Release ${{ github.ref }}
