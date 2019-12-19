@@ -80,7 +80,7 @@
         <logbook.version>2.0.0-RC.7</logbook.version>
         <micrometer.version>1.3.2</micrometer.version>
         <problem.version>0.23.0</problem.version>
-        <slf4j.version>1.7.29</slf4j.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <spring5.version>5.2.1.RELEASE</spring5.version>
         <spring-boot.version>2.2.2.RELEASE</spring-boot.version>
