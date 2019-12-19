@@ -77,7 +77,7 @@
         <fauxpas.version>0.8.0</fauxpas.version>
         <jackson.version>2.10.1</jackson.version>
         <junit-jupiter.version>5.5.2</junit-jupiter.version>
-        <logbook.version>2.0.0-RC.6</logbook.version>
+        <logbook.version>2.0.0-RC.7</logbook.version>
         <micrometer.version>1.3.2</micrometer.version>
         <problem.version>0.23.0</problem.version>
         <slf4j.version>1.7.29</slf4j.version>
