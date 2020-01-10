@@ -47,9 +47,6 @@ import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
-import org.zalando.riptide.faults.DefaultFaultClassifier;
-import org.zalando.riptide.faults.FaultClassifier;
-import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.logbook.LogbookPlugin;
@@ -253,7 +250,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerMicrometerPlugin(id, client),
                 registerRequestCompressionPlugin(id, client),
                 registerLogbookPlugin(id, client),
-                registerTransientFaultPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
                 registerCircuitBreakerFailsafePlugin(id, client),
                 registerRetryPolicyFailsafePlugin(id, client),
@@ -385,18 +381,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerTransientFaultPlugin(final String id, final Client client) {
-        if (client.getTransientFaultDetection().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(id, TransientFaultPlugin.class, () -> {
-                log.debug("Client [{}]: Registering [{}]", id, TransientFaultPlugin.class.getSimpleName());
-                return genericBeanDefinition(TransientFaultPlugin.class)
-                        .addConstructorArgReference(findFaultClassifier(id));
-            });
-            return Optional.of(pluginId);
-        }
-        return Optional.empty();
-    }
-
     private Optional<String> registerOpenTracingPlugin(final String id, final Client client) {
         if (client.getTracing().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(id, OpenTracingPlugin.class, () -> {
@@ -435,8 +419,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(name(id, RetryPolicy.class, FailsafePlugin.class), () -> {
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("create")
-                        .addConstructorArgValue(registerRetryPolicy(id, client))
+                        .setFactoryMethod("createRetryFailsafePlugin")
+                        .addConstructorArgValue(client)
                         .addConstructorArgValue(createTaskDecorator(id, client));
             });
             return Optional.of(pluginId);
@@ -506,12 +490,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.find(id, Plugin.class);
     }
 
-    private String findFaultClassifier(final String id) {
-        return registry.find(id, FaultClassifier.class).orElseGet(() ->
-                registry.registerIfAbsent(name(FaultClassifier.class), () ->
-                        genericBeanDefinition(DefaultFaultClassifier.class)));
-    }
-
     private Object createTaskDecorator(final String id, final Client client) {
         if (client.getTracing().getEnabled()) {
             return ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
@@ -519,13 +497,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                             .addConstructorArgValue(TRACER_REF)));
         }
         return TaskDecorator.identity();
-    }
-
-    private BeanMetadataElement registerRetryPolicy(final String id, final Client client) {
-        return ref(registry.registerIfAbsent(id, RetryPolicy.class, () ->
-                genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("createRetryPolicy")
-                        .addConstructorArgValue(client)));
     }
 
     private BeanMetadataElement registerCircuitBreaker(final String id, final Client client) {

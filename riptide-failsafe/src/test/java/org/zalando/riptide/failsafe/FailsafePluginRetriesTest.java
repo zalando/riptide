@@ -7,7 +7,6 @@ import com.github.restdriver.clientdriver.ClientDriverFactory;
 import lombok.SneakyThrows;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -17,13 +16,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.Plugin;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -36,25 +41,22 @@ import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
-import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.riptide.Attributes.RETRIES;
 import static org.zalando.riptide.Bindings.anySeries;
-import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
+import static org.zalando.riptide.faults.Predicates.alwaysTrue;
+import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
+import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 final class FailsafePluginRetriesTest {
 
@@ -66,21 +68,37 @@ final class FailsafePluginRetriesTest {
                     .build())
             .build();
 
-    private final RetryListener listeners = mock(RetryListener.class);
+    private final AtomicInteger attemps = new AtomicInteger();
 
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
+            .plugin(new Plugin() {
+                @Override
+                public RequestExecution aroundNetwork(final RequestExecution execution) {
+                    return arguments -> {
+                        arguments.getAttribute(RETRIES).ifPresent(attemps::set);
+                        return execution.execute(arguments);
+                    };
+                }
+            })
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
                             new RetryPolicy<ClientHttpResponse>()
+                                    .handleIf(transientSocketFaults())
+                                    .handle(RetryException.class)
+                                    .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4)
-                                    .handle(Exception.class)
-                                    .handleResultIf(this::isBadGateway))
-                            .withListener(listeners))
+                                    .withMaxRetries(4))
+                            .withPredicate(new IdempotencyPredicate()))
+                    .withPolicy(new RetryRequestPolicy(
+                            new RetryPolicy<ClientHttpResponse>()
+                                    .handleIf(transientConnectionFaults())
+                                    .withDelay(Duration.ofMillis(500))
+                                    .withMaxRetries(4))
+                            .withPredicate(alwaysTrue()))
                     .withPolicy(new CircuitBreaker<ClientHttpResponse>()
                             .withFailureThreshold(3, 10)
                             .withSuccessThreshold(5)
@@ -105,6 +123,7 @@ final class FailsafePluginRetriesTest {
 
     @AfterEach
     void tearDown() throws IOException {
+        driver.verify();
         client.close();
     }
 
@@ -119,7 +138,7 @@ final class FailsafePluginRetriesTest {
     }
 
     @Test
-    void shouldNotRetryNonIdempotentMethod() {
+    void wontRetrySocketFaultForNonIdempotentMethod() {
         driver.addExpectation(onRequestTo("/foo").withMethod(POST),
                 giveEmptyResponse().after(800, MILLISECONDS));
 
@@ -127,6 +146,15 @@ final class FailsafePluginRetriesTest {
                 unit.post("/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
+    }
+
+    @Test
+    void retriesConnectionFaultForNonIdempotentMethod() {
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.post("http://" + UUID.randomUUID() + "/foo").call(pass())::join);
+
+        assertThat(exception.getCause(), is(instanceOf(UnknownHostException.class)));
+        assertEquals(4, attemps.get());
     }
 
     @Test
@@ -178,45 +206,6 @@ final class FailsafePluginRetriesTest {
                         anySeries().dispatch(status(),
                                 on(SERVICE_UNAVAILABLE).call(retry())))
                 .join();
-    }
-
-    @Test
-    void shouldInvokeListenersOnFailure() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-
-        unit.get("/foo")
-                .call(pass())
-                .join();
-
-        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
-    }
-
-    @Test
-    void shouldInvokeListenersOnRetryableResult() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(502));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
-
-        unit.get("/baz")
-                .call(pass())
-                .join();
-
-        verify(listeners).onRetry(notNull(),
-                argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, notNullValue())));
-    }
-
-    @Test
-    void shouldInvokeListenersOnExplicitRetry() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
-
-        unit.get("/baz")
-                .dispatch(status(),
-                        on(SERVICE_UNAVAILABLE).call(retry()),
-                        anyStatus().call(pass()))
-                .join();
-
-        verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
     }
 
     @Test
