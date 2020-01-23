@@ -31,11 +31,14 @@ riptide.clients:
 > 
 > [Microsoft: Retry pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/retry)
 
-The [riptide-faults](../riptide-faults) module provides a `TransientFaultPlugin` that detects transient faults:
+The [riptide-faults](../riptide-faults) module provides a set `TransientFaults` predicates that detects transient faults:
 
 ```java
 Http.builder()
-    .plugin(new TransientFaultPlugin())
+    .plugin(new FailsafePlugin()
+        .withPolicy(new RetryRequestPolicy(
+            new RetryPolicy().handleIf(transientSocketFaults()))
+))
 ```
 
 ```yaml

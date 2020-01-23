@@ -584,7 +584,6 @@ The following table shows all beans with their respective name (for the `example
 | `exampleFailsafePlugin`           | `FailsafePlugin`                              |
 | `exampleMicrometerPlugin`         | `MicrometerPlugin`                            |
 | `exampleOriginalStackTracePlugin` | `OriginalStackTracePlugin`                    |
-| `exampleTransientFaultPlugin`     | `TransientFaultPlugin`                        |
 | `examplePlugin`                   | `Plugin` (optional, additional custom plugin) |
 | `exampleScheduledExecutorService` | `ScheduledExecutorService`                    |
 | `exampleRetryPolicy`              | `RetryPolicy`                                 |

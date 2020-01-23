@@ -53,6 +53,11 @@
             <artifactId>riptide-httpclient</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-faults</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

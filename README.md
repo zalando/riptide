@@ -275,7 +275,7 @@ Riptide comes with a way to register extensions in the form of plugins.
 - [`AuthorizationPlugin`](#riptide-auth), adds `Authorization` support
 - [`FailsafePlugin`](riptide-failsafe), adds retries, circuit breaker, backup requests and timeout support
 - [`MicrometerPlugin`](riptide-micrometer), adds metrics for request duration
-- [`TransientFaultPlugin`](riptide-faults), detects transient faults, e.g. network issues
+- [`TransientFaults`](riptide-faults), detects transient faults, e.g. network issues
 Whenever you encounter the need to perform some repetitive task on the futures returned by a remote call,
 you may consider implementing a custom Plugin for it.
 

@@ -13,9 +13,6 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.faults.DefaultFaultClassifier;
-import org.zalando.riptide.faults.FaultClassifier;
-import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
@@ -39,16 +36,6 @@ final class PluginTest {
     @Configuration
     @Import(DefaultTestConfiguration.class)
     public static class TestConfiguration {
-
-        @Bean
-        public FaultClassifier githubFaultClassifier() {
-            return new DefaultFaultClassifier();
-        }
-
-        @Bean
-        public FaultClassifier faultClassifier() {
-            return new DefaultFaultClassifier();
-        }
 
         @Bean
         public Plugin githubPlugin() {
@@ -80,17 +67,6 @@ final class PluginTest {
     @Autowired
     @Qualifier("example")
     private Http example;
-
-    @Test
-    void shouldUseTransientFaultPlugin() throws Exception {
-        assertThat(getPlugins(github), contains(asList(
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(Plugin.class), // internal plugin
-                instanceOf(MicrometerPlugin.class),
-                instanceOf(TransientFaultPlugin.class),
-                instanceOf(CustomPlugin.class))));
-    }
 
     @Test
     void shouldUseFailsafePlugin() throws Exception {

@@ -34,61 +34,67 @@ Add the following dependency to your project:
 
 ## Configuration
 
+A very common usage is to register the `transientFaults` predicate with a *Failsafe* retry policy:
+
 ```java
-Http.builder()
-    .plugin(new TransientFaultPlugin())
-    .build();
+new RetryPolicy<>()
+    .handleIf(TransientFaults.transientFaults());
 ```
 
-By default any `IOException` is classified as transient **unless** it's one of the following:
+### Defaults
 
-- [`UnknownHostException`](https://docs.oracle.com/javase/8/docs/api/java/net/UnknownHostException.html)
-- [`SSLException`](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLException.html)  
-  unless the message indicates a connection issue
+The `TransientFaults` predicates define defaults for transient fault classification. Apart from `transientFaults` there are the more fine-grained `transientConnectionFaults` and `transientSocketFaults`:
+
+#### Connection faults
+
+Transient connections faults happen before any request is either made, send or received by the server. Those faults can safely be retried, regardless of the actual request being made, since the server never had a chance to handle it:
+
+```java
+new RetryRequestPolicy(
+        new RetryPolicy<>()
+            .handleIf(TransientFaults.transientConnectionFaults()))
+    .withPredicate(alwaysTrue());
+```
+
+The default considers the following exceptions to be transient connection faults:
+- [`ConnectionException`](https://docs.oracle.com/javase/8/docs/api/java/net/ConnectionException.html)
 - [`MalformedURLException`](https://docs.oracle.com/javase/8/docs/api/java/net/MalformedURLException.html)
+- [`NoRouteToHostException`](https://docs.oracle.com/javase/8/docs/api/java/net/NoRouteToHostException.html)
+- [`UnknownHostException`](https://docs.oracle.com/javase/8/docs/api/java/net/UnknownHostException.html)
 
-In order to change this you can pass in a custom `FaultClassifier`:
+#### Socket faults
 
-```java
-FaultClassifier classifier = throwable -> 
-        throwable instanceof UnknownHostException ?;
-        new TransientFaultException(throwable) :
-        throwable;
-
-new TransientFaultPlugin(classifier);
-```
-
-But it's a more common use case to augment the defaults, i.e. add some more predicates:
+Transient socket faults happen after a request was (at least potentially) received by a server. Those faults should only be retried if the request is idempotent:
 
 ```java
-FaultClassifier = new DefaultFaultClassifier()
-        .include(UnknownHostException.class::isInstance)
-        .exclude(InterruptedIOException.class::isInstance);
-
-new TransientFaultPlugin(predicates);
+new RetryRequestPolicy(
+        new RetryPolicy<>()
+            .handleIf(TransientFaults.transientSocketFaults()))
+    .withPredicate(new IdempotencyPredicate()); // the default
 ```
 
-The `DefaultFaultClassifier` is inspecting the whole causal chain of an exception. This behavior can be
-changed by specifying a different `ClassificationStrategy`:
+The default considers the following exceptions to be transient socket faults:
+- [`IOException`](https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html)
+- **unless** it's one of the following:
+    - [`SSLException`](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLException.html) except when the message indicates a connection issue
 
-- `CausalChainClassificationStrategy`: The exception itself including all causes
-- `RootCauseClassificationStrategy`: The exception's root cause
-- `SelfClassificationStrategy`: The exception itself
+### Customization
 
-## Usage
+In order to customize this you can use any of the existing `TransientFaults.Rules` as a blueprint and build customized predicates:
 
 ```java
-CompletableFuture<ClientHttpResponse> future = http.post("/")
-        .dispatch(series(),
-            on(SUCCESSFUL).call(pass()));
-    
-try {
-    future.join();
-} catch (CompletionException e) {
-    boolean isTransient = e.getCause() instanceof TransientFaultException;
-    // TODO retry later on transient
-}
+Predicate<Throwable> predicate = TransientFaults.combine(
+    ClassificationStrategy.causalChain(),
+    TransientFaults.Rules.transientFaultRules()
+        .exclude(SomeSpecialIOException.class::isInstance)
+);
 ```
+
+The default predicates inspect the whole causal chain of an exception. This behavior can be changed by specifying a different `ClassificationStrategy`:
+
+- `causalChain()`: The exception itself including all causes
+- `rootCause()`: The exception's root cause
+- `self()`: The exception itself
 
 ## Getting Help
 

@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
 import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.Policy;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.function.DelayFunction;
 import org.springframework.http.client.ClientHttpResponse;
@@ -17,10 +16,8 @@ import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
-import org.zalando.riptide.failsafe.RetryListener;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
-import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import javax.annotation.Nullable;
@@ -31,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.zalando.riptide.faults.Predicates.alwaysTrue;
+import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
+import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 @SuppressWarnings("unused")
 final class FailsafePluginFactory {
@@ -48,8 +48,9 @@ final class FailsafePluginFactory {
                 .withDecorator(decorator);
     }
 
-    public static RequestPolicy createRetryPolicy(
-            final Client client) {
+    public static Plugin createRetryFailsafePlugin(
+            final Client client,
+            final TaskDecorator decorator) {
 
         final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
@@ -86,14 +87,22 @@ final class FailsafePluginFactory {
         Optional.ofNullable(config.getJitter())
                 .ifPresent(jitter -> jitter.applyTo(policy::withJitter));
 
-        if (client.getTransientFaultDetection().getEnabled()) {
-            policy.handle(TransientFaultException.class);
-        }
-
         policy.handle(RetryException.class);
         policy.withDelay(delayFunction());
 
-        return new RetryRequestPolicy(policy);
+        if (client.getTransientFaultDetection().getEnabled()) {
+            return new FailsafePlugin()
+                    .withPolicy(new RetryRequestPolicy(policy.copy()
+                            .handleIf(transientSocketFaults()))
+                            .withPredicate(new IdempotencyPredicate()))
+                    .withPolicy(new RetryRequestPolicy(policy.copy()
+                            .handleIf(transientConnectionFaults()))
+                            .withPredicate(alwaysTrue()));
+
+        } else {
+            return new FailsafePlugin()
+                    .withPolicy(new RetryRequestPolicy(policy));
+        }
     }
 
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(

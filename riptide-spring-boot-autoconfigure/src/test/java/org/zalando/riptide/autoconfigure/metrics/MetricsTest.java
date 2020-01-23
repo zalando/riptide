@@ -17,7 +17,6 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
-import org.zalando.riptide.faults.TransientFaultException;
 import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import java.util.ArrayList;
@@ -140,9 +139,7 @@ final class MetricsTest {
 
         bar.get()
                 .dispatch(status(),
-                        on(SERVICE_UNAVAILABLE).call(() -> {
-                            throw new TransientFaultException();
-                        }),
+                        on(SERVICE_UNAVAILABLE).call(retry()),
                         anyStatus().call(pass()))
                 .join();
 

@@ -3,15 +3,16 @@ package org.zalando.riptide.faults;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.function.Predicate;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.zalando.riptide.faults.ClassificationStrategy.rootCause;
+import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 final class RootCauseClassificationStrategyTest {
 
-    private final FaultClassifier unit = new DefaultFaultClassifier(new RootCauseClassificationStrategy());
+    private final Predicate<Throwable> unit = transientSocketFaults(rootCause());
 
     @Test
     void shouldClassifyAsTransientWithoutCause() {
@@ -39,11 +40,11 @@ final class RootCauseClassificationStrategyTest {
     }
 
     private void assertTransient(final Exception e) {
-        assertThat(unit.classify(e), is(instanceOf(TransientFaultException.class)));
+        assertTrue(unit.test(e));
     }
 
     private void assertNotTransient(final Exception e) {
-        assertThat(unit.classify(e), is(sameInstance(e)));
+        assertFalse(unit.test(e));
     }
 
 }

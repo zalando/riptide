@@ -50,12 +50,10 @@ import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
-import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.faults.TransientFaultException;
-import org.zalando.riptide.faults.TransientFaultPlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
@@ -78,6 +76,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.function.Predicate;
 
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -88,6 +87,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
+import static org.zalando.riptide.faults.Predicates.alwaysTrue;
+import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
+import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 @Configuration
 public class ManualConfiguration {
@@ -142,26 +144,12 @@ public class ManualConfiguration {
                             .withAdditionalTagGenerators(new RetryTagGenerator()),
                     new RequestCompressionPlugin(),
                     new LogbookPlugin(logbook),
-                    new TransientFaultPlugin(),
                     new OpenTracingPlugin(tracer),
                     new FailsafePlugin()
-                            .withPolicy(new RetryRequestPolicy(
-                                    new RetryPolicy<ClientHttpResponse>()
-                                            .handle(TransientFaultException.class)
-                                            .handle(RetryException.class)
-                                            .withBackoff(50, 2000, MILLIS)
-                                            .withDelay(new CompositeDelayFunction<>(Arrays.asList(
-                                                    new RetryAfterDelayFunction(systemUTC()),
-                                                    new RateLimitResetDelayFunction(systemUTC())
-                                            )))
-                                            .withMaxRetries(10)
-                                            .withMaxDuration(Duration.ofSeconds(2))
-                                            .withJitter(0.2)))
                             .withPolicy(new CircuitBreaker<ClientHttpResponse>()
                                     .withFailureThreshold(5, 5)
                                     .withDelay(Duration.ofSeconds(30))
                                     .withSuccessThreshold(3, 5)
-                                    .withTimeout(Duration.ofSeconds(3))
                                     .withDelay(new CompositeDelayFunction<>(Arrays.asList(
                                             new RetryAfterDelayFunction(systemUTC()),
                                             new RateLimitResetDelayFunction(systemUTC())
@@ -169,13 +157,37 @@ public class ManualConfiguration {
                                     .onOpen(listener::onOpen)
                                     .onHalfOpen(listener::onHalfOpen)
                                     .onClose(listener::onClose))
-                            .withPolicy(new BackupRequest<>(10, MILLISECONDS))
                             .withDecorator(new TracedTaskDecorator(tracer)),
+                    new FailsafePlugin().withPolicy(
+                            new RetryRequestPolicy(
+                                    retryPolicy(transientSocketFaults()))
+                                    .withPredicate(new IdempotencyPredicate())),
+                    new FailsafePlugin().withPolicy(
+                            new RetryRequestPolicy(
+                                    retryPolicy(transientConnectionFaults()))
+                                    .withPredicate(alwaysTrue())),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
+                    new FailsafePlugin()
+                            .withPolicy(new BackupRequest<>(10, MILLISECONDS)),
                     new FailsafePlugin()
                             .withPolicy(Timeout.of(Duration.ofSeconds(3))),
                     new OriginalStackTracePlugin(),
                     new CustomPlugin());
+        }
+
+        private RetryPolicy<ClientHttpResponse> retryPolicy(
+                final Predicate<Throwable> predicate) {
+
+            return new RetryPolicy<ClientHttpResponse>()
+                    .handleIf(predicate)
+                    .withBackoff(50, 2000, MILLIS)
+                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                            new RetryAfterDelayFunction(systemUTC()),
+                            new RateLimitResetDelayFunction(systemUTC())
+                    )))
+                    .withMaxRetries(10)
+                    .withMaxDuration(Duration.ofSeconds(2))
+                    .withJitter(0.2);
         }
 
         @Bean

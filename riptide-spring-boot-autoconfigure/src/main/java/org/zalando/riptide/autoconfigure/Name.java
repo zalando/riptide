@@ -23,10 +23,6 @@ final class Name {
     private final String infix;
     private final Class<?>[] types;
 
-    static Name name(final Class<?> type) {
-        return name(null, type);
-    }
-
     static Name name(@Nullable final String id, final Class<?>... types) {
         return name(id, null, types);
     }
