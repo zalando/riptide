@@ -8,6 +8,7 @@ import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.github.restdriver.clientdriver.ClientDriverRequest;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +20,7 @@ import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
@@ -30,6 +32,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
@@ -46,14 +49,17 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
@@ -66,6 +72,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setMaxConnTotal(1)
             .setMaxConnPerRoute(1)
+            .setDefaultRequestConfig(RequestConfig.custom().setConnectionRequestTimeout(10).build())
             .build();
 
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client, getMode());
@@ -177,6 +184,27 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
             http.get("/").call(pass()).join();
             http.get("/").call(pass()).join();
         });
+    }
+
+    @Test
+    void shouldReleaseConnectionOnFailureToReadBody() {
+        driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
+        driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
+
+        final Runnable request = throwingRunnable(() -> {
+            try {
+                http.get("/wrong-content-type")
+                        .dispatch(series(),
+                                on(SUCCESSFUL).call(listOf(User.class), users -> {
+                                }))
+                        .join();
+            } catch (final CompletionException e) {
+                throw e.getCause();
+            }
+        });
+
+        assertThat(assertThrows(RestClientException.class, request::run), instanceOf(RestClientException.class));
+        assertThat(assertThrows(RestClientException.class, request::run), instanceOf(RestClientException.class));
     }
 
     @Test
