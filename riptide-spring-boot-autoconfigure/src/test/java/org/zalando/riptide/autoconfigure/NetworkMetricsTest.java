@@ -10,6 +10,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.riptide.Http;
 
+import java.util.concurrent.Semaphore;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
@@ -27,9 +29,12 @@ final class NetworkMetricsTest {
     private SimpleMeterRegistry registry;
 
     @Test
-    void shouldRecordConnectionPools() {
-        foo.get("https://example.org").call(call(ClientHttpResponse.class, response -> {
-            // not closing to keep the connection leased
+    void shouldRecordConnectionPools() throws InterruptedException {
+        final Semaphore mutex = new Semaphore(1);
+        mutex.acquire();
+
+        foo.get("https://example.org").call(call(response -> {
+            mutex.acquire(); // not closing to keep the connection leased
         }));
         foo.get("https://example.org").call(call(ClientHttpResponse::close)).join();
 
@@ -39,6 +44,8 @@ final class NetworkMetricsTest {
         assertThat(gauge("http.client.connections.min").value(), is(0.0));
         assertThat(gauge("http.client.connections.max").value(), is(20.0));
         assertThat(gauge("http.client.connections.queued").value(), is(0.0));
+
+        mutex.release();
     }
 
     private Gauge gauge(final String name) {
