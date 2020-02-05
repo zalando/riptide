@@ -46,6 +46,7 @@ final class DefaultMessageReader implements MessageReader {
         try {
             return extractor.extractData(response);
         } catch (final RestClientException e) {
+            response.close();
             propagateIfPossible(e.getCause(), IOException.class, HttpMessageNotReadableException.class);
             throw e;
         }
