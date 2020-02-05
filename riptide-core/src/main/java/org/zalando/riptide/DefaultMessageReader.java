@@ -44,9 +44,13 @@ final class DefaultMessageReader implements MessageReader {
     private <I> I readBody(final Type type, final ClientHttpResponse response) throws IOException {
         final ResponseExtractor<I> extractor = new HttpMessageConverterExtractor<>(type, converters);
         try {
-            return extractor.extractData(response);
+            try {
+                return extractor.extractData(response);
+            } catch (final IOException | RuntimeException e) {
+                response.close();
+                throw e;
+            }
         } catch (final RestClientException e) {
-            response.close();
             propagateIfPossible(e.getCause(), IOException.class, HttpMessageNotReadableException.class);
             throw e;
         }
