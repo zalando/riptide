@@ -22,6 +22,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
@@ -191,7 +192,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
         driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
 
-        final Runnable request = throwingRunnable(() -> {
+        final ThrowingRunnable<Throwable> request = throwingRunnable(() -> {
             try {
                 http.get("/wrong-content-type")
                         .dispatch(series(),

@@ -51,6 +51,7 @@ final class DefaultMessageReader implements MessageReader {
                 throw e;
             }
         } catch (final RestClientException e) {
+            // unpack wrapped exception (Spring 5 only)
             propagateIfPossible(e.getCause(), IOException.class, HttpMessageNotReadableException.class);
             throw e;
         }
