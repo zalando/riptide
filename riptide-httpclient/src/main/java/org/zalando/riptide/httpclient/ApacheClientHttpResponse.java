@@ -1,5 +1,6 @@
 package org.zalando.riptide.httpclient;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -9,15 +10,13 @@ import org.springframework.http.client.AbstractClientHttpResponse;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
-import static org.zalando.fauxpas.FauxPas.throwingConsumer;
-import static org.zalando.fauxpas.FauxPas.throwingRunnable;
+import static org.zalando.riptide.httpclient.Closing.closeQuietly;
 import static org.zalando.riptide.httpclient.EmptyInputStream.EMPTY;
 
+@Slf4j
 final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
 
     private final HttpHeaders headers = new HttpHeaders();
@@ -83,11 +82,8 @@ final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
 
     @Override
     public void close() {
-        throwingRunnable(body::close).run();
-        Optional.of(response)
-                .filter(Closeable.class::isInstance)
-                .map(Closeable.class::cast)
-                .ifPresent(throwingConsumer(Closeable::close));
+        closeQuietly(body);
+        closeQuietly(response);
     }
 
 }
