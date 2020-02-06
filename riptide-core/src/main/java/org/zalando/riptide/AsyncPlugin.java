@@ -20,12 +20,4 @@ final class AsyncPlugin implements Plugin {
                 .thenCompose(identity());
     }
 
-    @Override
-    public RequestExecution aroundNetwork(final RequestExecution execution) {
-        return arguments ->
-                execution.execute(arguments)
-                        .whenCompleteAsync((r, e) -> {
-                            // this will force any further callbacks to be executed using the executor
-                        }, executor);
-    }
 }
