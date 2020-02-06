@@ -6,18 +6,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.riptide.Http;
-
-import java.util.concurrent.Semaphore;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.Route.call;
 
-@SpringBootTest(classes = DefaultTestConfiguration.class, webEnvironment = NONE)
+@SpringBootTest(
+        classes = DefaultTestConfiguration.class,
+        webEnvironment = NONE)
 @ActiveProfiles("default")
 final class NetworkMetricsTest {
 
@@ -29,23 +28,44 @@ final class NetworkMetricsTest {
     private SimpleMeterRegistry registry;
 
     @Test
-    void shouldRecordConnectionPools() throws InterruptedException {
-        final Semaphore mutex = new Semaphore(1);
-        mutex.acquire();
+    void shouldRecordConnectionPools() {
+        final String url = "https://example.org";
 
-        foo.get("https://example.org").call(call(response -> {
-            mutex.acquire(); // not closing to keep the connection leased
+        verify("http.client.connections.available", 0.0);
+        verify("http.client.connections.leased", 0.0);
+        verify("http.client.connections.total", 0.0);
+        verify("http.client.connections.min", 0.0);
+        verify("http.client.connections.max", 20.0);
+        verify("http.client.connections.queued", 0.0);
+
+        foo.get(url).call(call(first -> {
+            verify("http.client.connections.available", 0.0);
+            verify("http.client.connections.leased", 1.0);
+            verify("http.client.connections.total", 1.0);
+            verify("http.client.connections.min", 0.0);
+            verify("http.client.connections.max", 20.0);
+            verify("http.client.connections.queued", 0.0);
+
+            foo.get(url).call(call(second -> {
+                verify("http.client.connections.available", 0.0);
+                verify("http.client.connections.leased", 2.0);
+                verify("http.client.connections.total", 2.0);
+                verify("http.client.connections.min", 0.0);
+                verify("http.client.connections.max", 20.0);
+                verify("http.client.connections.queued", 0.0);
+            }));
         }));
-        foo.get("https://example.org").call(call(ClientHttpResponse::close)).join();
 
-        assertThat(gauge("http.client.connections.available").value(), is(1.0));
-        assertThat(gauge("http.client.connections.leased").value(), is(1.0));
-        assertThat(gauge("http.client.connections.total").value(), is(2.0));
-        assertThat(gauge("http.client.connections.min").value(), is(0.0));
-        assertThat(gauge("http.client.connections.max").value(), is(20.0));
-        assertThat(gauge("http.client.connections.queued").value(), is(0.0));
+        verify("http.client.connections.available", 0.0);
+        verify("http.client.connections.leased", 0.0);
+        verify("http.client.connections.total", 0.0);
+        verify("http.client.connections.min", 0.0);
+        verify("http.client.connections.max", 20.0);
+        verify("http.client.connections.queued", 0.0);
+    }
 
-        mutex.release();
+    private void verify(final String name, final double value) {
+        assertThat(gauge(name).value(), is(value));
     }
 
     private Gauge gauge(final String name) {
