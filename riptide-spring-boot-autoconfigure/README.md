@@ -394,7 +394,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
 | `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
-| `│   │   └── queue-size`                | `int`          | `0` (unbounded)                                  |
+| `│   │   └── queue-size`                | `int`          | `0` (no queue)                                   |
 | `│   ├── timeouts`                      |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── global`                    | `TimeSpan`     | none                                             |
