@@ -32,7 +32,7 @@ class TestRiptideRegistrar implements RiptideRegistrar {
             return factory;
         });
 
-        if (client.getOauth().getEnabled()) {
+        if (client.getAuth().getEnabled()) {
             registry.registerIfAbsent(id, AuthorizationProvider.class, () ->
                     genericBeanDefinition(MockAuthorizationProvider.class));
         }

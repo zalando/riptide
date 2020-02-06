@@ -166,13 +166,15 @@ Required when `tracing` is enabled.
 </dependency>
 ```
 
-#### OAuth support
+#### Authorization support
 
-Required for `oauth` support.
+Required for `auth` support.
 
 Registers a special AuthorizationProvider that built for Zalando's Platform IAM which provides
 OAuth2 tokens as files in a mounted directory. See 
 [Zalando Platform IAM Integration](https://kubernetes-on-aws.readthedocs.io/en/latest/user-guide/zalando-iam.html) for more details.
+
+Registering a custom `AuthorizationPlugin` or `AuthorizationProvider` will override the default. Setting `auth.enabled: true` is still required in that case.
 
 ```xml
 <dependency>
@@ -251,7 +253,7 @@ You can now define new clients and override default configuration in your `appli
 ```yaml
 riptide:
   defaults:
-    oauth:
+    auth:
       credentials-directory: /secrets
     tracing:
       enabled: true
@@ -273,7 +275,7 @@ riptide:
         max-size: 16
         keep-alive: 1 minnute
         queue-size: 0
-      oauth:
+      auth:
         enabled: true
       transient-fault-detection.enabled: true
       stack-trace-preservation.enabled: true
@@ -368,7 +370,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── metrics`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── tags`                      | `Map`          | none                                             |
-| `│   ├── oauth`                         |                |                                                  |
+| `│   ├── auth`                          |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── credentials-directory`     | `Path`         | `/meta/credentials`                              |
 | `│   ├── request-compression`           |                |                                                  |
@@ -455,7 +457,7 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── metrics`                   |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── tags`                  | `Map         ` | see `defaults`                                   |
-| `        ├── oauth`                     |                |                                                  |
+| `        ├── auth`                      |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   └── credentials-directory` | `Path`         | see `defaults`                                   |
 | `        ├── request-compression`       |                |                                                  |
