@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.zalando.riptide.auth.AuthorizationProvider;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import static org.zalando.riptide.autoconfigure.RiptideTestAutoConfiguration.REST_TEMPLATE_BEAN_NAME;
@@ -18,11 +20,10 @@ class TestRiptideRegistrar implements RiptideRegistrar {
 
     @Override
     public void register() {
-        properties.getClients().forEach((id, client) ->
-                registerRequestFactories(id));
+        properties.getClients().forEach(this::register);
     }
 
-    private void registerRequestFactories(final String id) {
+    private void register(final String id, final Client client) {
         registry.registerIfAbsent(id, ClientHttpRequestFactory.class, () -> {
             log.debug("Client [{}]: Registering mocked ClientHttpRequestFactory", id);
             final BeanDefinitionBuilder factory = genericBeanDefinition(ClientHttpRequestFactory.class);
@@ -30,6 +31,11 @@ class TestRiptideRegistrar implements RiptideRegistrar {
             factory.setFactoryMethodOnBean("getRequestFactory", REST_TEMPLATE_BEAN_NAME);
             return factory;
         });
+
+        if (client.getOauth().getEnabled()) {
+            registry.registerIfAbsent(id, AuthorizationProvider.class, () ->
+                    genericBeanDefinition(MockAuthorizationProvider.class));
+        }
     }
 
 }

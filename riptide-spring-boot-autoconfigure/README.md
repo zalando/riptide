@@ -635,7 +635,7 @@ final class RiptideTest {
 }
 ```
 
-**Beware** that all components of a client below and including `ClientHttpRequestFactory` are replaced by mocks.
+**Beware** that all components of a client below and including `ClientHttpRequestFactory` are replaced by mocks. In addition, if enabled the `AuthorizationProvider` will default to a mock implementation for tests.
 
 ## Getting Help
 

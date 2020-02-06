@@ -1,5 +1,6 @@
 package org.zalando.riptide.autoconfigure.testing;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 
+import static org.hamcrest.Matchers.anything;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -29,9 +32,21 @@ final class RiptideClientTestTest {
 
     @Test
     void shouldAutowireMockedHttp() {
-        server.expect(requestTo("https://example.com/foo/bar")).andRespond(withSuccess());
+        server.expect(requestTo("https://example.com/foo/bar"))
+                .andRespond(withSuccess());
         client.callViaHttp();
-        server.verify();
     }
 
+    @Test
+    void shouldMockAuthorizationProvider() {
+        server.expect(requestTo("https://example.com/foo/bar"))
+                .andExpect(header("Authorization", anything()))
+                .andRespond(withSuccess());
+        client.callViaHttp();
+    }
+
+    @AfterEach
+    void tearDown() {
+        server.verify();
+    }
 }
