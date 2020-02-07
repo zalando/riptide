@@ -2,6 +2,8 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Auth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
@@ -13,7 +15,6 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Logging;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
-import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
@@ -39,6 +40,7 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 
+@Slf4j
 final class Defaulting {
 
     private Defaulting() {
@@ -56,11 +58,14 @@ final class Defaulting {
                         defaults.getConnections().getMaxPerRoute()), null),
                 defaults.getConnections());
 
+        final Auth pick = pick(defaults.getAuth(), defaults.getOauth());
+
         return new Defaults(
                 defaults.getUrlResolution(),
                 connections,
                 merge(defaults.getThreads(), new Threads(connections.getMaxTotal())),
-                defaults.getOauth(),
+                pick,
+                pick,
                 defaults.getTransientFaultDetection(),
                 defaults.getStackTracePreservation(),
                 defaults.getMetrics(),
@@ -89,6 +94,10 @@ final class Defaulting {
     private static Client merge(final Client base, final Defaults defaults) {
         final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
 
+        final Auth pick = pick(
+                merge(base.getAuth(), defaults.getAuth(), Defaulting::merge),
+                merge(base.getOauth(), defaults.getOauth(), Defaulting::merge));
+
         return new Client(
                 base.getBaseUrl(),
                 either(base.getUrlResolution(), defaults.getUrlResolution()),
@@ -96,7 +105,8 @@ final class Defaulting {
                 merge(base.getThreads(),
                         merge(new Threads(connections.getMaxTotal()), defaults.getThreads()),
                         Defaulting::merge),
-                merge(base.getOauth(), defaults.getOauth(), Defaulting::merge),
+                pick,
+                pick,
                 merge(base.getTransientFaultDetection(), defaults.getTransientFaultDetection(), Defaulting::merge),
                 merge(base.getStackTracePreservation(), defaults.getStackTracePreservation(), Defaulting::merge),
                 merge(base.getMetrics(), defaults.getMetrics(), Defaulting::merge),
@@ -138,11 +148,20 @@ final class Defaulting {
         );
     }
 
-    private static OAuth merge(final OAuth base, final OAuth defaults) {
-        return new OAuth(
+    private static Auth merge(final Auth base, final Auth defaults) {
+        return new Auth(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getCredentialsDirectory(), defaults.getCredentialsDirectory())
         );
+    }
+
+    private static Auth pick(final Auth auth, final Auth oauth) {
+        if (oauth.getEnabled()) {
+            log.warn("[riptide.clients.<id>.oauth] is deprecated and replaced by [riptide.clients.<id>.auth]");
+            return oauth;
+        }
+
+        return auth;
     }
 
     private static TransientFaultDetection merge(final TransientFaultDetection base,

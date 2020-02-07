@@ -24,10 +24,6 @@ final class Registry {
 
     private final BeanDefinitionRegistry registry;
 
-    boolean isRegistered(final String name) {
-        return registry.isBeanNameInUse(name);
-    }
-
     String registerIfAbsent(final String id, final Class<?> suffix, final Supplier<BeanDefinitionBuilder> factory) {
         return registerIfAbsent(name(id, suffix), factory);
     }
@@ -56,7 +52,7 @@ final class Registry {
 
     private Optional<String> find(final Name name) {
         return name.getAlternatives().stream()
-                .filter(this::isRegistered)
+                .filter(registry::isBeanNameInUse)
                 .findFirst();
     }
 

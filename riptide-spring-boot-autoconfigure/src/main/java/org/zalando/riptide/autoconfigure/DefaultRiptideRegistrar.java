@@ -33,7 +33,6 @@ import org.zalando.riptide.auth.AuthorizationProvider;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
-import org.zalando.riptide.autoconfigure.RiptideProperties.OAuth;
 import org.zalando.riptide.chaos.ChaosPlugin;
 import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
@@ -84,9 +83,11 @@ import static org.zalando.riptide.autoconfigure.Dependencies.ifPresent;
 import static org.zalando.riptide.autoconfigure.Name.name;
 import static org.zalando.riptide.autoconfigure.Registry.list;
 import static org.zalando.riptide.autoconfigure.Registry.ref;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Auth;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
@@ -144,10 +145,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private String registerExecutor(final String id, final Client client) {
-        final String name = "http-" + id;
+        // TODO support maxSize = 0 => direct executor?
 
         final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () -> {
-            final RiptideProperties.Threads threads = client.getThreads();
+            final Threads threads = client.getThreads();
             return genericBeanDefinition(ThreadPoolExecutor.class)
                     .addConstructorArgValue(threads.getMinSize())
                     .addConstructorArgValue(threads.getMaxSize())
@@ -156,7 +157,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(threads.getQueueSize() == 0 ?
                             new SynchronousQueue<>() :
                             new ArrayBlockingQueue<>(threads.getQueueSize()))
-                    .addConstructorArgValue(new CustomizableThreadFactory(name + "-"))
+                    .addConstructorArgValue(new CustomizableThreadFactory(("http-" + id) + "-"))
                     .setDestroyMethodName("shutdown");
         });
 
@@ -429,11 +430,11 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private Optional<String> registerAuthorizationPlugin(final String id, final Client client) {
-        if (client.getOauth().getEnabled()) {
+        if (client.getAuth().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(id, AuthorizationPlugin.class, () -> {
                 log.debug("Client [{}]: Registering [{}]", id, AuthorizationPlugin.class.getSimpleName());
                 return genericBeanDefinition(AuthorizationPlugin.class)
-                        .addConstructorArgReference(registerAuthorizationProvider(id, client.getOauth()));
+                        .addConstructorArgReference(registerAuthorizationProvider(id, client.getAuth()));
             });
             return Optional.of(pluginId);
         }
@@ -534,10 +535,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 .map(URI::create).map(URI::getHost);
     }
 
-    private String registerAuthorizationProvider(final String id, final OAuth oauth) {
+    private String registerAuthorizationProvider(final String id, final Auth auth) {
         return registry.registerIfAbsent(id, AuthorizationProvider.class, () ->
                 genericBeanDefinition(PlatformCredentialsAuthorizationProvider.class)
-                        .addConstructorArgValue(oauth.getCredentialsDirectory())
+                        .addConstructorArgValue(auth.getCredentialsDirectory())
                         .addConstructorArgValue(id));
     }
 

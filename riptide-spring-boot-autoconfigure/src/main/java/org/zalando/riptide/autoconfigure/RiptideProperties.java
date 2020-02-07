@@ -63,7 +63,11 @@ public final class RiptideProperties {
         private Threads threads = new Threads(1, null, TimeSpan.of(1, MINUTES), 0);
 
         @NestedConfigurationProperty
-        private OAuth oauth = new OAuth(false, Paths.get("/meta/credentials"));
+        private Auth auth = new Auth(false, Paths.get("/meta/credentials"));
+
+        @Deprecated
+        @NestedConfigurationProperty
+        private Auth oauth = new Auth(false, Paths.get("/meta/credentials"));
 
         @NestedConfigurationProperty
         private TransientFaultDetection transientFaultDetection = new TransientFaultDetection(false);
@@ -141,7 +145,11 @@ public final class RiptideProperties {
         private Threads threads;
 
         @NestedConfigurationProperty
-        private OAuth oauth;
+        private Auth auth;
+
+        @Deprecated
+        @NestedConfigurationProperty
+        private Auth oauth;
 
         @NestedConfigurationProperty
         private TransientFaultDetection transientFaultDetection;
@@ -220,7 +228,7 @@ public final class RiptideProperties {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static final class OAuth {
+    public static final class Auth {
         private Boolean enabled;
         private Path credentialsDirectory;
     }
