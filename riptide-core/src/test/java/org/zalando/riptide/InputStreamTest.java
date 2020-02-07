@@ -1,40 +1,35 @@
 package org.zalando.riptide;
 
+import com.google.common.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.Navigators.contentType;
+import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 
 final class InputStreamTest {
 
-    static class InputStreamHttpMessageConverter implements HttpMessageConverter<InputStream> {
+    private static final class StreamConverter<T> implements HttpMessageConverter<Stream<T>> {
 
         @Override
         public boolean canRead(final Class<?> clazz, final MediaType mediaType) {
-            return InputStream.class.isAssignableFrom(clazz);
+            return clazz == Stream.class;
         }
 
         @Override
@@ -44,86 +39,21 @@ final class InputStreamTest {
 
         @Override
         public List<MediaType> getSupportedMediaTypes() {
-            return singletonList(APPLICATION_OCTET_STREAM);
+            return Collections.emptyList();
         }
 
         @Override
-        public InputStream read(final Class<? extends InputStream> clazz, final HttpInputMessage inputMessage) throws IOException,
-                HttpMessageNotReadableException {
-            return inputMessage.getBody();
+        public Stream<T> read(final Class<? extends Stream<T>> clazz,
+                final HttpInputMessage inputMessage) {
+
+            return Stream.<T>empty().onClose(throwingRunnable(() ->
+                    inputMessage.getBody().close()));
         }
 
         @Override
-        public void write(final InputStream t, final MediaType contentType, final HttpOutputMessage outputMessage) throws
-                HttpMessageNotWritableException {
-            throw new IllegalStateException();
-        }
-
-    }
-
-    static class CloseOnceInputStream extends InputStream {
-        private final InputStream inputStream;
-        private boolean isClosed;
-
-        CloseOnceInputStream(final InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        CloseOnceInputStream(final byte[] buf) {
-            this(new ByteArrayInputStream(buf));
-        }
-
-        private void checkClosed() throws IOException {
-            if (isClosed) {
-                throw new IOException("Stream is already closed");
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            checkClosed();
-            isClosed = true;
-            inputStream.close();
-        }
-
-        @Override
-        public synchronized void mark(final int readlimit) {
-            inputStream.mark(readlimit);
-        }
-
-        @Override
-        public synchronized void reset() throws IOException {
-            checkClosed();
-            inputStream.reset();
-        }
-
-        @Override
-        public boolean markSupported() {
-            return inputStream.markSupported();
-        }
-
-        @Override
-        public synchronized int read() throws IOException {
-            checkClosed();
-            return inputStream.read();
-        }
-
-        @Override
-        public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
-            checkClosed();
-            return inputStream.read(b, off, len);
-        }
-
-        @Override
-        public synchronized long skip(final long n) throws IOException {
-            checkClosed();
-            return inputStream.skip(n);
-        }
-
-        @Override
-        public synchronized int available() throws IOException {
-            checkClosed();
-            return inputStream.available();
+        public void write(final Stream<T> tStream, final MediaType contentType,
+                final HttpOutputMessage outputMessage)  {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -138,58 +68,27 @@ final class InputStreamTest {
         this.unit = Http.builder()
                 .executor(Executors.newSingleThreadExecutor())
                 .requestFactory(template.getRequestFactory())
-                .converter(new InputStreamHttpMessageConverter())
                 .baseUrl("https://api.example.com")
+                .converter(new StreamConverter<>())
                 .build();
     }
 
     @Test
-    void shouldAllowCloseOnce() throws IOException {
-        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
-        content.close();
-        try {
-            content.close();
-            fail("Should prevent multiple close calls");
-        } catch (final IOException e) {
-            assertEquals("Stream is already closed", e.getMessage());
-        }
-    }
-
-    @Test
-    void shouldNotAllowReadAfterClose() throws IOException {
-        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
-        content.close();
-        try {
-            //noinspection ResultOfMethodCallIgnored
-            content.read();
-            fail("Should prevent read calls after close");
-        } catch (final IOException e) {
-            assertEquals("Stream is already closed", e.getMessage());
-        }
-    }
-
-    @Test
-    void shouldExtractOriginalBody() throws IOException {
-        final InputStream content = new CloseOnceInputStream(new byte[]{'b', 'l', 'o', 'b'});
-
+    void wontCloseBodyForAutoCloseableBodyTypes() {
         server.expect(requestTo(url)).andRespond(
                 withSuccess()
-                        .body(new InputStreamResource(content))
-                        .contentType(APPLICATION_OCTET_STREAM));
+                        .body(new byte[]{'b', 'l', 'o', 'b'}));
 
-        final AtomicReference<InputStream> capture = new AtomicReference<>();
+        unit.get(url).call((response, reader) -> {
+            final TypeToken<Stream> type = TypeToken.of(Stream.class);
+            final Stream<?> stream = reader.read(type, response);
 
-        unit.get(url)
-                .dispatch(contentType(),
-                        on(APPLICATION_OCTET_STREAM).call(InputStream.class, capture::set))
-                .join();
+            final InputStream body = response.getBody();
+            assertThat(body.available(), is(greaterThan(0)));
+            stream.close();
 
-        final InputStream inputStream = capture.get();
-
-        assertEquals(content, inputStream);
-
-        final int ch1 = inputStream.read();
-        assertEquals('b', ch1);
+            assertThat(body.available(), is(0));
+        });
     }
 
 }
