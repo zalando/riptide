@@ -154,6 +154,73 @@ This defaults to:
 - same list of converters as `new RestTemplate()`
 - [`OriginalStackTracePlugin`](#plugins)
 
+### Thread Pool
+
+All off the standard `Executors.new*Pool()` implementations only support the *queue-first* style, i.e. the pool scales up to the core pool size, then fills the queue and only then will scale up to the maximum pool size.
+
+Riptide provides a `ThreadPoolExecutors.builder()` which also offers a *scale-first* style where thread pools scale up to the maximum pool size before they queue any tasks. That usually leads to higher throughput, lower latency on the expense of having to maintain more threads. 
+
+The following table shows which combination of properties are supported
+
+| Configuration                              | Supported           |
+|--------------------------------------------|---------------------|
+| Without queue, fixed size¹                 | :heavy_check_mark:  |
+| Without queue, elastic size²               | :heavy_check_mark:  |
+| Bounded queue, fixed size                  | :heavy_check_mark:  |
+| Bounded queue, elastic size                | :heavy_check_mark:  |
+| Unbounded queue, fixed size                | :heavy_check_mark:  |
+| Unbounded queue, elastic size              | :x:³                |
+| Scale first, without queue, fixed size     | :x:⁴                |
+| Scale first, without queue, elastic size   | :x:⁴                |
+| Scale first, bounded queue, fixed size     | :x:⁵                |
+| Scale first, bounded queue, elastic size   | :heavy_check_mark:⁶ |
+| Scale first, unbounded queue, fixed size   | :x:⁵                |
+| Scale first, unbounded queue, elastic size | :heavy_check_mark:⁶ |
+
+¹ Core pool size = maximum pool size  
+² Core pool size < maximum pool size  
+³ Pool can't grow past core pool size due to unbounded queue  
+⁴ Scale *first* has no meaning without a queue    
+⁵ Fixed size pools are already scaled up  
+⁶ Elastic, but only between **0** and maximum pool size  
+
+#### Examples
+
+1. Without queue, elastic size
+
+    ```java
+    ThreadPoolExecutors.builder()
+        .withoutQueue()
+        .elasticSize(5, 20)
+        .keepAlive(1, MINUTES)
+        .build(ze
+    ```
+
+2. Bounded queue, fixed size
+
+    ```java
+    ThreadPoolExecutors.builder()
+        .boundedQueue(20)
+        .fixedSize(20)
+        .keepAlive(1, MINUTES)
+        .build()
+    ```
+
+3. Scale-first, unbounded queue, elastic size
+
+    ```java
+    ThreadPoolExecutors.builder()
+        .scaleFirst()
+        .unboundedQueue()
+        .elasticSize(20)   
+        .keepAlive(1, MINUTES)
+        .build()
+    ```
+
+You can read more about *scale-first* here:
+- [Java Scale First ExecutorService — A myth or a reality](https://medium.com/@uditharosha/java-scale-first-executorservice-4245a63222df)
+- [How to get the ThreadPoolExecutor to increase threads to max before queueing?](https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing)
+
 In order to configure the thread pool correctly, please refer to
 [How to set an ideal thread pool size](https://jobs.zalando.com/tech/blog/how-to-set-an-ideal-thread-pool-size).
 
@@ -182,7 +249,7 @@ Non-blocking IO is asynchronous by nature. In order to provide asynchrony for bl
 |                 | Synchronous                                  | Asynchronous                                      |
 |-----------------|----------------------------------------------|---------------------------------------------------|
 | Blocking IO     | `Runnable::run` + `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory`           |
-| Non-blocking IO | n/a                                          | `Runnable::run` + `AsyncClientHttpRequestFactory` |
+| Non-blocking IO | n/a                                          | `AsyncClientHttpRequestFactory` |
 
 ## Usage
 
