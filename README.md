@@ -154,6 +154,42 @@ This defaults to:
 - same list of converters as `new RestTemplate()`
 - [`OriginalStackTracePlugin`](#plugins)
 
+### Thread Pool
+
+Instead of using `Executors.newCachedThreadPool()` Riptide offers an alternative builder to create a custom `ThreadPoolExecutor`.
+
+You have to pick one of two different flavors of thread pools:
+
+1. Queue-first
+
+    This is the default behavior for Java thread pools where the pool scales up to the core pool size, then fills the queue and then starts to grow until it reaches the maximum pool size:
+    
+    ```java
+    ThreadPoolExecutors.builder()
+        .corePoolSize(5)
+        .maximumPoolSize(20)
+        .keepAlive(1, MINUTES)
+        .build()
+    ```
+
+2. Scale-first
+
+    An alternative approach is to scale first up to the maximum pool size and then fill the queue:
+    
+    ```java
+    ThreadPoolExecutors.builder()
+        .workQueue(20)
+        .maximumPoolSize(20)
+        .keepAlive(1, MINUTES)
+        .build()
+    ```
+
+⚠️ Work queue and core pool size are mutually exclusive in this approach.
+
+You can read more about those two approaches here:
+- [Java Scale First ExecutorService — A myth or a reality](https://medium.com/@uditharosha/java-scale-first-executorservice-4245a63222df)
+- [How to get the ThreadPoolExecutor to increase threads to max before queueing?](https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing)
+
 In order to configure the thread pool correctly, please refer to
 [How to set an ideal thread pool size](https://jobs.zalando.com/tech/blog/how-to-set-an-ideal-thread-pool-size).
 
@@ -182,7 +218,7 @@ Non-blocking IO is asynchronous by nature. In order to provide asynchrony for bl
 |                 | Synchronous                                  | Asynchronous                                      |
 |-----------------|----------------------------------------------|---------------------------------------------------|
 | Blocking IO     | `Runnable::run` + `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory`           |
-| Non-blocking IO | n/a                                          | `Runnable::run` + `AsyncClientHttpRequestFactory` |
+| Non-blocking IO | n/a                                          | `AsyncClientHttpRequestFactory` |
 
 ## Usage
 
