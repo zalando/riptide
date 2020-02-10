@@ -44,6 +44,7 @@ import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors;
 import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
@@ -71,11 +72,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.function.Predicate;
 
 import static java.time.Clock.systemUTC;
@@ -226,11 +224,12 @@ public class ManualConfiguration {
         @Bean(destroyMethod = "shutdown")
         public ExecutorService executor(final Tracer tracer) {
             return new TracedExecutorService(
-                    new ThreadPoolExecutor(
-                            1, 20, 1, MINUTES,
-                            new ArrayBlockingQueue<>(0),
-                            new CustomizableThreadFactory("http-example-"),
-                            new AbortPolicy()),
+                    ThreadPoolExecutors.builder()
+                        .withoutQueue()
+                        .elasticSize(1, 20)
+                        .keepAlive(1, MINUTES)
+                        .threadFactory(new CustomizableThreadFactory("http-example-"))
+                        .build(),
                     tracer);
         }
 

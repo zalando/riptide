@@ -22,7 +22,6 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
@@ -68,10 +67,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -147,19 +143,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private String registerExecutor(final String id, final Client client) {
         // TODO support maxSize = 0 => direct executor?
 
-        final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () -> {
-            final Threads threads = client.getThreads();
-            return genericBeanDefinition(ThreadPoolExecutor.class)
-                    .addConstructorArgValue(threads.getMinSize())
-                    .addConstructorArgValue(threads.getMaxSize())
-                    .addConstructorArgValue(threads.getKeepAlive().getAmount())
-                    .addConstructorArgValue(threads.getKeepAlive().getUnit())
-                    .addConstructorArgValue(threads.getQueueSize() == 0 ?
-                            new SynchronousQueue<>() :
-                            new ArrayBlockingQueue<>(threads.getQueueSize()))
-                    .addConstructorArgValue(new CustomizableThreadFactory(("http-" + id) + "-"))
-                    .setDestroyMethodName("shutdown");
-        });
+        final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () ->
+                genericBeanDefinition(ThreadPoolFactory.class)
+                        .addConstructorArgValue(id)
+                        .addConstructorArgValue(client.getThreads())
+                        .setFactoryMethod("create")
+                        .setDestroyMethodName("shutdown"));
 
         if (client.getMetrics().getEnabled()) {
             registry.registerIfAbsent(id, ThreadPoolMetrics.class, () ->
