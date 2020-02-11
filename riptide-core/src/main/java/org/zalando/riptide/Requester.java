@@ -72,15 +72,15 @@ final class Requester extends AttributeStage {
 
     @Override
     public HeaderStage ifModifiedSince(final OffsetDateTime since) {
-        return header(IF_MODIFIED_SINCE, toHttpdate(since));
+        return header(IF_MODIFIED_SINCE, toHttpDate(since));
     }
 
     @Override
     public HeaderStage ifUnmodifiedSince(final OffsetDateTime since) {
-        return header(IF_UNMODIFIED_SINCE, toHttpdate(since));
+        return header(IF_UNMODIFIED_SINCE, toHttpDate(since));
     }
 
-    private String toHttpdate(final OffsetDateTime dateTime) {
+    private String toHttpDate(final OffsetDateTime dateTime) {
         return RFC_1123_DATE_TIME.format(dateTime.atZoneSameInstant(UTC));
     }
 

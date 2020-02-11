@@ -141,6 +141,7 @@ final class Defaulting {
 
     private static Threads merge(final Threads base, final Threads defaults) {
         return new Threads(
+                either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getMinSize(), defaults.getMinSize()),
                 either(base.getMaxSize(), defaults.getMaxSize()),
                 either(base.getKeepAlive(), defaults.getKeepAlive()),

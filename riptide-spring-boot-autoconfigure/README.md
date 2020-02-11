@@ -393,6 +393,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── stack-trace-preservation`      |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `true`                                           |
 | `│   ├── threads`                       |                |                                                  |
+| `│   │   ├── enabled`                   | `boolean`      | `true`                                           |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
 | `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
@@ -480,6 +481,7 @@ For a complete overview of available properties, they type and default value ple
 | `        ├── stack-trace-preservation`  |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── threads`                   |                |                                                  |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   ├── min-size`              | `int`          | see `defaults`                                   |
 | `        │   ├── max-size`              | `int`          | see `defaults`                                   |
 | `        │   ├── keep-alive`            | `TimeSpan`     | see `defaults`                                   |

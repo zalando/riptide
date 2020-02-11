@@ -31,7 +31,7 @@ public interface Http extends URIStage {
         return new DefaultHttpBuilder();
     }
 
-    interface ExecutorStage {
+    interface ExecutorStage extends RequestFactoryStage {
         RequestFactoryStage executor(Executor executor);
         ConfigurationStage asyncRequestFactory(AsyncClientHttpRequestFactory asyncRequestFactory);
     }

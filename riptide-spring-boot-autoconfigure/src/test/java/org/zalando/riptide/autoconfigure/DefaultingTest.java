@@ -57,7 +57,7 @@ final class DefaultingTest {
     void shouldNotOverwriteProvidedDefaultThreadsMaxSizeWithConnectionsMaxTotal() {
         final RiptideProperties properties = new RiptideProperties();
         final Defaults defaults = new Defaults();
-        defaults.setThreads(new Threads(null, 10, null, null));
+        defaults.setThreads(new Threads(true, null, 10, null, null));
         properties.setDefaults(defaults);
         final RiptideProperties actual = Defaulting.withDefaults(properties);
 
