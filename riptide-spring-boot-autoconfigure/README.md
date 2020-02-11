@@ -322,6 +322,9 @@ For a complete overview of available properties, they type and default value ple
 |-----------------------------------------|----------------|--------------------------------------------------|
 | `riptide`                               |                |                                                  |
 | `├── defaults`                          |                |                                                  |
+| `│   ├── auth`                          |                |                                                  |
+| `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   └── credentials-directory`     | `Path`         | `/meta/credentials`                              |
 | `│   ├── backup-request`                |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── delay`                     | `TimeSpan`     | no delay                                         |
@@ -370,9 +373,6 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── metrics`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── tags`                      | `Map`          | none                                             |
-| `│   ├── auth`                          |                |                                                  |
-| `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
-| `│   │   └── credentials-directory`     | `Path`         | `/meta/credentials`                              |
 | `│   ├── request-compression`           |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `false`                                          |
 | `│   ├── retry`                         |                |                                                  |
