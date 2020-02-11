@@ -58,14 +58,12 @@ final class Defaulting {
                         defaults.getConnections().getMaxPerRoute()), null),
                 defaults.getConnections());
 
-        final Auth pick = pick(defaults.getAuth(), defaults.getOauth());
-
         return new Defaults(
                 defaults.getUrlResolution(),
                 connections,
                 merge(defaults.getThreads(), new Threads(connections.getMaxTotal())),
-                pick,
-                pick,
+                defaults.getAuth(),
+                defaults.getOauth(),
                 defaults.getTransientFaultDetection(),
                 defaults.getStackTracePreservation(),
                 defaults.getMetrics(),
