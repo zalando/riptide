@@ -95,7 +95,7 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 - added `riptide.defaults.circuit-breaker.enabled` (default: `false`)
 - added `riptide.defaults.logging.enabled` (default: `false`️)
 - added `riptide.defaults.metrics.enabled` (default: `false`)
-- added `riptide.defaults.oauth.enabled` (default: `false`)
+- added `riptide.defaults.auth.enabled` (default: `false`)
 - added `riptide.defaults.request-compression.enabled` (default: `false`)
 - added `riptide.defaults.retry.enabled` (default: `false`)
 - added `riptide.defaults.retry.backoff.enabled` (default: `false`)
@@ -107,6 +107,7 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 
 | Before                                           | After                                                        |
 |--------------------------------------------------|--------------------------------------------------------------|
+| `riptide.oauth.credentials-directory`            | `riptide.defaults.auth.credentials-directory`                |
 | `riptide.defaults.keystore.password`             | `riptide.defaults.certificate-pinning.keystore.password`     |
 | `riptide.defaults.keystore.path`                 | `riptide.defaults.certificate-pinning.keystore.path`         |
 | `riptide.defaults.connect-timeout`               | `riptide.defaults.connections.connect-timeout`               |
@@ -142,10 +143,10 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 
 ### Removed properties
 
-- removed `riptide.defaults.oauth.access-token-url`
-- removed `riptide.defaults.oauth.scheduling-period`
-- removed `riptide.defaults.oauth.connect-timeout`
-- removed `riptide.defaults.oauth.socket-timeout`
+- removed `riptide.oauth.access-token-url`
+- removed `riptide.oauth.scheduling-period`
+- removed `riptide.oauth.connect-timeout`
+- removed `riptide.oauth.socket-timeout`
 - removed `riptide.clients.<id>.oauth.access-token-url`
 - removed `riptide.clients.<id>.oauth.scheduling-period`
 - removed `riptide.clients.<id>.oauth.connect-timeout`
