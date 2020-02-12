@@ -244,7 +244,7 @@ The following implementations offer non-blocking IO:
 - [`Netty4ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/Netty4ClientHttpRequestFactory.html), using [Netty](https://netty.io/)
 - [`HttpComponentsAsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsAsyncClientHttpRequestFactory.html), using [Apache HTTP Async Client](https://hc.apache.org/httpcomponents-asyncclient-4.1.x/index.html)
 
-Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. Not passing an executor will make all network communication synchrnonous, i.e. all futures returned by Riptide will already be completed.
+Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. Not passing an executor will make all network communication synchronous, i.e. all futures returned by Riptide will already be completed.
 
 |                 | Synchronous                | Asynchronous                            |
 |-----------------|----------------------------|-----------------------------------------|
