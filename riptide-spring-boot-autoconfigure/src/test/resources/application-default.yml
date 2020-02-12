@@ -30,6 +30,8 @@ riptide:
     ecb:
       base-url: http://www.ecb.europa.eu
       request-compression.enabled: true
+      threads:
+        enabled: false
       backup-request:
         enabled: true
         delay: 100 milliseconds

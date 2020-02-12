@@ -34,7 +34,6 @@ final class NoBaseUrlTest {
     @Test
     void shouldFailOnProvisioningOfNonAbsoluteBaseUri() {
         final Http unit = Http.builder()
-                .executor(Runnable::run)
                 .requestFactory(new SimpleClientHttpRequestFactory())
                 .baseUrl(() -> URI.create(""))
                 .build();

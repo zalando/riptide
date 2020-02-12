@@ -83,7 +83,6 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.Auth;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.ErrorResponses;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptions;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
-import static org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
@@ -110,7 +109,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             return genericBeanDefinition(HttpFactory.class)
                     .setFactoryMethod("create")
-                    .addConstructorArgReference(registerExecutor(id, client))
+                    .addConstructorArgValue(createExecutor(id, client))
                     .addConstructorArgReference(registerClientHttpRequestFactory(id, client))
                     .addConstructorArgValue(client.getBaseUrl())
                     .addConstructorArgValue(client.getUrlResolution())
@@ -140,9 +139,15 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
     }
 
-    private String registerExecutor(final String id, final Client client) {
-        // TODO support maxSize = 0 => direct executor?
+    private Object createExecutor(final String id, final Client client) {
+        if (client.getThreads().getEnabled()) {
+            return ref(registerExecutor(id, client));
+        }
 
+        return null;
+    }
+
+    private String registerExecutor(final String id, final Client client) {
         final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () ->
                 genericBeanDefinition(ThreadPoolFactory.class)
                         .addConstructorArgValue(id)

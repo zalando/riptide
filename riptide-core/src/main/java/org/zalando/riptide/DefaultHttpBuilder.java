@@ -2,6 +2,7 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
+import lombok.With;
 import org.organicdesign.fp.collections.ImList;
 import org.organicdesign.fp.collections.PersistentVector;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
@@ -24,9 +25,11 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static lombok.AccessLevel.PRIVATE;
 import static org.zalando.riptide.Plugin.composite;
 
-@AllArgsConstructor
+@With(PRIVATE)
+@AllArgsConstructor(access = PRIVATE)
 final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, ConfigurationStage, FinalStage {
 
     private static class Converters {
@@ -67,16 +70,13 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage requestFactory(final ClientHttpRequestFactory factory) {
-        final IO io = new BlockingIO(factory);
-        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution, plugins);
+        return withIo(new BlockingIO(factory));
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public ConfigurationStage asyncRequestFactory(final AsyncClientHttpRequestFactory factory) {
-        final Executor executor = Runnable::run;
-        final IO io = new NonBlockingIO(factory);
-        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution, plugins);
+        return withIo(new NonBlockingIO(factory));
     }
 
     @Override
@@ -86,12 +86,12 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage converters(@Nonnull final Iterable<HttpMessageConverter<?>> converters) {
-        return new DefaultHttpBuilder(executor, io, this.converters.concat(converters), baseUrl, resolution, plugins);
+        return withConverters(this.converters.concat(converters));
     }
 
     @Override
     public ConfigurationStage converter(final HttpMessageConverter<?> converter) {
-        return new DefaultHttpBuilder(executor, io, converters.append(converter), baseUrl, resolution, plugins);
+        return withConverters(converters.append(converter));
     }
 
     @Override
@@ -107,8 +107,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage baseUrl(final Supplier<URI> baseUrl) {
-        return new DefaultHttpBuilder(executor, io, converters,
-                () -> checkAbsoluteBaseUrl(baseUrl.get()), resolution, plugins);
+        return withBaseUrl(() -> checkAbsoluteBaseUrl(baseUrl.get()));
     }
 
     private URI checkAbsoluteBaseUrl(@Nullable final URI baseUrl) {
@@ -118,8 +117,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage urlResolution(@Nullable final UrlResolution resolution) {
-        return new DefaultHttpBuilder(executor, io, converters, baseUrl,
-                firstNonNull(resolution, DEFAULT_RESOLUTION), plugins);
+        return withResolution(firstNonNull(resolution, DEFAULT_RESOLUTION));
     }
 
     @Override
@@ -129,22 +127,23 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
 
     @Override
     public ConfigurationStage plugins(final Iterable<Plugin> plugins) {
-        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution,
-                this.plugins.concat(plugins));
+        return withPlugins(this.plugins.concat(plugins));
     }
 
     @Override
     public ConfigurationStage plugin(final Plugin plugin) {
-        return new DefaultHttpBuilder(executor, io, converters, baseUrl, resolution,
-                plugins.append(plugin));
+        return withPlugins(plugins.append(plugin));
     }
 
     @Override
     public Http build() {
         final List<HttpMessageConverter<?>> converters = converters();
-
         final List<Plugin> plugins = new ArrayList<>();
-        plugins.add(new AsyncPlugin(executor));
+
+        if (executor != null) {
+            plugins.add(new AsyncPlugin(executor));
+        }
+
         plugins.add(new DispatchPlugin(new DefaultMessageReader(converters)));
         plugins.add(new SerializationPlugin(new DefaultMessageWriter(converters)));
         plugins.addAll(plugins());

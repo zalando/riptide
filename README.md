@@ -226,7 +226,7 @@ In order to configure the thread pool correctly, please refer to
 
 ### Non-blocking IO
 
-Riptide has the notion of an *executor* and a *request factory*. There are two different kinds of request factories:
+Riptide supports two different kinds of request factories:
 
 **[`ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html)**
 
@@ -244,12 +244,12 @@ The following implementations offer non-blocking IO:
 - [`Netty4ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/Netty4ClientHttpRequestFactory.html), using [Netty](https://netty.io/)
 - [`HttpComponentsAsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsAsyncClientHttpRequestFactory.html), using [Apache HTTP Async Client](https://hc.apache.org/httpcomponents-asyncclient-4.1.x/index.html)
 
-Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. For synchronous operations it's possible to just pass `Runnable::run`.
+Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. Not passing an executor will make all network communication synchronous, i.e. all futures returned by Riptide will already be completed.
 
-|                 | Synchronous                                  | Asynchronous                                      |
-|-----------------|----------------------------------------------|---------------------------------------------------|
-| Blocking IO     | `Runnable::run` + `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory`           |
-| Non-blocking IO | n/a                                          | `AsyncClientHttpRequestFactory` |
+|                 | Synchronous                | Asynchronous                            |
+|-----------------|----------------------------|-----------------------------------------|
+| Blocking IO     | `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory` |
+| Non-blocking IO | n/a                        | `AsyncClientHttpRequestFactory`         |
 
 ## Usage
 
@@ -371,7 +371,7 @@ We basically use an intermediate `RestTemplate` as a holder of the special `Clie
 `MockRestServiceServer` manages.
 
 If you are using the [Spring Boot Starter](riptide-spring-boot-starter) the test setup is provided by a convenient annotation `@RiptideClientTest`, 
-see [here](riptide-spring-boot-starter/README.md#testing).
+see [here](riptide-spring-boot-starter#testing).
 
 ## Getting help
 
