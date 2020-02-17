@@ -55,6 +55,32 @@ new MicrometerPlugin(meterRegistry)
     .withDefaultTags(Tag.of("aws.region", "eu-central-1"))
 ```
 
+### Histogram and percentiles
+
+The `MicrometerPlugin` does **NOT** configure any histograms or percentiles for two reasons:
+
+1. It would require Riptide to effectively replicate Micrometer's API and also maintain compatibility without providing any additional value that would justify it.
+2. It should be left to users to decide which strategy they want to use: percentiles per instance (non-aggregatable), percentiles per cluster (aggregated centrally) or percentiles per cluster (pre-aggregated per instance)
+
+The preferred solution is to register a custom `MeterFilter` and configure percentiles that way:
+
+```java
+registry.config().meterFilter(
+    new MeterFilter() {
+        @Override
+        public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+            if(id.getName().startsWith("myservice")) {
+                return DistributionStatisticConfig.builder()
+                    .percentiles(0.95)
+                    .build()
+                    .merge(config);
+            }
+            return config;
+        }
+    });
+```
+For additional information on percentiles and histograms check the docs of [Micrometer](https://micrometer.io/docs/concepts#_histograms_and_percentiles) and [Prometheus](https://prometheus.io/docs/practices/histograms/).
+
 ## Usage
 
 The plugin will measure network communication but exclude any logic that is part of the local routing tree, i.e. `greet`
