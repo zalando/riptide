@@ -10,7 +10,7 @@ import io.micrometer.core.instrument.Timer.Sample;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
-import org.zalando.fauxpas.ThrowingUnaryOperator;
+import org.zalando.fauxpas.ThrowingSupplier;
 import org.zalando.riptide.Attribute;
 import org.zalando.riptide.AttributeStage;
 import org.zalando.riptide.Plugin;
@@ -30,10 +30,10 @@ import java.util.Collection;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.micrometer.core.instrument.Timer.builder;
-import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
-import static org.zalando.fauxpas.FauxPas.throwingBiConsumer;
+import static org.zalando.riptide.micrometer.CompletableFutures.onError;
+import static org.zalando.riptide.micrometer.CompletableFutures.onResult;
 
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor(access = PRIVATE)
@@ -106,16 +106,8 @@ public final class MicrometerPlugin implements Plugin {
             final Measurement measurement = new Measurement(arguments);
 
             return execution.execute(arguments)
-                    .whenComplete(throwingBiConsumer((response, throwable) -> {
-                        if (nonNull(response)) {
-                            measurement.record(response);
-                        }
-                    }))
-                    .whenComplete((response, throwable) -> {
-                        if (nonNull(throwable)) {
-                            measurement.record(throwable);
-                        }
-                    });
+                    .whenComplete(onResult(measurement::record))
+                    .whenComplete(onError(measurement::record));
         };
     }
 
@@ -126,23 +118,22 @@ public final class MicrometerPlugin implements Plugin {
         private final RequestArguments arguments;
 
         void record(final ClientHttpResponse response) throws IOException {
-            record(timer ->
-                    timer.tags(generator.onResponse(arguments, response)));
+            record(() -> generator.onResponse(arguments, response));
         }
 
         void record(final Throwable throwable) {
-            record(timer ->
-                    timer.tags(generator.onError(arguments, throwable)));
+            record(() -> generator.onError(arguments, throwable));
         }
 
         <X extends Exception> void record(
-                final ThrowingUnaryOperator<Timer.Builder, X> build) throws X {
+                final ThrowingSupplier<Iterable<Tag>, X> tags) throws X {
 
-            final Timer.Builder builder = build.tryApply(builder(metricName)
+            final Timer timer = builder(metricName)
                     .tags(defaultTags)
-                    .tags(generator.onRequest(arguments)));
+                    .tags(generator.onRequest(arguments))
+                    .tags(tags.tryGet())
+                    .register(registry);
 
-            final Timer timer = builder.register(registry);
             sample.stop(timer);
         }
 
