@@ -19,13 +19,11 @@ import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -75,20 +73,22 @@ final class MetricsTest {
         foo.get().call(pass()).join();
         bar.get().call(pass()).join();
 
-        final List<Timer> timers = timers("http.client.requests");
-
-        assertEquals(2, timers.size());
+        assertEquals(2, timers("http.client.requests").size());
 
         {
-            final Timer timer = timers.get(0);
+            final Timer timer = registry.find("http.client.requests")
+                    .tag("client_id", "foo")
+                    .timer();
+            assertNotNull(timer);
             assertEquals("GET", timer.getId().getTag("http.method"));
-            assertEquals("foo", timer.getId().getTag("client_id"));
         }
 
         {
-            final Timer timer = timers.get(1);
+            final Timer timer = registry.find("http.client.requests")
+                    .tag("client_id", "bar")
+                    .timer();
+            assertNotNull(timer);
             assertEquals("GET", timer.getId().getTag("http.method"));
-            assertEquals("bar", timer.getId().getTag("client_id"));
         }
     }
 
@@ -105,26 +105,33 @@ final class MetricsTest {
                         anyStatus().call(pass()))
                 .join();
 
-        final List<Timer> timers = timers("http.client.requests",
-                Tag.of("test", "retries"));
-
-        assertEquals(3, timers.size());
+        assertEquals(3, timers("http.client.requests",
+                Tag.of("test", "retries")).size());
 
         {
-            final Timer timer = timers.get(0);
-            assertNull(timer.getId().getTag("retry_number"));
+            final Timer timer = registry.find("http.client.requests")
+                    .tag("test", "retries")
+                    .tag("retry_number", "0")
+                    .timer();
+            assertNotNull(timer);
             assertEquals("foo", timer.getId().getTag("client_id"));
         }
 
         {
-            final Timer timer = timers.get(1);
-            assertEquals("1", timer.getId().getTag("retry_number"));
+            final Timer timer = registry.find("http.client.requests")
+                    .tag("test", "retries")
+                    .tag("retry_number", "1")
+                    .timer();
+            assertNotNull(timer);
             assertEquals("foo", timer.getId().getTag("client_id"));
         }
 
         {
-            final Timer timer = timers.get(2);
-            assertEquals("2", timer.getId().getTag("retry_number"));
+            final Timer timer = registry.find("http.client.requests")
+                    .tag("test", "retries")
+                    .tag("retry_number", "2")
+                    .timer();
+            assertNotNull(timer);
             assertEquals("foo", timer.getId().getTag("client_id"));
         }
     }
@@ -143,26 +150,30 @@ final class MetricsTest {
                         anyStatus().call(pass()))
                 .join();
 
-        final List<Timer> timers = timers("http.client.circuit-breakers");
+        assertEquals(2, timers("http.client.circuit-breakers").size());
 
-        assertEquals(2, timers.size());
+        {
+            final Timer timer = registry.find("http.client.circuit-breakers")
+                    .tag("state", "HALF_OPEN")
+                    .timer();
+            assertNotNull(timer);
+            assertEquals("bar", timer.getId().getTag("client_id"));
+            assertEquals(4, timer.count());
+        }
 
-        final Timer halfOpen = timers.get(0);
-        assertEquals("HALF_OPEN", halfOpen.getId().getTag("state"));
-        assertEquals("bar", halfOpen.getId().getTag("client_id"));
-        assertEquals(4, halfOpen.count());
-
-        final Timer open = timers.get(1);
-        assertEquals("OPEN", open.getId().getTag("state"));
-        assertEquals("bar", open.getId().getTag("client_id"));
-        assertEquals(4, open.count());
+        {
+            final Timer timer = registry.find("http.client.circuit-breakers")
+                    .tag("state", "OPEN")
+                    .timer();
+            assertNotNull(timer);
+            assertEquals("OPEN", timer.getId().getTag("state"));
+            assertEquals("bar", timer.getId().getTag("client_id"));
+            assertEquals(4, timer.count());
+        }
     }
 
-    private List<Timer> timers(final String name, final Tag... tags) {
-        final List<Timer> timers = new ArrayList<>(registry.find(name)
-                .tags(Arrays.asList(tags)).timers());
-        Collections.reverse(timers);
-        return timers;
+    private Collection<Timer> timers(final String name, final Tag... tags) {
+        return registry.find(name).tags(Arrays.asList(tags)).timers();
     }
 
 }

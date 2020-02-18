@@ -1,13 +1,15 @@
 package org.zalando.riptide.micrometer.tag;
 
+import com.google.common.collect.Iterables;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import lombok.AllArgsConstructor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 
-import java.util.Collections;
+import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
@@ -18,11 +20,9 @@ final class CompositeTagGenerator implements TagGenerator {
 
     @Override
     public Iterable<Tag> onRequest(final RequestArguments arguments) {
-
-        return stream(generators.spliterator(), false)
+        return generators()
                 .map(generator -> generator.onRequest(arguments))
-                .reduce(Tags::concat)
-                .orElse(Collections.emptyList());
+                .collect(collectingAndThen(toList(), Iterables::concat));
     }
 
     @Override
@@ -30,11 +30,10 @@ final class CompositeTagGenerator implements TagGenerator {
             final RequestArguments arguments,
             final ClientHttpResponse response) {
 
-        return stream(generators.spliterator(), false)
+        return generators()
                 .map(throwingFunction(generator ->
                         generator.onResponse(arguments, response)))
-                .reduce(Tags::concat)
-                .orElse(Collections.emptyList());
+                .collect(collectingAndThen(toList(), Iterables::concat));
     }
 
     @Override
@@ -42,10 +41,13 @@ final class CompositeTagGenerator implements TagGenerator {
             final RequestArguments arguments,
             final Throwable throwable) {
 
-        return stream(generators.spliterator(), false)
+        return generators()
                 .map(generator -> generator.onError(arguments, throwable))
-                .reduce(Tags::concat)
-                .orElse(Collections.emptyList());
+                .collect(collectingAndThen(toList(), Iterables::concat));
+    }
+
+    private Stream<TagGenerator> generators() {
+        return stream(generators.spliterator(), false);
     }
 
 }

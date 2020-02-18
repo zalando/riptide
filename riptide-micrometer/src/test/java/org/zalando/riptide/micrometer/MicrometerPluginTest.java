@@ -5,6 +5,7 @@ import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
@@ -21,8 +22,6 @@ import org.zalando.riptide.micrometer.tag.StaticTagDecorator;
 import javax.annotation.Nullable;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
@@ -34,11 +33,10 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.fauxpas.FauxPas.throwingPredicate;
@@ -85,13 +83,14 @@ final class MicrometerPluginTest {
                 .call(pass())
                 .join();
 
-        @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
+        @Nullable final Timer timer = search().timer();
 
         assertThat(timer, is(notNullValue()));
         assertThat(timer.getId().getTag("http.method"), is("GET"));
         assertThat(timer.getId().getTag("http.path"), is("/foo"));
         assertThat(timer.getId().getTag("http.status_code"), is("200"));
         assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+        assertThat(timer.getId().getTag("error.kind"), is("none"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
@@ -108,28 +107,28 @@ final class MicrometerPluginTest {
                 .call(pass())
                 .join();
 
-        final List<Timer> timers = new ArrayList<>(registry.find("http.outgoing-requests").timers());
-
-        assertThat(timers, hasSize(2));
+        assertThat(search().timers(), iterableWithSize(2));
 
         {
-            final Timer timer = timers.get(0);
+            final Timer timer = search().tag("http.status_code", "500").timer();
             assertThat(timer, is(notNullValue()));
             assertThat(timer.getId().getTag("http.method"), is("GET"));
             assertThat(timer.getId().getTag("http.path"), is("/foo"));
             assertThat(timer.getId().getTag("http.status_code"), is("500"));
             assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
-            assertThat(timer.getId().getTag("retry_number"), is(nullValue()));
+            assertThat(timer.getId().getTag("error.kind"), is("none"));
+            assertThat(timer.getId().getTag("retry_number"), is("0"));
             assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
         }
 
         {
-            final Timer timer = timers.get(1);
+            final Timer timer = search().tag("http.status_code", "200").timer();
             assertThat(timer, is(notNullValue()));
             assertThat(timer.getId().getTag("http.method"), is("GET"));
             assertThat(timer.getId().getTag("http.path"), is("/foo"));
             assertThat(timer.getId().getTag("http.status_code"), is("200"));
             assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+            assertThat(timer.getId().getTag("error.kind"), is("none"));
             assertThat(timer.getId().getTag("retry_number"), is("1"));
             assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
         }
@@ -146,13 +145,14 @@ final class MicrometerPluginTest {
                 .exceptionally(e -> null)
                 .join();
 
-        @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
+        @Nullable final Timer timer = search().timer();
 
         assertThat(timer, is(notNullValue()));
         assertThat(timer.getId().getTag("http.method"), is("POST"));
-        assertThat(timer.getId().getTag("http.path"), is(nullValue()));
+        assertThat(timer.getId().getTag("http.path"), is(""));
         assertThat(timer.getId().getTag("http.status_code"), is("503"));
         assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
+        assertThat(timer.getId().getTag("error.kind"), is("none"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
@@ -168,16 +168,20 @@ final class MicrometerPluginTest {
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
 
-        @Nullable final Timer timer = registry.find("http.outgoing-requests").timer();
+        @Nullable final Timer timer = search().timer();
 
         assertThat(timer, is(notNullValue()));
         assertThat(timer.getId().getTag("http.method"), is("GET"));
         assertThat(timer.getId().getTag("http.path"), is("/err"));
-        assertThat(timer.getId().getTag("http.status"), is(nullValue()));
+        assertThat(timer.getId().getTag("http.status_code"), is("0"));
         assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
         assertThat(timer.getId().getTag("error.kind"), is("SocketTimeoutException"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
+    }
+
+    private Search search() {
+        return registry.find("http.outgoing-requests");
     }
 
 }
