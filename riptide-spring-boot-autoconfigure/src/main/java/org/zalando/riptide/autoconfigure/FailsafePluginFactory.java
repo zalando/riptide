@@ -2,6 +2,7 @@ package org.zalando.riptide.autoconfigure;
 
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.Timeout;
 import net.jodah.failsafe.function.DelayFunction;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
@@ -13,7 +14,7 @@ import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
-import org.zalando.riptide.failsafe.RequestPolicy;
+import org.zalando.riptide.failsafe.RequestPolicies;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
@@ -21,6 +22,7 @@ import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -39,18 +41,45 @@ final class FailsafePluginFactory {
 
     }
 
-    public static Plugin create(
-            final RequestPolicy policy,
+    public static Plugin createCircuitBreakerPlugin(
+            final CircuitBreaker<ClientHttpResponse> breaker,
             final TaskDecorator decorator) {
 
         return new FailsafePlugin()
-                .withPolicy(policy)
+                .withPolicy(breaker)
                 .withDecorator(decorator);
     }
 
-    public static Plugin createRetryFailsafePlugin(
+    public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
             final Client client,
-            final TaskDecorator decorator) {
+            final CircuitBreakerListener listener) {
+
+        final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
+
+        Optional.ofNullable(client.getTimeouts())
+                .filter(RiptideProperties.Timeouts::getEnabled)
+                .map(RiptideProperties.Timeouts::getGlobal)
+                .ifPresent(timeout -> timeout.applyTo(breaker::withTimeout));
+
+        Optional.ofNullable(client.getCircuitBreaker().getFailureThreshold())
+                .ifPresent(threshold -> threshold.applyTo(breaker::withFailureThreshold));
+
+        Optional.ofNullable(client.getCircuitBreaker().getDelay())
+                .ifPresent(delay -> delay.applyTo(breaker::withDelay));
+
+        Optional.ofNullable(client.getCircuitBreaker().getSuccessThreshold())
+                .ifPresent(threshold -> threshold.applyTo(breaker::withSuccessThreshold));
+
+        breaker.withDelay(delayFunction());
+        breaker.onOpen(listener::onOpen);
+        breaker.onHalfOpen(listener::onHalfOpen);
+        breaker.onClose(listener::onClose);
+
+        return breaker;
+    }
+
+    public static Plugin createRetryFailsafePlugin(
+            final Client client, final TaskDecorator decorator) {
 
         final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
@@ -97,48 +126,40 @@ final class FailsafePluginFactory {
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(policy.copy()
                             .handleIf(transientConnectionFaults()))
-                            .withPredicate(alwaysTrue()));
+                            .withPredicate(alwaysTrue()))
+                    .withDecorator(decorator);
 
         } else {
             return new FailsafePlugin()
-                    .withPolicy(new RetryRequestPolicy(policy));
+                    .withPolicy(new RetryRequestPolicy(policy))
+                    .withDecorator(decorator);
         }
     }
 
-    public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
-            final Client client,
-            final CircuitBreakerListener listener) {
+    public static Plugin createBackupRequestPlugin(
+            final Client client, final TaskDecorator decorator) {
 
-        final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
+        final TimeSpan delay = client.getBackupRequest().getDelay();
 
-        Optional.ofNullable(client.getTimeouts())
-                .filter(RiptideProperties.Timeouts::getEnabled)
-                .map(RiptideProperties.Timeouts::getGlobal)
-                .ifPresent(timeout -> timeout.applyTo(breaker::withTimeout));
-
-        Optional.ofNullable(client.getCircuitBreaker().getFailureThreshold())
-                .ifPresent(threshold -> threshold.applyTo(breaker::withFailureThreshold));
-
-        Optional.ofNullable(client.getCircuitBreaker().getDelay())
-                .ifPresent(delay -> delay.applyTo(breaker::withDelay));
-
-        Optional.ofNullable(client.getCircuitBreaker().getSuccessThreshold())
-                .ifPresent(threshold -> threshold.applyTo(breaker::withSuccessThreshold));
-
-        breaker.withDelay(delayFunction());
-        breaker.onOpen(listener::onOpen);
-        breaker.onHalfOpen(listener::onHalfOpen);
-        breaker.onClose(listener::onClose);
-
-        return breaker;
+        return new FailsafePlugin()
+                .withPolicy(RequestPolicies.of(
+                        new BackupRequest<>(
+                                delay.getAmount(),
+                                delay.getUnit()),
+                        new IdempotencyPredicate()))
+                .withDecorator(decorator);
     }
 
-    public static RequestPolicy createBackupRequest(final Client client) {
-        return RequestPolicy.of(
-                new BackupRequest<>(
-                        client.getBackupRequest().getDelay().getAmount(),
-                        client.getBackupRequest().getDelay().getUnit()),
-                new IdempotencyPredicate());
+    public static Plugin createTimeoutPlugin(
+            final Client client, final TaskDecorator decorator) {
+
+        final Duration timeout = client.getTimeouts().getGlobal().toDuration();
+
+        return new FailsafePlugin()
+                .withPolicy(
+                        Timeout.<ClientHttpResponse>of(timeout)
+                                .withCancel(true))
+                .withDecorator(decorator);
     }
 
     private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {

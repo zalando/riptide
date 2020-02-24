@@ -3,14 +3,12 @@ package org.zalando.riptide.failsafe;
 import lombok.AllArgsConstructor;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.RetryPolicy;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
-import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -33,22 +31,14 @@ public final class FailsafePlugin implements Plugin {
         this(vec(), identity());
     }
 
-    public FailsafePlugin withPolicy(final BackupRequest<ClientHttpResponse> policy) {
-        return withPolicy(policy, new IdempotencyPredicate());
-    }
-
-    public FailsafePlugin withPolicy(final RetryPolicy<ClientHttpResponse> policy) {
-        return withPolicy(new RetryRequestPolicy(policy));
-    }
-
     public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
-        return withPolicy(RequestPolicy.of(policy));
+        return withPolicy(RequestPolicies.of(policy));
     }
 
     public FailsafePlugin withPolicy(
             final Policy<ClientHttpResponse> policy,
             final Predicate<RequestArguments> predicate) {
-        return withPolicy(RequestPolicy.of(policy, predicate));
+        return withPolicy(RequestPolicies.of(policy, predicate));
     }
 
     public FailsafePlugin withPolicy(final RequestPolicy policy) {

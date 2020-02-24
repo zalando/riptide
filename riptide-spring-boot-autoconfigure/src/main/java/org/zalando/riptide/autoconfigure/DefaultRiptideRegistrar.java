@@ -9,7 +9,6 @@ import io.opentracing.contrib.concurrent.TracedExecutorService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.Timeout;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
@@ -43,7 +42,6 @@ import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
@@ -397,11 +395,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     () -> {
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("create")
-                                .addConstructorArgValue(genericBeanDefinition(RequestPolicy.class)
-                                        .setFactoryMethod("of")
-                                        .addConstructorArgValue(registerCircuitBreaker(id, client))
-                                        .getBeanDefinition())
+                                .setFactoryMethod("createCircuitBreakerPlugin")
+                                .addConstructorArgValue(registerCircuitBreaker(id, client))
                                 .addConstructorArgValue(createTaskDecorator(id, client));
                     });
             return Optional.of(pluginId);
@@ -411,7 +406,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private Optional<String> registerRetryPolicyFailsafePlugin(final String id, final Client client) {
         if (client.getRetry().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(name(id, RetryPolicy.class, FailsafePlugin.class), () -> {
+            final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createRetryFailsafePlugin")
@@ -441,11 +436,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     () -> {
                         log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("create")
-                                .addConstructorArgValue(genericBeanDefinition(FailsafePluginFactory.class)
-                                        .setFactoryMethod("createBackupRequest")
-                                        .addConstructorArgValue(client)
-                                        .getBeanDefinition())
+                                .setFactoryMethod("createBackupRequestPlugin")
+                                .addConstructorArgValue(client)
                                 .addConstructorArgValue(createTaskDecorator(id, client));
                     });
             return Optional.of(pluginId);
@@ -457,12 +449,9 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getTimeouts().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
                 log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
-                final TimeSpan timeout = client.getTimeouts().getGlobal();
                 return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("create")
-                        .addConstructorArgValue(RequestPolicy.of(
-                                Timeout.<ClientHttpResponse>of(timeout.toDuration())
-                                        .withCancel(true)))
+                        .setFactoryMethod("createTimeoutPlugin")
+                        .addConstructorArgValue(client)
                         .addConstructorArgValue(createTaskDecorator(id, client));
             });
             return Optional.of(pluginId);

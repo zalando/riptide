@@ -311,6 +311,7 @@
                                 <include>**/NoRiptideFailsafeTest.java</include>
                             </includes>
                             <classpathDependencyExcludes>org.zalando:riptide-failsafe</classpathDependencyExcludes>
+                            <classpathDependencyExcludes>net.jodah:failsafe</classpathDependencyExcludes>
                         </configuration>
                     </execution>
                 </executions>

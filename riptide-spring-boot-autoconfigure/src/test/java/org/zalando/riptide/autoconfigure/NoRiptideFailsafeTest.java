@@ -1,16 +1,18 @@
 package org.zalando.riptide.autoconfigure;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.util.ReflectionUtils;
-
-import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.util.ReflectionUtils.getUniqueDeclaredMethods;
 
 final class NoRiptideFailsafeTest {
     @Test
-    void shouldReadClassDefinitionWithoutFailsafePlugin() {
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(MicrometerPluginFactory.class);
-        assertNotNull(methods);
+    void shouldReadMicrometerPluginDefinitionWithoutFailsafePlugin() {
+        assertNotNull(getUniqueDeclaredMethods(MicrometerPluginFactory.class));
+    }
+
+    @Test
+    void shouldReadDefaultRiptideRegistrarDefinitionWithoutFailsafePlugin() {
+        assertNotNull(getUniqueDeclaredMethods(DefaultRiptideRegistrar.class));
     }
 }
