@@ -50,7 +50,7 @@ Client(RestOperations example) {
 
 ## Logbook
 
-**Riptide now requires Logbook 2.0**
+**Riptide now requires Logbook 2.x**
 
 Riptide used to rely on Logbook's integration for the Apache HTTP Client. The usages of the `LogbookHttpRequestInterceptor` and `LogbookHttpResponseInterceptor` have been replaced by a [`LogbookPlugin`](riptide-logbook/src/main/java/org/zalando/riptide/logbook/LogbookPlugin.java).
 
@@ -84,7 +84,7 @@ The Apache HTTP client specific `GzipHttpRequestInterceptor` has been replaced w
 
 ### Changed resolution of dependency beans
 
-Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `tracer` during the construction of appropriate plugins. This behaviour changed to resolution be type. 
+Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `tracer` during the construction of appropriate plugins. This behaviour changed to resolution by type. 
 
 ### Added `enabled` properties
 
@@ -154,6 +154,6 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 
 ## Tracer
 
-**Riptide now requires Tracer 2.0**, which in turn is built in top of and therefore **requires OpenTracing.**
+**Riptide now uses [OpenTracing Flow-ID](https://github.com/zalando/opentracing-toolbox/tree/master/opentracing-flowid) instead of Tracer. OpenTracing is now a prerequisite for `X-Flow-ID` support.**
 
-Riptide used to rely on Tracer's integration for the Apache HTTP Client. The usages of the `TracerHttpRequestInterceptor` have been replaced partially by the new [`OpenTracingPlugin`](riptide-opentracing/src/main/java/org/zalando/riptide/opentracing/OpenTracingPlugin.java) and Tracer's new `FlowHttpRequestInterceptor`.
+Riptide used to rely on Tracer's integration for the Apache HTTP Client. The usages of the `TracerHttpRequestInterceptor` have been replaced partially by the [`OpenTracingPlugin`](riptide-opentracing/src/main/java/org/zalando/riptide/opentracing/OpenTracingPlugin.java) and the new `FlowHttpRequestInterceptor` (provided by `opentracing-flowid-httpclient`).

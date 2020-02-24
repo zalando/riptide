@@ -13,11 +13,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
+import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,7 +43,7 @@ final class MetricsTest {
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
-            TracerAutoConfiguration.class,
+            OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })
