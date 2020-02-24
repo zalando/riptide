@@ -17,6 +17,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -135,7 +136,8 @@ public final class RiptideProperties {
     @AllArgsConstructor
     public static final class Client {
 
-        private String baseUrl;
+        private URI baseUrl;
+
         private UrlResolution urlResolution;
 
         @NestedConfigurationProperty

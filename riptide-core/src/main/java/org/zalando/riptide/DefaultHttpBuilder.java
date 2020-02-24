@@ -102,7 +102,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     @Override
     public ConfigurationStage baseUrl(@Nullable final URI baseUrl) {
         checkAbsoluteBaseUrl(baseUrl);
-        return baseUrl(() -> baseUrl);
+        return withBaseUrl(() -> baseUrl);
     }
 
     @Override

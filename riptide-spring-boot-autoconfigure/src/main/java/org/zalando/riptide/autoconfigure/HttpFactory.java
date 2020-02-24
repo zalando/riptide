@@ -21,7 +21,7 @@ final class HttpFactory {
     public static Http create(
             @Nullable final Executor executor,
             final ClientHttpRequestFactory requestFactory,
-            final String baseUrl,
+            final BaseURL baseUrl,
             final UrlResolution urlResolution,
             final List<HttpMessageConverter<?>> converters,
             final List<Plugin> plugins) {
