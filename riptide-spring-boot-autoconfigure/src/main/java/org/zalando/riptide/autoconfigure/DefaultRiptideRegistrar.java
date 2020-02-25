@@ -18,7 +18,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.AsyncRestOperations;
@@ -109,7 +108,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .setFactoryMethod("create")
                     .addConstructorArgValue(createExecutor(id, client))
                     .addConstructorArgReference(registerClientHttpRequestFactory(id, client))
-                    .addConstructorArgValue(client.getBaseUrl())
+                    .addConstructorArgReference(registerBaseURL(id, client))
                     .addConstructorArgValue(client.getUrlResolution())
                     .addConstructorArgValue(registerHttpMessageConverters(id, client))
                     .addConstructorArgValue(registerPlugins(id, client));
@@ -134,6 +133,15 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             return genericBeanDefinition(ApacheClientHttpRequestFactory.class)
                     .addConstructorArgReference(registerHttpClient(id, client))
                     .addConstructorArgValue(client.getConnections().getMode());
+        });
+    }
+
+    private String registerBaseURL(final String id, final Client client) {
+        return registry.registerIfAbsent(id, BaseURL.class, () -> {
+            log.debug("Client [{}]: Registering BaseURL", id);
+            return genericBeanDefinition(BaseURL.class)
+                    .setFactoryMethod("of")
+                    .addConstructorArgValue(client.getBaseUrl());
         });
     }
 
@@ -514,8 +522,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private Optional<String> getHost(final Client client) {
-        return Optional.ofNullable(client.getBaseUrl())
-                .map(URI::create).map(URI::getHost);
+        return Optional.ofNullable(client.getBaseUrl()).map(URI::getHost);
     }
 
     private String registerAuthorizationProvider(final String id, final Auth auth) {

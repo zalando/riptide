@@ -581,6 +581,7 @@ The following table shows all beans with their respective name (for the `example
 | Bean Name                         | Bean Type                                     |
 |-----------------------------------|-----------------------------------------------|
 | `exampleHttp`                     | `Http`                                        |
+| `exampleBaseURL`                  | `BaseURL` (effectively a `Supplier<URI>`)     |
 | `exampleClientHttpRequestFactory` | `ClientHttpRequestFactory`                    |
 | `exampleHttpMessageConverters`    | `ClientHttpMessageConverters`                 |
 | `exampleHttpClient`               | `HttpClient`                                  |
