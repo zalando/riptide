@@ -18,7 +18,6 @@
 
     <properties>
         <spring.version>${spring5.version}</spring.version>
-        <tracer.version>2.0.0-RC.3</tracer.version>
     </properties>
 
     <dependencies>
@@ -140,8 +139,8 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>tracer-spring-boot-autoconfigure</artifactId>
-            <version>${tracer.version}</version>
+            <artifactId>opentracing-flowid-starter</artifactId>
+            <version>3.0.0-RC.0</version>
             <optional>true</optional>
         </dependency>
         <dependency>

@@ -29,6 +29,9 @@ import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
+import org.zalando.opentracing.flowid.Flow;
+import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
+import org.zalando.opentracing.flowid.httpclient.FlowHttpRequestInterceptor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -63,9 +66,6 @@ import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
-import org.zalando.tracer.Flow;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
-import org.zalando.tracer.httpclient.FlowHttpRequestInterceptor;
 
 import java.net.SocketTimeoutException;
 import java.time.Clock;
@@ -96,7 +96,7 @@ public class ManualConfiguration {
     // just for documentation, should not be imported manually
     @Import({
             LogbookAutoConfiguration.class,
-            TracerAutoConfiguration.class,
+            OpenTracingFlowIdAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             MetricsAutoConfiguration.class,
     })

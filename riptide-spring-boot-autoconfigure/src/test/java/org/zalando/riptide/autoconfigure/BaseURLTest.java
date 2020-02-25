@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
+import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
-import org.zalando.tracer.autoconfigure.TracerAutoConfiguration;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,7 +32,7 @@ final class BaseURLTest {
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
-            TracerAutoConfiguration.class,
+            OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })

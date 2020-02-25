@@ -53,7 +53,7 @@ private Http example;
 - Seamless integration of:
   - [Riptide](https://github.com/zalando/riptide)
   - [Logbook](https://github.com/zalando/logbook)
-  - [Tracer](https://github.com/zalando/tracer)
+  - [OpenTracing Toolbox](https://github.com/zalando/opentracing-toolbox)
   - [Jackson 2](https://github.com/FasterXML/jackson)
   - [HttpClient](https://hc.apache.org/httpcomponents-client-ga/index.html)
   - [Failsafe](https://github.com/jhalterman/failsafe) via [Riptide: Failsafe](../riptide-failsafe)
@@ -154,18 +154,6 @@ Required when `logging` is enabled.
 </dependency>
 ```
 
-#### [Tracer](https://github.com/zalando/tracer) integration
-
-Required when `tracing` is enabled.
-
-```xml
-<dependency>
-    <groupId>org.zalando</groupId>
-    <artifactId>tracer-spring-boot-autoconfigure</artifactId>
-    <version>${tracer.version}</version>
-</dependency>
-```
-
 #### Authorization support
 
 Required for `auth` support.
@@ -204,22 +192,12 @@ Will activate *Micrometer* metrics support for:
 </dependency>
 ```
 
-Spring Boot 1.x applications also require:
-
-```xml
-<dependency>
-    <groupId>io.micrometer</groupId>
-    <artifactId>micrometer-spring-legacy</artifactId>
-    <version>${micrometer.version}</version>
-</dependency>
-```
-
 Please be aware that Micrometer, by default, doesn't expose to `/metrics`.
 Consult [#401](https://github.com/zalando/riptide/issues/401) for details how to bypass this.
 
 #### Caching
 
-Required when `caching` is configured:
+Required when `caching` is enabled.
 
 ```xml
 <dependency>
@@ -231,7 +209,7 @@ Required when `caching` is configured:
 
 #### Tracing
 
-Required when `tracing` is configured:
+Required when `tracing` is enabled.
 
 ```xml
 <dependency>
@@ -243,6 +221,18 @@ Required when `tracing` is configured:
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-concurrent</artifactId>
     <version>${opentracing-concurrent.version}</version>
+</dependency>
+```
+
+#### `X-Flow-ID`
+
+Required when `propagate-flow-id` is enabled.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>opentracing-flowid-starter</artifactId>
+    <version>${opentracing-toolbox.version}</version>
 </dependency>
 ```
 
