@@ -19,13 +19,10 @@ import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.springframework.http.HttpHeaders.TRANSFER_ENCODING;
 
 @API(status = EXPERIMENTAL)
+@AllArgsConstructor
 public final class RequestCompressionPlugin implements Plugin {
 
     private final Compression compression;
-
-    public RequestCompressionPlugin(final Compression compression) {
-        this.compression = compression;
-    }
 
     public RequestCompressionPlugin() {
         this(Compression.of("gzip", GZIPOutputStream::new));

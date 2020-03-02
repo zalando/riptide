@@ -1,5 +1,6 @@
 package org.zalando.riptide.failsafe;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.ExecutionContext;
 import net.jodah.failsafe.function.DelayFunction;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -19,15 +21,16 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  */
 @API(status = EXPERIMENTAL)
 @Slf4j
+@AllArgsConstructor(access = PRIVATE)
 public final class RetryAfterDelayFunction implements DelayFunction<ClientHttpResponse, Throwable> {
 
     private final DelayParser parser;
 
     public RetryAfterDelayFunction(final Clock clock) {
-        this.parser = new CompositeDelayParser(Arrays.asList(
+        this(new CompositeDelayParser(Arrays.asList(
                 new SecondsDelayParser(),
                 new HttpDateDelayParser(clock)
-        ));
+        )));
     }
 
     @Override

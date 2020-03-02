@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -22,15 +23,11 @@ import java.util.stream.StreamSupport;
 import static org.zalando.fauxpas.FauxPas.throwingRunnable;
 import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 
+@AllArgsConstructor
 final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>> {
 
     private final ObjectMapper mapper;
     private final List<MediaType> supportedMediaTypes;
-
-    StreamConverter(final ObjectMapper mapper, final List<MediaType> supportedMediaTypes) {
-        this.mapper = mapper;
-        this.supportedMediaTypes = supportedMediaTypes;
-    }
 
     @Override
     public boolean canRead(final Class<?> clazz, final MediaType mediaType) {

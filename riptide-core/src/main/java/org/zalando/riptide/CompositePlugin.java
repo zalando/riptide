@@ -1,16 +1,15 @@
 package org.zalando.riptide;
 
+import lombok.AllArgsConstructor;
+
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+@AllArgsConstructor
 final class CompositePlugin implements Plugin {
 
     private final Collection<Plugin> plugins;
-
-    CompositePlugin(final Collection<Plugin> plugins) {
-        this.plugins = plugins;
-    }
 
     @Override
     public RequestExecution aroundAsync(final RequestExecution execution) {

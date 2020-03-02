@@ -1,6 +1,7 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.common.base.CharMatcher;
+import lombok.AllArgsConstructor;
 
 import javax.annotation.Nullable;
 import java.time.Clock;
@@ -11,6 +12,7 @@ import static java.lang.Long.parseLong;
 import static java.time.Duration.between;
 import static java.time.Instant.now;
 
+@AllArgsConstructor
 final class EpochSecondsDelayParser implements DelayParser {
 
     private final CharMatcher digit = CharMatcher.inRange('0', '9').precomputed();
@@ -20,12 +22,7 @@ final class EpochSecondsDelayParser implements DelayParser {
 
     EpochSecondsDelayParser(final Clock clock) {
         // maximum difference between timezones is 26 hours
-        this(clock, Duration.ofHours(26));
-    }
-
-    EpochSecondsDelayParser(final Clock clock, final Duration threshold) {
-        this.clock = clock;
-        this.threshold = threshold.negated();
+        this(clock, Duration.ofHours(-26));
     }
 
     @Override

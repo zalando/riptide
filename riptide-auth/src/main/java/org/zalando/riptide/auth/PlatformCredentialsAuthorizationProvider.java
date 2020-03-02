@@ -1,5 +1,7 @@
 package org.zalando.riptide.auth;
 
+import lombok.AllArgsConstructor;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +10,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static lombok.AccessLevel.PRIVATE;
 
 /**
  * A special {@link AuthorizationProvider authorization provider} built for Zalando's Platform IAM which provides
@@ -23,6 +26,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @see <a href="https://kubernetes-on-aws.readthedocs.io/en/latest/user-guide/zalando-iam.html">Zalando Platform IAM Integration</a>
  */
+@AllArgsConstructor(access = PRIVATE)
 public final class PlatformCredentialsAuthorizationProvider implements AuthorizationProvider {
 
     private final Path type;
@@ -35,11 +39,6 @@ public final class PlatformCredentialsAuthorizationProvider implements Authoriza
     public PlatformCredentialsAuthorizationProvider(final Path directory, final String name) {
         this(directory.resolve(name + "-token-type"),
                 directory.resolve(name + "-token-secret"));
-    }
-
-    private PlatformCredentialsAuthorizationProvider(final Path type, final Path secret) {
-        this.type = type;
-        this.secret = secret;
     }
 
     @Override

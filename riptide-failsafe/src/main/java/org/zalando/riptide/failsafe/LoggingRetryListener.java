@@ -1,5 +1,6 @@
 package org.zalando.riptide.failsafe;
 
+import lombok.AllArgsConstructor;
 import net.jodah.failsafe.event.ExecutionAttemptedEvent;
 import org.apiguardian.api.API;
 import org.slf4j.Logger;
@@ -10,16 +11,13 @@ import org.zalando.riptide.RequestArguments;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
+@AllArgsConstructor
 public final class LoggingRetryListener implements RetryListener {
 
     private final Logger logger;
 
     public LoggingRetryListener() {
         this(LoggerFactory.getLogger(LoggingRetryListener.class));
-    }
-
-    public LoggingRetryListener(final Logger logger) {
-        this.logger = logger;
     }
 
     @Override
