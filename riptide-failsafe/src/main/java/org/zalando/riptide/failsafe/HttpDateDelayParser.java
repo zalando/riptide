@@ -1,5 +1,7 @@
 package org.zalando.riptide.failsafe;
 
+import lombok.AllArgsConstructor;
+
 import javax.annotation.Nullable;
 import java.time.Clock;
 import java.time.Duration;
@@ -10,13 +12,10 @@ import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
+@AllArgsConstructor
 final class HttpDateDelayParser implements DelayParser {
 
     private final Clock clock;
-
-    HttpDateDelayParser(final Clock clock) {
-        this.clock = clock;
-    }
 
     @Override
     public Duration parse(final String value) {
