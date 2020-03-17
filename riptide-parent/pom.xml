@@ -20,7 +20,7 @@
         <jackson.version>2.10.3</jackson.version>
         <junit-jupiter.version>5.6.0</junit-jupiter.version>
         <logbook.version>2.0.0</logbook.version>
-        <micrometer.version>1.3.5</micrometer.version>
+        <micrometer.version>1.3.6</micrometer.version>
         <problem.version>0.24.0</problem.version>
         <slf4j.version>1.7.30</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
