@@ -148,7 +148,7 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <!-- Make sure we are backwards compatible when upgrading to 20.0 or higher. See #306. -->
-                <version>28.2-jre</version>
+                <version>29.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
