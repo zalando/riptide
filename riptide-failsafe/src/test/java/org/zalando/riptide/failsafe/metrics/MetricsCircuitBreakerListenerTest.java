@@ -10,6 +10,7 @@ import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,12 +53,18 @@ final class MetricsCircuitBreakerListenerTest {
 
         assertThat(timers, hasSize(2));
 
-        final Timer open = timers.get(0);
+        final Timer open = timers.stream()
+                                 .filter(timer -> Objects.equals(timer.getId().getTag("state"), "OPEN"))
+                                 .findAny()
+                                 .orElseThrow(IllegalStateException::new);
         assertEquals("OPEN", open.getId().getTag("state"));
         assertEquals("true", open.getId().getTag("test"));
         assertEquals(2, open.count());
 
-        final Timer halfOpen = timers.get(1);
+        final Timer halfOpen = timers.stream()
+                                     .filter(timer -> Objects.equals(timer.getId().getTag("state"), "HALF_OPEN"))
+                                     .findAny()
+                                     .orElseThrow(IllegalStateException::new);
         assertEquals("HALF_OPEN", halfOpen.getId().getTag("state"));
         assertEquals("true", halfOpen.getId().getTag("test"));
         assertEquals(2, halfOpen.count());
@@ -66,5 +73,4 @@ final class MetricsCircuitBreakerListenerTest {
     private List<Timer> timers() {
         return new ArrayList<>(registry.find("circuit-breakers").timers());
     }
-
 }
