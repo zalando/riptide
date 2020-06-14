@@ -68,7 +68,7 @@ final class FailsafePluginRetriesTest {
                     .build())
             .build();
 
-    private final AtomicInteger attemps = new AtomicInteger();
+    private final AtomicInteger attempt = new AtomicInteger();
 
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
@@ -79,7 +79,7 @@ final class FailsafePluginRetriesTest {
                 @Override
                 public RequestExecution aroundNetwork(final RequestExecution execution) {
                     return arguments -> {
-                        arguments.getAttribute(RETRIES).ifPresent(attemps::set);
+                        arguments.getAttribute(RETRIES).ifPresent(attempt::set);
                         return execution.execute(arguments);
                     };
                 }
@@ -154,7 +154,7 @@ final class FailsafePluginRetriesTest {
                 unit.post("http://" + UUID.randomUUID() + "/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(UnknownHostException.class)));
-        assertEquals(4, attemps.get());
+        assertEquals(4, attempt.get());
     }
 
     @Test
