@@ -100,7 +100,7 @@ final class FailsafePluginRetriesTest {
                                     .withMaxRetries(4))
                             .withPredicate(alwaysTrue()))
                     .withPolicy(new CircuitBreaker<ClientHttpResponse>()
-                            .withFailureThreshold(3, 10)
+                            .withFailureThreshold(5, 10)
                             .withSuccessThreshold(5)
                             .withDelay(Duration.ofMinutes(1))))
             .build();
