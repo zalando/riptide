@@ -56,11 +56,6 @@ final class FailsafePluginFactory {
 
         final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
 
-        Optional.ofNullable(client.getTimeouts())
-                .filter(RiptideProperties.Timeouts::getEnabled)
-                .map(RiptideProperties.Timeouts::getGlobal)
-                .ifPresent(timeout -> timeout.applyTo(breaker::withTimeout));
-
         Optional.ofNullable(client.getCircuitBreaker().getFailureThreshold())
                 .ifPresent(threshold -> threshold.applyTo(breaker::withFailureThreshold));
 
