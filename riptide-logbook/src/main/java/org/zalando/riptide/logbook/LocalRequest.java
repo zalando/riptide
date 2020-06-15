@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
+import org.zalando.logbook.HttpHeaders;
 import org.zalando.logbook.HttpRequest;
 import org.zalando.logbook.Origin;
 import org.zalando.riptide.CharsetExtractor;
@@ -15,8 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -180,8 +179,8 @@ final class LocalRequest implements HttpRequest {
     }
 
     @Override
-    public Map<String, List<String>> getHeaders() {
-        return arguments.getHeaders();
+    public HttpHeaders getHeaders() {
+        return HttpHeaders.of(arguments.getHeaders());
     }
 
     @Nullable
