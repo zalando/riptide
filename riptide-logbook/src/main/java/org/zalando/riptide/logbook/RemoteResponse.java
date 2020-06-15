@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -156,8 +154,8 @@ final class RemoteResponse implements HttpResponse {
     }
 
     @Override
-    public Map<String, List<String>> getHeaders() {
-        return response.getHeaders();
+    public org.zalando.logbook.HttpHeaders getHeaders() {
+        return org.zalando.logbook.HttpHeaders.of(response.getHeaders());
     }
 
     @Nullable
