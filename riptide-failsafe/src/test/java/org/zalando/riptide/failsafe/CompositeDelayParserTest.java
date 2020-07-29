@@ -1,5 +1,6 @@
 package org.zalando.riptide.failsafe;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -7,6 +8,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +18,13 @@ final class CompositeDelayParserTest {
     private final DelayParser second = mock(DelayParser.class);
 
     private final DelayParser unit = new CompositeDelayParser(Arrays.asList(first, second));
+
+    @BeforeEach
+    void defaultBehavior() {
+        // starting with Mockito 3.4.4, mocks will return Duration.ZERO instead of null, by default
+        when(first.parse(any())).thenReturn(null);
+        when(second.parse(any())).thenReturn(null);
+    }
 
     @Test
     void shouldUseFirstNonNullDelay() {
