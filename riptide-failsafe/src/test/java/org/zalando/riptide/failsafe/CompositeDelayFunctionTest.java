@@ -1,7 +1,11 @@
 package org.zalando.riptide.failsafe;
 
 import net.jodah.failsafe.function.DelayFunction;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 
@@ -9,21 +13,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.riptide.failsafe.CompositeDelayFunction.composite;
 
+@ExtendWith(MockitoExtension.class)
 final class CompositeDelayFunctionTest {
 
-    @SuppressWarnings("unchecked")
-    private final DelayFunction<String, Exception> first =
-            (DelayFunction) mock(DelayFunction.class);
+    private final DelayFunction<String, Exception> first;
+    private final DelayFunction<String, Exception> second;
+    private final DelayFunction<String, Exception> unit;
 
-    @SuppressWarnings("unchecked")
-    private final DelayFunction<String, Exception> second =
-            (DelayFunction) mock(DelayFunction.class);
+    CompositeDelayFunctionTest(
+            @Mock final DelayFunction<String, Exception> first,
+            @Mock final DelayFunction<String, Exception> second) {
+        this.first = first;
+        this.second = second;
+        this.unit = composite(first, second);
+    }
 
-    private final DelayFunction<String, Exception> unit = composite(first, second);
+    @BeforeEach
+    void defaultBehavior() {
+        // starting with Mockito 3.4.4, mocks will return Duration.ZERO instead of null, by default
+        when(first.computeDelay(any(), any(), any())).thenReturn(null);
+        when(second.computeDelay(any(), any(), any())).thenReturn(null);
+    }
 
     @Test
     void shouldUseFirstNonNullDelay() {
