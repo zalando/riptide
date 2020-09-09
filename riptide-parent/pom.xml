@@ -22,7 +22,7 @@
         <logbook.version>2.2.0</logbook.version>
         <micrometer.version>1.5.4</micrometer.version>
         <mockito.version>3.5.10</mockito.version>
-        <problem.version>0.24.0</problem.version>
+        <problem.version>0.25.0</problem.version>
         <slf4j.version>1.7.30</slf4j.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <spring5.version>5.2.3.RELEASE</spring5.version>
