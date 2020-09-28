@@ -111,7 +111,6 @@ final class FailsafePluginFactory {
         Optional.ofNullable(config.getJitter())
                 .ifPresent(jitter -> jitter.applyTo(policy::withJitter));
 
-        policy.handle(RetryException.class);
         policy.withDelay(delayFunction());
 
         if (client.getTransientFaultDetection().getEnabled()) {
@@ -122,11 +121,12 @@ final class FailsafePluginFactory {
                     .withPolicy(new RetryRequestPolicy(policy.copy()
                             .handleIf(transientConnectionFaults()))
                             .withPredicate(alwaysTrue()))
+                    .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
                     .withDecorator(decorator);
 
         } else {
             return new FailsafePlugin()
-                    .withPolicy(new RetryRequestPolicy(policy))
+                    .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
                     .withDecorator(decorator);
         }
     }
