@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,6 +65,11 @@ final class MetricsTest {
 
     @Autowired
     private SimpleMeterRegistry registry;
+
+    @AfterEach
+    void teardown() {
+        registry.clear();
+    }
 
     @Test
     void shouldRecordRequests() {
