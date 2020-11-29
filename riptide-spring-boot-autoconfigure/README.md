@@ -522,10 +522,16 @@ A client can be configured to only connect to trusted hosts (see
 [Certificate Pinning](https://www.owasp.org/index.php/Certificate_and_Public_Key_Pinning)) by configuring the `certificate-pinning` key. Use
 `keystore.path` to refer to a *JKS*  keystore on the classpath/filesystem and (optionally) specify the passphrase via `keystore.password`.
 
+A certificate can be downloaded using:
+
+````bash
+openssl s_client -showcerts -connect www.example.com:443 < /dev/null 2> /dev/null | openssl x509 -outform PEM > example.cert
+````
+
 You can generate a keystore using the [JDK's keytool](http://docs.oracle.com/javase/7/docs/technotes/tools/#security):
 
 ```bash
-./keytool -importcert -file some-cert.crt -keystore my.keystore -alias "<some-alias>"
+keytool -importcert -file example.cert -keystore example.keystore -alias example
 ```
 
 ### Customization
