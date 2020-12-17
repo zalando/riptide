@@ -21,6 +21,15 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>faux-pas</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +76,10 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-compression</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-concurrent</artifactId>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>

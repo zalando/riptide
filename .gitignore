@@ -7,3 +7,5 @@ target/
 /.mvn/wrapper/*.jar
 
 *.log
+
+.jqwik-database

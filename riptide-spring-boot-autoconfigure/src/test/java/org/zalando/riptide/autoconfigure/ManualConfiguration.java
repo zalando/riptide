@@ -225,9 +225,9 @@ public class ManualConfiguration {
         public ExecutorService executor(final Tracer tracer) {
             return new TracedExecutorService(
                     ThreadPoolExecutors.builder()
-                        .withoutQueue()
                         .elasticSize(1, 20)
                         .keepAlive(1, MINUTES)
+                        .withoutQueue()
                         .threadFactory(new CustomizableThreadFactory("http-example-"))
                         .build(),
                     tracer);
