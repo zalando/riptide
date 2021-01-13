@@ -59,6 +59,11 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
+                <artifactId>riptide-concurrent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -128,6 +133,7 @@
                 <groupId>org.apiguardian</groupId>
                 <artifactId>apiguardian-api</artifactId>
                 <version>1.1.1</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
@@ -138,6 +144,7 @@
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>3.0.2</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.gag</groupId>
@@ -287,6 +294,18 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>net.jqwik</groupId>
+                <artifactId>jqwik</artifactId>
+                <version>1.3.10</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.18.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest</artifactId>
                 <version>2.2</version>
@@ -386,20 +405,12 @@
             <artifactId>apiguardian-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>faux-pas</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.gag</groupId>
             <artifactId>gag</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -432,6 +443,14 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.jqwik</groupId>
+            <artifactId>jqwik</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

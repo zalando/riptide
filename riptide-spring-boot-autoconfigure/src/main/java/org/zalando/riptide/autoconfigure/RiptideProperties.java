@@ -61,7 +61,13 @@ public final class RiptideProperties {
         );
 
         @NestedConfigurationProperty
-        private Threads threads = new Threads(true, 1, null, TimeSpan.of(1, MINUTES), 0);
+        private Threads threads = new Threads(
+                true,
+                1,
+                null,
+                TimeSpan.of(1, MINUTES),
+                0
+        );
 
         @NestedConfigurationProperty
         private Auth auth = new Auth(false, Paths.get("/meta/credentials"));

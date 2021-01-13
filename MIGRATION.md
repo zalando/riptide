@@ -2,7 +2,8 @@
 
 ## Before You Start
 
-First, **Riptide 3.0 requires Spring Boot 2.0**. Spring Boot 1.x is no longer supported. Neither is Spring 4.
+**Riptide 3** requires Spring 4.1.6 or up.
+The **Starter and Auto Configuration require Spring Boot 2.0** though.
 
 If you are running Spring Boot 1.x with Spring 4, consider using [Riptide 2.x](https://github.com/zalando/riptide/releases/tag/2.11.0).
 
@@ -88,7 +89,7 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 
 ### Added `enabled` properties
 
-:warning: **All nested configurations now have an `enabled` flag which is disabled by default**
+:warning: **All nested configurations now have an `enabled` flag:**
 
 - added `riptide.defaults.backup-request.enabled` (default: `false`)
 - added `riptide.defaults.certificate-pinning.enabled` (default: `false`)
@@ -99,7 +100,7 @@ Riptide 2.x was looking for specific beans named `meterRegistry`, `logbook` or `
 - added `riptide.defaults.request-compression.enabled` (default: `false`)
 - added `riptide.defaults.retry.enabled` (default: `false`)
 - added `riptide.defaults.retry.backoff.enabled` (default: `false`)
-- added `riptide.defaults.stack-trace-preservation.enabled` (default: `false`)
+- added `riptide.defaults.stack-trace-preservation.enabled` (default: `true`)
 - added `riptide.defaults.timeouts.enabled` (default: `false`)
 - added `riptide.defaults.transient-fault-detection.enabled` (default: `false`)
 

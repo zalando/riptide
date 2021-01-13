@@ -51,10 +51,11 @@
         <module>riptide-auth</module>
         <module>riptide-bom</module>
         <module>riptide-capture</module>
-        <module>riptide-compatibility</module>
-        <module>riptide-core</module>
         <module>riptide-chaos</module>
+        <module>riptide-compatibility</module>
         <module>riptide-compression</module>
+        <module>riptide-concurrent</module>
+        <module>riptide-core</module>
         <module>riptide-failsafe</module>
         <module>riptide-faults</module>
         <module>riptide-httpclient</module>
