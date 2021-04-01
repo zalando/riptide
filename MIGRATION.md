@@ -2,8 +2,8 @@
 
 ## Before You Start
 
-**Riptide 3** requires Spring 4.1.6 or up.
-The **Starter and Auto Configuration require Spring Boot 2.0** though.
+**Riptide 3** requires Spring 4.1.7 or up.
+The **Starter and Auto Configuration require Spring Boot 2.2** though.
 
 If you are running Spring Boot 1.x with Spring 4, consider using [Riptide 2.x](https://github.com/zalando/riptide/releases/tag/2.11.0).
 
