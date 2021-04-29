@@ -1,0 +1,60 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.organicdesign:Paguro
+    versions:
+    - "> 3.1.2"
+  - dependency-name: org.springframework:spring-framework-bom
+    versions:
+    - ">= 4.2.a, < 4.3"
+  - dependency-name: org.springframework:spring-framework-bom
+    versions:
+    - ">= 4.3.a, < 4.4"
+  - dependency-name: org.springframework:spring-framework-bom
+    versions:
+    - ">= 5.a, < 6"
+  - dependency-name: org.springframework:spring-test
+    versions:
+    - ">= 4.2.a, < 4.3"
+  - dependency-name: org.springframework:spring-test
+    versions:
+    - ">= 4.3.a, < 4.4"
+  - dependency-name: org.springframework:spring-test
+    versions:
+    - ">= 5.a, < 6"
+  - dependency-name: org.springframework:spring-web
+    versions:
+    - ">= 4.2.a, < 4.3"
+  - dependency-name: org.springframework:spring-web
+    versions:
+    - ">= 4.3.a, < 4.4"
+  - dependency-name: org.springframework:spring-web
+    versions:
+    - ">= 5.a, < 6"
+  - dependency-name: org.zalando:opentracing-flowid-starter
+    versions:
+    - 4.0.2
+  - dependency-name: org.owasp:dependency-check-maven
+    versions:
+    - 6.1.2
+  - dependency-name: org.zalando:logbook-spring-boot-autoconfigure
+    versions:
+    - 2.6.0
+  - dependency-name: org.zalando:logbook-json
+    versions:
+    - 2.6.0
+  - dependency-name: org.zalando:logbook-core
+    versions:
+    - 2.6.0
+  - dependency-name: org.springframework.boot:spring-boot-starter
+    versions:
+    - 2.4.3
+  - dependency-name: org.springframework.boot:spring-boot-dependencies
+    versions:
+    - 2.4.3
