@@ -1,5 +1,18 @@
 package org.zalando.riptide.autoconfigure;
 
+import static java.time.Clock.systemUTC;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.zalando.riptide.faults.Predicates.alwaysTrue;
+import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
+import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.Timeout;
@@ -12,6 +25,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
+import org.zalando.riptide.failsafe.CompositeTaskDecorator;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RequestPolicies;
@@ -20,19 +34,6 @@ import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
-
-import javax.annotation.Nullable;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static java.time.Clock.systemUTC;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.zalando.riptide.faults.Predicates.alwaysTrue;
-import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
-import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 @SuppressWarnings("unused")
 final class FailsafePluginFactory {
@@ -43,11 +44,11 @@ final class FailsafePluginFactory {
 
     public static Plugin createCircuitBreakerPlugin(
             final CircuitBreaker<ClientHttpResponse> breaker,
-            final TaskDecorator decorator) {
+            final List<TaskDecorator> decorators) {
 
         return new FailsafePlugin()
                 .withPolicy(breaker)
-                .withDecorator(decorator);
+                .withDecorator(composite(decorators));
     }
 
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
@@ -74,7 +75,7 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin createRetryFailsafePlugin(
-            final Client client, final TaskDecorator decorator) {
+            final Client client, final List<TaskDecorator> decorators) {
 
         final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
 
@@ -122,17 +123,17 @@ final class FailsafePluginFactory {
                             .handleIf(transientConnectionFaults()))
                             .withPredicate(alwaysTrue()))
                     .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
-                    .withDecorator(decorator);
+                    .withDecorator(composite(decorators));
 
         } else {
             return new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
-                    .withDecorator(decorator);
+                    .withDecorator(composite(decorators));
         }
     }
 
     public static Plugin createBackupRequestPlugin(
-            final Client client, final TaskDecorator decorator) {
+            final Client client, final List<TaskDecorator> decorators) {
 
         final TimeSpan delay = client.getBackupRequest().getDelay();
 
@@ -142,11 +143,11 @@ final class FailsafePluginFactory {
                                 delay.getAmount(),
                                 delay.getUnit()),
                         new IdempotencyPredicate()))
-                .withDecorator(decorator);
+                .withDecorator(composite(decorators));
     }
 
     public static Plugin createTimeoutPlugin(
-            final Client client, final TaskDecorator decorator) {
+            final Client client, final List<TaskDecorator> decorators) {
 
         final Duration timeout = client.getTimeouts().getGlobal().toDuration();
 
@@ -154,7 +155,7 @@ final class FailsafePluginFactory {
                 .withPolicy(
                         Timeout.<ClientHttpResponse>of(timeout)
                                 .withCancel(true))
-                .withDecorator(decorator);
+                .withDecorator(composite(decorators));
     }
 
     private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {
@@ -164,4 +165,11 @@ final class FailsafePluginFactory {
         ));
     }
 
+    private static TaskDecorator composite(final List<TaskDecorator> decorators) {
+        if (decorators.isEmpty()) {
+            return TaskDecorator.identity();
+        }
+
+        return new CompositeTaskDecorator(decorators);
+    }
 }
