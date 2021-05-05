@@ -193,7 +193,7 @@ The following table shows which combination of properties are supported
         .withoutQueue()
         .elasticSize(5, 20)
         .keepAlive(1, MINUTES)
-        .build(ze
+        .build()
     ```
 
 2. Bounded queue, fixed size
