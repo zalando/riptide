@@ -19,7 +19,7 @@
         <fauxpas.version>0.9.0</fauxpas.version>
         <jackson.version>2.12.3</jackson.version>
         <junit-jupiter.version>5.7.1</junit-jupiter.version>
-        <logbook.version>2.8.0</logbook.version>
+        <logbook.version>2.9.0</logbook.version>
         <micrometer.version>1.7.0</micrometer.version>
         <mockito.version>3.10.0</mockito.version>
         <problem.version>0.25.0</problem.version>
