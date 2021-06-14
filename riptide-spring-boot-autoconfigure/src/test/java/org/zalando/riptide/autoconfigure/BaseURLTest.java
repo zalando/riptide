@@ -69,10 +69,10 @@ final class BaseURLTest {
         http.get().call(pass()).join();
 
         driver.addExpectation(
-                onRequestTo("http://www.example.de/"),
+                onRequestTo("http://www.example.net/"),
                 giveEmptyResponse());
 
-        reference.set(URI.create("http://www.example.de/"));
+        reference.set(URI.create("http://www.example.net/"));
         http.get().call(pass()).join();
     }
 
