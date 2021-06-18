@@ -16,6 +16,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
+import org.zalando.riptide.soap.PreserveContextClassLoaderTaskDecorator;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -32,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.TaskDecorator.composite;
 
 final class FailsafePluginCircuitBreakerTest {
 
@@ -52,6 +54,10 @@ final class FailsafePluginCircuitBreakerTest {
             .plugin(new FailsafePlugin()
                     .withPolicy(new CircuitBreaker<ClientHttpResponse>()
                             .withDelay(Duration.ofSeconds(1)))
+                    .withDecorator(composite(
+                            TaskDecorator.identity(),
+                            new PreserveContextClassLoaderTaskDecorator()
+                    ))
                     .withDecorator(TaskDecorator.identity()))
             .plugin(new OriginalStackTracePlugin())
             .build();

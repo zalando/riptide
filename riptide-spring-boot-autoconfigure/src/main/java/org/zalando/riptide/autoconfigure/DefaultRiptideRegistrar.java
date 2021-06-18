@@ -41,7 +41,6 @@ import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.httpclient.metrics.HttpConnectionPoolMetrics;
 import org.zalando.riptide.logbook.LogbookPlugin;
@@ -51,6 +50,7 @@ import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
+import org.zalando.riptide.soap.PreserveContextClassLoaderTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
@@ -405,7 +405,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createCircuitBreakerPlugin")
                                 .addConstructorArgValue(registerCircuitBreaker(id, client))
-                                .addConstructorArgValue(createTaskDecorator(id, client));
+                                .addConstructorArgValue(createTaskDecorators(id, client));
                     });
             return Optional.of(pluginId);
         }
@@ -419,7 +419,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createRetryFailsafePlugin")
                         .addConstructorArgValue(client)
-                        .addConstructorArgValue(createTaskDecorator(id, client));
+                        .addConstructorArgValue(createTaskDecorators(id, client));
             });
             return Optional.of(pluginId);
         }
@@ -446,7 +446,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createBackupRequestPlugin")
                                 .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorator(id, client));
+                                .addConstructorArgValue(createTaskDecorators(id, client));
                     });
             return Optional.of(pluginId);
         }
@@ -460,7 +460,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createTimeoutPlugin")
                         .addConstructorArgValue(client)
-                        .addConstructorArgValue(createTaskDecorator(id, client));
+                        .addConstructorArgValue(createTaskDecorators(id, client));
             });
             return Optional.of(pluginId);
         }
@@ -482,13 +482,23 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.find(id, Plugin.class);
     }
 
-    private Object createTaskDecorator(final String id, final Client client) {
+    private List<BeanMetadataElement> createTaskDecorators(final String id, final Client client) {
+        final List<BeanMetadataElement> decorators = Registry.list();
+
         if (client.getTracing().getEnabled()) {
-            return ref(registry.registerIfAbsent(id, TaskDecorator.class, () ->
-                    genericBeanDefinition(TracedTaskDecorator.class)
-                            .addConstructorArgValue(TRACER_REF)));
+            decorators.add(ref(registry.registerIfAbsent(
+                    id, TracedTaskDecorator.class, () ->
+                            genericBeanDefinition(TracedTaskDecorator.class)
+                                    .addConstructorArgValue(TRACER_REF))));
         }
-        return TaskDecorator.identity();
+
+        if (client.getSoap().getEnabled()) {
+            decorators.add(ref(registry.registerIfAbsent(
+                    id, PreserveContextClassLoaderTaskDecorator.class, () ->
+                            genericBeanDefinition(PreserveContextClassLoaderTaskDecorator.class))));
+        }
+
+        return decorators;
     }
 
     private BeanMetadataElement registerCircuitBreaker(final String id, final Client client) {
