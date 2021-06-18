@@ -3,6 +3,7 @@ package org.zalando.riptide.failsafe;
 import lombok.AllArgsConstructor;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.Policy;
+import net.jodah.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
@@ -11,6 +12,7 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -18,17 +20,16 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.organicdesign.fp.StaticImports.vec;
 import static org.zalando.riptide.Attributes.RETRIES;
-import static org.zalando.riptide.failsafe.TaskDecorator.identity;
 
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
 public final class FailsafePlugin implements Plugin {
 
     private final ImList<RequestPolicy> policies;
-    private final TaskDecorator decorator;
+    private final ImList<TaskDecorator> decorators;
 
     public FailsafePlugin() {
-        this(vec(), identity());
+        this(vec(), vec());
     }
 
     public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
@@ -42,11 +43,11 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withPolicy(final RequestPolicy policy) {
-        return new FailsafePlugin(policies.append(policy), decorator);
+        return new FailsafePlugin(policies.append(policy), decorators);
     }
 
     public FailsafePlugin withDecorator(final TaskDecorator decorator) {
-        return new FailsafePlugin(policies, decorator);
+        return new FailsafePlugin(policies, decorators.append(decorator));
     }
 
     @Override
@@ -59,9 +60,16 @@ public final class FailsafePlugin implements Plugin {
             }
 
             return Failsafe.with(select(arguments))
-                    .getStageAsync(decorator.decorate(context -> execution
-                            .execute(withAttempts(arguments, context.getAttemptCount()))));
+                    .getStageAsync(decorate(execution, arguments));
         };
+    }
+
+    private ContextualSupplier<CompletableFuture<ClientHttpResponse>> decorate(
+            final RequestExecution execution, final RequestArguments arguments) {
+
+        final TaskDecorator decorator = TaskDecorator.composite(decorators);
+        return decorator.decorate(context -> execution
+                .execute(withAttempts(arguments, context.getAttemptCount())));
     }
 
     private List<Policy<ClientHttpResponse>> select(final RequestArguments arguments) {
