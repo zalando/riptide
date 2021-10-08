@@ -11,13 +11,13 @@ next=$(semver ${release} -i minor)
 git checkout -b release/${release}
 
 ./mvnw versions:set -D newVersion=${release}
-git commit -am "Release ${release}"
+git commit -S -am "Release ${release}"
 ./mvnw clean deploy scm:tag -P release -D tag=${release} -D pushChanges=false -D skipTests -D dependency-check.skip
 
 ./mvnw versions:set -D newVersion=${next}-SNAPSHOT
-git commit -am "Development ${next}-SNAPSHOT"
+git commit -S -am "Development ${next}-SNAPSHOT"
 
-git push
+git push --set-upstream origin release/${release}
 git push --tags
 
 git checkout main
