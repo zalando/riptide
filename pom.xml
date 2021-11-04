@@ -63,6 +63,7 @@
         <module>riptide-logbook</module>
         <module>riptide-micrometer</module>
         <module>riptide-opentracing</module>
+        <module>riptide-opentelemetry</module>
         <module>riptide-parent</module>
         <module>riptide-problem</module>
         <module>riptide-soap</module>
@@ -93,10 +94,10 @@
                 <groupId>org.basepom.maven</groupId>
                 <artifactId>duplicate-finder-maven-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.jacoco</groupId>-->
+<!--                <artifactId>jacoco-maven-plugin</artifactId>-->
+<!--            </plugin>-->
         </plugins>
         <pluginManagement>
             <plugins>
