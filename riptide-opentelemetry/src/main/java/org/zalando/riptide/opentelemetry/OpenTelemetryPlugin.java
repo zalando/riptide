@@ -73,6 +73,7 @@ public class OpenTelemetryPlugin implements Plugin {
         }
 
         try (final Scope ignored = span.makeCurrent()) {
+            span.addEvent("Network call");
             Map<String, String> headers = new HashMap<>();
             this.propagator.inject(Context.current(), headers, Map::put);
             return execution.execute(arguments.withHeaders(Multimaps.forMap(headers).asMap()));

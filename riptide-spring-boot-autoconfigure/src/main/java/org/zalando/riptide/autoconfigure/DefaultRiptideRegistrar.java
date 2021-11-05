@@ -47,6 +47,7 @@ import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.micrometer.ThreadPoolMetrics;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
+import org.zalando.riptide.opentelemetry.OpenTelemetryPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
@@ -82,6 +83,7 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptio
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.TELEMETRY_TRACER_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @Slf4j
@@ -252,6 +254,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerRequestCompressionPlugin(id, client),
                 registerLogbookPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
+                registerOpenTelemetryPlugin(id, client),
                 registerCircuitBreakerFailsafePlugin(id, client),
                 registerRetryPolicyFailsafePlugin(id, client),
                 registerAuthorizationPlugin(id, client),
@@ -391,6 +394,19 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .addConstructorArgValue(TRACER_REF)
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(registry.findRef(id, SpanDecorator.class).orElse(null));
+            });
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerOpenTelemetryPlugin(final String id, final Client client) {
+        if (client.getTelemetry().getEnabled()) {
+            final String pluginId = registry.registerIfAbsent(id, OpenTelemetryPlugin.class, () -> {
+                log.debug("Client [{}]: Registering [{}]", id, OpenTelemetryPlugin.class.getSimpleName());
+                return genericBeanDefinition(OpenTelemetryPluginFactory.class)
+                        .setFactoryMethod("create")
+                        .addConstructorArgValue(TELEMETRY_TRACER_REF);
             });
             return Optional.of(pluginId);
         }

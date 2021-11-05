@@ -125,6 +125,9 @@ public final class RiptideProperties {
         private Tracing tracing = new Tracing(false, emptyMap(), false);
 
         @NestedConfigurationProperty
+        private Telemetry telemetry = new Telemetry(false);
+
+        @NestedConfigurationProperty
         private Chaos chaos = new Chaos(
                 new Latency(false, 0.01, TimeSpan.of(1, SECONDS)),
                 new Exceptions(false, 0.001),
@@ -194,6 +197,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Tracing tracing;
+
+        @NestedConfigurationProperty
+        private Telemetry telemetry;
 
         @NestedConfigurationProperty
         private Chaos chaos;
@@ -386,6 +392,14 @@ public final class RiptideProperties {
         private Boolean enabled;
         private Map<String, String> tags;
         private Boolean propagateFlowId;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Telemetry {
+        private Boolean enabled;
     }
 
 
