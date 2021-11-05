@@ -284,7 +284,7 @@ riptide:
         enabled: true
         fixed-delay: 50 milliseconds
         max-retries: 5
-        max-duration: 2 second
+        max-duration: 2 seconds
         jitter: 25 milliseconds
       circuit-breaker:
         enabled: true
