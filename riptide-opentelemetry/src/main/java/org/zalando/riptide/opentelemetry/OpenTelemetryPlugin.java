@@ -9,15 +9,22 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import org.springframework.http.client.ClientHttpResponse;
+import org.zalando.fauxpas.ThrowingBiConsumer;
 import org.zalando.riptide.Attribute;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.opentelemetry.span.CompositeSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.ErrorSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.HttpMethodSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.HttpStatusCodeSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 
 public class OpenTelemetryPlugin implements Plugin {
@@ -26,10 +33,16 @@ public class OpenTelemetryPlugin implements Plugin {
 
     private final Tracer tracer;
     private final TextMapPropagator propagator;
+    private final SpanDecorator spanDecorator;
 
     public OpenTelemetryPlugin(final Tracer tracer) {
         this.tracer = tracer;
         this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
+        this.spanDecorator = CompositeSpanDecorator.composite(
+                new HttpMethodSpanDecorator(),
+                new HttpStatusCodeSpanDecorator(),
+                new ErrorSpanDecorator()
+        );
     }
 
     @Override
@@ -50,12 +63,38 @@ public class OpenTelemetryPlugin implements Plugin {
                                 .setParent(context)
                                 .startSpan();
 
+        spanDecorator.onRequest(span, arguments);
+
         final Map<String, String> headers = new HashMap<>();
         try (final Scope ignored = span.makeCurrent()) {
             this.propagator.inject(Context.current(), headers, Map::put);
         }
 
         return execution.execute(arguments.withHeaders(Multimaps.forMap(headers).asMap()))
-                        .whenComplete((r, throwable) -> span.end());
+                        .whenComplete(decorateOnResponse(span, arguments))
+                        .whenComplete(decorateOnError(span, arguments))
+                        .whenComplete((r, t) -> span.end());
+    }
+
+    private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> decorateOnResponse(
+            final Span span,
+            final RequestArguments arguments) {
+
+        return (response, error) -> {
+            if (response != null) {
+                spanDecorator.onResponse(span, arguments, response);
+            }
+        };
+    }
+
+    private BiConsumer<ClientHttpResponse, Throwable> decorateOnError(
+            final Span span,
+            final RequestArguments arguments) {
+
+        return (response, error) -> {
+            if (error != null) {
+                spanDecorator.onError(span, arguments, error);
+            }
+        };
     }
 }
