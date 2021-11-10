@@ -297,7 +297,8 @@ final class Defaulting {
 
     private static Telemetry merge(final Telemetry base, final Telemetry defaults) {
         return new Telemetry(
-                either(base.getEnabled(), defaults.getEnabled())
+                either(base.getEnabled(), defaults.getEnabled()),
+                merge(base.getAttributes(), defaults.getAttributes(), Defaulting::merge)
         );
     }
 

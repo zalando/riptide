@@ -35,13 +35,14 @@ public class OpenTelemetryPlugin implements Plugin {
     private final TextMapPropagator propagator;
     private final SpanDecorator spanDecorator;
 
-    public OpenTelemetryPlugin(final Tracer tracer) {
+    public OpenTelemetryPlugin(final Tracer tracer, SpanDecorator... decorators) {
         this.tracer = tracer;
         this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
         this.spanDecorator = CompositeSpanDecorator.composite(
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
-                new ErrorSpanDecorator()
+                new ErrorSpanDecorator(),
+                CompositeSpanDecorator.composite(decorators)
         );
     }
 

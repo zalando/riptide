@@ -406,7 +406,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTelemetryPlugin.class.getSimpleName());
                 return genericBeanDefinition(OpenTelemetryPluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(TELEMETRY_TRACER_REF);
+                        .addConstructorArgValue(TELEMETRY_TRACER_REF)
+                        .addConstructorArgValue(client);
             });
             return Optional.of(pluginId);
         }
