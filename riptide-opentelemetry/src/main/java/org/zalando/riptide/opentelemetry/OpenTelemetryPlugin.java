@@ -16,6 +16,7 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentelemetry.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.ErrorSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpStatusCodeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
@@ -39,6 +40,7 @@ public class OpenTelemetryPlugin implements Plugin {
         this.tracer = tracer;
         this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
         this.spanDecorator = CompositeSpanDecorator.composite(
+                new HttpHostSpanDecorator(),
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
                 new ErrorSpanDecorator(),

@@ -189,6 +189,7 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
+        assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
         assertThat(attributes.get(AttributeKey.longKey("http.status")), is(400L));
     }
 }
