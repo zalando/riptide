@@ -13,6 +13,7 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
+import org.zalando.riptide.autoconfigure.OpenTelemetryTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 import org.zalando.riptide.opentracing.span.HttpUrlSpanDecorator;
@@ -30,6 +31,7 @@ final class UrlResolutionTest {
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
+            OpenTelemetryTestAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
@@ -41,7 +43,6 @@ final class UrlResolutionTest {
         public SpanDecorator exampleSpanDecorator() {
             return new HttpUrlSpanDecorator();
         }
-
     }
 
     @Autowired
@@ -54,13 +55,12 @@ final class UrlResolutionTest {
     @Test
     void shouldAppendUrl() {
         server.expect(requestTo("https://example.com/foo/bar"))
-                .andRespond(withSuccess());
+              .andRespond(withSuccess());
 
         unit.get("/bar")
-                .call(pass())
-                .join();
+            .call(pass())
+            .join();
 
         server.verify();
     }
-
 }

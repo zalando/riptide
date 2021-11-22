@@ -14,6 +14,7 @@ import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfigu
         LogbookAutoConfiguration.class,
         OpenTracingFlowIdAutoConfiguration.class,
         OpenTracingTestAutoConfiguration.class,
+        OpenTelemetryTestAutoConfiguration.class,
         MetricsTestAutoConfiguration.class,
 })
 @ActiveProfiles("default")

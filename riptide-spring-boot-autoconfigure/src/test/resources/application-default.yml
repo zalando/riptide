@@ -63,6 +63,10 @@ riptide:
         keystore:
           path: example.keystore
           password: password
+      telemetry:
+        enabled: true
+        tags:
+          peer.service: github
       transient-fault-detection.enabled: true
     github-invalid:
       base-url: https://example.com
