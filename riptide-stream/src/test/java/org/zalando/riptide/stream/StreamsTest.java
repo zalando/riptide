@@ -29,8 +29,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -66,14 +66,15 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<List<AccountBody>, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<List<AccountBody>, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(listOf(AccountBody.class)), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(listOf(AccountBody.class)), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
         verify(verifier).accept(Arrays.asList(
                 new AccountBody("1234567890", "Acme Corporation"),
@@ -90,16 +91,17 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody[], Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody[], Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody[].class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(AccountBody[].class), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
-        verify(verifier).accept(new AccountBody[]{
+        verify(verifier).accept(new AccountBody[] {
                 new AccountBody("1234567890", "Acme Corporation"),
                 new AccountBody("1234567891", "Acme Company"),
                 new AccountBody("1234567892", "Acme GmbH"),
@@ -114,14 +116,15 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-list.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -137,14 +140,15 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-stream.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -160,14 +164,15 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-sequence.json"))
                         .contentType(APPLICATION_JSON_SEQ));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verify(verifier).accept(new AccountBody("1234567891", "Acme Company"));
@@ -187,16 +192,17 @@ final class StreamsTest {
                         .body(new InputStreamResource(new ByteArrayInputStream(new byte[0])))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         unit.get("/accounts")
-                .dispatch(status(),
-                        on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                        anyStatus().call(this::fail))
-                .join();
+            .dispatch(status(),
+                      on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
+                      anyStatus().call(this::fail))
+            .join();
 
-        verifyZeroInteractions(verifier);
+        verifyNoInteractions(verifier);
     }
 
     @Test
@@ -206,16 +212,18 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-sequence.json"))
                         .contentType(APPLICATION_JSON_SEQ));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
         doCallRealMethod().when(verifier).accept(any());
         doThrow(new IOException()).when(verifier).tryAccept(new AccountBody("1234567892", "Acme GmbH"));
 
         final CompletionException exception = assertThrows(CompletionException.class,
-                unit.get("/accounts")
-                        .dispatch(status(),
-                                on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                                anyStatus().call(this::fail))::join);
+                                                           unit.get("/accounts")
+                                                               .dispatch(status(),
+                                                                         on(OK).call(streamOf(AccountBody.class),
+                                                                                     forEach(verifier)),
+                                                                         anyStatus().call(this::fail))::join);
 
         assertThat(exception.getCause(), is(instanceOf(UncheckedIOException.class)));
         assertThat(exception.getCause().getCause(), is(instanceOf(IOException.class)));
@@ -234,14 +242,16 @@ final class StreamsTest {
                         .body(new ClassPathResource("account-fail.json"))
                         .contentType(APPLICATION_X_JSON_STREAM));
 
-        @SuppressWarnings("unchecked") final ThrowingConsumer<AccountBody, Exception> verifier = mock(
+        @SuppressWarnings("unchecked")
+        final ThrowingConsumer<AccountBody, Exception> verifier = mock(
                 ThrowingConsumer.class);
 
         final CompletionException exception = assertThrows(CompletionException.class,
-                unit.get("/accounts")
-                        .dispatch(status(),
-                                on(OK).call(streamOf(AccountBody.class), forEach(verifier)),
-                                anyStatus().call(this::fail))::join);
+                                                           unit.get("/accounts")
+                                                               .dispatch(status(),
+                                                                         on(OK).call(streamOf(AccountBody.class),
+                                                                                     forEach(verifier)),
+                                                                         anyStatus().call(this::fail))::join);
 
         assertThat(exception.getCause(), is(instanceOf(UncheckedIOException.class)));
 

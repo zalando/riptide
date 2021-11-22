@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -70,15 +70,15 @@ final class ProblemRouteTest {
 
     private void perform(final String mediaType) {
         server.expect(requestTo(url))
-                .andRespond(withStatus(BAD_REQUEST)
-                        .body(new ClassPathResource("problem.json"))
-                        .contentType(MediaType.parseMediaType(mediaType)));
+              .andRespond(withStatus(BAD_REQUEST)
+                                  .body(new ClassPathResource("problem.json"))
+                                  .contentType(MediaType.parseMediaType(mediaType)));
 
         final CompletionException exception = assertThrows(CompletionException.class,
-                unit.get(url)
-                        .dispatch(series(),
-                                on(SUCCESSFUL).call(pass()),
-                                anySeries().call(problemHandling()))::join);
+                                                           unit.get(url)
+                                                               .dispatch(series(),
+                                                                         on(SUCCESSFUL).call(pass()),
+                                                                         anySeries().call(problemHandling()))::join);
 
         assertThat(exception.getCause(), is(instanceOf(ThrowableProblem.class)));
     }
@@ -86,15 +86,15 @@ final class ProblemRouteTest {
     @Test
     void shouldDelegateProblemHandling() {
         server.expect(requestTo(url))
-                .andRespond(withStatus(BAD_REQUEST)
-                        .body(new ClassPathResource("problem.json"))
-                        .contentType(MediaType.parseMediaType("application/problem+json")));
+              .andRespond(withStatus(BAD_REQUEST)
+                                  .body(new ClassPathResource("problem.json"))
+                                  .contentType(MediaType.parseMediaType("application/problem+json")));
 
         unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().call(problemHandling(consumer)))
-                .join();
+            .dispatch(series(),
+                      on(SUCCESSFUL).call(pass()),
+                      anySeries().call(problemHandling(consumer)))
+            .join();
 
         verify(consumer).tryAccept(any());
     }
@@ -102,14 +102,14 @@ final class ProblemRouteTest {
     @Test
     void shouldUseFallback() throws Exception {
         server.expect(requestTo(url))
-                .andRespond(withStatus(BAD_REQUEST)
-                        .body("Error!"));
+              .andRespond(withStatus(BAD_REQUEST)
+                                  .body("Error!"));
 
         unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().call(problemHandling(fallback)))
-                .join();
+            .dispatch(series(),
+                      on(SUCCESSFUL).call(pass()),
+                      anySeries().call(problemHandling(fallback)))
+            .join();
 
         verify(fallback).execute(any(), any());
     }
@@ -117,34 +117,33 @@ final class ProblemRouteTest {
     @Test
     void shouldNotDelegateProblemHandlingAndUseFallback() throws Exception {
         server.expect(requestTo(url))
-                .andRespond(withStatus(BAD_REQUEST)
-                        .body("Error!"));
+              .andRespond(withStatus(BAD_REQUEST)
+                                  .body("Error!"));
 
         unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().call(problemHandling(consumer, fallback)))
-                .join();
+            .dispatch(series(),
+                      on(SUCCESSFUL).call(pass()),
+                      anySeries().call(problemHandling(consumer, fallback)))
+            .join();
 
-        verifyZeroInteractions(consumer);
+        verifyNoInteractions(consumer);
         verify(fallback).execute(any(), any());
     }
 
     @Test
     void shouldDelegateProblemHandlingAndNotUseFallback() {
         server.expect(requestTo(url))
-                .andRespond(withStatus(BAD_REQUEST)
-                        .body(new ClassPathResource("problem.json"))
-                        .contentType(MediaType.parseMediaType("application/problem+json")));
+              .andRespond(withStatus(BAD_REQUEST)
+                                  .body(new ClassPathResource("problem.json"))
+                                  .contentType(MediaType.parseMediaType("application/problem+json")));
 
         unit.get(url)
-                .dispatch(series(),
-                        on(SUCCESSFUL).call(pass()),
-                        anySeries().call(problemHandling(consumer, fallback)))
-                .join();
+            .dispatch(series(),
+                      on(SUCCESSFUL).call(pass()),
+                      anySeries().call(problemHandling(consumer, fallback)))
+            .join();
 
         verify(consumer).tryAccept(any());
-        verifyZeroInteractions(fallback);
+        verifyNoInteractions(fallback);
     }
-
 }
