@@ -20,6 +20,7 @@ import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
 
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -137,7 +138,7 @@ class OpenTelemetryPluginTest {
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
-            final CompletableFuture<?> future = unit.get("/")
+            final CompletableFuture<?> future = unit.get(URI.create(driver.getBaseUrl()))
                                                     .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);

@@ -18,7 +18,9 @@ import org.zalando.riptide.opentelemetry.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.ErrorSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpMethodSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.HttpPathSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpStatusCodeSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.PeerHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 
 import java.io.IOException;
@@ -44,6 +46,8 @@ public class OpenTelemetryPlugin implements Plugin {
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
                 new ErrorSpanDecorator(),
+                new PeerHostSpanDecorator(),
+                new HttpPathSpanDecorator(),
                 CompositeSpanDecorator.composite(decorators)
         );
     }
