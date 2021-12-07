@@ -73,7 +73,7 @@ public class OpenTelemetryPlugin implements Plugin {
         spanDecorator.onRequest(span, arguments);
 
         final Map<String, String> headers = new HashMap<>();
-        try (final Scope ignored = span.makeCurrent()) {
+        try (final Scope ignored = context.with(span).makeCurrent()) {
             this.propagator.inject(Context.current(), headers, Map::put);
         }
 
