@@ -236,6 +236,17 @@ Required when `propagate-flow-id` is enabled.
 </dependency>
 ```
 
+#### `Telemetry`
+Required when `telemetry` is enabled.
+
+```xml
+<dependency>
+    <groupId>org.zalando</groupId>
+    <artifactId>riptide-opentelemetry</artifactId>
+    <version>${riptide.version}</version>
+</dependency>
+```
+
 ## Configuration
 
 You can now define new clients and override default configuration in your `application.yml`:
@@ -300,9 +311,15 @@ riptide:
         tags:
           peer.service: example
         propagate-flow-id: true
+      telemetry:
+        enabled: true
+        tags:
+          peer.service: example
+          client_id: my-app
 ```
 
-Clients are identified by a *Client ID*, for instance `example` in the sample above. You can have as many clients as you want.
+Clients are identified by a *Client ID*, for instance `example` in the sample above. 
+You can have as many clients as you want.
 
 ### Reference
 
@@ -382,6 +399,9 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── protocol`                  | `String`       | `1.1` (possible other value: `1.2`)              |
 | `│   ├── stack-trace-preservation`      |                |                                                  |
 | `│   │   └── enabled`                   | `boolean`      | `true`                                           |
+| `│   ├── telemetry`                       |                |                                                  |
+| `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
+| `│   │   └── tags`                      | `Map`          | none                                             |
 | `│   ├── threads`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `true`                                           |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
@@ -470,6 +490,9 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── protocol`              | `String`       | see `defaults`                                   |
 | `        ├── stack-trace-preservation`  |                |                                                  |
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
+| `        ├── telemetry`                   |                |                                                  |
+| `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
+| `        │   ├── tags`                  | `Map`          | see `defaults`                                   |
 | `        ├── threads`                   |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   ├── min-size`              | `int`          | see `defaults`                                   |
