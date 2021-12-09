@@ -7,9 +7,9 @@ import org.zalando.riptide.RequestArguments;
 import javax.annotation.Nullable;
 
 import static java.util.Objects.nonNull;
+import static org.zalando.riptide.opentelemetry.span.ExtensionAttributes.HTTP_PATH;
 
 public class HttpPathSpanDecorator implements SpanDecorator {
-    private static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");
 
     @Override
     public void onRequest(Span span, RequestArguments arguments) {

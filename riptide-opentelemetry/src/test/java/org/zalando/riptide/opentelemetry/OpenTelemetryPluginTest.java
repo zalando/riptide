@@ -98,7 +98,7 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("POST"));
-        assertThat(attributes.get(AttributeKey.longKey("http.status")), is(200L));
+        assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(200L));
     }
 
     @Test
@@ -128,7 +128,7 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
-        assertThat(attributes.get(AttributeKey.longKey("http.status")), is(500L));
+        assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(500L));
     }
 
     @Test
@@ -191,6 +191,6 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
         assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
-        assertThat(attributes.get(AttributeKey.longKey("http.status")), is(400L));
+        assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(400L));
     }
 }
