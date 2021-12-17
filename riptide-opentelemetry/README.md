@@ -75,7 +75,7 @@ The following tags are supported out of the box:
 ### Span Decorators
 
 Span decorators are a simple, yet powerful tool to manipulate the span, i.e. they allow you to add attributes to the spans. 
-The default set of decorators can be extended by using `OpenTracingPlugin#withAdditionalSpanDecorators(..)`:
+The default set of decorators can be extended by providing additional decorators to the `OpenTelemetryPlugin` constructor:
 
 ```java
 new OpenTelemetryPlugin(tracer, new StaticSpanDecorator(singletonMap(
