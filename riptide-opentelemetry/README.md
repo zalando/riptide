@@ -65,9 +65,9 @@ The following tags are supported out of the box:
 | `http.path`                  | `HttpPathSpanDecorator`            | `/users/{user_id}`                |
 | `http.status`                | `HttpStatusCodeSpanDecorator`      | `200`                             |
 | `peer.hostname`              | `PeerHostSpanDecorator`            | `www.github.com`                  |
-| `retry`                      | `RetrySpanDecorator`¹              | `true`                            |
-| `retry_number`               | `RetrySpanDecorator`¹              | `3`                               |
-|                              | `StaticTagSpanDecorator`¹          | `zone=aws:eu-central-1a`          |
+| `retry`                      | `RetrySpanDecorator`²              | `true`                            |
+| `retry_number`               | `RetrySpanDecorator`²              | `3`                               |
+|                              | `StaticTagSpanDecorator`²          | `zone=aws:eu-central-1a`          |
 
 ¹ The `CompositeSpanDecorator` allows to treat multiple decorators as one. 
 ² **Not** registered by default.
