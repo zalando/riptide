@@ -2,6 +2,7 @@ package org.zalando.riptide.opentelemetry.span;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
+import lombok.AllArgsConstructor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 
@@ -10,6 +11,7 @@ import java.util.function.Predicate;
 
 import static org.zalando.fauxpas.FauxPas.throwingPredicate;
 
+@AllArgsConstructor
 public class ErrorSpanDecorator implements SpanDecorator {
     private final Predicate<ClientHttpResponse> predicate;
 
