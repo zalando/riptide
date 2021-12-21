@@ -45,17 +45,21 @@ public class OpenTelemetryPlugin implements Plugin {
     }
 
     public OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator... decorators) {
-        this.telemetry = telemetry;
-        this.tracer = telemetry.getTracer("riptide-opentelemetry");
-        this.propagator = telemetry.getPropagators().getTextMapPropagator();
-        this.spanDecorator = CompositeSpanDecorator.composite(
+        this(telemetry, CompositeSpanDecorator.composite(
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
                 new ErrorSpanDecorator(),
                 new PeerHostSpanDecorator(),
                 new HttpPathSpanDecorator(),
                 CompositeSpanDecorator.composite(decorators)
-        );
+        ));
+    }
+
+    private OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator spanDecorator) {
+        this.telemetry = telemetry;
+        this.tracer = telemetry.getTracer("riptide-opentelemetry");
+        this.propagator = telemetry.getPropagators().getTextMapPropagator();
+        this.spanDecorator = spanDecorator;
     }
 
     public OpenTelemetryPlugin withSpanDecorators(final SpanDecorator... decorators) {
