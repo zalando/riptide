@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
+import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.GET;
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
@@ -53,7 +54,6 @@ class OpenTelemetryPluginTest {
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
-    private final SpanDecorator hostDecorator = new HttpHostSpanDecorator();
 
     private final Http unit = Http.builder()
                                   .executor(Executors.newCachedThreadPool())
@@ -66,7 +66,7 @@ class OpenTelemetryPluginTest {
                                                            .build()))
                                   .baseUrl(driver.getBaseUrl())
                                   .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
-                                                                  environmentDecorator, hostDecorator))
+                                                                  environmentDecorator))
                                   .build();
 
     @Test
@@ -201,5 +201,52 @@ class OpenTelemetryPluginTest {
     void shouldObtainTracerFromGlobalTelemetry() {
         OpenTelemetryPlugin plugin = new OpenTelemetryPlugin();
         assertThat(plugin.getTracer(), notNullValue());
+    }
+
+    @Test
+    void shouldOverwriteDefaultSetOfDecorators() {
+        final Http unit = Http.builder()
+                              .executor(Executors.newCachedThreadPool())
+                              .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                                      HttpClientBuilder.create()
+                                                       .setDefaultRequestConfig(
+                                                               RequestConfig.custom()
+                                                                            .setSocketTimeout(500)
+                                                                            .build())
+                                                       .build()))
+                              .baseUrl(driver.getBaseUrl())
+                              .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
+                                              .withSpanDecorators(new HttpHostSpanDecorator()))
+                              .build();
+
+        driver.addExpectation(onRequestTo("/")
+                                      .withMethod(GET)
+                                      .withHeader("traceparent", notNullValue(String.class)),
+                              giveResponse("Hello, world!", "text/plain")
+                                      .withStatus(200));
+
+        final Span parent = tracer.spanBuilder("test").startSpan();
+
+        try (final Scope ignored = parent.makeCurrent()) {
+            unit.get("/")
+                .call(pass())
+                .join();
+        } finally {
+            parent.end();
+        }
+
+        final List<SpanData> spans = otelTesting.getSpans();
+
+        assertThat(spans, hasSize(2));
+
+        assertThat(spans.get(1).getSpanId(), is(parent.getSpanContext().getSpanId()));
+
+        final SpanData child = spans.get(0);
+        assertThat(child.getParentSpanId(), is(parent.getSpanContext().getSpanId()));
+        assertThat(child.getStatus(), is(not(StatusData.error())));
+
+        final Attributes attributes = child.getAttributes();
+        assertThat(attributes.size(), is(1));
+        assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
     }
 }

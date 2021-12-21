@@ -35,6 +35,7 @@ public class OpenTelemetryPlugin implements Plugin {
 
     public static final Attribute<String> OPERATION_NAME = Attribute.generate();
 
+    private final OpenTelemetry telemetry;
     private final Tracer tracer;
     private final TextMapPropagator propagator;
     private final SpanDecorator spanDecorator;
@@ -44,6 +45,7 @@ public class OpenTelemetryPlugin implements Plugin {
     }
 
     public OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator... decorators) {
+        this.telemetry = telemetry;
         this.tracer = telemetry.getTracer("riptide-opentelemetry");
         this.propagator = telemetry.getPropagators().getTextMapPropagator();
         this.spanDecorator = CompositeSpanDecorator.composite(
@@ -54,6 +56,10 @@ public class OpenTelemetryPlugin implements Plugin {
                 new HttpPathSpanDecorator(),
                 CompositeSpanDecorator.composite(decorators)
         );
+    }
+
+    public OpenTelemetryPlugin withSpanDecorators(final SpanDecorator... decorators) {
+        return new OpenTelemetryPlugin(telemetry, CompositeSpanDecorator.composite(decorators));
     }
 
     @Override

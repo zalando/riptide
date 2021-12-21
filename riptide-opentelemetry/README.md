@@ -78,9 +78,18 @@ Span decorators are a simple, yet powerful tool to manipulate the span, i.e. the
 The default set of decorators can be extended by providing additional decorators to the `OpenTelemetryPlugin` constructor:
 
 ```java
-new OpenTelemetryPlugin(tracer, new StaticSpanDecorator(singletonMap(
+new OpenTelemetryPlugin(new StaticSpanDecorator(singletonMap(
             "environment", "local"
-    )))
+        )))
+```
+
+If the default span decorators are not desired you can replace them completely using `OpenTelemetryPlugin#withSpanDecorators(..)`:
+
+```java
+new OpenTelemetryPlugin().withSpanDecorators(
+            new HttpMethodSpanDecorator(),
+            new HttpStatusCodeSpanDecorator()
+        )
 ```
 
 ## Usage
