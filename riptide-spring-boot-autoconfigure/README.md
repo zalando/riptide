@@ -207,7 +207,7 @@ Required when `caching` is enabled.
 </dependency>
 ```
 
-#### Tracing
+#### OpenTracing
 
 Required when `tracing` is enabled.
 
@@ -224,7 +224,7 @@ Required when `tracing` is enabled.
 </dependency>
 ```
 
-#### `X-Flow-ID`
+#### X-Flow-ID
 
 Required when `propagate-flow-id` is enabled.
 
@@ -236,7 +236,8 @@ Required when `propagate-flow-id` is enabled.
 </dependency>
 ```
 
-#### `Telemetry`
+#### OpenTelemetry
+
 Required when `telemetry` is enabled.
 
 ```xml
