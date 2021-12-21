@@ -8,8 +8,10 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,7 @@ import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -158,12 +161,20 @@ class OpenTelemetryPluginTest {
 
         final SpanData child = spans.get(0);
         assertThat(child.getParentSpanId(), is(parent.getSpanContext().getSpanId()));
-        assertThat(child.getStatus(), is(StatusData.error()));
 
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
         assertThat(attributes.get(AttributeKey.longKey("http.status")), nullValue());
+
+        assertThat(child.getStatus(), is(StatusData.error()));
+        final List<EventData> events = child.getEvents();
+        assertThat(events.size(), is(1));
+
+        final Attributes eventAttributes = child.getEvents().get(0).getAttributes();
+        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_TYPE), containsString("CompletionException"));
+        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_MESSAGE), containsString("Read timed out"));
+        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_STACKTRACE), is(notNullValue()));
     }
 
     @Test
