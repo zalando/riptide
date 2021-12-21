@@ -1,7 +1,9 @@
 package org.zalando.riptide.opentelemetry;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimaps;
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
@@ -16,7 +18,6 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentelemetry.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.ErrorSpanDecorator;
-import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpMethodSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpPathSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpStatusCodeSpanDecorator;
@@ -38,11 +39,14 @@ public class OpenTelemetryPlugin implements Plugin {
     private final TextMapPropagator propagator;
     private final SpanDecorator spanDecorator;
 
-    public OpenTelemetryPlugin(final Tracer tracer, SpanDecorator... decorators) {
-        this.tracer = tracer;
-        this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
+    public OpenTelemetryPlugin(final SpanDecorator... decorators) {
+        this(GlobalOpenTelemetry.get(), decorators);
+    }
+
+    public OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator... decorators) {
+        this.tracer = telemetry.getTracer("riptide-opentelemetry");
+        this.propagator = telemetry.getPropagators().getTextMapPropagator();
         this.spanDecorator = CompositeSpanDecorator.composite(
-                new HttpHostSpanDecorator(),
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
                 new ErrorSpanDecorator(),
@@ -103,5 +107,10 @@ public class OpenTelemetryPlugin implements Plugin {
                 spanDecorator.onError(span, arguments, error);
             }
         };
+    }
+
+    @VisibleForTesting
+    Tracer getTracer() {
+        return tracer;
     }
 }

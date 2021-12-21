@@ -37,7 +37,7 @@ public class OpenTelemetryPluginRetryTest {
     @RegisterExtension
     static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
 
-    private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("org.zalando.riptide.opentelemetry");
+    private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("riptide-opentelemetry");
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
@@ -53,7 +53,7 @@ public class OpenTelemetryPluginRetryTest {
                                                                                 .build())
                                                            .build()))
                                   .baseUrl(driver.getBaseUrl())
-                                  .plugin(new OpenTelemetryPlugin(tracer, retryDecorator))
+                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
                                   .plugin(new FailsafePlugin()
                                                   .withPolicy(new RetryPolicy<ClientHttpResponse>()
                                                                       .withMaxRetries(2)

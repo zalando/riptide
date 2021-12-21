@@ -83,7 +83,6 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptio
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
-import static org.zalando.riptide.autoconfigure.ValueConstants.TELEMETRY_TRACER_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @Slf4j
@@ -406,7 +405,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 log.debug("Client [{}]: Registering [{}]", id, OpenTelemetryPlugin.class.getSimpleName());
                 return genericBeanDefinition(OpenTelemetryPluginFactory.class)
                         .setFactoryMethod("create")
-                        .addConstructorArgValue(TELEMETRY_TRACER_REF)
                         .addConstructorArgValue(client);
             });
             return Optional.of(pluginId);

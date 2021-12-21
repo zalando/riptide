@@ -22,7 +22,6 @@ import java.util.function.Predicate;
 
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
-import static org.zalando.riptide.autoconfigure.ValueConstants.TELEMETRY_TRACER_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @AllArgsConstructor
@@ -55,10 +54,6 @@ class DefaultRiptideConfigurer {
 
         if (any(client -> client.getMetrics().getEnabled())) {
             replacements.put(METER_REGISTRY_REF, getBeanRef(MeterRegistry.class, "meterRegistry"));
-        }
-
-        if (any(client -> client.getTelemetry().getEnabled())) {
-            replacements.put(TELEMETRY_TRACER_REF, getBeanRef(io.opentelemetry.api.trace.Tracer.class, "telemetryTracer"));
         }
 
         return replacements;

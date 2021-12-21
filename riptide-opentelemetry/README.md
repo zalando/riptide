@@ -60,7 +60,7 @@ The following tags are supported out of the box:
 | `exception.type`             | `ErrorSpanDecorator`               | `SocketTimeoutException`          |
 | `exception.message`          | `ErrorSpanDecorator`               | `Socket timed out`                |
 | `exception.stacktrace`       | `ErrorSpanDecorator`               | `SocketTimeoutException at [...]` |
-| `http.host`                  | `HttpHostSpanDecorator`            | `www.github.com`                  |
+| `http.host`                  | `HttpHostSpanDecorator`²           | `www.github.com`                  |
 | `http.method`                | `HttpMethodSpanDecorator`          | `POST`                            |
 | `http.path`                  | `HttpPathSpanDecorator`            | `/users/{user_id}`                |
 | `http.status`                | `HttpStatusCodeSpanDecorator`      | `200`                             |

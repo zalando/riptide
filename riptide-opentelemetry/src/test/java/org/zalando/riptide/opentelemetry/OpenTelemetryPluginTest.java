@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
 
@@ -47,11 +48,12 @@ class OpenTelemetryPluginTest {
     @RegisterExtension
     static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
 
-    private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("org.zalando.riptide.opentelemetry");
+    private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("riptide-opentelemetry");
 
     private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
+    private final SpanDecorator hostDecorator = new HttpHostSpanDecorator();
 
     private final Http unit = Http.builder()
                                   .executor(Executors.newCachedThreadPool())
@@ -63,7 +65,8 @@ class OpenTelemetryPluginTest {
                                                                                 .build())
                                                            .build()))
                                   .baseUrl(driver.getBaseUrl())
-                                  .plugin(new OpenTelemetryPlugin(tracer, environmentDecorator))
+                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
+                                                                  environmentDecorator, hostDecorator))
                                   .build();
 
     @Test
@@ -190,7 +193,13 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
-        assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
+        assertThat(attributes.get(AttributeKey.stringKey("peer.hostname")), is("localhost"));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(400L));
+    }
+
+    @Test
+    void shouldObtainTracerFromGlobalTelemetry() {
+        OpenTelemetryPlugin plugin = new OpenTelemetryPlugin();
+        assertThat(plugin.getTracer(), notNullValue());
     }
 }
