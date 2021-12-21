@@ -11,7 +11,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.OpenTelemetryTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 
@@ -33,7 +32,6 @@ public class RetryTest {
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
-            OpenTelemetryTestAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })

@@ -35,7 +35,6 @@ final class BaseURLTest {
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
-            OpenTelemetryTestAutoConfiguration.class
     })
     public static class TestConfiguration {
 

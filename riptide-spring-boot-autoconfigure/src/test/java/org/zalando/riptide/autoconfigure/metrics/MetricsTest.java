@@ -17,7 +17,6 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
-import org.zalando.riptide.autoconfigure.OpenTelemetryTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 
@@ -45,7 +44,6 @@ final class MetricsTest {
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
-            OpenTelemetryTestAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
