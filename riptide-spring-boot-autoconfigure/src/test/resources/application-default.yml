@@ -65,7 +65,7 @@ riptide:
           password: password
       telemetry:
         enabled: true
-        tags:
+        attributes:
           peer.service: github
       transient-fault-detection.enabled: true
     github-invalid:

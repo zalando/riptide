@@ -313,7 +313,7 @@ riptide:
         propagate-flow-id: true
       telemetry:
         enabled: true
-        tags:
+        attributes:
           peer.service: example
           client_id: my-app
 ```
@@ -401,7 +401,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   └── enabled`                   | `boolean`      | `true`                                           |
 | `│   ├── telemetry`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
-| `│   │   └── tags`                      | `Map`          | none                                             |
+| `│   │   └── attributes`                      | `Map`          | none                                             |
 | `│   ├── threads`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `true`                                           |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
@@ -492,7 +492,7 @@ For a complete overview of available properties, they type and default value ple
 | `        │   └── enabled`               | `boolean`      | see `defaults`                                   |
 | `        ├── telemetry`                   |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
-| `        │   ├── tags`                  | `Map`          | see `defaults`                                   |
+| `        │   ├── attributes`                  | `Map`          | see `defaults`                                   |
 | `        ├── threads`                   |                |                                                  |
 | `        │   ├── enabled`               | `boolean`      | see `defaults`                                   |
 | `        │   ├── min-size`              | `int`          | see `defaults`                                   |
