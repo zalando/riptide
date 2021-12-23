@@ -102,13 +102,13 @@ final class DefaultRequestArguments implements RequestArguments {
 
     public URI getRequestUri() {
         /*
-         * The construction of the request URI is deferred until someone actually needs it and then it's cached. From
-         * the perspective of users of RequestArguments it's effectively immutable.
+         * The construction of the request URI is deferred until someone actually needs it, and then it's cached.
+         * From the perspective of users of RequestArguments it's effectively immutable.
          *
          * This pattern gives us two benefits:
          *
          * 1. Plugins may inspect the current request URI and will always see the latest version.
-         * 2. The URI is only constructed when needed, i.e. when nobody needs it it will be constructed exactly once
+         * 2. The URI is only constructed when needed, i.e. when nobody needs it, it will be constructed exactly once
          *    during the network phase when the actual request is being executed.
          */
         return requestUri.updateAndGet(previous -> {

@@ -15,6 +15,7 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
+import org.zalando.riptide.opentelemetry.OpenTelemetryPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
 import java.lang.reflect.Field;
@@ -23,6 +24,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
@@ -100,6 +103,11 @@ final class PluginTest {
                 instanceOf(LogbookPlugin.class),
                 instanceOf(OpenTracingPlugin.class),
                 instanceOf(OriginalStackTracePlugin.class))));
+    }
+
+    @Test
+    void shouldUseOpenTelemetryPlugin() throws Exception {
+        assertThat(getPlugins(github), hasItem(instanceOf(OpenTelemetryPlugin.class)));
     }
 
     private List<Plugin> getPlugins(final Http http) throws Exception {

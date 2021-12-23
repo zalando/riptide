@@ -19,6 +19,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
+import org.zalando.riptide.autoconfigure.RiptideProperties.Telemetry;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Tracing;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
@@ -76,6 +77,7 @@ final class Defaulting {
                 defaults.getCertificatePinning(),
                 defaults.getCaching(),
                 defaults.getTracing(),
+                defaults.getTelemetry(),
                 defaults.getChaos(),
                 defaults.getSoap()
         );
@@ -117,6 +119,7 @@ final class Defaulting {
                 merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge),
                 merge(base.getTracing(), defaults.getTracing(), Defaulting::merge),
+                merge(base.getTelemetry(), defaults.getTelemetry(), Defaulting::merge),
                 merge(base.getChaos(), defaults.getChaos(), Defaulting::merge),
                 merge(base.getSoap(), defaults.getSoap(), Defaulting::merge)
         );
@@ -291,6 +294,14 @@ final class Defaulting {
         map.putAll(base);
         return map;
     }
+
+    private static Telemetry merge(final Telemetry base, final Telemetry defaults) {
+        return new Telemetry(
+                either(base.getEnabled(), defaults.getEnabled()),
+                merge(base.getAttributes(), defaults.getAttributes(), Defaulting::merge)
+        );
+    }
+
 
     private static Chaos merge(final Chaos base, final Chaos defaults) {
         return new Chaos(

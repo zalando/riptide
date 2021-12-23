@@ -41,7 +41,6 @@ final class UrlResolutionTest {
         public SpanDecorator exampleSpanDecorator() {
             return new HttpUrlSpanDecorator();
         }
-
     }
 
     @Autowired
@@ -54,13 +53,12 @@ final class UrlResolutionTest {
     @Test
     void shouldAppendUrl() {
         server.expect(requestTo("https://example.com/foo/bar"))
-                .andRespond(withSuccess());
+              .andRespond(withSuccess());
 
         unit.get("/bar")
-                .call(pass())
-                .join();
+            .call(pass())
+            .join();
 
         server.verify();
     }
-
 }

@@ -14,4 +14,5 @@ class ValueConstants {
     static final String METER_REGISTRY_REF = "\n\t\t\n\t\t\n\uE000\uE001\uE001\n\t\t\t\t\n";
     static final String TRACER_REF = "\n\t\t\n\t\t\n\uE000\uE001\uE002\n\t\t\t\t\n";
     static final String LOGBOOK_REF = "\n\t\t\n\t\t\n\uE000\uE001\uE003\n\t\t\t\t\n";
+
 }
