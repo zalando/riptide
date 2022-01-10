@@ -17,7 +17,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <opentelemetry.version>1.9.1</opentelemetry.version>
+        <opentelemetry.version>1.10.0</opentelemetry.version>
         <opentelemetry-semconv.version>${opentelemetry.version}-alpha</opentelemetry-semconv.version>
     </properties>
 
