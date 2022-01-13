@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 
@@ -114,9 +115,14 @@ public class OpenTelemetryPlugin implements Plugin {
 
         return (response, error) -> {
             if (error != null) {
-                spanDecorator.onError(span, arguments, error);
+                spanDecorator.onError(span, arguments, unpack(error));
             }
         };
+    }
+
+    @VisibleForTesting
+    static Throwable unpack(final Throwable error) {
+        return error instanceof CompletionException ? error.getCause() : error;
     }
 
     @VisibleForTesting

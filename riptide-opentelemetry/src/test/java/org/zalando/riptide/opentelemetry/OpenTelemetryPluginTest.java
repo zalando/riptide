@@ -172,7 +172,7 @@ class OpenTelemetryPluginTest {
         assertThat(events.size(), is(1));
 
         final Attributes eventAttributes = child.getEvents().get(0).getAttributes();
-        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_TYPE), containsString("CompletionException"));
+        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_TYPE), containsString("SocketTimeoutException"));
         assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_MESSAGE), containsString("Read timed out"));
         assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_STACKTRACE), is(notNullValue()));
     }
