@@ -5,7 +5,7 @@
 
     <groupId>org.zalando</groupId>
     <artifactId>riptide</artifactId>
-    <version>3.1.2-SNAPSHOT</version>
+    <version>3.1.2</version>
     <packaging>pom</packaging>
 
     <name>Riptide</name>
