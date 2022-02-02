@@ -44,7 +44,7 @@ Http.builder()
 ```yaml
 riptide.clients:
   example:
-    detect-transient-faults: true
+    transient-fault-detection.enabled: true
 ```
 
 ## Retries
