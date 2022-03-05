@@ -61,6 +61,9 @@ final class FailsafePluginFactory {
         Optional.ofNullable(client.getCircuitBreaker().getFailureThreshold())
                 .ifPresent(threshold -> threshold.applyTo(breaker::withFailureThreshold));
 
+        Optional.ofNullable(client.getCircuitBreaker().getFailureRateThreshold())
+                        .ifPresent(threshold -> threshold.applyTo(breaker::withFailureRateThreshold));
+
         Optional.ofNullable(client.getCircuitBreaker().getDelay())
                 .ifPresent(delay -> delay.applyTo(breaker::withDelay));
 

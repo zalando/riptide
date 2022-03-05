@@ -290,6 +290,7 @@ riptide:
       circuit-breaker:
         enabled: true
         failure-threshold: 3 out of 5
+        failure-rate-threshold: 3 out of 5 in 5 seconds
         delay: 30 seconds
         success-threshold: 5 out of 5
       backup-request:
@@ -366,6 +367,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── circuit-breaker`               |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   ├── failure-threshold`         | `Ratio`        | none                                             |
+| `│   │   ├── failure-rate-threshold`    | `RatioInTimeSpan` | none                                             |
 | `│   │   ├── delay`                     | `TimeSpan`     | no delay                                         |
 | `│   │   └── success-threshold`         | `Ratio`        | `failure-threshold`                              |
 | `│   ├── connections`                   |                |                                                  |

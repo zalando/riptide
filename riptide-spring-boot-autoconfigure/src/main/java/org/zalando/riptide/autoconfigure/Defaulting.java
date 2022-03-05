@@ -218,6 +218,7 @@ final class Defaulting {
         return new CircuitBreaker(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getFailureThreshold(), defaults.getFailureThreshold()),
+                either(base.getFailureRateThreshold(), defaults.getFailureRateThreshold()),
                 either(base.getDelay(), defaults.getDelay()),
                 either(base.getSuccessThreshold(), defaults.getSuccessThreshold())
         );

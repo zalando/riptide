@@ -104,3 +104,9 @@ riptide:
       retry:
         enabled: true
         max-retries: 2
+    failure-rate-test:
+      base-url: http://example.com/failure-rate-test
+      circuit-breaker:
+        enabled: true
+        failure-rate-threshold: 3 in 5 seconds
+        success-threshold: 1
