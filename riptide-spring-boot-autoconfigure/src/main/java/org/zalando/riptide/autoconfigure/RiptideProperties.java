@@ -93,7 +93,7 @@ public final class RiptideProperties {
                 new Backoff(false, null, null, null), -1, TimeSpan.of(5, SECONDS), null, null);
 
         @NestedConfigurationProperty
-        private CircuitBreaker circuitBreaker = new CircuitBreaker(false, null, TimeSpan.of(0, SECONDS), null);
+        private CircuitBreaker circuitBreaker = new CircuitBreaker(false, null, null, TimeSpan.of(0, SECONDS), null);
 
         @NestedConfigurationProperty
         private BackupRequest backupRequest = new BackupRequest(false, null);
@@ -313,6 +313,7 @@ public final class RiptideProperties {
     public static final class CircuitBreaker {
         private Boolean enabled;
         private Ratio failureThreshold;
+        private RatioInTimeSpan failureRateThreshold;
         private TimeSpan delay;
         private Ratio successThreshold;
     }
