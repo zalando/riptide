@@ -11,7 +11,7 @@
 
 ```java
 Http.builder()
-    .plugin(new OpenTelemetryPlugin(tracer))
+    .plugin(new OpenTelemetryPlugin(openTelemetry))
     .build();
 ```
 
