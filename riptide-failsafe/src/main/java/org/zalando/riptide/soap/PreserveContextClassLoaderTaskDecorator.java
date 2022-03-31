@@ -14,14 +14,14 @@ public final class PreserveContextClassLoaderTaskDecorator implements TaskDecora
 
     @Override
     public <T> ContextualSupplier<T> decorate(final ContextualSupplier<T> supplier) {
-        final Thread currentThread = Thread.currentThread();
-        final ClassLoader original = currentThread.getContextClassLoader();
+        final ClassLoader invokingThreadCL = Thread.currentThread().getContextClassLoader();
         return context -> {
+            final ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
             try {
-                currentThread.setContextClassLoader(original);
+                Thread.currentThread().setContextClassLoader(invokingThreadCL);
                 return supplier.get(context);
             } finally {
-                currentThread.setContextClassLoader(original);
+                Thread.currentThread().setContextClassLoader(originalCL);
             }
         };
     }
