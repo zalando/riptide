@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.zalando</groupId>
         <artifactId>riptide</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>riptide-bom</artifactId>
@@ -21,97 +21,97 @@
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-auth</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-capture</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-chaos</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-compatibility</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-concurrent</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-core</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-failsafe</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-faults</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-httpclient</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-idempotency</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-logbook</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-micrometer</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-opentracing</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-opentelemetry</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-problem</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-soap</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-spring-boot-autoconfigure</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-spring-boot-starter</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>riptide-stream</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
