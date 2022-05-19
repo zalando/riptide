@@ -77,7 +77,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <spring5.version>5.3.19</spring5.version>
+        <spring.version>5.3.19</spring.version>
     </properties>
 
     <build>
@@ -263,12 +263,6 @@
     </distributionManagement>
 
     <profiles>
-        <profile>
-            <id>spring5</id>
-            <properties>
-                <spring.version>${spring5.version}</spring.version>
-            </properties>
-        </profile>
         <profile>
             <id>release</id>
             <build>

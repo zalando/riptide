@@ -186,19 +186,19 @@ public final class HttpOperations implements RestOperations {
         exchange(url, PUT, new HttpEntity<>(body, null), Void.class);
     }
 
-    // TODO(Spring 5): @Override
+    @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Object... uriVariables) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
     }
 
-    // TODO(Spring 5): @Override
+    @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Map<String, ?> uriVariables) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
     }
 
-    // TODO(Spring 5): @Override
+    @Override
     public <T> T patchForObject(final URI url, @Nullable final Object body, final Class<T> responseType) {
         return exchange(url, PATCH, new HttpEntity<>(body, null), responseType).getBody();
     }

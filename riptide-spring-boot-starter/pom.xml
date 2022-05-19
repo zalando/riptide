@@ -16,10 +16,6 @@
     <name>Riptide: Spring Boot Starter</name>
     <description>Client side response routing</description>
 
-    <properties>
-        <spring.version>${spring5.version}</spring.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>
