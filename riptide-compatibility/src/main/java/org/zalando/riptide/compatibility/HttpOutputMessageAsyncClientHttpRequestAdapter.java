@@ -24,12 +24,12 @@ final class HttpOutputMessageAsyncClientHttpRequestAdapter implements AsyncClien
     }
 
     @Nonnull
-    // TODO(Spring 5): @Override
+    @Override
     public String getMethodValue() {
         throw new UnsupportedOperationException();
     }
 
-    // TODO(Spring 4): @Override
+    @Override
     public HttpMethod getMethod() {
         throw new UnsupportedOperationException();
     }

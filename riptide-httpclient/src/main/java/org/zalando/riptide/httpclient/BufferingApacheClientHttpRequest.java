@@ -28,12 +28,12 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
 
     @Nonnull
     @SuppressWarnings("WeakerAccess")
-    // TODO(Spring 5) @Override
+    @Override
     public String getMethodValue() {
         return request.getMethod();
     }
 
-    // TODO(Spring 4) @Override
+    @Override
     public HttpMethod getMethod() {
         return HttpMethod.valueOf(getMethodValue());
     }

@@ -20,9 +20,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        profile: ['', 'spring5']
     steps:
     - name: Checkout
       uses: actions/checkout@v1
@@ -38,7 +35,7 @@ jobs:
     - name: Compile
       run: ./mvnw clean test-compile -B
     - name: Test
-      run: ./mvnw verify -P "${{ matrix.profile }}" -B
+      run: ./mvnw verify -B
     - name: Coverage
       if: github.event_name != 'pull_request'
       run: ./mvnw coveralls:report -B -D repoToken=${{ secrets.COVERALLS_TOKEN }}
