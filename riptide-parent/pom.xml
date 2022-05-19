@@ -24,8 +24,6 @@
         <mockito.version>4.4.0</mockito.version>
         <problem.version>0.27.1</problem.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <spring.version>4.1.9.RELEASE</spring.version>
-        <spring5.version>5.3.19</spring5.version>
         <spring-boot.version>2.6.6</spring-boot.version>
     </properties>
 
