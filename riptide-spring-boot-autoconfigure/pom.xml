@@ -155,7 +155,7 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>opentracing-flowid-starter</artifactId>
-            <version>4.1.0</version>
+            <version>4.2.1</version>
             <optional>true</optional>
         </dependency>
         <dependency>
