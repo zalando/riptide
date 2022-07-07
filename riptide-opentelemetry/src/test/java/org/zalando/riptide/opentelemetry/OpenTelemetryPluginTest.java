@@ -2,6 +2,7 @@ package org.zalando.riptide.opentelemetry;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
+import com.google.common.collect.ImmutableMap;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -16,8 +17,16 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.zalando.riptide.AttributeStage;
+import org.zalando.riptide.Bindings;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.Navigators;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
@@ -25,9 +34,12 @@ import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.GET;
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
@@ -59,34 +71,43 @@ class OpenTelemetryPluginTest {
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
 
     private final Http unit = Http.builder()
-                                  .executor(Executors.newCachedThreadPool())
-                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                          HttpClientBuilder.create()
-                                                           .setDefaultRequestConfig(
-                                                                   RequestConfig.custom()
-                                                                                .setSocketTimeout(500)
-                                                                                .build())
-                                                           .build()))
-                                  .baseUrl(driver.getBaseUrl())
-                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
-                                                                  environmentDecorator))
-                                  .build();
+                                      .executor(Executors.newCachedThreadPool())
+                                      .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                                              HttpClientBuilder.create()
+                                                      .setDefaultRequestConfig(
+                                                              RequestConfig.custom()
+                                                                      .setSocketTimeout(500)
+                                                                      .build())
+                                                      .build()))
+                                      .baseUrl(driver.getBaseUrl())
+                                      .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
+                                              environmentDecorator))
+                                      .build();
+
+    public static Stream<Arguments> routes() {
+        Map<String, Function<AttributeStage, CompletableFuture<ClientHttpResponse>>> args = ImmutableMap.of(
+                //this is an invalid config, because the route in incomplete, but we want to have the http status code nevertheless
+                "incomplete route", stage -> stage.dispatch(Navigators.status(), Bindings.on(HttpStatus.OK).call(pass())),
+                "complete route", stage -> stage.call(pass())
+        );
+        return args.entrySet().stream().map(a -> Arguments.of(a.getKey(), a.getValue()));
+    }
 
     @Test
     void shouldTraceRequestAndResponse() {
         driver.addExpectation(onRequestTo("/users/me")
                                       .withMethod(POST)
                                       .withHeader("traceparent", notNullValue(String.class)),
-                              giveResponse("Hello, world!", "text/plain")
-                                      .withStatus(200)
-                                      .withHeader("Retry-After", "60"));
+                giveResponse("Hello, world!", "text/plain")
+                        .withStatus(200)
+                        .withHeader("Retry-After", "60"));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
             unit.post("/users/{user}", "me")
-                .call(pass())
-                .join();
+                    .call(pass())
+                    .join();
         } finally {
             parent.end();
         }
@@ -107,16 +128,18 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(200L));
     }
 
-    @Test
-    void shouldTraceRequestAndServerError() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("routes")
+    void shouldTraceRequestAndServerError(@SuppressWarnings("unused") String name,
+            Function<AttributeStage, CompletableFuture<ClientHttpResponse>> route) {
         driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(500));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
-            unit.get("/")
-                .call(pass())
-                .join();
+            route.apply(unit.get("/")).join();
+        } catch (Exception e) {
+            //ignore
         } finally {
             parent.end();
         }
@@ -145,7 +168,7 @@ class OpenTelemetryPluginTest {
 
         try (final Scope ignored = parent.makeCurrent()) {
             final CompletableFuture<?> future = unit.get(URI.create(driver.getBaseUrl()))
-                                                    .call(noRoute());
+                                                        .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);
             assertThat(error.getCause(), is(instanceOf(SocketTimeoutException.class)));
@@ -185,8 +208,8 @@ class OpenTelemetryPluginTest {
 
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
-                .call(pass())
-                .join();
+                    .call(pass())
+                    .join();
         } finally {
             parent.end();
         }
@@ -217,31 +240,31 @@ class OpenTelemetryPluginTest {
     @Test
     void shouldOverwriteDefaultSetOfDecorators() {
         final Http unit = Http.builder()
-                              .executor(Executors.newCachedThreadPool())
-                              .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                      HttpClientBuilder.create()
-                                                       .setDefaultRequestConfig(
-                                                               RequestConfig.custom()
-                                                                            .setSocketTimeout(500)
-                                                                            .build())
-                                                       .build()))
-                              .baseUrl(driver.getBaseUrl())
-                              .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
-                                              .withSpanDecorators(new HttpHostSpanDecorator()))
-                              .build();
+                                  .executor(Executors.newCachedThreadPool())
+                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                                          HttpClientBuilder.create()
+                                                  .setDefaultRequestConfig(
+                                                          RequestConfig.custom()
+                                                                  .setSocketTimeout(500)
+                                                                  .build())
+                                                  .build()))
+                                  .baseUrl(driver.getBaseUrl())
+                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
+                                                  .withSpanDecorators(new HttpHostSpanDecorator()))
+                                  .build();
 
         driver.addExpectation(onRequestTo("/")
                                       .withMethod(GET)
                                       .withHeader("traceparent", notNullValue(String.class)),
-                              giveResponse("Hello, world!", "text/plain")
-                                      .withStatus(200));
+                giveResponse("Hello, world!", "text/plain")
+                        .withStatus(200));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
-                .call(pass())
-                .join();
+                    .call(pass())
+                    .join();
         } finally {
             parent.end();
         }
