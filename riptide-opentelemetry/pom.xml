@@ -30,11 +30,13 @@
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <version>${opentelemetry.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-semconv</artifactId>
             <version>${opentelemetry-semconv.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
