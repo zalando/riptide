@@ -24,8 +24,8 @@
         <micrometer.version>1.10.2</micrometer.version>
         <mockito.version>4.9.0</mockito.version>
         <problem.version>0.27.1</problem.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <spring-boot.version>2.7.6</spring-boot.version>
+        <slf4j.version>2.0.6</slf4j.version>
+        <spring-boot.version>3.0.0</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -360,6 +360,12 @@
                         <artifactId>hamcrest-library</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>mockwebserver</artifactId>
+                <version>4.10.0</version>
+                <scope>test</scope>
             </dependency>
 
             <!-- jackson -->

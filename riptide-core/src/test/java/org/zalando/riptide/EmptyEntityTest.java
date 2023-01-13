@@ -1,26 +1,25 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.zalando.riptide.PassRoute.pass;
+
+import okhttp3.mockwebserver.MockWebServer;
 
 final class EmptyEntityTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
-
+    //    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private MockWebServer server;
     private final ExecutorService executor = newSingleThreadExecutor();
 
     @AfterEach
@@ -28,20 +27,25 @@ final class EmptyEntityTest {
         executor.shutdown();
     }
 
+    @BeforeEach
+    void startMockServer() throws IOException {
+        server = new MockWebServer();
+        server.start();
+    }
+
     @AfterEach
-    void shutdownDriver() {
-        driver.shutdown();
+    void shutdownDriver() throws IOException {
+        server.shutdown();
     }
 
     @Test
-    void shouldPassEmptyEntity() {
-        driver.addExpectation(onRequestTo("/").withHeader("Passed", "true"),
-                giveEmptyResponse());
+    void shouldPassEmptyEntity() throws InterruptedException {
+        server.enqueue(new MockResponse());
 
-        final Http http = Http.builder()
+        var http = Http.builder()
                 .executor(executor)
                 .requestFactory(new SimpleClientHttpRequestFactory())
-                .baseUrl(driver.getBaseUrl())
+                .baseUrl(server.url("/").uri())
                 .plugin(new Plugin() {
                     @Override
                     public RequestExecution aroundNetwork(final RequestExecution execution) {
@@ -57,18 +61,19 @@ final class EmptyEntityTest {
                 .call(pass())
                 .join();
 
-        driver.verify();
+        var request = server.takeRequest();
+        assertEquals("GET", request.getMethod());
+        assertEquals("true", request.getHeader("Passed"));
     }
 
     @Test
-    void shouldPassNonEmptyEntity() {
-        driver.addExpectation(onRequestTo("/").withMethod(POST).withHeader("Passed", "true"),
-                giveEmptyResponse());
+    void shouldPassNonEmptyEntity() throws InterruptedException {
+        server.enqueue(new MockResponse());
 
-        final Http http = Http.builder()
+        var http = Http.builder()
                 .executor(executor)
                 .requestFactory(new SimpleClientHttpRequestFactory())
-                .baseUrl(driver.getBaseUrl())
+                .baseUrl(server.url("/").uri())
                 .plugin(new Plugin() {
                     @Override
                     public RequestExecution aroundNetwork(final RequestExecution execution) {
@@ -85,18 +90,19 @@ final class EmptyEntityTest {
                 .call(pass())
                 .join();
 
-        driver.verify();
+        var request = server.takeRequest();
+        assertEquals("POST", request.getMethod());
+        assertEquals("true", request.getHeader("Passed"));
     }
 
     @Test
-    void shouldPassExplicitNonEmptyEntity() {
-        driver.addExpectation(onRequestTo("/").withMethod(POST).withHeader("Passed", "true"),
-                giveEmptyResponse());
+    void shouldPassExplicitNonEmptyEntity() throws InterruptedException {
+        server.enqueue(new MockResponse());
 
-        final Http http = Http.builder()
+        var http = Http.builder()
                 .executor(executor)
                 .requestFactory(new SimpleClientHttpRequestFactory())
-                .baseUrl(driver.getBaseUrl())
+                .baseUrl(server.url("/").uri())
                 .plugin(new Plugin() {
                     @Override
                     public RequestExecution aroundNetwork(final RequestExecution execution) {
@@ -109,11 +115,14 @@ final class EmptyEntityTest {
                 .build();
 
         http.post("/")
-                .body(message -> {})
+                .body(message -> {
+                })
                 .call(pass())
                 .join();
 
-        driver.verify();
+        var request = server.takeRequest();
+        assertEquals("POST", request.getMethod());
+        assertEquals("true", request.getHeader("Passed"));
     }
 
 

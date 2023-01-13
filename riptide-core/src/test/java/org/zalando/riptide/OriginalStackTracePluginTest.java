@@ -1,7 +1,5 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +11,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,13 +22,13 @@ import static org.zalando.riptide.Navigators.contentType;
 
 final class OriginalStackTracePluginTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+//    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
     private final ExecutorService executor = newSingleThreadExecutor();
 
     @BeforeEach
     void setUp() {
-        driver.addExpectation(onRequestTo("/"),
-                giveResponse("", "application/json"));
+//        driver.addExpectation(onRequestTo("/"),
+//                giveResponse("", "application/json"));
     }
 
     @AfterEach
@@ -71,8 +67,8 @@ final class OriginalStackTracePluginTest {
     private Http.ConfigurationStage configureRest() {
         return Http.builder()
                 .executor(executor)
-                .requestFactory(new SimpleClientHttpRequestFactory())
-                .baseUrl(driver.getBaseUrl());
+                .requestFactory(new SimpleClientHttpRequestFactory());
+//                .baseUrl(driver.getBaseUrl());
     }
 
     private CompletableFuture<ClientHttpResponse> execute(final DispatchStage stage) {

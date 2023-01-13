@@ -47,7 +47,7 @@ final class SeriesDispatchTest {
         server.expect(requestTo(url)).andRespond(withStatus(expected));
 
         final ClientHttpResponseConsumer verifier = response ->
-                assertThat(response.getStatusCode().series(), is(expected.series()));
+                assertThat(HttpStatus.resolve(response.getStatusCode().value()).series(), is(expected.series()));
 
         unit.get(url)
                 .dispatch(series(),

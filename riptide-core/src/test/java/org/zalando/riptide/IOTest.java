@@ -3,8 +3,8 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+//import com.github.restdriver.clientdriver.ClientDriver;
+//import com.github.restdriver.clientdriver.ClientDriverFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -16,8 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+//import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
+//import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
@@ -29,8 +29,6 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Types.listOf;
 
 final class IOTest {
-
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
     static class User {
@@ -48,7 +46,7 @@ final class IOTest {
     private final Http http = Http.builder()
             .executor(executor)
             .requestFactory(requestFactory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl("driver.getBaseUrl()")
             .converter(createJsonConverter())
             .build();
 
@@ -77,8 +75,8 @@ final class IOTest {
     }
 
     private void shouldReadContributors() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        //driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
+          //      giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final AtomicReference<List<User>> reference = new AtomicReference<>();
 

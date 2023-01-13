@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -32,7 +33,7 @@ final class DefaultMessageReader implements MessageReader {
             final I body = readBody(bodyType, response);
             closeIfNecessary(body, response);
             final HttpHeaders headers = response.getHeaders();
-            final HttpStatus statusCode = response.getStatusCode();
+            final HttpStatusCode statusCode = response.getStatusCode();
             return cast(new ResponseEntity<>(body, headers, statusCode));
         } else {
             final I body = readBody(type.getType(), response);

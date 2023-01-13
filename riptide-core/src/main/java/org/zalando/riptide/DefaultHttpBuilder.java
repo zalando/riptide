@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.With;
 import org.organicdesign.fp.collections.ImList;
 import org.organicdesign.fp.collections.PersistentVector;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http.ConfigurationStage;
@@ -74,8 +74,7 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public ConfigurationStage asyncRequestFactory(final AsyncClientHttpRequestFactory factory) {
+    public ConfigurationStage asyncRequestFactory(final ClientHttpConnector factory) {
         return withIo(new NonBlockingIO(factory));
     }
 
