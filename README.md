@@ -58,7 +58,7 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 
 Most modern clients try to adapt HTTP to a single-return paradigm as shown in the following example. Even though this
 may be perfectly suitable for most applications, it takes away a lot of the power that comes with HTTP. It's not easy to
-support multiple different return values, i.e. distinct happy cases. Access to response headers or manual content
+support multiple return values, i.e. distinct happy cases. Access to response headers or manual content
 negotiation are also more difficult.
  
 ```java
