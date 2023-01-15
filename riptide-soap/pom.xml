@@ -30,6 +30,15 @@
             <artifactId>rest-client-driver</artifactId>
         </dependency>
         <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-capture</artifactId>
             <scope>test</scope>

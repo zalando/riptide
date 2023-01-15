@@ -11,9 +11,9 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPFaultException;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
