@@ -15,7 +15,7 @@ import jakarta.xml.soap.SOAPMessage;
 import java.io.IOException;
 
 import static java.lang.ThreadLocal.withInitial;
-import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
+import static jakarta.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
 import static org.springframework.http.MediaType.TEXT_XML;
 import static org.zalando.fauxpas.FauxPas.throwingSupplier;
 

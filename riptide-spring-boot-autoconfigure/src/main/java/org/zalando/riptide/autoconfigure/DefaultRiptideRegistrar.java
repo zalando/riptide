@@ -56,7 +56,7 @@ import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 
-import javax.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPConstants;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Clock;
