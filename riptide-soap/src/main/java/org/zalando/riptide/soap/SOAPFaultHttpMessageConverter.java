@@ -8,10 +8,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPMessage;
 import java.io.IOException;
 
 import static java.lang.ThreadLocal.withInitial;

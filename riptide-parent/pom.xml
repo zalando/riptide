@@ -26,6 +26,7 @@
         <problem.version>0.27.1</problem.version>
         <slf4j.version>1.7.36</slf4j.version>
         <spring-boot.version>2.7.7</spring-boot.version>
+        <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
     </properties>
 
     <dependencyManagement>
@@ -132,6 +133,13 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- Jakarta -->
+            <dependency>
+                <groupId>jakarta.xml.ws</groupId>
+                <artifactId>jakarta.xml.ws-api</artifactId>
+                <version>${jakarta.xml.ws-api.version}</version>
+            </dependency>
+
             <!-- common -->
             <dependency>
                 <groupId>org.apiguardian</groupId>
@@ -168,7 +176,8 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- must be listed before spring-framework-bom, otherwise we get the wrong junit platform version -->
+            <!-- must be listed before spring-framework-bom, otherwise we 
+                get the wrong junit platform version -->
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
@@ -177,7 +186,8 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- must be listed before spring, otherwise we get the wrong httpclient version -->
+            <!-- must be listed before spring, otherwise we get the wrong 
+                httpclient version -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
