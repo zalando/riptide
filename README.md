@@ -18,7 +18,7 @@ protocol and Java. Riptide allows users to leverage the power of HTTP with its u
 
 - **Technology stack**: Based on `spring-web` and uses the same foundation as Spring's RestTemplate.
 - **Status**:  Actively maintained and used in production.
-- Riptide is unique in the way that it doesn't abstract HTTP away, but rather embrace it!
+- Riptide is unique in the way that it doesn't abstract HTTP away, but rather embraces it!
 
 :rotating_light: **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md).
 
@@ -57,9 +57,9 @@ Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basic
 ## Origin
 
 Most modern clients try to adapt HTTP to a single-return paradigm as shown in the following example. Even though this
-may be perfectly suitable for most applications it takes away a lot of the power that comes with HTTP. It's not easy to
-support multiple different return values, i.e. distinct happy cases. Access to response headers or manual content
-negotiation are also harder to do.
+may be perfectly suitable for most applications, it takes away a lot of the power that comes with HTTP. It's not easy to
+support multiple return values, i.e. distinct happy cases. Access to response headers or manual content
+negotiation are also more difficult.
  
 ```java
 @GET
@@ -226,7 +226,7 @@ In order to configure the thread pool correctly, please refer to
 
 ### Non-blocking IO
 
-Riptide supports two different kinds of request factories:
+Riptide supports two kinds of request factories:
 
 **[`ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html)**
 
@@ -297,8 +297,8 @@ The `Content-Type`- and `Accept`-header have type-safe methods in addition to th
 ### Responses
 
 Riptide is special in the way it handles responses. Rather than having a single return value, you need to register
-callbacks. Traditionally you would attach different callbacks for different response status codes, alternatively there
-are also built-in routing capabilities on status code families (called series in Spring) as well as on content types. 
+callbacks. Traditionally, you would attach different callbacks for different response status codes. Alternatively, there
+are built-in routing capabilities on status code families (called series in Spring) as well as on content types. 
 
 ```java
 http.post("/sales-order")
@@ -331,8 +331,8 @@ If you need proper return values take a look at [Riptide: Capture](riptide-captu
 
 ### Exceptions
 
-The only special custom exception you may get is `UnexpectedResponseException`, if and only if there was no matching condition and
-no wildcard condition either.
+The only special custom exception you may receive is `UnexpectedResponseException`, if and only if there was no matching condition and
+no wildcard condition.
 
 ### Plugins
 
@@ -343,6 +343,7 @@ Riptide comes with a way to register extensions in the form of plugins.
 - [`FailsafePlugin`](riptide-failsafe), adds retries, circuit breaker, backup requests and timeout support
 - [`MicrometerPlugin`](riptide-micrometer), adds metrics for request duration
 - [`TransientFaults`](riptide-faults), detects transient faults, e.g. network issues
+
 Whenever you encounter the need to perform some repetitive task on the futures returned by a remote call,
 you may consider implementing a custom Plugin for it.
 
@@ -370,8 +371,8 @@ Http.builder()
 We basically use an intermediate `RestTemplate` as a holder of the special `ClientHttpRequestFactory` that the
 `MockRestServiceServer` manages.
 
-If you are using the [Spring Boot Starter](riptide-spring-boot-starter) the test setup is provided by a convenient annotation `@RiptideClientTest`, 
-see [here](riptide-spring-boot-starter#testing).
+If you are using [Spring Boot Starter](riptide-spring-boot-starter), the test setup is provided by a convenient annotation `@RiptideClientTest`. 
+See [here](riptide-spring-boot-starter#testing).
 
 ## Getting help
 

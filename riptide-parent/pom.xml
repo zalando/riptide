@@ -18,11 +18,11 @@
     <properties>
         <fauxpas.version>0.9.0</fauxpas.version>
         <jackson.version>2.14.1</jackson.version>
-        <jackson-databind.version>2.14.0</jackson-databind.version>
-        <junit-jupiter.version>5.9.1</junit-jupiter.version>
+        <jackson-databind.version>2.14.1</jackson-databind.version>
+        <junit-jupiter.version>5.9.2</junit-jupiter.version>
         <logbook.version>2.14.0</logbook.version>
-        <micrometer.version>1.10.2</micrometer.version>
-        <mockito.version>4.9.0</mockito.version>
+        <micrometer.version>1.10.3</micrometer.version>
+        <mockito.version>4.11.0</mockito.version>
         <problem.version>0.27.1</problem.version>
         <slf4j.version>2.0.6</slf4j.version>
         <spring-boot.version>3.0.0</spring-boot.version>
@@ -181,7 +181,7 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.13</version>
+                <version>4.5.14</version>
                 <exclusions>
                     <exclusion>
                         <groupId>commons-logging</groupId>
@@ -300,13 +300,13 @@
             <dependency>
                 <groupId>net.jqwik</groupId>
                 <artifactId>jqwik</artifactId>
-                <version>1.7.1</version>
+                <version>1.7.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.23.1</version>
+                <version>3.24.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
