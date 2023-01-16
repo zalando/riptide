@@ -11,21 +11,21 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.w3c.dom.Document;
 
 import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import java.io.IOException;
 
 import static java.lang.ThreadLocal.withInitial;
-import static javax.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
+import static jakarta.xml.soap.SOAPConstants.SOAP_1_1_PROTOCOL;
 import static org.springframework.http.MediaType.TEXT_XML;
 import static org.zalando.fauxpas.FauxPas.throwingSupplier;
 
