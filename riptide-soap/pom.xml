@@ -16,6 +16,10 @@
     <name>Riptide: SOAP</name>
     <description>Client side response routing</description>
 
+    <properties>
+        <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -30,18 +34,10 @@
             <artifactId>rest-client-driver</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.xml.soap</groupId>
-            <artifactId>jakarta.xml.soap-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
+            <version>${jakarta.xml.ws-api.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-capture</artifactId>

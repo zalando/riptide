@@ -3,6 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <jakarta.xml.soap-api.version>3.0.0</jakarta.xml.soap-api.version>
+        <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
+    </properties>
 
     <parent>
         <groupId>org.zalando</groupId>
@@ -96,6 +100,16 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+            <version>${jakarta.xml.soap-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jakarta.xml.bind-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

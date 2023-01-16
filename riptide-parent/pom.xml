@@ -26,9 +26,6 @@
         <problem.version>0.27.1</problem.version>
         <slf4j.version>1.7.36</slf4j.version>
         <spring-boot.version>2.7.7</spring-boot.version>
-        <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
-        <jakarta.xml.soap-api.version>3.0.0</jakarta.xml.soap-api.version>
-        <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
     </properties>
 
     <dependencyManagement>
@@ -135,23 +132,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Jakarta -->
-            <dependency>
-                <groupId>jakarta.xml.ws</groupId>
-                <artifactId>jakarta.xml.ws-api</artifactId>
-                <version>${jakarta.xml.ws-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.soap</groupId>
-                <artifactId>jakarta.xml.soap-api</artifactId>
-                <version>${jakarta.xml.soap-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.xml.bind</groupId>
-                <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>${jakarta.xml.bind-api.version}</version>
-            </dependency>
-
             <!-- common -->
             <dependency>
                 <groupId>org.apiguardian</groupId>
@@ -188,8 +168,7 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- must be listed before spring-framework-bom, otherwise we 
-                get the wrong junit platform version -->
+            <!-- must be listed before spring-framework-bom, otherwise we get the wrong junit platform version -->
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
@@ -198,8 +177,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- must be listed before spring, otherwise we get the wrong 
-                httpclient version -->
+            <!-- must be listed before spring, otherwise we get the wrong httpclient version -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
