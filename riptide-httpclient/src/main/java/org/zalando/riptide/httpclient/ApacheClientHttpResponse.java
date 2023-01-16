@@ -1,10 +1,10 @@
 package org.zalando.riptide.httpclient;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.conn.ConnectionReleaseTrigger;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpEntityContainer;
+import org.apache.hc.core5.http.HttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.AbstractClientHttpResponse;
 
@@ -26,46 +26,36 @@ final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
     ApacheClientHttpResponse(final HttpResponse response) throws IOException {
         this.response = response;
         this.body = getBody(response);
-
-        for (final Header header : response.getAllHeaders()) {
+        for (final Header header : response.getHeaders()) {
             this.headers.add(header.getName(), header.getValue());
         }
     }
 
     private static InputStream getBody(final HttpResponse response) throws IOException {
-        @Nullable final HttpEntity entity = response.getEntity();
+
+        @Nullable HttpEntity entity = null;
+        if (response instanceof HttpEntityContainer) {
+            entity = ((HttpEntityContainer) response).getEntity();
+        }
 
         if (entity == null) {
             return EMPTY;
         }
 
         return new EndOfStreamAwareInputStream(entity.getContent(), (body, endOfStreamDetected) -> {
-            if (body instanceof ConnectionReleaseTrigger) {
-                // effectively releasing the connection back to the pool in order to prevent starvation
-                final ConnectionReleaseTrigger trigger = (ConnectionReleaseTrigger) body;
-
-                if (endOfStreamDetected) {
-                    // Stream was fully consumed, connection can therefore be reused.
-                    trigger.releaseConnection();
-                } else {
-                    // Stream was not fully consumed, connection needs to be discarded.
-                    // We can't just consume the remaining bytes since the stream could be endless.
-                    trigger.abortConnection();
-                }
-            }
             body.close();
         });
     }
 
     @Override
     public int getRawStatusCode() {
-        return response.getStatusLine().getStatusCode();
+        return response.getCode();
     }
 
     @Nonnull
     @Override
     public String getStatusText() {
-        return response.getStatusLine().getReasonPhrase();
+        return response.getReasonPhrase();
     }
 
     @Nonnull

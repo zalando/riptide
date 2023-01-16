@@ -189,7 +189,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>5.1.4</version>
+            </dependency>
             <!-- spring -->
             <dependency>
                 <groupId>org.springframework</groupId>

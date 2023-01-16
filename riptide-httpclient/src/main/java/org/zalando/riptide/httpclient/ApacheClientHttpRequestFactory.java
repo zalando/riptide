@@ -2,16 +2,8 @@ package org.zalando.riptide.httpclient;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.*;
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;

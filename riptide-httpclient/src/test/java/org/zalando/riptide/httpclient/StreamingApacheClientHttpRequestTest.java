@@ -1,9 +1,9 @@
 package org.zalando.riptide.httpclient;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.HttpEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.StreamingHttpOutputMessage.Body;
@@ -18,7 +18,7 @@ final class StreamingApacheClientHttpRequestTest {
     @Test
     void shouldUseStreamingEntity() {
         final HttpClient client = mock(HttpClient.class);
-        final HttpPost request = new HttpPost();
+        final HttpPost request = new HttpPost("");
 
         final StreamingApacheClientHttpRequest unit = new StreamingApacheClientHttpRequest(client, request);
 
@@ -28,13 +28,13 @@ final class StreamingApacheClientHttpRequestTest {
 
         assertFalse(entity.isStreaming());
         assertThrows(UnsupportedOperationException.class, entity::getContent);
-        assertThrows(UnsupportedOperationException.class, entity::consumeContent);
+       // assertThrows(UnsupportedOperationException.class, entity::consumeContent);
     }
 
     @Test
     void shouldNotSupportGetBody() {
         final HttpClient client = mock(HttpClient.class);
-        final HttpPost request = new HttpPost();
+        final HttpPost request = new HttpPost("");
 
         final ClientHttpRequest unit = new StreamingApacheClientHttpRequest(client, request);
 
@@ -45,7 +45,7 @@ final class StreamingApacheClientHttpRequestTest {
     void shouldFailOnNonBodyRequests() {
         final HttpClient client = mock(HttpClient.class);
 
-        final StreamingHttpOutputMessage unit = new StreamingApacheClientHttpRequest(client, new HttpDelete());
+        final StreamingHttpOutputMessage unit = new StreamingApacheClientHttpRequest(client, new HttpDelete(""));
 
         assertThrows(IllegalStateException.class, () -> unit.setBody(mock(Body.class)));
     }
