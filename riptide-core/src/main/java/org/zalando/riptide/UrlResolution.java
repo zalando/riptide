@@ -13,7 +13,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 public enum UrlResolution {
 
     /**
-     * Resolves a given relativce URI by following the rules defined in RFC 3986.
+     * Resolves a given relative URI by following the rules defined in RFC 3986.
      *
      * @see <a href="https://tools.ietf.org/html/rfc3986">RFC 3986</a>
      * @see URI#resolve(URI)
