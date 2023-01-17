@@ -154,6 +154,7 @@
                                 <failBuildInCaseOfEqualContentConflict>false</failBuildInCaseOfEqualContentConflict>
                                 <ignoredClassPatterns>
                                     <ignoredClassPattern>.*\.module-info</ignoredClassPattern>
+                                    <ignoredClassPattern>jakarta.servlet.*</ignoredClassPattern>
                                 </ignoredClassPatterns>
                                 <ignoredResourcePatterns>
                                     <ignoredResourcePattern>.*</ignoredResourcePattern>

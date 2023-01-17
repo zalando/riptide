@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
@@ -55,7 +54,7 @@ import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 
-import javax.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPConstants;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Clock;
@@ -96,7 +95,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         properties.getClients().forEach((id, client) -> {
             registerHttp(id, client);
             registerHttpOperations(id, client);
-            registerAsyncHttpOperations(id, client);
         });
     }
 

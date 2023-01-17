@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
 
@@ -49,17 +48,12 @@ final class ClientConfigurationTest {
 
     @Autowired
     @Qualifier("example")
-    private AsyncRestOperations exampleAsyncRestOperations;
-
-    @Autowired
-    @Qualifier("example")
     private HttpClient exampleHttpClient;
 
     @Test
     void shouldWireOAuthCorrectly() {
         assertThat(exampleRest, is(notNullValue()));
         assertThat(exampleRestOperations, is(notNullValue()));
-        assertThat(exampleAsyncRestOperations, is(notNullValue()));
     }
 
     @Test

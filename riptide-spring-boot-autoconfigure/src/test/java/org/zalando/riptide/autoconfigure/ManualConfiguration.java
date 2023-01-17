@@ -21,7 +21,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
