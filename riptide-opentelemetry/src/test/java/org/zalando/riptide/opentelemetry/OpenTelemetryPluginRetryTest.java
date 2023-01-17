@@ -10,8 +10,9 @@ import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.client.ClientHttpResponse;
@@ -49,7 +50,7 @@ public class OpenTelemetryPluginRetryTest {
                                           HttpClientBuilder.create()
                                                            .setDefaultRequestConfig(
                                                                    RequestConfig.custom()
-                                                                                .setSocketTimeout(500)
+                                                                                .setConnectTimeout(Timeout.ofMilliseconds(500))
                                                                                 .build())
                                                            .build()))
                                   .baseUrl(driver.getBaseUrl())

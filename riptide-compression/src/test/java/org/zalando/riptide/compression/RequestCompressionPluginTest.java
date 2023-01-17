@@ -1,7 +1,7 @@
 package org.zalando.riptide.compression;
 
 import com.github.restdriver.clientdriver.ClientDriver;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -8,8 +8,9 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -51,7 +52,7 @@ final class MicrometerPluginTest {
     private final ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
             HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(500)
+                            .setConnectTimeout(Timeout.ofMilliseconds(500))
                             .build())
             .build());
 

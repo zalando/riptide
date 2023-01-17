@@ -10,10 +10,6 @@ import io.opentracing.contrib.concurrent.TracedExecutorService;
 import net.jodah.failsafe.CircuitBreaker;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.Timeout;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -29,9 +25,7 @@ import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.opentracing.flowid.Flow;
 import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
-import org.zalando.opentracing.flowid.httpclient.FlowHttpRequestInterceptor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -44,7 +38,6 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
-import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
@@ -56,7 +49,6 @@ import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
 import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
-import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
@@ -82,8 +74,6 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -191,34 +181,6 @@ public class ManualConfiguration {
         @Bean
         public RestOperations exampleRestOperations(final Http http) {
             return new HttpOperations(http);
-        }
-
-        @Bean
-        public AsyncRestOperations exampleAsyncRestOperations(final Http http) {
-            return new AsyncHttpOperations(http);
-        }
-
-        @Bean
-        public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
-                final Flow flow) throws Exception {
-            return new ApacheClientHttpRequestFactory(
-                    HttpClientBuilder.create()
-                            .setDefaultRequestConfig(RequestConfig.custom()
-                                    .setConnectTimeout(5000)
-                                    .setSocketTimeout(5000)
-                                    .build())
-                            .setConnectionTimeToLive(30, SECONDS)
-                            .setMaxConnPerRoute(2)
-                            .setMaxConnTotal(20)
-                            .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
-                            .setSSLSocketFactory(new SSLConnectionSocketFactory(
-                                    SSLContexts.custom()
-                                            .loadTrustMaterial(
-                                                    getClass().getClassLoader().getResource("example.keystore"),
-                                                    "password".toCharArray())
-                                            .build(),
-                                    getDefaultHostnameVerifier()))
-                            .build());
         }
 
         @Bean(destroyMethod = "shutdown")

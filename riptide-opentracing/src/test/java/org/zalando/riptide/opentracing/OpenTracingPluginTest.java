@@ -7,8 +7,9 @@ import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -54,7 +55,7 @@ final class OpenTracingPluginTest {
             .executor(new TracedExecutorService(newSingleThreadExecutor(), tracer))
             .requestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(500)
+                            .setConnectTimeout(Timeout.ofMilliseconds(500))
                             .build())
                     .build()))
             .baseUrl(driver.getBaseUrl())

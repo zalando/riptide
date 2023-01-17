@@ -1,3 +1,9 @@
+# Riptide 4.0 Migration Guide
+
+## Dropped futures
+
+- AsyncRestTemplate support
+
 # Riptide 3.0 Migration Guide
 
 ## Before You Start

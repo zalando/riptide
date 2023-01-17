@@ -35,7 +35,6 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
-import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.failsafe.BackupRequest;
@@ -119,12 +118,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private void registerHttpOperations(final String id, final Client client) {
         registry.registerIfAbsent(id, RestOperations.class, () ->
                 genericBeanDefinition(HttpOperations.class)
-                        .addConstructorArgReference(registerHttp(id, client)));
-    }
-
-    private void registerAsyncHttpOperations(final String id, final Client client) {
-        registry.registerIfAbsent(id, AsyncRestOperations.class, () ->
-                genericBeanDefinition(AsyncHttpOperations.class)
                         .addConstructorArgReference(registerHttp(id, client)));
     }
 

@@ -13,8 +13,9 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,7 +77,7 @@ class OpenTelemetryPluginTest {
                                               HttpClientBuilder.create()
                                                       .setDefaultRequestConfig(
                                                               RequestConfig.custom()
-                                                                      .setSocketTimeout(500)
+                                                                      .setConnectTimeout(Timeout.ofMilliseconds(500))
                                                                       .build())
                                                       .build()))
                                       .baseUrl(driver.getBaseUrl())
@@ -245,7 +246,7 @@ class OpenTelemetryPluginTest {
                                           HttpClientBuilder.create()
                                                   .setDefaultRequestConfig(
                                                           RequestConfig.custom()
-                                                                  .setSocketTimeout(500)
+                                                                  .setConnectTimeout(Timeout.ofMilliseconds(500))
                                                                   .build())
                                                   .build()))
                                   .baseUrl(driver.getBaseUrl())
