@@ -3,21 +3,22 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.github.restdriver.clientdriver.ClientDriver;
-//import com.github.restdriver.clientdriver.ClientDriverFactory;
+import com.google.common.io.Resources;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-//import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-//import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
@@ -43,13 +44,6 @@ final class IOTest {
 
     private final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
 
-    private final Http http = Http.builder()
-            .executor(executor)
-            .requestFactory(requestFactory)
-            .baseUrl("driver.getBaseUrl()")
-            .converter(createJsonConverter())
-            .build();
-
     private static MappingJackson2HttpMessageConverter createJsonConverter() {
         final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(new ObjectMapper().findAndRegisterModules()
@@ -57,8 +51,27 @@ final class IOTest {
         return converter;
     }
 
+    private MockWebServer mockWebServer;
+    private Http http;
+
+    @BeforeEach
+    void setup() throws IOException {
+         mockWebServer = new MockWebServer();
+         mockWebServer.enqueue(new MockResponse()
+                 .setHeader("Content-Type","application/json")
+                 .setBody(Resources.toString(getResource("contributors.json"), StandardCharsets.UTF_8)));
+         mockWebServer.start();
+         http = Http.builder()
+                .executor(executor)
+                .requestFactory(requestFactory)
+                .baseUrl(mockWebServer.url("/").uri())
+                .converter(createJsonConverter())
+                .build();
+    }
+
     @AfterEach
-    void tearDown() {
+    void tearDown() throws IOException {
+        mockWebServer.shutdown();
         executor.shutdown();
     }
 
@@ -75,8 +88,6 @@ final class IOTest {
     }
 
     private void shouldReadContributors() throws IOException {
-        //driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-          //      giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         final AtomicReference<List<User>> reference = new AtomicReference<>();
 
@@ -90,5 +101,4 @@ final class IOTest {
 
         assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
     }
-
 }
