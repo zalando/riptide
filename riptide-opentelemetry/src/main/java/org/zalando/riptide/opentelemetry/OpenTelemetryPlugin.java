@@ -1,5 +1,7 @@
 package org.zalando.riptide.opentelemetry;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimaps;
 import io.opentelemetry.api.GlobalOpenTelemetry;
@@ -30,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
-import javax.annotation.Nonnull;
 
 public class OpenTelemetryPlugin implements Plugin {
 
@@ -90,12 +91,12 @@ public class OpenTelemetryPlugin implements Plugin {
         final Map<String, String> headers = new HashMap<>();
         try (final Scope ignored = context.with(span).makeCurrent()) {
             this.propagator.inject(Context.current(), headers, Map::put);
-        }
 
-        return execution.execute(arguments.withHeaders(Multimaps.forMap(headers).asMap()))
-                        .whenComplete(decorateOnResponse(span, arguments))
-                        .whenComplete(decorateOnError(span, arguments))
-                        .whenComplete((r, t) -> span.end());
+            return execution.execute(arguments.withHeaders(Multimaps.forMap(headers).asMap()))
+                            .whenComplete(decorateOnResponse(span, arguments))
+                            .whenComplete(decorateOnError(span, arguments))
+                            .whenComplete((r, t) -> span.end());
+        }
     }
 
     private ThrowingBiConsumer<ClientHttpResponse, Throwable, IOException> decorateOnResponse(
