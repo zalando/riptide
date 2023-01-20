@@ -1,5 +1,7 @@
 package org.zalando.riptide.opentelemetry;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimaps;
 import io.opentelemetry.api.GlobalOpenTelemetry;
@@ -10,12 +12,14 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.fauxpas.ThrowingBiConsumer;
 import org.zalando.riptide.Attribute;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentelemetry.span.CompositeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.ErrorSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpMethodSpanDecorator;
@@ -30,7 +34,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
-import javax.annotation.Nonnull;
 
 public class OpenTelemetryPlugin implements Plugin {
 
@@ -61,6 +64,9 @@ public class OpenTelemetryPlugin implements Plugin {
         this.tracer = telemetry.getTracer("riptide-opentelemetry");
         this.propagator = telemetry.getPropagators().getTextMapPropagator();
         this.spanDecorator = spanDecorator;
+
+        // todo should OpenTelemetryPlugin extend MicrometerPlugin
+        new MicrometerPlugin(OpenTelemetryMeterRegistry.create(telemetry));
     }
 
     public OpenTelemetryPlugin withSpanDecorators(final SpanDecorator... decorators) {
