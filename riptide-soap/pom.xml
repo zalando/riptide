@@ -60,12 +60,6 @@
             <artifactId>jaxws-rt</artifactId>
             <version>2.3.5</version>
             <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.woodstox</groupId>
-                    <artifactId>woodstox-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
