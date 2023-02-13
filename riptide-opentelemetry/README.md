@@ -20,6 +20,7 @@ Http.builder()
 - Span context injection into HTTP headers of requests
 - Extensible span decorators for attributes
 - Seamless integration with [Riptide: Failsafe](../riptide-failsafe)
+- Telemetry java agent friendly
 
 ## Dependencies
 
