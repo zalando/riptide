@@ -4,7 +4,7 @@ import dev.failsafe.AbstractExecution;
 import dev.failsafe.spi.ExecutionResult;
 import dev.failsafe.spi.FailsafeFuture;
 import dev.failsafe.spi.PolicyExecutor;
-import dev.failsafe.util.concurrent.Scheduler;
+import dev.failsafe.spi.Scheduler;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
