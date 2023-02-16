@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
+import dev.failsafe.function.ContextualSupplier;
 import lombok.AllArgsConstructor;
 import dev.failsafe.ExecutionContext;
-import dev.failsafe.function.DelayFunction;
 import org.apiguardian.api.API;
 
 import java.time.Duration;
@@ -12,25 +12,31 @@ import java.util.Objects;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
+//TODO: rename functions variable?
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
-public final class CompositeDelayFunction<R, X extends Throwable>
-        implements DelayFunction<R, X> {
+public final class CompositeDelayFunction<R> implements ContextualSupplier<R, Duration> {
 
-    private final Collection<DelayFunction<R, X>> functions;
+    private final Collection<ContextualSupplier<R, Duration>> functions;
 
     @Override
-    public Duration computeDelay(final R result, final X failure, final ExecutionContext context) {
+    public Duration get(final ExecutionContext<R> context) throws Throwable {
         return functions.stream()
-                .map(function -> function.computeDelay(result, failure, context))
+                .map(function -> {
+                    try {
+                        return function.get(context);
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
 
     @SafeVarargs
-    public static <R, X extends Throwable> DelayFunction<R, X> composite(
-            final DelayFunction<R, X>... functions) {
+    public static <R, X extends Throwable> ContextualSupplier<R, Duration> composite(
+            final ContextualSupplier<R, Duration>... functions) {
         return new CompositeDelayFunction<>(Arrays.asList(functions));
     }
 
