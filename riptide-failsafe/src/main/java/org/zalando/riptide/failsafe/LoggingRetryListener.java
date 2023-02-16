@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
+import dev.failsafe.event.ExecutionAttemptedEvent;
 import org.apiguardian.api.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

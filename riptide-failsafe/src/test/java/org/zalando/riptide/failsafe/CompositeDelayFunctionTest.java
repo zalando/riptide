@@ -1,6 +1,6 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.function.DelayFunction;
+import dev.failsafe.function.DelayFunction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

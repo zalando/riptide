@@ -2,9 +2,9 @@ package org.zalando.riptide.failsafe;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.jodah.failsafe.AbstractExecution;
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.PolicyExecutor;
+import dev.failsafe.AbstractExecution;
+import dev.failsafe.Policy;
+import dev.failsafe.spi.PolicyExecutor;
 import org.apiguardian.api.API;
 
 import java.util.concurrent.TimeUnit;

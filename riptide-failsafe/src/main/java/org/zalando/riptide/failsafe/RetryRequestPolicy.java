@@ -2,10 +2,10 @@ package org.zalando.riptide.failsafe;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
-import net.jodah.failsafe.function.CheckedConsumer;
+import dev.failsafe.Policy;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.event.ExecutionAttemptedEvent;
+import dev.failsafe.function.CheckedConsumer;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;

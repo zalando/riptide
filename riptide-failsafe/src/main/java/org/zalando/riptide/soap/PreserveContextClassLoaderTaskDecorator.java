@@ -1,6 +1,6 @@
 package org.zalando.riptide.soap;
 
-import net.jodah.failsafe.function.ContextualSupplier;
+import dev.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.TaskDecorator;
 

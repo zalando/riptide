@@ -1,9 +1,9 @@
 package org.zalando.riptide.failsafe;
 
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.function.ContextualSupplier;
+import dev.failsafe.Failsafe;
+import dev.failsafe.Policy;
+import dev.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;

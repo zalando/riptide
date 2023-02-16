@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.gag.annotation.remark.Hack;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.http.client.ClientHttpResponse;
