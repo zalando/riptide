@@ -12,7 +12,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 @FunctionalInterface
 public interface TaskDecorator {
 
-    <T> ContextualSupplier<T> decorate(ContextualSupplier<T> supplier);
+    <T, R> ContextualSupplier<T, R> decorate(ContextualSupplier<T, R> supplier);
 
     static TaskDecorator identity() {
         return composite();

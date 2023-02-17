@@ -12,7 +12,7 @@ import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -64,7 +64,7 @@ public final class FailsafePlugin implements Plugin {
         };
     }
 
-    private ContextualSupplier<CompletableFuture<ClientHttpResponse>> decorate(
+    private ContextualSupplier<ClientHttpResponse, CompletionStage<ClientHttpResponse>> decorate(
             final RequestExecution execution, final RequestArguments arguments) {
 
         final TaskDecorator decorator = TaskDecorator.composite(decorators);

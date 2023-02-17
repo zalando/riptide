@@ -24,8 +24,8 @@ public final class LoggingRetryListener implements RetryListener {
     public void onRetry(final RequestArguments arguments,
             final ExecutionAttemptedEvent<ClientHttpResponse> event) {
 
-        if (event.getLastFailure() != null) {
-            logger.warn("Retrying failure", event.getLastFailure());
+        if (event.getLastException() != null) {
+            logger.warn("Retrying failure", event.getLastException());
         }
     }
 
