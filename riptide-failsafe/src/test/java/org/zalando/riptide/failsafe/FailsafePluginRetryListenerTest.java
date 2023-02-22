@@ -75,16 +75,18 @@ final class FailsafePluginRetryListenerTest {
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
+                            RetryPolicy.<ClientHttpResponse>builder()
                                     .withDelay(Duration.ofMillis(500))
                                     .withMaxRetries(4)
                                     .handle(Exception.class)
-                                    .handleResultIf(this::isBadGateway))
+                                    .handleResultIf(this::isBadGateway)
+                                    .build())
                             .withListener(listeners))
-                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                             .withFailureThreshold(3, 10)
                             .withSuccessThreshold(5)
-                            .withDelay(Duration.ofMinutes(1))))
+                            .withDelay(Duration.ofMinutes(1))
+                            .build()))
             .build();
 
     @SneakyThrows

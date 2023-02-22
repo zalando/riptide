@@ -1,11 +1,11 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.common.annotations.VisibleForTesting;
+import dev.failsafe.event.EventListener;
 import lombok.AllArgsConstructor;
 import dev.failsafe.Policy;
 import dev.failsafe.RetryPolicy;
 import dev.failsafe.event.ExecutionAttemptedEvent;
-import dev.failsafe.function.CheckedConsumer;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -46,14 +46,15 @@ public final class RetryRequestPolicy implements RequestPolicy {
     public Policy<ClientHttpResponse> prepare(
             final RequestArguments arguments) {
 
-        return policy.copy().onFailedAttempt(
-                new RetryListenerAdapter(listener, arguments));
+        return RetryPolicy.builder(policy.getConfig())
+                .onFailedAttempt(new RetryListenerAdapter(listener, arguments))
+                .build();
     }
 
     @VisibleForTesting
     @AllArgsConstructor
     static final class RetryListenerAdapter implements
-            CheckedConsumer<ExecutionAttemptedEvent<ClientHttpResponse>> {
+            EventListener<ExecutionAttemptedEvent<ClientHttpResponse>> {
 
         private final RetryListener listener;
         private final RequestArguments arguments;

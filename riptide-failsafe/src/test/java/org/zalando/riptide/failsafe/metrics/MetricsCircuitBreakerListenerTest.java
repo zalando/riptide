@@ -25,10 +25,11 @@ final class MetricsCircuitBreakerListenerTest {
             .withMetricName("circuit-breakers")
             .withDefaultTags(Tag.of("test", "true"));
 
-    private final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<ClientHttpResponse>()
-            .onOpen(unit::onOpen)
-            .onHalfOpen(unit::onHalfOpen)
-            .onClose(unit::onClose);
+    private final CircuitBreaker<ClientHttpResponse> breaker = CircuitBreaker.<ClientHttpResponse>builder()
+            .onOpen((event) -> unit.onOpen())
+            .onHalfOpen((event) -> unit.onHalfOpen())
+            .onClose((event) -> unit.onClose())
+            .build();
 
     @Test
     void shouldRecordOpen() {

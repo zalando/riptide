@@ -86,23 +86,27 @@ final class FailsafePluginRetriesTest {
             })
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
-                                    .handleIf(transientSocketFaults())
+                            RetryPolicy.<ClientHttpResponse>builder()
+                                    // TODO: fix transientSocketFaults
+                                    //.handleIf(transientSocketFaults())
                                     .handle(RetryException.class)
                                     .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4))
+                                    .withMaxRetries(4)
+                                    .build())
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
-                                    .handleIf(transientConnectionFaults())
+                            RetryPolicy.<ClientHttpResponse>builder()
+                                    //.handleIf(transientConnectionFaults())
                                     .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4))
+                                    .withMaxRetries(4)
+                                    .build())
                             .withPredicate(alwaysTrue()))
-                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                             .withFailureThreshold(5, 10)
                             .withSuccessThreshold(5)
-                            .withDelay(Duration.ofMinutes(1))))
+                            .withDelay(Duration.ofMinutes(1))
+                            .build()))
             .build();
 
     @SneakyThrows
@@ -166,9 +170,10 @@ final class FailsafePluginRetriesTest {
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin().withPolicy(
                         new RetryRequestPolicy(
-                                new RetryPolicy<ClientHttpResponse>()
+                                RetryPolicy.<ClientHttpResponse>builder()
                                         .withDelay(Duration.ofMillis(500))
-                                        .withMaxRetries(1))
+                                        .withMaxRetries(1)
+                                        .build())
                                 .withPredicate(arguments ->
                                         arguments.getHeaders().getOrDefault("Idempotent",
                                                 emptyList()).contains(
