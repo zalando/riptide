@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
+import dev.failsafe.function.CheckedPredicate;
 import lombok.SneakyThrows;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -70,6 +72,9 @@ final class FailsafePluginRetriesTest {
 
     private final AtomicInteger attempt = new AtomicInteger();
 
+    Predicate<Throwable> predicate = transientSocketFaults();
+    CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
+
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
@@ -87,8 +92,7 @@ final class FailsafePluginRetriesTest {
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
                             RetryPolicy.<ClientHttpResponse>builder()
-                                    // TODO: fix transientSocketFaults
-                                    //.handleIf(transientSocketFaults())
+                                    .handleIf(checkedPredicate)
                                     .handle(RetryException.class)
                                     .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))

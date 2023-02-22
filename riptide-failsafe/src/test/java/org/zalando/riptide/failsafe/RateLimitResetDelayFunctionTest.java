@@ -61,8 +61,7 @@ final class RateLimitResetDelayFunctionTest {
                             .build())
                     .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                             .withDelay(Duration.ofSeconds(2))
-                            // TODO: check delay
-                            //.withDelay(new RateLimitResetDelayFunction(clock))
+                            .withDelayFn(new RateLimitResetDelayFunction(clock))
                             .withMaxDuration(Duration.ofSeconds(5))
                             .withMaxRetries(4)
                             .build()))

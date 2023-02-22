@@ -59,8 +59,7 @@ final class RetryAfterDelayFunctionTest {
                     .withPolicy(CircuitBreaker.<ClientHttpResponse>builder().build())
                     .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                             .withDelay(Duration.ofSeconds(2))
-                            // TODO: check delay
-                            //.withDelay(new RetryAfterDelayFunction(clock))
+                            .withDelayFn(new RetryAfterDelayFunction(clock))
                             .withMaxDuration(Duration.ofSeconds(5))
                             .withMaxRetries(4)
                             .build()))
