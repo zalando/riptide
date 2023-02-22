@@ -72,9 +72,11 @@ final class FailsafePluginRetriesTest {
 
     private final AtomicInteger attempt = new AtomicInteger();
 
-    Predicate<Throwable> predicate = transientSocketFaults();
-    CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
-
+    //TODO: add wrapper class to convert predicate to CheckedPredicate ?
+    private final Predicate<Throwable> transientSocketFaults = transientSocketFaults();
+    private final CheckedPredicate<Throwable> transientSocketFaultsPredicate = t -> transientSocketFaults.test(t);
+    private final Predicate<Throwable> transientConnectionFaults = transientConnectionFaults();
+    private final CheckedPredicate<Throwable> transientConnectionFaultsPredicate = t -> transientConnectionFaults.test(t);
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
@@ -92,7 +94,7 @@ final class FailsafePluginRetriesTest {
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
                             RetryPolicy.<ClientHttpResponse>builder()
-                                    .handleIf(checkedPredicate)
+                                    .handleIf(transientSocketFaultsPredicate)
                                     .handle(RetryException.class)
                                     .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))
@@ -101,7 +103,7 @@ final class FailsafePluginRetriesTest {
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(
                             RetryPolicy.<ClientHttpResponse>builder()
-                                    //.handleIf(transientConnectionFaults())
+                                    .handleIf(transientConnectionFaultsPredicate)
                                     .withDelay(Duration.ofMillis(500))
                                     .withMaxRetries(4)
                                     .build())

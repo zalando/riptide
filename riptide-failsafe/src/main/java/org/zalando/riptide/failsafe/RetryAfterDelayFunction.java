@@ -40,7 +40,8 @@ public final class RetryAfterDelayFunction implements ContextualSupplier<ClientH
                 .map(HttpResponseException.class::cast)
                 .map(response -> response.getResponseHeaders().getFirst("Retry-After"))
                 .map(parser::parse)
-                .orElse(null);
+                //TODO: workaround for DelayablePolicy line 52 NPE in Durations.ofSafeNanos(
+                .orElse(Duration.ofMinutes(-1));
     }
 
 }

@@ -38,7 +38,8 @@ public final class RateLimitResetDelayFunction implements ContextualSupplier<Cli
                 .map(HttpResponseException.class::cast)
                 .map(response -> response.getResponseHeaders().getFirst("X-RateLimit-Reset"))
                 .map(parser::parse)
-                .orElse(null);
+                //TODO: workaround for DelayablePolicy line 52 NPE in Durations.ofSafeNanos(
+                .orElse(Duration.ofMinutes(-1));
     }
 
 }
