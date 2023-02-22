@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
+import dev.failsafe.PolicyConfig;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import dev.failsafe.AbstractExecution;
 import dev.failsafe.Policy;
 import dev.failsafe.spi.PolicyExecutor;
 import org.apiguardian.api.API;
@@ -20,15 +20,19 @@ public final class BackupRequest<R> implements Policy<R> {
     private final TimeUnit unit;
 
     @Override
-    @SuppressWarnings("unchecked")
-    public PolicyExecutor<Policy<R>> toExecutor(
-            final AbstractExecution execution) {
-        return (PolicyExecutor<Policy<R>>) create(execution);
+    public PolicyConfig<R> getConfig() {
+        //TODO: impl
+        return null;
     }
 
-    private PolicyExecutor<? extends Policy<R>> create(
-            final AbstractExecution execution) {
-        return new BackupRequestExecutor<R>(this, execution);
+    @Override
+    @SuppressWarnings("unchecked")
+    public PolicyExecutor<R> toExecutor(int policyIndex) {
+        return create(policyIndex);
+    }
+
+    private PolicyExecutor<R> create(int policyIndex) {
+        return new BackupRequestExecutor<>(this, policyIndex);
     }
 
 }

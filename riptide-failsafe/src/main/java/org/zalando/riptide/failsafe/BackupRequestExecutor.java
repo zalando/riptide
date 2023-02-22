@@ -1,6 +1,6 @@
 package org.zalando.riptide.failsafe;
 
-import dev.failsafe.AbstractExecution;
+import dev.failsafe.spi.AsyncExecutionInternal;
 import dev.failsafe.spi.ExecutionResult;
 import dev.failsafe.spi.FailsafeFuture;
 import dev.failsafe.spi.PolicyExecutor;
@@ -12,27 +12,31 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import static org.zalando.riptide.CompletableFutures.forwardTo;
 
-final class BackupRequestExecutor<R> extends PolicyExecutor<BackupRequest<R>> {
+final class BackupRequestExecutor<R> extends PolicyExecutor<R> {
 
-    BackupRequestExecutor(final BackupRequest<R> policy, final AbstractExecution execution) {
-        super(policy, execution);
+    //TODO: correct usage?
+    private final BackupRequest<R> policy;
+
+    BackupRequestExecutor(final BackupRequest<R> policy, int policyIndex) {
+        super(policy, policyIndex);
+        this.policy = policy;
     }
 
     @Override
-    protected Supplier<CompletableFuture<ExecutionResult>> supplyAsync(
-            final Supplier<CompletableFuture<ExecutionResult>> supplier,
+    public Function<AsyncExecutionInternal<R>, CompletableFuture<ExecutionResult<R>>> applyAsync(
+            Function<AsyncExecutionInternal<R>, CompletableFuture<ExecutionResult<R>>> innerFn,
             final Scheduler scheduler,
-            final FailsafeFuture<Object> future) {
+            final FailsafeFuture<R> future) {
 
-        return () -> {
-            final CompletableFuture<ExecutionResult> original = supplier.get();
-            final CompletableFuture<ExecutionResult> backup = new CompletableFuture<>();
+        return (asyncExecutionInternal) -> {
+            final CompletableFuture<ExecutionResult<R>> original = innerFn.apply(asyncExecutionInternal);
+            final CompletableFuture<ExecutionResult<R>> backup = new CompletableFuture<>();
 
-            final Future<?> scheduledBackup = delay(scheduler, backup(supplier, backup));
+            final Future<?> scheduledBackup = delay(scheduler, backup(innerFn, asyncExecutionInternal, backup));
 
             original.whenComplete(cancel(scheduledBackup));
             backup.whenComplete(cancel(original));
@@ -41,11 +45,12 @@ final class BackupRequestExecutor<R> extends PolicyExecutor<BackupRequest<R>> {
         };
     }
 
-    private Callable<CompletableFuture<ExecutionResult>> backup(
-            final Supplier<CompletableFuture<ExecutionResult>> supplier,
-            final CompletableFuture<ExecutionResult> target) {
+    private Callable<CompletableFuture<ExecutionResult<R>>> backup(
+            final Function<AsyncExecutionInternal<R>, CompletableFuture<ExecutionResult<R>>> innerFn,
+            final AsyncExecutionInternal<R> asyncExecutionInternal,
+            final CompletableFuture<ExecutionResult<R>> target) {
 
-        return () -> supplier.get().whenComplete(forwardTo(target));
+        return () -> innerFn.apply(asyncExecutionInternal).whenComplete(forwardTo(target));
     }
 
     @SuppressWarnings("unchecked")
