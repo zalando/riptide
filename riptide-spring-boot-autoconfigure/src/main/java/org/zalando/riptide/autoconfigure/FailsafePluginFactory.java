@@ -1,9 +1,12 @@
 package org.zalando.riptide.autoconfigure;
 
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.Timeout;
-import net.jodah.failsafe.function.DelayFunction;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.CircuitBreakerBuilder;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicyBuilder;
+import dev.failsafe.Timeout;
+import dev.failsafe.function.CheckedPredicate;
+import dev.failsafe.function.ContextualSupplier;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
@@ -27,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -52,41 +56,71 @@ final class FailsafePluginFactory {
                 .withDecorator(composite(decorators));
     }
 
+    //TODO: add more properties in config for more flexible CircuitBreaker configuration
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
             final Client client,
             final CircuitBreakerListener listener) {
 
-        final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<>();
+        final CircuitBreakerBuilder<ClientHttpResponse> breakerBuilder = CircuitBreaker.builder();
 
         Optional.ofNullable(client.getCircuitBreaker().getFailureThreshold())
-                .ifPresent(threshold -> threshold.applyTo(breaker::withFailureThreshold));
+                .ifPresent(threshold -> threshold.applyTo(breakerBuilder::withFailureThreshold));
 
         Optional.ofNullable(client.getCircuitBreaker().getFailureRateThreshold())
-                        .ifPresent(threshold -> threshold.applyTo(breaker::withFailureRateThreshold));
+                        .ifPresent(threshold -> threshold.applyTo(breakerBuilder::withFailureRateThreshold));
 
         Optional.ofNullable(client.getCircuitBreaker().getDelay())
-                .ifPresent(delay -> delay.applyTo(breaker::withDelay));
+                .ifPresent(delay -> delay.applyTo(breakerBuilder::withDelay));
 
         Optional.ofNullable(client.getCircuitBreaker().getSuccessThreshold())
-                .ifPresent(threshold -> threshold.applyTo(breaker::withSuccessThreshold));
+                .ifPresent(threshold -> threshold.applyTo(breakerBuilder::withSuccessThreshold));
 
-        breaker.withDelay(delayFunction());
-        breaker.onOpen(listener::onOpen);
-        breaker.onHalfOpen(listener::onHalfOpen);
-        breaker.onClose(listener::onClose);
+        breakerBuilder.withDelayFn(delayFunction())
+                .onOpen(event -> listener.onOpen())
+                .onHalfOpen(event -> listener.onHalfOpen())
+                .onClose(event -> listener.onClose());
 
-        return breaker;
+        return breakerBuilder.build();
     }
 
     public static Plugin createRetryFailsafePlugin(
             final Client client, final List<TaskDecorator> decorators) {
 
-        final RetryPolicy<ClientHttpResponse> policy = new RetryPolicy<>();
+        final RetryPolicyBuilder<ClientHttpResponse> policyBuilder = ;
+
+        if (client.getTransientFaultDetection().getEnabled()) {
+            //TODO: add wrapper class to convert predicate to CheckedPredicate ?
+            final Predicate<Throwable> transientSocketFaults = transientSocketFaults();
+            final CheckedPredicate<Throwable> transientSocketFaultsPredicate = t -> transientSocketFaults.test(t);
+            final Predicate<Throwable> transientConnectionFaults = transientConnectionFaults();
+            final CheckedPredicate<Throwable> transientConnectionFaultsPredicate = t -> transientConnectionFaults.test(t);
+
+            return new FailsafePlugin()
+                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
+                            .handleIf(transientSocketFaultsPredicate)
+                            .build())
+                            .withPredicate(new IdempotencyPredicate()))
+                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
+                            .handleIf(transientConnectionFaultsPredicate)
+                            .build())
+                            .withPredicate(alwaysTrue()))
+                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
+                    .withDecorator(composite(decorators));
+        } else {
+            return new FailsafePlugin()
+                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
+                    .withDecorator(composite(decorators));
+        }
+    }
+
+    private static RetryPolicyBuilder<ClientHttpResponse> getRetryPolicyBuilder(Client client) {
+        final RetryPolicyBuilder<ClientHttpResponse> policyBuilder = RetryPolicy.builder();
 
         final Retry config = client.getRetry();
 
-        Optional.ofNullable(config.getFixedDelay())
-                .ifPresent(delay -> delay.applyTo(policy::withDelay));
+        // TODO: delay to use???
+        //Optional.ofNullable(config.getFixedDelay())
+        //        .ifPresent(delay -> delay.applyTo(policyBuilder::withDelay));
 
         Optional.ofNullable(config.getBackoff())
                 .filter(Backoff::getEnabled)
@@ -98,41 +132,26 @@ final class FailsafePluginFactory {
                     @Nullable final Double delayFactor = backoff.getDelayFactor();
 
                     if (delayFactor == null) {
-                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS);
+                        policyBuilder.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS);
                     } else {
-                        policy.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS, delayFactor);
+                        policyBuilder.withBackoff(delay.to(unit), maxDelay.to(unit), MILLIS, delayFactor);
                     }
                 });
 
         Optional.ofNullable(config.getMaxRetries())
-                .ifPresent(policy::withMaxRetries);
+                .ifPresent(policyBuilder::withMaxRetries);
 
         Optional.ofNullable(config.getMaxDuration())
-                .ifPresent(duration -> duration.applyTo(policy::withMaxDuration));
+                .ifPresent(duration -> duration.applyTo(policyBuilder::withMaxDuration));
 
         Optional.ofNullable(config.getJitterFactor())
-                .ifPresent(policy::withJitter);
+                .ifPresent(policyBuilder::withJitter);
 
         Optional.ofNullable(config.getJitter())
-                .ifPresent(jitter -> jitter.applyTo(policy::withJitter));
+                .ifPresent(jitter -> jitter.applyTo(policyBuilder::withJitter));
 
-        policy.withDelay(delayFunction());
-
-        if (client.getTransientFaultDetection().getEnabled()) {
-            return new FailsafePlugin()
-                    .withPolicy(new RetryRequestPolicy(policy.copy()
-                            .handleIf(transientSocketFaults()))
-                            .withPredicate(new IdempotencyPredicate()))
-                    .withPolicy(new RetryRequestPolicy(policy.copy()
-                            .handleIf(transientConnectionFaults()))
-                            .withPredicate(alwaysTrue()))
-                    .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
-                    .withDecorator(composite(decorators));
-        } else {
-            return new FailsafePlugin()
-                    .withPolicy(new RetryRequestPolicy(policy.handle(RetryException.class)))
-                    .withDecorator(composite(decorators));
-        }
+        policyBuilder.withDelayFn(delayFunction());
+        return policyBuilder;
     }
 
     public static Plugin createBackupRequestPlugin(
@@ -161,7 +180,7 @@ final class FailsafePluginFactory {
                 .withDecorator(composite(decorators));
     }
 
-    private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {
+    private static ContextualSupplier<ClientHttpResponse, Duration> delayFunction() {
         return new CompositeDelayFunction<>(Arrays.asList(
                 new RetryAfterDelayFunction(systemUTC()),
                 new RateLimitResetDelayFunction(systemUTC())

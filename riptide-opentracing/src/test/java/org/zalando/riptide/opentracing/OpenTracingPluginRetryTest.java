@@ -6,7 +6,7 @@ import io.opentracing.Scope;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
