@@ -12,6 +12,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -53,6 +54,15 @@ final class CompositeDelayFunctionTest {
         when(second.get(eq(secondContext))).thenReturn(Duration.ofSeconds(2));
 
         assertEquals(Duration.ofSeconds(1), unit.get(firstContext));
+    }
+
+    @Test
+    void shouldReThrowException() throws Throwable {
+
+        when(first.get(eq(firstContext))).thenThrow(new IllegalArgumentException("Wrong argument"));
+        when(second.get(eq(secondContext))).thenReturn(Duration.ofSeconds(2));
+
+        assertThrowsExactly(RuntimeException.class, () -> unit.get(firstContext));
     }
 
     @Test
