@@ -51,9 +51,10 @@ final class OpenTracingPluginRetryTest {
             .baseUrl(driver.getBaseUrl())
             .plugin(unit)
             .plugin(new FailsafePlugin()
-                    .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                    .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                             .withMaxRetries(2)
-                            .handleResultIf(response -> true))
+                            .handleResultIf(response -> true)
+                            .build())
                     .withDecorator(new TracedTaskDecorator(tracer)))
             .build();
 

@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static java.time.Clock.systemUTC;
@@ -86,8 +87,6 @@ final class FailsafePluginFactory {
     public static Plugin createRetryFailsafePlugin(
             final Client client, final List<TaskDecorator> decorators) {
 
-        final RetryPolicyBuilder<ClientHttpResponse> policyBuilder = ;
-
         if (client.getTransientFaultDetection().getEnabled()) {
             //TODO: add wrapper class to convert predicate to CheckedPredicate ?
             final Predicate<Throwable> transientSocketFaults = transientSocketFaults();
@@ -118,9 +117,8 @@ final class FailsafePluginFactory {
 
         final Retry config = client.getRetry();
 
-        // TODO: delay to use???
-        //Optional.ofNullable(config.getFixedDelay())
-        //        .ifPresent(delay -> delay.applyTo(policyBuilder::withDelay));
+        Optional.ofNullable(config.getFixedDelay())
+                .ifPresent(delay -> delay.applyTo((Consumer<Duration>)policyBuilder::withDelay));
 
         Optional.ofNullable(config.getBackoff())
                 .filter(Backoff::getEnabled)
@@ -175,8 +173,10 @@ final class FailsafePluginFactory {
 
         return new FailsafePlugin()
                 .withPolicy(
-                        Timeout.<ClientHttpResponse>of(timeout)
-                                .withCancel(true))
+                        Timeout.<ClientHttpResponse>builder(timeout)
+                                .withInterrupt()
+                                .build()
+                )
                 .withDecorator(composite(decorators));
     }
 

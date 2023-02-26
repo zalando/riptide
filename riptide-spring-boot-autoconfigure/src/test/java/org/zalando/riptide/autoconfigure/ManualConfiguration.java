@@ -1,6 +1,7 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -144,17 +145,18 @@ public class ManualConfiguration {
                     new LogbookPlugin(logbook),
                     new OpenTracingPlugin(tracer),
                     new FailsafePlugin()
-                            .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                            .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                                     .withFailureThreshold(5, 5)
                                     .withDelay(Duration.ofSeconds(30))
                                     .withSuccessThreshold(3, 5)
-                                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                                    .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
                                             new RetryAfterDelayFunction(systemUTC()),
                                             new RateLimitResetDelayFunction(systemUTC())
                                     )))
-                                    .onOpen(listener::onOpen)
-                                    .onHalfOpen(listener::onHalfOpen)
-                                    .onClose(listener::onClose))
+                                    .onOpen(event -> listener.onOpen())
+                                    .onHalfOpen(event -> listener.onHalfOpen())
+                                    .onClose(event -> listener.onClose())
+                                    .build())
                             .withDecorator(new TracedTaskDecorator(tracer)),
                     new FailsafePlugin().withPolicy(
                             new RetryRequestPolicy(
@@ -175,17 +177,19 @@ public class ManualConfiguration {
 
         private RetryPolicy<ClientHttpResponse> retryPolicy(
                 final Predicate<Throwable> predicate) {
+            final CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
 
-            return new RetryPolicy<ClientHttpResponse>()
-                    .handleIf(predicate)
+            return RetryPolicy.<ClientHttpResponse>builder()
+                    .handleIf(checkedPredicate)
                     .withBackoff(50, 2000, MILLIS)
-                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                    .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
                             new RetryAfterDelayFunction(systemUTC()),
                             new RateLimitResetDelayFunction(systemUTC())
                     )))
                     .withMaxRetries(10)
                     .withMaxDuration(Duration.ofSeconds(2))
-                    .withJitter(0.2);
+                    .withJitter(0.2)
+                    .build();
         }
 
         @Bean

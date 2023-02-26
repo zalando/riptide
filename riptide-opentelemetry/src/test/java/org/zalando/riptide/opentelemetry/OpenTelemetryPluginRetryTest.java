@@ -55,9 +55,10 @@ public class OpenTelemetryPluginRetryTest {
                                   .baseUrl(driver.getBaseUrl())
                                   .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
                                   .plugin(new FailsafePlugin()
-                                                  .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                                                  .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                                                                       .withMaxRetries(2)
-                                                                      .handleResultIf(response -> true)))
+                                                                      .handleResultIf(response -> true)
+                                                          .build()))
                                   .build();
 
     @Test

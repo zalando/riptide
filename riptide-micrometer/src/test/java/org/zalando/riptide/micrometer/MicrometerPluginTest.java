@@ -2,6 +2,7 @@ package org.zalando.riptide.micrometer;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
+import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.zalando.fauxpas.ThrowingPredicate;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
@@ -57,6 +59,13 @@ final class MicrometerPluginTest {
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
+
+    //TODO: add wrapper class to convert predicate to CheckedPredicate ?
+    private final ThrowingPredicate<ClientHttpResponse, Throwable> predicate = throwingPredicate(response -> response.getStatusCode()
+            .is5xxServerError());
+    private final CheckedPredicate<ClientHttpResponse> checkedPredicate = t -> predicate.test(t);
+
+
     private final Http unit = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
@@ -68,14 +77,15 @@ final class MicrometerPluginTest {
                             new StaticTagDecorator(singleton(Tag.of("test", "true"))))
                     .withAdditionalTagGenerators(new RetryTagGenerator()))
             .plugin(new FailsafePlugin()
-                .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                         .handleIf(error -> false)
-                        .handleResultIf(throwingPredicate(response ->
-                                response.getStatusCode().is5xxServerError()))))
+                        .handleResultIf(checkedPredicate)
+                        .build()))
             .build();
 
     @Test
     void shouldRecordSuccessResponseMetric() {
+
         driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().withStatus(200));
 
