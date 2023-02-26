@@ -12,6 +12,8 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +45,7 @@ final class FailsafePluginBackupRequestTest {
             .requestFactory(factory)
             .baseUrl(driver.getBaseUrl())
             .plugin(new FailsafePlugin()
-                .withPolicy(new BackupRequest<>(1, SECONDS)))
+                .withPolicy(new BackupRequest<>(1, SECONDS, Duration.of(1, ChronoUnit.SECONDS))))
             .build();
 
     @AfterEach
@@ -126,7 +128,7 @@ final class FailsafePluginBackupRequestTest {
                 .requestFactory(factory)
                 .baseUrl(driver.getBaseUrl())
                 .plugin(new FailsafePlugin()
-                    .withPolicy(new BackupRequest<>(1, SECONDS), arguments ->
+                    .withPolicy(new BackupRequest<>(1, SECONDS, Duration.of(1, ChronoUnit.SECONDS)), arguments ->
                         arguments.getHeaders()
                                 .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();

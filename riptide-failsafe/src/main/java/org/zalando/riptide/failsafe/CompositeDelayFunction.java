@@ -12,7 +12,6 @@ import java.util.Objects;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
-//TODO: rename functions variable?
 @API(status = EXPERIMENTAL)
 @AllArgsConstructor
 public final class CompositeDelayFunction<R> implements ContextualSupplier<R, Duration> {

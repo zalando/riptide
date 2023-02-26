@@ -17,6 +17,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.fauxpas.ThrowingPredicate;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.failsafe.CheckedPredicateConverter;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.micrometer.tag.StaticTagDecorator;
@@ -45,6 +46,7 @@ import static org.zalando.fauxpas.FauxPas.throwingPredicate;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
 
 final class MicrometerPluginTest {
 
@@ -60,12 +62,6 @@ final class MicrometerPluginTest {
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
 
-    //TODO: add wrapper class to convert predicate to CheckedPredicate ?
-    private final ThrowingPredicate<ClientHttpResponse, Throwable> predicate = throwingPredicate(response -> response.getStatusCode()
-            .is5xxServerError());
-    private final CheckedPredicate<ClientHttpResponse> checkedPredicate = t -> predicate.test(t);
-
-
     private final Http unit = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
@@ -79,7 +75,8 @@ final class MicrometerPluginTest {
             .plugin(new FailsafePlugin()
                 .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                         .handleIf(error -> false)
-                        .handleResultIf(checkedPredicate)
+                        .handleResultIf(toCheckedPredicate(throwingPredicate(response -> response.getStatusCode()
+                                .is5xxServerError())))
                         .build()))
             .build();
 

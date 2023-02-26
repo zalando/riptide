@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import dev.failsafe.function.CheckedPredicate;
 import lombok.SneakyThrows;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
@@ -30,7 +29,6 @@ import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 
 import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
 import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
@@ -55,6 +53,7 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
+import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -72,11 +71,6 @@ final class FailsafePluginRetriesTest {
 
     private final AtomicInteger attempt = new AtomicInteger();
 
-    //TODO: add wrapper class to convert predicate to CheckedPredicate ?
-    private final Predicate<Throwable> transientSocketFaults = transientSocketFaults();
-    private final CheckedPredicate<Throwable> transientSocketFaultsPredicate = t -> transientSocketFaults.test(t);
-    private final Predicate<Throwable> transientConnectionFaults = transientConnectionFaults();
-    private final CheckedPredicate<Throwable> transientConnectionFaultsPredicate = t -> transientConnectionFaults.test(t);
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
@@ -94,7 +88,7 @@ final class FailsafePluginRetriesTest {
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
                             RetryPolicy.<ClientHttpResponse>builder()
-                                    .handleIf(transientSocketFaultsPredicate)
+                                    .handleIf(toCheckedPredicate(transientSocketFaults()))
                                     .handle(RetryException.class)
                                     .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))
@@ -103,7 +97,7 @@ final class FailsafePluginRetriesTest {
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(
                             RetryPolicy.<ClientHttpResponse>builder()
-                                    .handleIf(transientConnectionFaultsPredicate)
+                                    .handleIf(toCheckedPredicate(transientConnectionFaults()))
                                     .withDelay(Duration.ofMillis(500))
                                     .withMaxRetries(4)
                                     .build())

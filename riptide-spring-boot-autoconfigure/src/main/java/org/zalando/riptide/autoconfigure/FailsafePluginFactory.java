@@ -13,6 +13,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.failsafe.BackupRequest;
+import org.zalando.riptide.failsafe.CheckedPredicateConverter;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.CompositeDelayFunction;
 import org.zalando.riptide.failsafe.FailsafePlugin;
@@ -36,6 +37,7 @@ import java.util.function.Predicate;
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
 import static org.zalando.riptide.failsafe.TaskDecorator.composite;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -88,19 +90,13 @@ final class FailsafePluginFactory {
             final Client client, final List<TaskDecorator> decorators) {
 
         if (client.getTransientFaultDetection().getEnabled()) {
-            //TODO: add wrapper class to convert predicate to CheckedPredicate ?
-            final Predicate<Throwable> transientSocketFaults = transientSocketFaults();
-            final CheckedPredicate<Throwable> transientSocketFaultsPredicate = t -> transientSocketFaults.test(t);
-            final Predicate<Throwable> transientConnectionFaults = transientConnectionFaults();
-            final CheckedPredicate<Throwable> transientConnectionFaultsPredicate = t -> transientConnectionFaults.test(t);
-
             return new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
-                            .handleIf(transientSocketFaultsPredicate)
+                            .handleIf(toCheckedPredicate(transientSocketFaults()))
                             .build())
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
-                            .handleIf(transientConnectionFaultsPredicate)
+                            .handleIf(toCheckedPredicate(transientConnectionFaults()))
                             .build())
                             .withPredicate(alwaysTrue()))
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
@@ -159,9 +155,7 @@ final class FailsafePluginFactory {
 
         return new FailsafePlugin()
                 .withPolicy(RequestPolicies.of(
-                        new BackupRequest<>(
-                                delay.getAmount(),
-                                delay.getUnit()),
+                        new BackupRequest<>(delay.getAmount(), delay.getUnit(), delay.toDuration()),
                         new IdempotencyPredicate()))
                 .withDecorator(composite(decorators));
     }

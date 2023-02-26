@@ -71,6 +71,7 @@ import org.zalando.riptide.stream.Streams;
 import java.net.SocketTimeoutException;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -168,7 +169,7 @@ public class ManualConfiguration {
                                     .withPredicate(alwaysTrue())),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
                     new FailsafePlugin()
-                            .withPolicy(new BackupRequest<>(10, MILLISECONDS)),
+                            .withPolicy(new BackupRequest<>(10, MILLISECONDS, Duration.of(10, MILLIS))),
                     new FailsafePlugin()
                             .withPolicy(Timeout.of(Duration.ofSeconds(3))),
                     new OriginalStackTracePlugin(),
