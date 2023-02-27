@@ -6,6 +6,9 @@ import java.util.function.Predicate;
 
 public class CheckedPredicateConverter {
 
+    private CheckedPredicateConverter() {
+    }
+
     public static <T> CheckedPredicate<T> toCheckedPredicate(Predicate<T> predicate) {
         return predicate::test;
     }
