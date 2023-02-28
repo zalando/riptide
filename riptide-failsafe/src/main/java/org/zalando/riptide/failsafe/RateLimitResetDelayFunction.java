@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -33,12 +34,12 @@ public final class RateLimitResetDelayFunction implements ContextualSupplier<Cli
     //TODO: check getLastException usage
     @Override
     public Duration get(final ExecutionContext<ClientHttpResponse> context) {
-        return Optional.ofNullable(context.getLastException())
+        return ofNullable(context)
+                .map(ExecutionContext::getLastException)
                 .filter(HttpResponseException.class::isInstance)
                 .map(HttpResponseException.class::cast)
                 .map(response -> response.getResponseHeaders().getFirst("X-RateLimit-Reset"))
                 .map(parser::parse)
-                //TODO: workaround for DelayablePolicy line 52 NPE in Durations.ofSafeNanos(
                 .orElse(Duration.ofMinutes(-1));
     }
 

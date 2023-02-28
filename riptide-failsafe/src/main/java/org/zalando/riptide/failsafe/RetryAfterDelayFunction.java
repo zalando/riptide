@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
@@ -35,12 +36,12 @@ public final class RetryAfterDelayFunction implements ContextualSupplier<ClientH
 
     @Override
     public Duration get(final ExecutionContext<ClientHttpResponse> context) {
-        return Optional.ofNullable(context.getLastException())
+        return ofNullable(context)
+                .map(ExecutionContext::getLastException)
                 .filter(HttpResponseException.class::isInstance)
                 .map(HttpResponseException.class::cast)
                 .map(response -> response.getResponseHeaders().getFirst("Retry-After"))
                 .map(parser::parse)
-                //TODO: workaround for DelayablePolicy line 52 NPE in Durations.ofSafeNanos(
                 .orElse(Duration.ofMinutes(-1));
     }
 

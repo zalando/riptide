@@ -18,7 +18,6 @@ import static org.zalando.riptide.CompletableFutures.forwardTo;
 
 final class BackupRequestExecutor<R> extends PolicyExecutor<R> {
 
-    //TODO: correct usage?
     private final BackupRequest<R> policy;
 
     BackupRequestExecutor(final BackupRequest<R> policy, int policyIndex) {

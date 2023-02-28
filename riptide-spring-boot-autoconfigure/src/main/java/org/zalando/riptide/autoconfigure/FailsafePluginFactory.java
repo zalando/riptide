@@ -155,7 +155,7 @@ final class FailsafePluginFactory {
 
         return new FailsafePlugin()
                 .withPolicy(RequestPolicies.of(
-                        new BackupRequest<>(delay.getAmount(), delay.getUnit(), delay.toDuration()),
+                        new BackupRequest<>(delay.getAmount(), delay.getUnit()),
                         new IdempotencyPredicate()))
                 .withDecorator(composite(decorators));
     }

@@ -1,13 +1,11 @@
 package org.zalando.riptide.failsafe;
 
 import dev.failsafe.Policy;
-import dev.failsafe.RetryPolicy;
-import dev.failsafe.RetryPolicyConfig;
+import dev.failsafe.PolicyConfig;
 import dev.failsafe.spi.PolicyExecutor;
 import lombok.Getter;
 import org.apiguardian.api.API;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
@@ -18,16 +16,12 @@ public final class BackupRequest<R> implements Policy<R> {
 
     private final long delay;
     private final TimeUnit unit;
-    private final RetryPolicyConfig<R> config;
+    private final PolicyConfig<R> config = new PolicyConfig<R>() {
+    };
 
-    //TODO: duplicated logic (config + delay)
-    public BackupRequest(long delay, TimeUnit unit, Duration duration) {
+    public BackupRequest(long delay, TimeUnit unit) {
         this.delay = delay;
         this.unit = unit;
-        this.config = RetryPolicy.<R>builder()
-                .withDelay(duration)
-                .build()
-                .getConfig();
     }
 
     @Override

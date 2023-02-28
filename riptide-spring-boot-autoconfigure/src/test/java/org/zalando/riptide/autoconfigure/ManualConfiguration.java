@@ -169,7 +169,7 @@ public class ManualConfiguration {
                                     .withPredicate(alwaysTrue())),
                     new AuthorizationPlugin(new PlatformCredentialsAuthorizationProvider("example")),
                     new FailsafePlugin()
-                            .withPolicy(new BackupRequest<>(10, MILLISECONDS, Duration.of(10, MILLIS))),
+                            .withPolicy(new BackupRequest<>(10, MILLISECONDS)),
                     new FailsafePlugin()
                             .withPolicy(Timeout.of(Duration.ofSeconds(3))),
                     new OriginalStackTracePlugin(),
