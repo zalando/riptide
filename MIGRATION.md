@@ -1,3 +1,18 @@
+# Riptide 4.0 Migration Guide
+
+## Failsafe
+
+**Failsafe version was upgrade from 2.4.3 to 3.3.0**
+
+There are many breaking changes between Failsafe version 2.4.3 and version 3.3.0, 
+see [Failsafe CHANGELOG](https://github.com/failsafe-lib/failsafe/blob/master/CHANGELOG.md#330) for all details.
+Here are some of the breaking changes that `riptide-failsafe` users need to pay special attention to:
+
+- The maven group id for Failsafe has changed to `dev.failsafe`
+- All files have been moved to the `dev.failsafe` package
+- All policies now use a builder API instead of constructors
+- `DelayFunction` has been removed, `ContextualSupplier` should be used instead since it provides access to the same information.
+
 # Riptide 3.0 Migration Guide
 
 ## Before You Start
