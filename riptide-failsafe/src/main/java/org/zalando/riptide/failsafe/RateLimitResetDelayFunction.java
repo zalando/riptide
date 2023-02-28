@@ -31,7 +31,6 @@ public final class RateLimitResetDelayFunction implements ContextualSupplier<Cli
         ));
     }
 
-    //TODO: check getLastException usage
     @Override
     public Duration get(final ExecutionContext<ClientHttpResponse> context) {
         return ofNullable(context)
