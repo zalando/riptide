@@ -59,7 +59,6 @@ final class FailsafePluginFactory {
                 .withDecorator(composite(decorators));
     }
 
-    //TODO: add more properties in config for more flexible CircuitBreaker configuration
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
             final Client client,
             final CircuitBreakerListener listener) {
