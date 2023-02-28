@@ -20,6 +20,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -27,10 +29,13 @@ import org.zalando.riptide.AttributeStage;
 import org.zalando.riptide.Bindings;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Navigators;
+import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
@@ -235,6 +240,25 @@ class OpenTelemetryPluginTest {
     void shouldObtainTracerFromGlobalTelemetry() {
         OpenTelemetryPlugin plugin = new OpenTelemetryPlugin();
         assertThat(plugin.getTracer(), notNullValue());
+    }
+
+    @Test
+    void shouldActivateScope() throws IOException {
+        // when running in java agent, the downstream http client is also instrumented
+        // therefore it's important that the Scope is activated while we call the downstream client
+
+        RequestExecution requestExecution = Mockito.mock(RequestExecution.class);
+        String newName = "client span was activated";
+        Mockito.when(requestExecution.execute(Mockito.any())).thenAnswer(invocationOnMock -> {
+            Span.current().updateName(newName);
+            return CompletableFuture.completedFuture(null);
+        });
+        new OpenTelemetryPlugin().aroundAsync(requestExecution)
+                .execute(RequestArguments.create()
+                                 .withMethod(HttpMethod.GET)
+                                 .withUri(URI.create("https://example.com"))
+                                 .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
+        otelTesting.assertTraces().singleElement().singleElement().hasName(newName);
     }
 
     @Test
