@@ -1,3 +1,10 @@
+# Riptide 4.0 Migration Guide
+
+## Breaking Changes
+
+Since Spring 5, `AsyncRestTemplate` is deprecated in favor of `WebClient`.
+For that reason, we have removed `AsyncHttpOperations` from `riptide-compatibility` layer.
+
 # Riptide 3.0 Migration Guide
 
 ## Before You Start
