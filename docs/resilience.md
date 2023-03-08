@@ -34,11 +34,13 @@ riptide.clients:
 The [riptide-faults](../riptide-faults) module provides a set `TransientFaults` predicates that detects transient faults:
 
 ```java
-Http.builder()
-    .plugin(new FailsafePlugin()
-        .withPolicy(new RetryRequestPolicy(
-            new RetryPolicy().handleIf(transientSocketFaults()))
-))
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
+        .plugin(new FailsafePlugin()
+            .withPolicy(new RetryRequestPolicy(
+                    RetryPolicy.<ClientHttpResponse>builder()
+                        .handleIf(CheckedPredicateConverter.toCheckedPredicate(transientSocketFaults()))
+                        .build())
+            ));
 ```
 
 ```yaml

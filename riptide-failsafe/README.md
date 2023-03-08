@@ -11,7 +11,7 @@ and a circuit breaker to every remote call.
 ## Example
 
 ```java
-Http.builder().asyncRequestFactory(asyncRequestFactory)
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(circuitBreaker)
         .withPolicy(new RetryRequestPolicy(retryPolicy)))
@@ -45,7 +45,7 @@ Add the following dependency to your project:
 The failsafe plugin will not perform retries nor apply circuit breakers unless they were explicitly configured:
 
 ```java
-Http.builder().asyncRequestFactory(asyncRequestFactory)
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(
             new RetryRequestPolicy(
@@ -85,7 +85,7 @@ Riptide: Failsafe offers implementations that understand:
 - [`X-RateLimit-Reset` (RESTful API Guidelines)](https://opensource.zalando.com/restful-api-guidelines/#153)
 
 ```java
-Http.builder().asyncRequestFactory(asyncRequestFactory)
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
             .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
@@ -108,7 +108,7 @@ Failsafe and Spring Boot.
 The `BackupRequest` policy implements the [*backup request*][abstract] pattern, also known as [*hedged requests*][article]:
 
 ```java
-Http.builder().asyncRequestFactory(asyncRequestFactory)
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(new BackupRequest(1, SECONDS)))
     .build();
@@ -169,7 +169,7 @@ http.post("/subscriptions/{id}/cursors", subscriptionId)
 In case those options are insufficient you may specify your own method detector:
 
 ```java
-Http.builder().asyncRequestFactory(asyncRequestFactory)
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(retryPolicy)
         .withDecorator(new CustomIdempotentMethodDetector()))
