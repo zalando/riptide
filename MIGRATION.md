@@ -13,7 +13,7 @@ Here are some of the breaking changes that can affect `riptide-failsafe` users:
 - `Scheduler`, `DefaultScheduledFuture` and `PolicyExecutor` were moved to the spi package
 - All policies now use a builder API instead of constructors
 - `DelayFunction` interface has been removed, `ContextualSupplier` should be used instead since it provides access to the same information
-- `CircuitBreakerBuilder` `onOpen`, `onClose`, and `onHalfOpen` methods now accept a `EventListener<CircuitBreakerStateChangedEvent>` argument
+- `CircuitBreakerBuilder` `onOpen`, `onClose`, and `onHalfOpen` methods now accept an `EventListener<CircuitBreakerStateChangedEvent>` argument
 
 # Riptide 3.0 Migration Guide
 
