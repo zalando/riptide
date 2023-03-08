@@ -25,7 +25,6 @@ public final class BackupRequest<R> implements Policy<R> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public PolicyExecutor<R> toExecutor(int policyIndex) {
         return create(policyIndex);
     }

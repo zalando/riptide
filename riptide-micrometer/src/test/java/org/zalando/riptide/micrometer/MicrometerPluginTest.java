@@ -61,7 +61,6 @@ final class MicrometerPluginTest {
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
-
     private final Http unit = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
