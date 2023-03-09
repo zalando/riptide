@@ -81,7 +81,6 @@ final class MicrometerPluginTest {
 
     @Test
     void shouldRecordSuccessResponseMetric() {
-
         driver.addExpectation(onRequestTo("/foo"),
                 giveEmptyResponse().withStatus(200));
 
