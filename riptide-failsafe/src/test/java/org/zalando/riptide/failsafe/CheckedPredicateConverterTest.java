@@ -18,5 +18,4 @@ class CheckedPredicateConverterTest {
         assertFalse(checkedPredicate.test(1));
         assertTrue(checkedPredicate.test(10));
     }
-
 }
