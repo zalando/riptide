@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import lombok.SneakyThrows;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.event.ExecutionAttemptedEvent;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -75,16 +75,18 @@ final class FailsafePluginRetryListenerTest {
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
+                            RetryPolicy.<ClientHttpResponse>builder()
                                     .withDelay(Duration.ofMillis(500))
                                     .withMaxRetries(4)
                                     .handle(Exception.class)
-                                    .handleResultIf(this::isBadGateway))
+                                    .handleResultIf(this::isBadGateway)
+                                    .build())
                             .withListener(listeners))
-                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                             .withFailureThreshold(3, 10)
                             .withSuccessThreshold(5)
-                            .withDelay(Duration.ofMinutes(1))))
+                            .withDelay(Duration.ofMinutes(1))
+                            .build()))
             .build();
 
     @SneakyThrows

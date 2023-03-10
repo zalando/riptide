@@ -4,7 +4,7 @@ import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.function.ContextualSupplier;
+import dev.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.TaskDecorator;
 
@@ -17,7 +17,7 @@ public final class TracedTaskDecorator implements TaskDecorator {
     private final Tracer tracer;
 
     @Override
-    public <T> ContextualSupplier<T> decorate(final ContextualSupplier<T> supplier) {
+    public <T, R> ContextualSupplier<T, R> decorate(final ContextualSupplier<T, R> supplier) {
         final Span span = tracer.activeSpan();
 
         return context -> {

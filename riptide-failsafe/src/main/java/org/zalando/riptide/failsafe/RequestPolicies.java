@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.Policy;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.Policy;
+import dev.failsafe.RetryPolicy;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;

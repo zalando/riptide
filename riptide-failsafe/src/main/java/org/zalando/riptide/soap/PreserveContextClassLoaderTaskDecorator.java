@@ -1,6 +1,6 @@
 package org.zalando.riptide.soap;
 
-import net.jodah.failsafe.function.ContextualSupplier;
+import dev.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.TaskDecorator;
 
@@ -13,7 +13,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 public final class PreserveContextClassLoaderTaskDecorator implements TaskDecorator {
 
     @Override
-    public <T> ContextualSupplier<T> decorate(final ContextualSupplier<T> supplier) {
+    public <T, R> ContextualSupplier<T, R> decorate(final ContextualSupplier<T, R> supplier) {
         final ClassLoader invokingThreadCL = Thread.currentThread().getContextClassLoader();
         return context -> {
             final ClassLoader originalCL = Thread.currentThread().getContextClassLoader();

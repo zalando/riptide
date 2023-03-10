@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
 import lombok.SneakyThrows;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -53,6 +53,7 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
+import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -86,23 +87,26 @@ final class FailsafePluginRetriesTest {
             })
             .plugin(new FailsafePlugin()
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
-                                    .handleIf(transientSocketFaults())
+                            RetryPolicy.<ClientHttpResponse>builder()
+                                    .handleIf(toCheckedPredicate(transientSocketFaults()))
                                     .handle(RetryException.class)
                                     .handleResultIf(this::isBadGateway)
                                     .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4))
+                                    .withMaxRetries(4)
+                                    .build())
                             .withPredicate(new IdempotencyPredicate()))
                     .withPolicy(new RetryRequestPolicy(
-                            new RetryPolicy<ClientHttpResponse>()
-                                    .handleIf(transientConnectionFaults())
+                            RetryPolicy.<ClientHttpResponse>builder()
+                                    .handleIf(toCheckedPredicate(transientConnectionFaults()))
                                     .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4))
+                                    .withMaxRetries(4)
+                                    .build())
                             .withPredicate(alwaysTrue()))
-                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                             .withFailureThreshold(5, 10)
                             .withSuccessThreshold(5)
-                            .withDelay(Duration.ofMinutes(1))))
+                            .withDelay(Duration.ofMinutes(1))
+                            .build()))
             .build();
 
     @SneakyThrows
@@ -166,9 +170,10 @@ final class FailsafePluginRetriesTest {
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin().withPolicy(
                         new RetryRequestPolicy(
-                                new RetryPolicy<ClientHttpResponse>()
+                                RetryPolicy.<ClientHttpResponse>builder()
                                         .withDelay(Duration.ofMillis(500))
-                                        .withMaxRetries(1))
+                                        .withMaxRetries(1)
+                                        .build())
                                 .withPredicate(arguments ->
                                         arguments.getHeaders().getOrDefault("Idempotent",
                                                 emptyList()).contains(

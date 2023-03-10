@@ -17,7 +17,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <failsafe.version>2.4.3</failsafe.version>
+        <failsafe.version>3.3.0</failsafe.version>
     </properties>
 
     <dependencies>
@@ -31,7 +31,7 @@
             <artifactId>riptide-idempotency</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.jodah</groupId>
+            <groupId>dev.failsafe</groupId>
             <artifactId>failsafe</artifactId>
             <version>${failsafe.version}</version>
         </dependency>

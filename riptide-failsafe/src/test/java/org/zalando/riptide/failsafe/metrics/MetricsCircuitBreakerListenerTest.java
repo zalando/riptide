@@ -3,7 +3,7 @@ package org.zalando.riptide.failsafe.metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.CircuitBreaker;
+import dev.failsafe.CircuitBreaker;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
@@ -25,10 +25,11 @@ final class MetricsCircuitBreakerListenerTest {
             .withMetricName("circuit-breakers")
             .withDefaultTags(Tag.of("test", "true"));
 
-    private final CircuitBreaker<ClientHttpResponse> breaker = new CircuitBreaker<ClientHttpResponse>()
-            .onOpen(unit::onOpen)
-            .onHalfOpen(unit::onHalfOpen)
-            .onClose(unit::onClose);
+    private final CircuitBreaker<ClientHttpResponse> breaker = CircuitBreaker.<ClientHttpResponse>builder()
+            .onOpen((event) -> unit.onOpen())
+            .onHalfOpen((event) -> unit.onHalfOpen())
+            .onClose((event) -> unit.onClose())
+            .build();
 
     @Test
     void shouldRecordOpen() {

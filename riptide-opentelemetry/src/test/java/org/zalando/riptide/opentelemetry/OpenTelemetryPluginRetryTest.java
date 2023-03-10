@@ -9,7 +9,7 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
@@ -55,9 +55,10 @@ public class OpenTelemetryPluginRetryTest {
                                   .baseUrl(driver.getBaseUrl())
                                   .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
                                   .plugin(new FailsafePlugin()
-                                                  .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                                                  .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                                                                       .withMaxRetries(2)
-                                                                      .handleResultIf(response -> true)))
+                                                                      .handleResultIf(response -> true)
+                                                          .build()))
                                   .build();
 
     @Test

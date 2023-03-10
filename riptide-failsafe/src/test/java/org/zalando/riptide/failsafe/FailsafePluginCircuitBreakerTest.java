@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.CircuitBreakerOpenException;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.CircuitBreakerOpenException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -52,8 +52,9 @@ final class FailsafePluginCircuitBreakerTest {
             .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin()
-                    .withPolicy(new CircuitBreaker<ClientHttpResponse>()
-                            .withDelay(Duration.ofSeconds(1)))
+                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
+                            .withDelay(Duration.ofSeconds(1))
+                            .build())
                     .withDecorator(composite(
                             TaskDecorator.identity(),
                             new PreserveContextClassLoaderTaskDecorator()
