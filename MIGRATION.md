@@ -1,8 +1,13 @@
 # Riptide 4.0 Migration Guide
 
+## Before you start
+
+**Riptide 4** requires java 17 or or up.
+**Riptide 4** requires Spring 6 or or up.
+
 ## Failsafe
 
-**Failsafe version was upgrade from 2.4.3 to 3.3.0**
+**Riptide now requires Failsafe 3.3.x**
 
 There are many breaking changes between Failsafe version 2.4.3 and version 3.3.0, 
 see [Failsafe CHANGELOG](https://github.com/failsafe-lib/failsafe/blob/master/CHANGELOG.md#330) for all details.    
@@ -14,6 +19,12 @@ Here are some of the breaking changes that can affect `riptide-failsafe` users:
 - All policies now use a builder API instead of constructors
 - `DelayFunction` interface has been removed, `ContextualSupplier` should be used instead since it provides access to the same information
 - `CircuitBreakerBuilder` `onOpen`, `onClose`, and `onHalfOpen` methods now accept an `EventListener<CircuitBreakerStateChangedEvent>` argument
+
+## Spring
+
+Since Spring 5, `AsyncRestTemplate` is deprecated in favor of `WebClient`.
+For that reason, we have removed `AsyncHttpOperations` from `riptide-compatibility` layer.
+
 
 # Riptide 3.0 Migration Guide
 

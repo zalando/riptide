@@ -45,7 +45,6 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
-import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
@@ -196,11 +195,6 @@ public class ManualConfiguration {
         @Bean
         public RestOperations exampleRestOperations(final Http http) {
             return new HttpOperations(http);
-        }
-
-        @Bean
-        public AsyncRestOperations exampleAsyncRestOperations(final Http http) {
-            return new AsyncHttpOperations(http);
         }
 
         @Bean
