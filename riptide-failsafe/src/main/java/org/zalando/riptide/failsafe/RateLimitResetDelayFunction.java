@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
+import dev.failsafe.function.ContextualSupplier;
 import lombok.extern.slf4j.Slf4j;
-import net.jodah.failsafe.ExecutionContext;
-import net.jodah.failsafe.function.DelayFunction;
+import dev.failsafe.ExecutionContext;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.HttpResponseException;
@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 /**
@@ -19,7 +20,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  */
 @API(status = EXPERIMENTAL)
 @Slf4j
-public final class RateLimitResetDelayFunction implements DelayFunction<ClientHttpResponse, Throwable> {
+public final class RateLimitResetDelayFunction implements ContextualSupplier<ClientHttpResponse, Duration> {
 
     private final DelayParser parser;
 
@@ -31,13 +32,14 @@ public final class RateLimitResetDelayFunction implements DelayFunction<ClientHt
     }
 
     @Override
-    public Duration computeDelay(final ClientHttpResponse result, final Throwable failure, final ExecutionContext context) {
-        return Optional.ofNullable(failure)
+    public Duration get(final ExecutionContext<ClientHttpResponse> context) {
+        return ofNullable(context)
+                .map(ExecutionContext::getLastException)
                 .filter(HttpResponseException.class::isInstance)
                 .map(HttpResponseException.class::cast)
                 .map(response -> response.getResponseHeaders().getFirst("X-RateLimit-Reset"))
                 .map(parser::parse)
-                .orElse(null);
+                .orElse(Duration.ofMinutes(-1));
     }
 
 }

@@ -2,19 +2,22 @@ package org.zalando.riptide.micrometer;
 
 import com.github.restdriver.clientdriver.ClientDriver;
 import com.github.restdriver.clientdriver.ClientDriverFactory;
+import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.zalando.fauxpas.ThrowingPredicate;
 import org.zalando.riptide.Http;
+import org.zalando.riptide.failsafe.CheckedPredicateConverter;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.micrometer.tag.StaticTagDecorator;
@@ -43,6 +46,7 @@ import static org.zalando.fauxpas.FauxPas.throwingPredicate;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
 
 final class MicrometerPluginTest {
 
@@ -68,10 +72,11 @@ final class MicrometerPluginTest {
                             new StaticTagDecorator(singleton(Tag.of("test", "true"))))
                     .withAdditionalTagGenerators(new RetryTagGenerator()))
             .plugin(new FailsafePlugin()
-                .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                         .handleIf(error -> false)
-                        .handleResultIf(throwingPredicate(response ->
-                                response.getStatusCode().is5xxServerError()))))
+                        .handleResultIf(toCheckedPredicate(throwingPredicate(response -> response.getStatusCode()
+                                .is5xxServerError())))
+                        .build()))
             .build();
 
     @Test

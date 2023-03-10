@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer.Sample;
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.CircuitBreaker.State;
+import dev.failsafe.CircuitBreaker.State;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
@@ -16,9 +16,9 @@ import static com.google.common.collect.Iterables.concat;
 import static io.micrometer.core.instrument.Timer.start;
 import static java.util.Collections.singleton;
 import static lombok.AccessLevel.PRIVATE;
-import static net.jodah.failsafe.CircuitBreaker.State.CLOSED;
-import static net.jodah.failsafe.CircuitBreaker.State.HALF_OPEN;
-import static net.jodah.failsafe.CircuitBreaker.State.OPEN;
+import static dev.failsafe.CircuitBreaker.State.CLOSED;
+import static dev.failsafe.CircuitBreaker.State.HALF_OPEN;
+import static dev.failsafe.CircuitBreaker.State.OPEN;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.apiguardian.api.API.Status.INTERNAL;
 

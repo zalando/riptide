@@ -11,7 +11,7 @@ and a circuit breaker to every remote call.
 ## Example
 
 ```java
-Http.builder()
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(circuitBreaker)
         .withPolicy(new RetryRequestPolicy(retryPolicy)))
@@ -45,21 +45,23 @@ Add the following dependency to your project:
 The failsafe plugin will not perform retries nor apply circuit breakers unless they were explicitly configured:
 
 ```java
-Http.builder()
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(
             new RetryRequestPolicy(
-                new RetryPolicy<ClientHttpResponse>()
-                   .withDelay(Duration.ofMillis(25))
-                   .withDelay(new RetryAfterDelayFunction(clock))
-                   .withMaxRetries(4))
+                RetryPolicy.<ClientHttpResponse>builder()
+                    .withDelay(Duration.ofMillis(25))
+                    .withDelayFn(new RetryAfterDelayFunction(clock))
+                    .withMaxRetries(4)
+                    .build())
                 .withListener(myRetryListener))
         .withPolicy(
-            new CircuitBreaker<ClientHttpResponse>()
+            CircuitBreaker.<ClientHttpResponse>builder()
                 .withFailureThreshold(3, 10)
                 .withSuccessThreshold(5)
-                .withDelay(Duration.ofMinutes(1)))
-    .build();
+                .withDelay(Duration.ofMinutes(1))
+                .build()))
+        .build();
 ```
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible configurations. 
@@ -70,9 +72,10 @@ Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme
 You'll need to register `RetryException` in order for the `retry()` route to work:
 
 ```java
-new RetryPolicy<ClientHttpResponse>()
+RetryPolicy.<ClientHttpResponse>builder()
     .handle(SocketTimeoutException.class)
-    .handle(RetryException.class);
+    .handle(RetryException.class)
+    .build();
 ```
 
 Failsafe supports dynamically computed delays using a custom function.
@@ -82,14 +85,15 @@ Riptide: Failsafe offers implementations that understand:
 - [`X-RateLimit-Reset` (RESTful API Guidelines)](https://opensource.zalando.com/restful-api-guidelines/#153)
 
 ```java
-Http.builder()
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
-        .withPolicy(new RetryPolicy<ClientHttpResponse>()
-            .withDelay(composite(
+        .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
+            .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
                 new RetryAfterDelayFunction(clock),
                 new RateLimitResetDelayFunction(clock)
-            ))
-            .withMaxDuration(Duration.ofSeconds(5))))
+            )))
+            .withMaxDuration(Duration.ofSeconds(5))
+            .build()))
     .build();
 ```
 
@@ -104,7 +108,7 @@ Failsafe and Spring Boot.
 The `BackupRequest` policy implements the [*backup request*][abstract] pattern, also known as [*hedged requests*][article]:
 
 ```java
-Http.builder()
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
     .plugin(new FailsafePlugin()
         .withPolicy(new BackupRequest(1, SECONDS)))
     .build();
@@ -165,9 +169,10 @@ http.post("/subscriptions/{id}/cursors", subscriptionId)
 In case those options are insufficient you may specify your own method detector:
 
 ```java
-Http.builder()
-    .plugin(new FailsafePlugin(ImmutableList.of(retryPolicy))
-        .withIdempontentMethodDetector(new CustomIdempotentMethodDetector()))
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
+    .plugin(new FailsafePlugin()
+        .withPolicy(retryPolicy)
+        .withDecorator(new CustomIdempotentMethodDetector()))
     .build();
 ```
 

@@ -6,7 +6,7 @@ import io.opentracing.Scope;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -51,9 +51,10 @@ final class OpenTracingPluginRetryTest {
             .baseUrl(driver.getBaseUrl())
             .plugin(unit)
             .plugin(new FailsafePlugin()
-                    .withPolicy(new RetryPolicy<ClientHttpResponse>()
+                    .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
                             .withMaxRetries(2)
-                            .handleResultIf(response -> true))
+                            .handleResultIf(response -> true)
+                            .build())
                     .withDecorator(new TracedTaskDecorator(tracer)))
             .build();
 

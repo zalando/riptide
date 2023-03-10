@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.gag.annotation.remark.Hack;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.http.client.ClientHttpResponse;
@@ -30,9 +30,10 @@ final class LoggingRetryListenerTest {
         final RequestArguments arguments = RequestArguments.create();
         final IllegalStateException exception = new IllegalStateException();
 
-        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+        Failsafe.with(RetryPolicy.<ClientHttpResponse>builder()
                 .withMaxRetries(3)
-                .onRetry(new RetryListenerAdapter(unit, arguments)))
+                .onRetry(new RetryListenerAdapter(unit, arguments))
+                        .build())
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;
@@ -48,10 +49,11 @@ final class LoggingRetryListenerTest {
 
         final RequestArguments arguments = RequestArguments.create();
 
-        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+        Failsafe.with(RetryPolicy.<ClientHttpResponse>builder()
                 .withMaxRetries(3)
                 .handleResultIf(Objects::isNull)
-                .onRetry(new RetryListenerAdapter(unit, arguments)))
+                .onRetry(new RetryListenerAdapter(unit, arguments))
+                        .build())
                 .get(() -> {
                     if (!success.getAndSet(true)) {
                         return null;

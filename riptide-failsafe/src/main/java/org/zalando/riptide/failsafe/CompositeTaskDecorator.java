@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
 import lombok.AllArgsConstructor;
-import net.jodah.failsafe.function.ContextualSupplier;
+import dev.failsafe.function.ContextualSupplier;
 
 import java.util.Collection;
 
@@ -11,8 +11,8 @@ final class CompositeTaskDecorator implements TaskDecorator {
     private final Collection<TaskDecorator> decorators;
 
     @Override
-    public <T> ContextualSupplier<T> decorate(final ContextualSupplier<T> supplier) {
-        ContextualSupplier<T> result = supplier;
+    public <T, R> ContextualSupplier<T, R> decorate(final ContextualSupplier<T, R> supplier) {
+        ContextualSupplier<T, R> result = supplier;
         for (final TaskDecorator decorator : decorators) {
             result = decorator.decorate(result);
         }
