@@ -2,20 +2,23 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.restdriver.clientdriver.ClientDriver;
+import com.github.restdriver.clientdriver.ClientDriverFactory;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
 
 import javax.annotation.Nullable;
@@ -25,20 +28,20 @@ import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
+import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
+import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.zalando.riptide.Attributes.RETRIES;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
@@ -54,12 +57,20 @@ import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 final class HttpMockTestOkHttp {
 
-    private final MockSetup mockSetup = new MockSetup();
-    private final MockRestServiceServer server = mockSetup.getServer();
-    
+    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+
+    private final CloseableHttpClient client = HttpClientBuilder.create()
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setSocketTimeout(500)
+                    .build())
+            .build();
+
     private final AtomicInteger attempt = new AtomicInteger();
 
-    private final Http unit = mockSetup.getRestBuilder(newFixedThreadPool(2)) // to allow for nested calls
+    private final Http unit = Http.builder()
+            .executor(newFixedThreadPool(2)) // to allow for nested calls
+            .requestFactory(new ApacheClientHttpRequestFactory(client))
+            .baseUrl(driver.getBaseUrl())
             .converter(createJsonConverter())
             .plugin(new Plugin() {
                 @Override
@@ -101,24 +112,15 @@ final class HttpMockTestOkHttp {
 
     @AfterEach
     void tearDown() throws IOException {
-        try {
-            server.verify();
-        } finally {
-            server.reset();
-        }
+        driver.verify();
+        client.close();
     }
 
     @SneakyThrows
     @Test
     void shouldRetrySuccessfully() {
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/foo")).andRespond((r) ->
-        {
-            // no way to pass own request factory, see MockRestServiceServer 290,
-            // so we need to throw SocketTimeoutException explicitly
-            throw new SocketTimeoutException();
-        });
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/foo"))
-                .andRespond(withSuccess(getResource("contributors.json").openStream().readAllBytes(), MediaType.APPLICATION_JSON));
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
+        driver.addExpectation(onRequestTo("/foo"), giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
 
         unit.get("/foo")
                 .call(pass())
@@ -129,11 +131,7 @@ final class HttpMockTestOkHttp {
     @Test
     void shouldRetryUnsuccessfully() {
         range(0, 5).forEach(i ->
-                server.expect(requestTo(mockSetup.getBaseUrl() + "/bar")).andRespond((r) ->
-                {
-                    throw new SocketTimeoutException();
-                })
-        );
+                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.get("/bar").call(pass())::join);
@@ -143,11 +141,8 @@ final class HttpMockTestOkHttp {
 
     @Test
     void shouldRetryExplicitly() {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set("X-RateLimit-Reset", "1523486068");
-
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/baz")).andRespond(withStatus(SERVICE_UNAVAILABLE).headers(httpHeaders));
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/baz")).andRespond(withStatus(NO_CONTENT));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503).withHeader("X-RateLimit-Reset", "1523486068"));
+        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
 
         unit.get("/baz")
                 .dispatch(series(),
@@ -159,8 +154,8 @@ final class HttpMockTestOkHttp {
 
     @Test
     void shouldAllowNestedCalls() {
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/foo")).andRespond(withStatus(NO_CONTENT));
-        server.expect(requestTo(mockSetup.getBaseUrl() + "/bar")).andRespond(withStatus(NO_CONTENT));
+        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
+        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
 
         assertTimeout(Duration.ofSeconds(1),
                 unit.get("/foo")
