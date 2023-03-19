@@ -1,6 +1,8 @@
 package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -11,6 +13,7 @@ import org.zalando.riptide.Http;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -27,7 +30,7 @@ final class MockSetup {
         return converter;
     }
 
-
+    @Getter
     private final String baseUrl;
     private final Iterable<HttpMessageConverter<?>> converters;
     private final RestTemplate template;
@@ -41,7 +44,8 @@ final class MockSetup {
         this(baseUrl, null);
     }
 
-    private MockSetup(@Nullable final String baseUrl, @Nullable final Iterable<HttpMessageConverter<?>> converters) {
+    private MockSetup(@Nullable final String baseUrl,
+                      @Nullable final Iterable<HttpMessageConverter<?>> converters) {
         this.baseUrl = baseUrl;
         this.converters = converters;
         this.template = new RestTemplate();
@@ -52,15 +56,15 @@ final class MockSetup {
         return server;
     }
 
-    private Http.ConfigurationStage getRestBuilder() {
+    public Http.ConfigurationStage getRestBuilder(ExecutorService executorService) {
         return Http.builder()
-                .executor(Executors.newSingleThreadExecutor())
+                .executor(executorService)
                 .requestFactory(template.getRequestFactory())
                 .converters(firstNonNull(converters, DEFAULT_CONVERTERS))
                 .baseUrl(baseUrl);
     }
     public Http getRest() {
-        return getRestBuilder().build();
+        return getRestBuilder(Executors.newSingleThreadExecutor()).build();
     }
 
 }
