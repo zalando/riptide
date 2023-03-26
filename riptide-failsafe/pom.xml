@@ -47,6 +47,12 @@
         <dependency>
             <groupId>com.github.rest-driver</groupId>
             <artifactId>rest-client-driver</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>xmlunit</groupId>
+                    <artifactId>xmlunit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -62,6 +68,14 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
             <version>4.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!--TODO: Provides transitive vulnerable dependency maven:commons-fileupload:commons-fileupload:1.4
+CVE-2023-24998 7.5 Allocation of Resources Without Limits or Throttling vulnerability with medium severity found-->
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>3.0.0-beta-2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
