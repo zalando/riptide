@@ -121,8 +121,10 @@ final class HttpMockTestOkHttp {
     @SneakyThrows
     @Test
     void shouldRetrySuccessfully() {
-        //throttleBody to emulate timeout, doesn't work without body
-        server.enqueue(new MockResponse().setResponseCode(200).setBody("Hello").throttleBody(4, 800, MILLISECONDS) );
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("Hello")
+                .setBodyDelay(800, MILLISECONDS)
+        );
+
         server.enqueue(new MockResponse().setResponseCode(200)
                 .setBody(IOUtils.toString(getResource("contributors.json").openStream()))
                 .setHeader("Content-Type","application/json" ));
