@@ -2,8 +2,12 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Request;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.matching.MatchResult;
+import com.github.tomakehurst.wiremock.matching.RequestMatcher;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
@@ -28,25 +32,26 @@ import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.status;
+import static com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.newRequestPattern;
 import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Attributes.RETRIES;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
-import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
@@ -55,9 +60,8 @@ import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
 import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
+@WireMockTest
 final class HttpMockTestWireMock {
-
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -67,43 +71,66 @@ final class HttpMockTestWireMock {
 
     private final AtomicInteger attempt = new AtomicInteger();
 
-    private final Http unit = Http.builder()
-            .executor(newFixedThreadPool(2)) // to allow for nested calls
-            .requestFactory(new ApacheClientHttpRequestFactory(client))
-            .baseUrl(driver.getBaseUrl())
-            .converter(createJsonConverter())
-            .plugin(new Plugin() {
-                @Override
-                public RequestExecution aroundNetwork(final RequestExecution execution) {
-                    return arguments -> {
-                        arguments.getAttribute(RETRIES).ifPresent(attempt::set);
-                        return execution.execute(arguments);
-                    };
-                }
-            })
-            .plugin(new FailsafePlugin()
-                    .withPolicy(new RetryRequestPolicy(
-                            RetryPolicy.<ClientHttpResponse>builder()
-                                    .handleIf(toCheckedPredicate(transientSocketFaults()))
-                                    .handle(RetryException.class)
-                                    .handleResultIf(this::isBadGateway)
-                                    .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4)
-                                    .build())
-                            .withPredicate(new IdempotencyPredicate()))
-                    .withPolicy(new RetryRequestPolicy(
-                            RetryPolicy.<ClientHttpResponse>builder()
-                                    .handleIf(toCheckedPredicate(transientConnectionFaults()))
-                                    .withDelay(Duration.ofMillis(500))
-                                    .withMaxRetries(4)
-                                    .build())
-                            .withPredicate(alwaysTrue()))
-                    .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
-                            .withFailureThreshold(5, 10)
-                            .withSuccessThreshold(5)
-                            .withDelay(Duration.ofMinutes(1))
-                            .build()))
-            .build();
+    private Http buildHttp(WireMockRuntimeInfo wmRuntimeInfo) {
+        return Http.builder()
+                .executor(newFixedThreadPool(2)) // to allow for nested calls
+                .requestFactory(new ApacheClientHttpRequestFactory(client))
+                .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+                .converter(createJsonConverter())
+                .plugin(new Plugin() {
+                    @Override
+                    public RequestExecution aroundNetwork(final RequestExecution execution) {
+                        return arguments -> {
+                            arguments.getAttribute(RETRIES).ifPresent(attempt::set);
+                            return execution.execute(arguments);
+                        };
+                    }
+                })
+                .plugin(new FailsafePlugin()
+                        .withPolicy(new RetryRequestPolicy(
+                                RetryPolicy.<ClientHttpResponse>builder()
+                                        .handleIf(toCheckedPredicate(transientSocketFaults()))
+                                        .handle(RetryException.class)
+                                        .handleResultIf(this::isBadGateway)
+                                        .withDelay(Duration.ofMillis(500))
+                                        .withMaxRetries(4)
+                                        .build())
+                                .withPredicate(new IdempotencyPredicate()))
+                        .withPolicy(new RetryRequestPolicy(
+                                RetryPolicy.<ClientHttpResponse>builder()
+                                        .handleIf(toCheckedPredicate(transientConnectionFaults()))
+                                        .withDelay(Duration.ofMillis(500))
+                                        .withMaxRetries(4)
+                                        .build())
+                                .withPredicate(alwaysTrue()))
+                        .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
+                                .withFailureThreshold(5, 10)
+                                .withSuccessThreshold(5)
+                                .withDelay(Duration.ofMinutes(1))
+                                .build()))
+                .build();
+    }
+
+    private final class RequestNumberMatcher extends RequestMatcher {
+
+        private AtomicInteger sharedRetriesCount;
+        private int targetNumber;
+
+        public RequestNumberMatcher(AtomicInteger sharedRetriesCount, int targetNumber) {
+            this.sharedRetriesCount = sharedRetriesCount;
+            this.targetNumber = targetNumber;
+        }
+
+        @Override
+        public String getName() {
+            return "request_" + targetNumber;
+        }
+
+        @Override
+        public MatchResult match(Request value) {
+            return sharedRetriesCount.compareAndSet(targetNumber - 1, targetNumber) ? MatchResult.exactMatch() : MatchResult.noMatch();
+        }
+    }
 
     @SneakyThrows
     private boolean isBadGateway(@Nullable final ClientHttpResponse response) {
@@ -112,54 +139,98 @@ final class HttpMockTestWireMock {
 
     @AfterEach
     void tearDown() throws IOException {
-        driver.verify();
         client.close();
     }
 
     @SneakyThrows
     @Test
-    void shouldRetrySuccessfully() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+    void shouldRetrySuccessfully(WireMockRuntimeInfo wmRuntimeInfo) {
+        var unit = buildHttp(wmRuntimeInfo);
+        AtomicInteger sharedRetriesCount = new AtomicInteger();
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+
+        wireMock.register(get("/foo")
+                .andMatching(new RequestNumberMatcher(sharedRetriesCount, 1))
+                .willReturn(status(NO_CONTENT.value())
+                        .withFixedDelay(800))
+        );
+
+        wireMock.register(get("/foo")
+                .andMatching(new RequestNumberMatcher(sharedRetriesCount, 2))
+                .willReturn(ok()
+                        .withBody(getResource("contributors.json").openStream().readAllBytes())
+                        .withHeader("Content-Type", "application/json"))
+        );
+
 
         unit.get("/foo")
                 .call(pass())
                 .join();
+
+        assertThat(wireMock.findAllUnmatchedRequests(), empty());
+        assertEquals(2, wireMock.find(newRequestPattern().withUrl("/foo")).size());
     }
 
 
     @Test
-    void shouldRetryUnsuccessfully() {
-        range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
+    void shouldRetryUnsuccessfully(WireMockRuntimeInfo wmRuntimeInfo) {
+        var unit = buildHttp(wmRuntimeInfo);
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+
+        wireMock.register(get("/bar")
+                .willReturn(status(NO_CONTENT.value()).withFixedDelay(800)));
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.get("/bar").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
+        assertThat(wireMock.findAllUnmatchedRequests(), empty());
+        assertEquals(5, wireMock.find(newRequestPattern().withUrl("/bar")).size());
     }
 
     @Test
-    void shouldRetryExplicitly() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503).withHeader("X-RateLimit-Reset", "1523486068"));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+    void shouldRetryExplicitly(WireMockRuntimeInfo wmRuntimeInfo) {
+        var unit = buildHttp(wmRuntimeInfo);
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+        AtomicInteger sharedRetriesCount = new AtomicInteger();
+
+        wireMock.register(get("/baz")
+                .andMatching(new RequestNumberMatcher(sharedRetriesCount, 1))
+                .willReturn(status(503)
+                        .withHeader("X-RateLimit-Reset", "1523486068")
+        ));
+
+        wireMock.register(get("/baz")
+                .andMatching(new RequestNumberMatcher(sharedRetriesCount, 2))
+                .willReturn(status(NO_CONTENT.value()))
+        );
 
         unit.get("/baz")
                 .dispatch(series(),
                         on(SUCCESSFUL).call(pass()),
-                        anySeries().dispatch(status(),
+                        anySeries().dispatch(org.zalando.riptide.Navigators.status(),
                                 on(SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+
+        assertThat(wireMock.findAllUnmatchedRequests(), empty());
+        assertEquals(2, wireMock.find(newRequestPattern().withUrl("/baz")).size());
     }
 
     @Test
-    void shouldAllowNestedCalls() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+    void shouldAllowNestedCalls(WireMockRuntimeInfo wmRuntimeInfo) {
+        var unit = buildHttp(wmRuntimeInfo);
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+
+        wireMock.register(get("/foo").willReturn(status(NO_CONTENT.value())));
+        wireMock.register(get("/bar").willReturn(status(NO_CONTENT.value())));
 
         assertTimeout(Duration.ofSeconds(1),
                 unit.get("/foo")
                         .call(call(() -> unit.get("/bar").call(pass()).join()))::join);
+
+        assertThat(wireMock.findAllUnmatchedRequests(), empty());
+        assertEquals(1, wireMock.find(newRequestPattern().withUrl("/foo")).size());
+        assertEquals(1, wireMock.find(newRequestPattern().withUrl("/bar")).size());
     }
 
 
