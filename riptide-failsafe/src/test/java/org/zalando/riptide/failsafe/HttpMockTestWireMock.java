@@ -111,6 +111,7 @@ final class HttpMockTestWireMock {
                 .build();
     }
 
+    // workaround to process differently several invocations of the same request
     private final class RequestNumberMatcher extends RequestMatcher {
 
         private AtomicInteger sharedRetriesCount;
