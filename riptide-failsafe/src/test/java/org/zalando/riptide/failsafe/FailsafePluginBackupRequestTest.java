@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableMap;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
@@ -16,23 +16,24 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 
 final class FailsafePluginBackupRequestTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final Executor executor = newFixedThreadPool(2);
@@ -41,21 +42,19 @@ final class FailsafePluginBackupRequestTest {
     private final Http unit = Http.builder()
             .executor(executor)
             .requestFactory(factory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .plugin(new FailsafePlugin()
                 .withPolicy(new BackupRequest<>(1, SECONDS)))
             .build();
 
     @AfterEach
     void tearDown() throws IOException {
-        driver.verify();
         client.close();
     }
 
     @Test
     void shouldNotSendBackupRequestIfFastEnough() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-
+        server.enqueue(emptyMockResponse());
         unit.get("/foo")
                 .call(pass())
                 .join();
@@ -63,28 +62,33 @@ final class FailsafePluginBackupRequestTest {
 
     @Test
     void shouldUseBackupRequest() throws Throwable {
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.get("/bar")
                 .call(pass())
                 .get(1500, TimeUnit.MILLISECONDS);
+
+        verify(server, 2, "/bar");
     }
 
     @Test
     void shouldUseOriginalRequest() throws Throwable {
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(3, SECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(3, SECONDS));
+
 
         unit.get("/bar")
                 .call(pass())
                 .get(3, SECONDS);
+
+        verify(server, 2, "/bar");
     }
 
     @Test
     void shouldUseFailedBackupRequest() {
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().withStatus(503));
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
 
         final CompletionException exception = assertThrows(CompletionException.class, () ->
                 unit.get("/bar")
@@ -96,27 +100,33 @@ final class FailsafePluginBackupRequestTest {
                         .join());
 
         assertEquals(IllegalStateException.class, exception.getCause().getClass());
+
+        verify(server, 2, "/bar");
     }
 
     @Test
     void shouldNotSendBackupRequestForNonIdempotentRequests() {
-        driver.addExpectation(onRequestTo("/baz").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
 
         unit.post("/baz")
                 .call(pass())
                 .join();
+
+        verify(server, 1, "/baz");
     }
 
     @Test
     void shouldSendBackupRequestsForGetWithBody() {
-        driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse().after(2, SECONDS));
-        driver.addExpectation(onRequestTo("/bar").withMethod(POST), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.post("/bar")
                 .header("X-HTTP-Method-Override", "GET")
                 .body(ImmutableMap.of())
                 .call(pass())
                 .join();
+
+        verify(server, 2, "/bar");
     }
 
     @Test
@@ -124,20 +134,22 @@ final class FailsafePluginBackupRequestTest {
         final Http unit = Http.builder()
                 .executor(executor)
                 .requestFactory(factory)
-                .baseUrl(driver.getBaseUrl())
+                .baseUrl(getBaseUrl(server))
                 .plugin(new FailsafePlugin()
                     .withPolicy(new BackupRequest<>(1, SECONDS), arguments ->
                         arguments.getHeaders()
                                 .getOrDefault("Allow-Backup-Request", emptyList()).contains("true")))
                 .build();
 
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(2, SECONDS));
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.get("/bar")
                 .header("Allow-Backup-Request", "true")
                 .call(pass())
                 .get(1500, TimeUnit.MILLISECONDS);
+
+        verify(server, 2, "/bar");
     }
 
 }

@@ -2,11 +2,13 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import lombok.SneakyThrows;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -30,9 +32,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -54,6 +53,9 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -61,7 +63,7 @@ import static org.zalando.riptide.faults.TransientFaults.transientSocketFaults;
 
 final class FailsafePluginRetriesTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -74,7 +76,7 @@ final class FailsafePluginRetriesTest {
     private final Http unit = Http.builder()
             .executor(newFixedThreadPool(2)) // to allow for nested calls
             .requestFactory(new ApacheClientHttpRequestFactory(client))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
             .plugin(new Plugin() {
                 @Override
@@ -127,29 +129,30 @@ final class FailsafePluginRetriesTest {
 
     @AfterEach
     void tearDown() throws IOException {
-        driver.verify();
         client.close();
     }
 
     @Test
     void shouldRetrySuccessfully() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.get("/foo")
                 .call(pass())
                 .join();
+
+        verify(server, 2, "/foo");
     }
 
     @Test
     void wontRetrySocketFaultForNonIdempotentMethod() {
-        driver.addExpectation(onRequestTo("/foo").withMethod(POST),
-                giveEmptyResponse().after(800, MILLISECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.post("/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
+        verify(server, 1, "/foo");
     }
 
     @Test
@@ -159,6 +162,8 @@ final class FailsafePluginRetriesTest {
 
         assertThat(exception.getCause(), is(instanceOf(UnknownHostException.class)));
         assertEquals(4, attempt.get());
+
+        verify(server, 0, "");
     }
 
     @Test
@@ -166,7 +171,7 @@ final class FailsafePluginRetriesTest {
         final Http unit = Http.builder()
                 .executor(newCachedThreadPool())
                 .requestFactory(new ApacheClientHttpRequestFactory(client))
-                .baseUrl(driver.getBaseUrl())
+                .baseUrl(getBaseUrl(server))
                 .converter(createJsonConverter())
                 .plugin(new FailsafePlugin().withPolicy(
                         new RetryRequestPolicy(
@@ -180,30 +185,34 @@ final class FailsafePluginRetriesTest {
                                                 "true"))))
                 .build();
 
-        driver.addExpectation(onRequestTo("/foo").withMethod(POST), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo").withMethod(POST), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.post("/foo")
                 .header("Idempotent", "true")
                 .call(pass())
                 .join();
+
+        verify(server, 2, "/foo");
     }
 
     @Test
     void shouldRetryUnsuccessfully() {
         range(0, 5).forEach(i ->
-                driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse().after(800, MILLISECONDS)));
+                server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS))
+        );
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.get("/bar").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
+        verify(server, 5, "/bar");
     }
 
     @Test
     void shouldRetryExplicitly() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(emptyMockResponse());
 
         unit.get("/baz")
                 .dispatch(series(),
@@ -211,16 +220,33 @@ final class FailsafePluginRetriesTest {
                         anySeries().dispatch(status(),
                                 on(SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+        verify(server, 2, "/baz");
     }
 
     @Test
     void shouldAllowNestedCalls() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
-        driver.addExpectation(onRequestTo("/bar"), giveEmptyResponse());
+        final Dispatcher dispatcher = new Dispatcher() {
+
+            @Override
+            public MockResponse dispatch (RecordedRequest request) throws InterruptedException {
+
+                //not needed here, just to demonstrate dispatch logic
+                switch (request.getPath()) {
+                    case "/foo":
+                        return emptyMockResponse();
+                    case "/bar":
+                        return emptyMockResponse();
+                }
+                return new MockResponse().setResponseCode(404);
+            }
+        };
+        server.setDispatcher(dispatcher);
 
         assertTimeout(Duration.ofSeconds(1),
                 unit.get("/foo")
                         .call(call(() -> unit.get("/bar").call(pass()).join()))::join);
+        verify(server, "/foo", "/bar");
+
     }
 
 }
