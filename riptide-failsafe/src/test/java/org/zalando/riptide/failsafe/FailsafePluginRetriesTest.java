@@ -228,9 +228,8 @@ final class FailsafePluginRetriesTest {
         final Dispatcher dispatcher = new Dispatcher() {
 
             @Override
-            public MockResponse dispatch (RecordedRequest request) throws InterruptedException {
+            public MockResponse dispatch (RecordedRequest request) {
 
-                //not needed here, just to demonstrate dispatch logic
                 switch (request.getPath()) {
                     case "/foo":
                         return emptyMockResponse();
