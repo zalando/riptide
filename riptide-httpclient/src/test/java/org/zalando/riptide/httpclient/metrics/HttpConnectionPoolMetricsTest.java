@@ -1,11 +1,10 @@
 package org.zalando.riptide.httpclient.metrics;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -19,15 +18,15 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Route.call;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
 
 final class HttpConnectionPoolMetricsTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 
@@ -40,7 +39,7 @@ final class HttpConnectionPoolMetricsTest {
     private final Http http = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .build();
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
@@ -57,7 +56,8 @@ final class HttpConnectionPoolMetricsTest {
                 .withDefaultTags(Tag.of("version", "1"))
                 .bindTo(registry);
 
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse());
+        server.enqueue(emptyMockResponse());
+
 
         http.get("/").call(call(ClientHttpResponse::close)).join();
 
