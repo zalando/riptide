@@ -1,11 +1,13 @@
-package org.zalando.riptide.httpclient;
+package org.zalando.riptide.opentracing;
 
+import okhttp3.Headers;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -24,18 +26,25 @@ public class MockWebServerUtil {
     }
 
     public static void verify(MockWebServer server,
-                               int expectedRequestsCount,
-                               String expectedPath) {
-
+                              int expectedRequestsCount,
+                              String expectedPath,
+                              Consumer<Headers> headersVerifier) {
         assertEquals(expectedRequestsCount, server.getRequestCount());
         range(0, expectedRequestsCount).forEach(i -> {
             try {
                 RecordedRequest recordedRequest = server.takeRequest(5, TimeUnit.SECONDS);
                 assertEquals(expectedPath, recordedRequest.getPath());
+                headersVerifier.accept(recordedRequest.getHeaders());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public static void verify(MockWebServer server,
+                               int expectedRequestsCount,
+                               String expectedPath) {
+        verify(server, expectedRequestsCount, expectedPath, headers -> {});
     }
 
     public static void verify(MockWebServer server, String... expectedPaths) {

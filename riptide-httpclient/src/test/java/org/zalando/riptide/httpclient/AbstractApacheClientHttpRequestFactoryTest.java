@@ -62,6 +62,7 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.readResourceAsString;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 public abstract class AbstractApacheClientHttpRequestFactoryTest {
@@ -98,7 +99,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @Test
     void shouldReadContributors() throws IOException {
         server.enqueue(new MockResponse()
-                .setBody(readContributions())
+                .setBody(readResourceAsString("contributors.json"))
                 .setHeader("Content-Type","application/json"));
 
         final RestTemplate template = new RestTemplate(factory);
@@ -120,7 +121,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @Test
     void shouldReadContributorsAsync() throws IOException {
         server.enqueue(new MockResponse()
-                .setBody(readContributions())
+                .setBody(readResourceAsString("contributors.json"))
                 .setHeader("Content-Type","application/json"));
 
         final Capture<List<User>> capture = Capture.empty();
@@ -141,7 +142,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @Test
     void shouldReadContributorsManually() throws IOException {
         server.enqueue(new MockResponse()
-                .setBody(readContributions())
+                .setBody(readResourceAsString("contributors.json"))
                 .setHeader("Content-Type","application/json"));
 
         final URI uri = URI.create(getBaseUrl(server)).resolve("/repos/zalando/riptide/contributors");
@@ -216,12 +217,6 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @Test
     void shouldDestroyNonCloseableClient() throws IOException {
         new ApacheClientHttpRequestFactory(mock(HttpClient.class), getMode()).destroy();
-    }
-
-    private static String readContributions() throws IOException {
-        try ( var inputStream = getResource("contributors.json").openStream();) {
-            return new String(inputStream.readAllBytes(), UTF_8);
-        }
     }
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)

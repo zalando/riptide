@@ -2,8 +2,8 @@ package org.zalando.riptide.stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -20,28 +20,28 @@ import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.io.Resources.getResource;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.stream.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.stream.MockWebServerUtil.readResourceAsString;
+import static org.zalando.riptide.stream.MockWebServerUtil.verify;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
 
 final class StreamIOTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
     static class User {
@@ -57,7 +57,7 @@ final class StreamIOTest {
     private final Http http = Http.builder()
             .executor(executor)
             .requestFactory(new SimpleClientHttpRequestFactory())
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(streamConverter(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES),
                     singletonList(APPLICATION_JSON)))
             .build();
@@ -69,8 +69,9 @@ final class StreamIOTest {
 
     @Test
     void shouldReadContributors() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(new MockResponse()
+                .setBody(readResourceAsString("contributors.json"))
+                .setHeader("Content-Type","application/json"));
 
         final AtomicReference<Stream<User>> reference = new AtomicReference<>();
 
@@ -83,12 +84,14 @@ final class StreamIOTest {
                 .collect(toList());
 
         assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        verify(server, 1, "/repos/zalando/riptide/contributors");
     }
 
     @Test
     void shouldCancelRequest() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(new MockResponse()
+                .setBody(readResourceAsString("contributors.json"))
+                .setHeader("Content-Type","application/json"));
 
         final CompletableFuture<ClientHttpResponse> future = http.get("/repos/{org}/{repo}/contributors", "zalando",
                 "riptide")
@@ -98,16 +101,20 @@ final class StreamIOTest {
         future.cancel(true);
 
         assertThrows(CancellationException.class, future::join);
+        verify(server, 0, "");
     }
 
     @Test
     void shouldReadEmptyResponse() {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
+
 
         http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
                         on("OK").call(ClientHttpResponse::close)).join();
+
+        verify(server, 1, "/repos/zalando/riptide/contributors");
+
     }
 
 }

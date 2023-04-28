@@ -1,14 +1,11 @@
-package org.zalando.riptide.httpclient;
+package org.zalando.riptide.micrometer;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.io.Resources.getResource;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.IntStream.range;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -48,12 +45,6 @@ public class MockWebServerUtil {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    public static String readResourceAsString(String resourceName) throws IOException {
-        try ( var inputStream = getResource(resourceName).openStream()) {
-            return new String(inputStream.readAllBytes(), UTF_8);
         }
     }
 }

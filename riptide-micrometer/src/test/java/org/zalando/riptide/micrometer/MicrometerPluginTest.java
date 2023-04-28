@@ -1,23 +1,20 @@
 package org.zalando.riptide.micrometer;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import dev.failsafe.function.CheckedPredicate;
+import dev.failsafe.RetryPolicy;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import dev.failsafe.RetryPolicy;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.fauxpas.ThrowingPredicate;
 import org.zalando.riptide.Http;
-import org.zalando.riptide.failsafe.CheckedPredicateConverter;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.micrometer.tag.RetryTagGenerator;
 import org.zalando.riptide.micrometer.tag.StaticTagDecorator;
@@ -28,9 +25,6 @@ import java.net.URI;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.singleton;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -41,16 +35,20 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.fauxpas.FauxPas.throwingPredicate;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
+import static org.zalando.riptide.micrometer.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.micrometer.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.micrometer.MockWebServerUtil.verify;
 
 final class MicrometerPluginTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
             HttpClientBuilder.create()
@@ -64,7 +62,7 @@ final class MicrometerPluginTest {
     private final Http unit = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .plugin(new MicrometerPlugin(registry)
                     .withMetricName("http.outgoing-requests")
                     .withDefaultTags(Tag.of("client", "example"))
@@ -81,8 +79,8 @@ final class MicrometerPluginTest {
 
     @Test
     void shouldRecordSuccessResponseMetric() {
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
+
 
         unit.get("/foo")
                 .call(pass())
@@ -99,14 +97,15 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+
+        verify(server, 1, "/foo");
+
     }
 
     @Test
     void shouldRecordRetryNumberMetricTag() {
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().withStatus(500));
-        driver.addExpectation(onRequestTo("/foo"),
-                giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(500));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
 
         unit.get("/foo")
                 .call(pass())
@@ -137,12 +136,13 @@ final class MicrometerPluginTest {
             assertThat(timer.getId().getTag("retry_number"), is("1"));
             assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
         }
+
+        verify(server, 2, "/foo");
     }
 
     @Test
     void shouldRecordErrorResponseMetric() {
-        driver.addExpectation(onRequestTo("/bar").withMethod(POST),
-                giveEmptyResponse().withStatus(503));
+        server.enqueue(new MockResponse().setResponseCode(503));
 
         unit.post(URI.create("/bar"))
                 .dispatch(series(),
@@ -161,12 +161,13 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
+
+        verify(server, 1, "/bar");
     }
 
     @Test
     void shouldNotRecordFailureMetric() {
-        driver.addExpectation(onRequestTo("/err"),
-                giveEmptyResponse().after(750, MILLISECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(750, MILLISECONDS));
 
         final CompletionException exception = assertThrows(CompletionException.class,
                 unit.get("/err").call(pass())::join);
@@ -183,6 +184,8 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("error.kind"), is("SocketTimeoutException"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
+
+        verify(server, 1, "/err");
     }
 
     private Search search() {

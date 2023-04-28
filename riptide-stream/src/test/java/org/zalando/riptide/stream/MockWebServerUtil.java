@@ -1,4 +1,4 @@
-package org.zalando.riptide.httpclient;
+package org.zalando.riptide.stream;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

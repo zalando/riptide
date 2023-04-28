@@ -1,12 +1,12 @@
 package org.zalando.riptide.opentracing;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.opentracing.Scope;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
@@ -19,16 +19,13 @@ import org.zalando.riptide.opentracing.span.ErrorMessageSpanDecorator;
 import org.zalando.riptide.opentracing.span.StaticSpanDecorator;
 import org.zalando.riptide.opentracing.span.UriVariablesTagSpanDecorator;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -40,14 +37,19 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.verify;
 
 final class OpenTracingPluginTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
     private final MockTracer tracer = new MockTracer();
 
     private final Http unit = Http.builder()
@@ -57,7 +59,7 @@ final class OpenTracingPluginTest {
                             .setSocketTimeout(500)
                             .build())
                     .build()))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .plugin(new OpenTracingPlugin(tracer)
                     .withAdditionalSpanDecorators(
                             new ErrorMessageSpanDecorator(),
@@ -67,13 +69,11 @@ final class OpenTracingPluginTest {
 
     @Test
     void shouldTraceRequestAndResponse() {
-        driver.addExpectation(onRequestTo("/users/me")
-                        .withMethod(POST)
-                        .withHeader("traceid", notNullValue(String.class))
-                        .withHeader("spanid", notNullValue(String.class)),
-                giveResponse("Hello, world!", "text/plain")
-                        .withStatus(200)
-                        .withHeader("Retry-After", "60"));
+        server.enqueue(new MockResponse().setBody("Hello world!")
+                .setResponseCode(OK.value())
+                .setHeader("Content-Type","text/plain")
+                .setHeader("Retry-After", "60"));
+
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
@@ -99,9 +99,9 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "POST"));
         assertThat(child.tags(), hasEntry("http.method_override", "GET"));
         assertThat(child.tags(), hasEntry("http.path", "/users/{user}"));
@@ -127,16 +127,21 @@ final class OpenTracingPluginTest {
             final LogEntry log = entries.get(1);
             assertThat(log.fields(), hasEntry("http.retry_after", "60"));
         }
+
+        verify(server, 1, "/users/me", headers -> {
+            assertNotNull(headers.get("traceid"));
+            assertNotNull(headers.get("spanid"));
+        });
     }
 
     @Test
     void shouldTraceRequestAndServerError() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(500));
+        server.enqueue(new MockResponse().setResponseCode(500));
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
         try (final Scope ignored = tracer.activateSpan(parent)) {
-            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(driver.getBaseUrl()))
+            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(getBaseUrl(server)))
                     .attribute(OpenTracingPlugin.TAGS, singletonMap("test", "true"))
                     .attribute(OpenTracingPlugin.LOGS, singletonMap("retry_number", 2))
                     .call(noRoute());
@@ -157,9 +162,9 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 500));
         assertThat(child.tags(), hasEntry("error", true));
@@ -174,16 +179,19 @@ final class OpenTracingPluginTest {
         assertThat(logs, hasSize(1));
         final LogEntry log = logs.get(0);
         assertThat(log.fields(), hasEntry("retry_number", 2));
+
+        verify(server, 1, "/");
     }
 
     @Test
     void shouldTraceRequestAndNetworkError() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().after(1, SECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(1, SECONDS));
+
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
         try (final Scope ignored = tracer.activateSpan(parent)) {
-            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(driver.getBaseUrl()))
+            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(getBaseUrl(server)))
                     .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);
@@ -202,9 +210,9 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("error", true));
 
@@ -240,16 +248,19 @@ final class OpenTracingPluginTest {
                 }
             }
         }
+
+        verify(server, 1, "/");
     }
 
     @Test
     void shouldTraceRequestAndIgnoreClientError() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(400));
+        server.enqueue(new MockResponse().setResponseCode(400));
+
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
         try (final Scope ignored = tracer.activateSpan(parent)) {
-            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(driver.getBaseUrl()))
+            final CompletableFuture<ClientHttpResponse> future = unit.get(URI.create(getBaseUrl(server)))
                     .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);
@@ -268,20 +279,21 @@ final class OpenTracingPluginTest {
 
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
         assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", driver.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 400));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("error")));
+
+        verify(server, 1, "/");
     }
 
     @AfterEach
-    void tearDown() {
-        driver.verify();
-        driver.shutdown();
+    void tearDown() throws IOException {
+        server.shutdown();
     }
 
 }
