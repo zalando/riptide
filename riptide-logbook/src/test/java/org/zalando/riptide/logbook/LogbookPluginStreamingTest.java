@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.logbook.MockWebServerUtil.getBaseUrl;
@@ -119,7 +120,7 @@ final class LogbookPluginStreamingTest {
         assertThat(response, containsString("text/plain"));
         assertThat(response, containsString("\"body\":\"World!\""));
 
-        MockWebServerUtil.verify(server, 1, "/greet");
+        MockWebServerUtil.verify(server, 1, "/greet", POST.toString());
     }
 
     /**

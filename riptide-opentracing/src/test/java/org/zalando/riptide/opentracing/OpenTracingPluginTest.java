@@ -39,6 +39,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
@@ -127,7 +129,7 @@ final class OpenTracingPluginTest {
             assertThat(log.fields(), hasEntry("http.retry_after", "60"));
         }
 
-        verify(server, 1, "/users/me", headers -> {
+        verify(server, 1, "/users/me", POST.toString(), headers -> {
             assertNotNull(headers.get("traceid"));
             assertNotNull(headers.get("spanid"));
         });

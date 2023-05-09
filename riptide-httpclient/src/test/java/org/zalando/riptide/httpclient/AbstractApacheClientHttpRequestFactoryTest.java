@@ -177,7 +177,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
                 .collect(toList());
 
         assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
-        verify(server, 1, "/repos/zalando/riptide/contributors");
+        verify(server, 1, "/repos/zalando/riptide/contributors", POST.toString());
     }
 
     @Test

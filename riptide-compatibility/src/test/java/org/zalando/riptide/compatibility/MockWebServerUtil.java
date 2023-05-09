@@ -78,15 +78,11 @@ public class MockWebServerUtil {
                               Consumer<Headers> headersVerifier) {
         assertEquals(expectedRequestsCount, server.getRequestCount());
         range(0, expectedRequestsCount).forEach(i -> {
-            try {
-                RecordedRequest recordedRequest = server.takeRequest(5, TimeUnit.SECONDS);
-                assertNotNull(recordedRequest);
-                assertEquals(expectedPath, recordedRequest.getPath());
-                assertEquals(expectedMethod, recordedRequest.getMethod());
-                headersVerifier.accept(recordedRequest.getHeaders());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            RecordedRequest recordedRequest = getRecordedRequest(server);
+            assertNotNull(recordedRequest);
+            assertEquals(expectedPath, recordedRequest.getPath());
+            assertEquals(expectedMethod, recordedRequest.getMethod());
+            headersVerifier.accept(recordedRequest.getHeaders());
         });
     }
 
@@ -94,13 +90,10 @@ public class MockWebServerUtil {
 
         assertEquals(expectedPaths.length, server.getRequestCount());
         for (String expectedPath : expectedPaths) {
-            try {
-                RecordedRequest recordedRequest = server.takeRequest(5, TimeUnit.SECONDS);
-                assertNotNull(recordedRequest);
-                assertEquals(expectedPath, recordedRequest.getPath());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            RecordedRequest recordedRequest = getRecordedRequest(server);
+            assertNotNull(recordedRequest);
+            assertEquals(expectedPath, recordedRequest.getPath());
+
         }
     }
 

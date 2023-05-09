@@ -43,6 +43,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Attributes.RETRIES;
@@ -152,7 +153,7 @@ final class FailsafePluginRetriesTest {
                 unit.post("/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(SocketTimeoutException.class)));
-        verify(server, 1, "/foo");
+        verify(server, 1, "/foo", POST.toString());
     }
 
     @Test
@@ -193,7 +194,7 @@ final class FailsafePluginRetriesTest {
                 .call(pass())
                 .join();
 
-        verify(server, 2, "/foo");
+        verify(server, 2, "/foo", POST.toString());
     }
 
     @Test

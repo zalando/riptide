@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpMethod.GET;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.auth.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.auth.MockWebServerUtil.getBaseUrl;
@@ -41,9 +42,8 @@ final class AuthorizationPluginTest {
                 .call(pass())
                 .join();
 
-        verify(server, 1, "/", headers -> {
-            assertEquals("Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.", headers.get("Authorization"));
-        });
+        verify(server, 1, "/", GET.toString(), headers ->
+                assertEquals("Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.", headers.get("Authorization")));
     }
 
     @Test
@@ -55,9 +55,8 @@ final class AuthorizationPluginTest {
                 .call(pass())
                 .join();
 
-        verify(server, 1, "/", headers -> {
-            assertEquals("Basic dXNlcjpzZWNyZXQK", headers.get("Authorization"));
-        });
+        verify(server, 1, "/", GET.toString(), headers ->
+                assertEquals("Basic dXNlcjpzZWNyZXQK", headers.get("Authorization")));
     }
 
 }

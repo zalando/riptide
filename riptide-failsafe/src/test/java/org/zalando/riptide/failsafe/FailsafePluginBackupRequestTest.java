@@ -21,6 +21,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -112,7 +113,7 @@ final class FailsafePluginBackupRequestTest {
                 .call(pass())
                 .join();
 
-        verify(server, 1, "/baz");
+        verify(server, 1, "/baz", POST.toString());
     }
 
     @Test
@@ -126,7 +127,7 @@ final class FailsafePluginBackupRequestTest {
                 .call(pass())
                 .join();
 
-        verify(server, 2, "/bar");
+        verify(server, 2, "/bar", POST.toString());
     }
 
     @Test

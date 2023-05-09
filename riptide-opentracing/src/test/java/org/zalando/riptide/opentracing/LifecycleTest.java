@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
@@ -51,7 +52,7 @@ final class LifecycleTest {
 
         assertThat(tracer.finishedSpans(), is(empty()));
 
-        verify(server, 1, "/users/me", headers -> {
+        verify(server, 1, "/users/me", GET.toString(), headers -> {
             assertNull(headers.get("traceid"));
             assertNull(headers.get("spanid"));
         });
@@ -72,7 +73,7 @@ final class LifecycleTest {
 
         assertThat(tracer.finishedSpans(), contains(span));
 
-        verify(server, 1, "/users/me", headers -> {
+        verify(server, 1, "/users/me", GET.toString(), headers -> {
             assertNotNull(headers.get("traceid"));
             assertNotNull(headers.get("spanid"));
         });
@@ -94,7 +95,7 @@ final class LifecycleTest {
 
         assertThat(tracer.finishedSpans(), contains(span));
 
-        verify(server, 1, "/users/me", headers -> {
+        verify(server, 1, "/users/me", GET.toString(), headers -> {
             assertNotNull(headers.get("traceid"));
             assertNotNull(headers.get("spanid"));
         });

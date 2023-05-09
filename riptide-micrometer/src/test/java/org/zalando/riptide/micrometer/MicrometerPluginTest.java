@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.fauxpas.FauxPas.throwingPredicate;
@@ -162,7 +163,7 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("test"), is("true"));
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
 
-        verify(server, 1, "/bar");
+        verify(server, 1, "/bar", POST.toString());
     }
 
     @Test

@@ -15,6 +15,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
@@ -42,7 +43,7 @@ final class InjectionTest {
                 .join();
 
         assertThat(tracer.finishedSpans(), hasSize(1));
-        verify(server, 1, "/users/me", headers -> {
+        verify(server, 1, "/users/me", GET.toString(), headers -> {
             assertNull(headers.get("traceid"));
             assertNull(headers.get("spanid"));
         });

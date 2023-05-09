@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.logbook.MockWebServerUtil.getBaseUrl;
 
 final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
@@ -90,7 +91,7 @@ final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
                 assertThat(response.getStatusText(), is("OK"));
                 assertThat(response.getHeaders(), hasKey("Content-Type"));
                 assertThat(new String(toByteArray(response.getBody()), UTF_8), is("World!"));
-                MockWebServerUtil.verify(server, 1, "/greet");
+                MockWebServerUtil.verify(server, 1, "/greet", POST.toString());
 
                 return getInteraction(sink);
             } finally {

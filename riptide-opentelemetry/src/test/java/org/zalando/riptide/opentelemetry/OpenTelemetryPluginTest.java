@@ -57,6 +57,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
@@ -131,7 +132,7 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("POST"));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(200L));
 
-        verify(server, 1, "/users/me");
+        verify(server, 1, "/users/me", POST.toString());
     }
 
     @ParameterizedTest(name = "{0}")

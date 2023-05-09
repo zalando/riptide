@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.compression.MockWebServerUtil.emptyTextPlainMockResponse;
 import static org.zalando.riptide.compression.MockWebServerUtil.getBaseUrl;
 import static org.zalando.riptide.compression.MockWebServerUtil.getRecordedRequest;
+import static org.zalando.riptide.compression.MockWebServerUtil.textMockResponse;
 
 //TODO: notify that it is impossible to test with Jetty GzipHandler after switching to okhttp MockWebServer
 class RequestCompressionPluginTest {
@@ -54,7 +54,7 @@ class RequestCompressionPluginTest {
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
     void shouldCompressRequestBody(final ClientHttpRequestFactory factory) {
-        server.enqueue(emptyTextPlainMockResponse());
+        server.enqueue(textMockResponse(""));
 
         final Http http = buildHttp(factory, new RequestCompressionPlugin());
         http.post("/")
@@ -76,7 +76,7 @@ class RequestCompressionPluginTest {
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
     void shouldNotCompressEmptyRequestBody(final ClientHttpRequestFactory factory) {
-        server.enqueue(emptyTextPlainMockResponse());
+        server.enqueue(textMockResponse(""));
 
         final Http http = buildHttp(factory, new RequestCompressionPlugin());
         http.post("/")
@@ -96,7 +96,7 @@ class RequestCompressionPluginTest {
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
     void shouldCompressWithGivenAlgorithm(final ClientHttpRequestFactory factory) {
-        server.enqueue(emptyTextPlainMockResponse());
+        server.enqueue(textMockResponse(""));
 
         final Http http = buildHttp(factory, new RequestCompressionPlugin(Compression.of("identity", it -> it)));
         http.post("/")
@@ -118,7 +118,7 @@ class RequestCompressionPluginTest {
     @ParameterizedTest
     @ArgumentsSource(RequestFactorySource.class)
     void shouldBackOffIfAlreadyEncoded(final ClientHttpRequestFactory factory) {
-        server.enqueue(emptyTextPlainMockResponse());
+        server.enqueue(textMockResponse(""));
 
         final Http http = buildHttp(factory, new RequestCompressionPlugin());
         http.post("/")
