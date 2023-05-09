@@ -346,16 +346,16 @@ final class HttpOperationsTest {
         verify(server, 1, "/departments/1/users");
     }
 
-    private static void verifyRequestBody(RecordedRequest recorderRequest, String expectedBody) {
-        assertEquals(expectedBody, recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+    private static void verifyRequestBody(RecordedRequest recordedRequest, String expectedBody) {
+        assertEquals(expectedBody, recordedRequest.getBody().readString(UTF_8));
+        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
     }
 
-    private static void verifyRequest(RecordedRequest recorderRequest,
+    private static void verifyRequest(RecordedRequest recordedRequest,
                                       String expectedPath,
                                       String expectedMethod) {
-        assertNotNull(recorderRequest);
-        assertEquals(expectedPath, recorderRequest.getPath());
-        assertEquals(expectedMethod, recorderRequest.getMethod());
+        assertNotNull(recordedRequest);
+        assertEquals(expectedPath, recordedRequest.getPath());
+        assertEquals(expectedMethod, recordedRequest.getMethod());
     }
 }
