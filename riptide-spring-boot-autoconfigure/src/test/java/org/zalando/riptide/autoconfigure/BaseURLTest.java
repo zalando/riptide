@@ -1,7 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,10 +20,12 @@ import org.zalando.riptide.Http;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.autoconfigure.MockWebServerUtil.getRecorderRequest;
+import static org.zalando.riptide.autoconfigure.MockWebServerUtil.verify;
 
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("default")
@@ -50,7 +54,7 @@ final class BaseURLTest {
 
     }
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     @Autowired
     private AtomicReference<URI> reference;
@@ -59,21 +63,28 @@ final class BaseURLTest {
     @Qualifier("example")
     private Http http;
 
+    @SneakyThrows
     @Test
+    //TODO: previously invocation was to real pages http://www.example.net/ and http://www.example.org/
+    //not to local mock server, so I had to rewrite test
     void changesURL() {
-        driver.addExpectation(
-                onRequestTo("http://www.example.org/"),
-                giveEmptyResponse());
+        try {
+            server.enqueue(MockWebServerUtil.emptyMockResponse());
 
-        reference.set(URI.create("http://www.example.org/"));
-        http.get().call(pass()).join();
+            reference.set(URI.create(MockWebServerUtil.getBaseUrl(server) + "/path1"));
+            http.get().call(pass()).join();
+            verify(server, 1, "/path1");
 
-        driver.addExpectation(
-                onRequestTo("http://www.example.net/"),
-                giveEmptyResponse());
+            server.enqueue(MockWebServerUtil.emptyMockResponse());
 
-        reference.set(URI.create("http://www.example.net/"));
-        http.get().call(pass()).join();
+            reference.set(URI.create(MockWebServerUtil.getBaseUrl(server) + "/path2"));
+            http.get().call(pass()).join();
+            var recorderRequest = getRecorderRequest(server);
+            assertNotNull(recorderRequest);
+            assertEquals("/path2", recorderRequest.getPath());
+        } finally {
+            server.shutdown();
+        }
     }
 
 }

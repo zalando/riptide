@@ -258,16 +258,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.rest-driver</groupId>
-            <artifactId>rest-client-driver</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>javax.servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
