@@ -78,6 +78,7 @@ final class ChaosPluginTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test

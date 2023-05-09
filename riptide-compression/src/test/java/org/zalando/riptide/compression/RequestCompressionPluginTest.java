@@ -64,12 +64,9 @@ class RequestCompressionPluginTest {
                 .join();
 
         RecordedRequest recordedRequest = getRecordedRequest(server);
-        assertNotNull(recordedRequest);
-        assertEquals("/", recordedRequest.getPath());
-        assertEquals("POST", recordedRequest.getMethod());
+        verifyRequest(recordedRequest, "/", "POST");
+        verifyRequestBody(recordedRequest, "{}");
         assertEquals("gzip", recordedRequest.getHeaders().get("Content-Encoding"));
-        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
-        assertEquals("{}", decompressIfNeeded(recordedRequest.getBody()));
 
     }
 
@@ -85,12 +82,10 @@ class RequestCompressionPluginTest {
                 .join();
 
         RecordedRequest recordedRequest = getRecordedRequest(server);
-        assertNotNull(recordedRequest);
-        assertEquals("/", recordedRequest.getPath());
-        assertEquals("POST", recordedRequest.getMethod());
+        verifyRequest(recordedRequest, "/", "POST");
         assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
-        assertNull(recordedRequest.getHeaders().get("Content-Encoding"));
         assertEquals("", recordedRequest.getBody().readString(UTF_8));
+        assertNull(recordedRequest.getHeaders().get("Content-Encoding"));
     }
 
     @ParameterizedTest
@@ -107,12 +102,9 @@ class RequestCompressionPluginTest {
 
 
         RecordedRequest recordedRequest = getRecordedRequest(server);
-        assertNotNull(recordedRequest);
-        assertEquals("/", recordedRequest.getPath());
-        assertEquals("POST", recordedRequest.getMethod());
-        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recordedRequest, "/", "POST");
+        verifyRequestBody(recordedRequest, "{}");
         assertEquals("identity", recordedRequest.getHeaders().get("Content-Encoding"));
-        assertEquals("{}", decompressIfNeeded(recordedRequest.getBody()));
     }
 
     @ParameterizedTest
@@ -129,12 +121,23 @@ class RequestCompressionPluginTest {
                 .join();
 
         RecordedRequest recordedRequest = getRecordedRequest(server);
-        assertNotNull(recordedRequest);
-        assertEquals("/", recordedRequest.getPath());
-        assertEquals("POST", recordedRequest.getMethod());
-        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recordedRequest, "/", "POST");
+        verifyRequestBody(recordedRequest, "{}");
         assertEquals("custom", recordedRequest.getHeaders().get("Content-Encoding"));
-        assertEquals("{}", decompressIfNeeded(recordedRequest.getBody()));
+    }
+
+    private static void verifyRequest(RecordedRequest recordedRequest,
+                                      String expectedPath,
+                                      String expectedMethod) {
+        assertNotNull(recordedRequest);
+        assertEquals(expectedPath, recordedRequest.getPath());
+        assertEquals(expectedMethod, recordedRequest.getMethod());
+    }
+
+    private static void verifyRequestBody(RecordedRequest recordedRequest,
+                                          String expectedBody) {
+        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
+        assertEquals(expectedBody, decompressIfNeeded(recordedRequest.getBody()));
     }
 
     private static String decompressIfNeeded(Buffer body) {

@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 final class HttpConnectionPoolMetricsTest {
 
@@ -47,6 +48,7 @@ final class HttpConnectionPoolMetricsTest {
     @AfterEach
     void closeClient() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -67,6 +69,8 @@ final class HttpConnectionPoolMetricsTest {
         assertThat(gauge("connection-pool.min").value(), is(0.0));
         assertThat(gauge("connection-pool.max").value(), is(20.0));
         assertThat(gauge("connection-pool.queued").value(), is(0.0));
+
+        verify(server, 1, "/");
     }
 
     private Gauge gauge(final String name) {

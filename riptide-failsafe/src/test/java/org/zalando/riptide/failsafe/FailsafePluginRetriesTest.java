@@ -131,6 +131,7 @@ final class FailsafePluginRetriesTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -226,21 +227,8 @@ final class FailsafePluginRetriesTest {
 
     @Test
     void shouldAllowNestedCalls() {
-        final Dispatcher dispatcher = new Dispatcher() {
-
-            @Override
-            public MockResponse dispatch (RecordedRequest request) {
-
-                switch (request.getPath()) {
-                    case "/foo":
-                        return emptyMockResponse();
-                    case "/bar":
-                        return emptyMockResponse();
-                }
-                return new MockResponse().setResponseCode(404);
-            }
-        };
-        server.setDispatcher(dispatcher);
+        server.enqueue(emptyMockResponse());
+        server.enqueue(emptyMockResponse());
 
         assertTimeout(Duration.ofSeconds(1),
                 unit.get("/foo")

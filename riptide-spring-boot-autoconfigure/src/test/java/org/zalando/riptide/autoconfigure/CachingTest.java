@@ -23,6 +23,7 @@ import org.zalando.riptide.Http;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.autoconfigure.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.autoconfigure.MockWebServerUtil.textMockResponse;
 
 @SpringBootTest(webEnvironment = NONE)
 @ActiveProfiles("caching")
@@ -81,14 +82,10 @@ final class CachingTest {
 
     @Test
     void shouldNotCacheWithAuthorizationInSharedCacheMode() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
         );
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
         );
         shared.get(getBaseUrl(server))
@@ -104,9 +101,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithAuthorizationInSharedCacheModeWithPublicDirective() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "public, s-maxage=300")
         );
 
@@ -123,9 +118,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheInNonSharedCacheMode() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
         );
 
@@ -137,9 +130,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithAuthorizationInNonSharedCacheMode() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
         );
 
@@ -156,10 +147,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithHeuristic() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
-        );
+        server.enqueue(textMockResponse("Hello"));
 
         heuristic.get(getBaseUrl(server)).call(pass()).join();
         heuristic.get(getBaseUrl(server)).call(pass()).join();
@@ -169,10 +157,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithAuthorizationAndHeuristic() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
-                .setHeader("Content-Type", "text/plain")
-        );
+        server.enqueue(textMockResponse("Hello"));
 
         heuristic.get(getBaseUrl(server))
                 .header("Authorization", "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.")

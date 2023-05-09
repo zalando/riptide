@@ -42,7 +42,7 @@ final class NIOTest {
 
     @SneakyThrows
     @AfterEach
-    void shutdownDriver() {
+    void shutdownServer() {
         server.shutdown();
     }
 

@@ -93,6 +93,7 @@ final class FailsafePluginRetryListenerTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -105,6 +106,7 @@ final class FailsafePluginRetryListenerTest {
                 .join();
 
         verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
+        MockWebServerUtil.verify(server, 2, "/foo");
     }
 
     @Test
@@ -118,6 +120,8 @@ final class FailsafePluginRetryListenerTest {
 
         verify(listeners).onRetry(notNull(),
                 argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, notNullValue())));
+        MockWebServerUtil.verify(server, 2, "/baz");
+
     }
 
     @Test
@@ -132,6 +136,7 @@ final class FailsafePluginRetryListenerTest {
                 .join();
 
         verify(listeners).onRetry(notNull(), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
+        MockWebServerUtil.verify(server, 2, "/baz");
     }
 
 }

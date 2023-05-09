@@ -1,6 +1,5 @@
 package org.zalando.riptide.logbook;
 
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
@@ -30,13 +29,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.logbook.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.logbook.MockWebServerUtil.textMockResponse;
 
 final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
 
     @Override
     public Interaction test(final Strategy strategy) throws IOException {
         final MockWebServer server = new MockWebServer();
-
 
         try {
             final ExecutorService executor = newSingleThreadExecutor();
@@ -74,9 +73,7 @@ final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
                         .plugin(new LogbookPlugin(logbook))
                         .build();
 
-                server.enqueue(new MockResponse()
-                        .setBody("World!")
-                        .setHeader("Content-Type","text/plain"));
+                server.enqueue(textMockResponse("World!"));
 
                 final ClientHttpResponse response = http.post("/greet")
                         .contentType(MediaType.TEXT_PLAIN)

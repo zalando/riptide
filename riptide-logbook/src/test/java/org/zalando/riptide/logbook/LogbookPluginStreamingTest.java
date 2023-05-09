@@ -36,6 +36,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.logbook.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.logbook.MockWebServerUtil.textMockResponse;
 
 final class LogbookPluginStreamingTest {
     private final MockWebServer server = new MockWebServer();
@@ -62,7 +63,7 @@ final class LogbookPluginStreamingTest {
 
     @AfterEach
     @SneakyThrows
-    void shutdownDriver() {
+    void shutdownServer() {
         server.shutdown();
     }
 
@@ -74,7 +75,6 @@ final class LogbookPluginStreamingTest {
     @Test
     void shouldLog() throws IOException {
         server.enqueue(new MockResponse().setResponseCode(OK.value()));
-
 
         http.get("/")
                 .call(pass())
@@ -96,9 +96,7 @@ final class LogbookPluginStreamingTest {
 
     @Test
     void shouldLogWithBody() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody("World!")
-                .setHeader("Content-Type","text/plain"));
+        server.enqueue(textMockResponse("World!"));
 
         http.post("/greet")
                 .contentType(MediaType.TEXT_PLAIN)

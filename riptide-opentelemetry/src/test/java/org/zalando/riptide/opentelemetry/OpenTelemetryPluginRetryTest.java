@@ -8,10 +8,12 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.client.ClientHttpResponse;
@@ -45,22 +47,28 @@ public class OpenTelemetryPluginRetryTest {
     private final SpanDecorator retryDecorator = new RetrySpanDecorator();
 
     private final Http unit = Http.builder()
-                                  .executor(Executors.newCachedThreadPool())
-                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                          HttpClientBuilder.create()
-                                                           .setDefaultRequestConfig(
-                                                                   RequestConfig.custom()
-                                                                                .setSocketTimeout(500)
-                                                                                .build())
-                                                           .build()))
-                                  .baseUrl(getBaseUrl(server))
-                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
-                                  .plugin(new FailsafePlugin()
-                                                  .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
-                                                                      .withMaxRetries(2)
-                                                                      .handleResultIf(response -> true)
-                                                          .build()))
-                                  .build();
+            .executor(Executors.newCachedThreadPool())
+            .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(
+                                    RequestConfig.custom()
+                                            .setSocketTimeout(500)
+                                            .build())
+                            .build()))
+            .baseUrl(getBaseUrl(server))
+            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
+            .plugin(new FailsafePlugin()
+                    .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
+                            .withMaxRetries(2)
+                            .handleResultIf(response -> true)
+                            .build()))
+            .build();
+
+    @AfterEach
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
+    }
 
     @Test
     void shouldTraceRetries() {
@@ -72,8 +80,8 @@ public class OpenTelemetryPluginRetryTest {
 
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
-                .call(pass())
-                .join();
+                    .call(pass())
+                    .join();
         } finally {
             parent.end();
         }
@@ -83,9 +91,9 @@ public class OpenTelemetryPluginRetryTest {
         assertThat(spans, hasSize(4));
 
         final List<SpanData> retrySpans = spans.stream()
-                                               .filter(this::hasRetryAttribute)
-                                               .sorted(Comparator.comparing(SpanData::getStartEpochNanos))
-                                               .collect(toList());
+                .filter(this::hasRetryAttribute)
+                .sorted(Comparator.comparing(SpanData::getStartEpochNanos))
+                .collect(toList());
 
         assertThat(retrySpans, hasSize(2));
 

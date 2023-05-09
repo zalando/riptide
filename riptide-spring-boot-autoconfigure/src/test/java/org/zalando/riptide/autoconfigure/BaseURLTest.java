@@ -70,13 +70,14 @@ final class BaseURLTest {
     void changesURL() {
         try {
             server.enqueue(MockWebServerUtil.emptyMockResponse());
+            server.enqueue(MockWebServerUtil.emptyMockResponse());
 
+            //path 1
             reference.set(URI.create(MockWebServerUtil.getBaseUrl(server) + "/path1"));
             http.get().call(pass()).join();
             verify(server, 1, "/path1");
 
-            server.enqueue(MockWebServerUtil.emptyMockResponse());
-
+            //path 2
             reference.set(URI.create(MockWebServerUtil.getBaseUrl(server) + "/path2"));
             http.get().call(pass()).join();
             var recordedRequest = getRecordedRequest(server);

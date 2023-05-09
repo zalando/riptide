@@ -1,5 +1,6 @@
 package org.zalando.riptide.auth;
 
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -29,9 +30,11 @@ final class AuthorizationPluginTest {
             .plugin(new AuthorizationPlugin(() -> "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30."))
             .build();
 
+    @SneakyThrows
     @AfterEach
     void tearDown() {
         executor.shutdown();
+        server.shutdown();
     }
 
     @Test

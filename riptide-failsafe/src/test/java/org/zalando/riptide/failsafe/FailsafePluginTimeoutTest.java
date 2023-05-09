@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 
 final class FailsafePluginTimeoutTest {
 
@@ -57,6 +58,7 @@ final class FailsafePluginTimeoutTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -66,6 +68,7 @@ final class FailsafePluginTimeoutTest {
         unit.get("/foo")
                 .call(pass())
                 .join();
+        verify(server, 1, "/foo");
     }
 
     @Test
@@ -77,6 +80,7 @@ final class FailsafePluginTimeoutTest {
                         .call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(TimeoutExceededException.class)));
+        verify(server, 1, "/foo");
     }
 
 }

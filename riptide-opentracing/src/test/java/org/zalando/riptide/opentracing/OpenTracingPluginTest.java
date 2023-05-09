@@ -46,6 +46,7 @@ import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.opentracing.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.textMockResponse;
 import static org.zalando.riptide.opentracing.MockWebServerUtil.verify;
 
 final class OpenTracingPluginTest {
@@ -70,11 +71,8 @@ final class OpenTracingPluginTest {
 
     @Test
     void shouldTraceRequestAndResponse() {
-        server.enqueue(new MockResponse().setBody("Hello world!")
-                .setResponseCode(OK.value())
-                .setHeader("Content-Type","text/plain")
+        server.enqueue(textMockResponse("Hello world!")
                 .setHeader("Retry-After", "60"));
-
 
         final MockSpan parent = tracer.buildSpan("test").start();
 
@@ -188,7 +186,6 @@ final class OpenTracingPluginTest {
     void shouldTraceRequestAndNetworkError() {
         server.enqueue(emptyMockResponse().setHeadersDelay(1, SECONDS));
 
-
         final MockSpan parent = tracer.buildSpan("test").start();
 
         try (final Scope ignored = tracer.activateSpan(parent)) {
@@ -256,7 +253,6 @@ final class OpenTracingPluginTest {
     @Test
     void shouldTraceRequestAndIgnoreClientError() {
         server.enqueue(new MockResponse().setResponseCode(400));
-
 
         final MockSpan parent = tracer.buildSpan("test").start();
 

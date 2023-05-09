@@ -32,6 +32,7 @@ import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.TaskDecorator.composite;
 
 final class FailsafePluginCircuitBreakerTest {
@@ -92,6 +93,8 @@ final class FailsafePluginCircuitBreakerTest {
                 unit.get("/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(CircuitBreakerOpenException.class)));
+
+        verify(server, 1, "/foo");
     }
 
     private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {

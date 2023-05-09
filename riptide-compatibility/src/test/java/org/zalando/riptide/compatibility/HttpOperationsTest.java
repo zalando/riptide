@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
@@ -326,10 +327,7 @@ final class HttpOperationsTest {
 
     @Test
     void shouldOverrideDefaultRoutingTree() {
-        server.enqueue(new MockResponse().setResponseCode(404)
-                .setBody("\"error\"")
-                .setHeader("Content-Type","application/json"));
-
+        server.enqueue(jsonMockResponse("\"error\"").setResponseCode(404));
 
         final RestOperations unit = new HttpOperations(http)
                 .withDefaultRoutingTree(dispatch(series(),
@@ -348,7 +346,7 @@ final class HttpOperationsTest {
 
     private static void verifyRequestBody(RecordedRequest recordedRequest, String expectedBody) {
         assertEquals(expectedBody, recordedRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recordedRequest.getHeaders().get("Content-Type"));
+        assertEquals("application/json", recordedRequest.getHeaders().get(CONTENT_TYPE));
     }
 
     private static void verifyRequest(RecordedRequest recordedRequest,

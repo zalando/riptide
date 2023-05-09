@@ -35,7 +35,7 @@ final class EmptyEntityTest {
 
     @SneakyThrows
     @AfterEach
-    void shutdownDriver() {
+    void shutdownServer() {
         server.shutdown();
     }
 
@@ -64,18 +64,6 @@ final class EmptyEntityTest {
 
         RecordedRequest recordedRequest = getRecordedRequest(server);
         verifyRequest(recordedRequest, "/", GET.toString(), "Passed", "true");
-    }
-
-    private void verifyRequest(RecordedRequest recordedRequest,
-                               String expectedPath,
-                               String expectedMethod,
-                               String expectedKey,
-                               String expectedValue) {
-        assertNotNull(recordedRequest);
-        assertEquals(expectedPath, recordedRequest.getPath());
-        assertEquals(expectedMethod, recordedRequest.getMethod());
-        assertEquals(expectedValue, recordedRequest.getHeaders().get(expectedKey));
-
     }
 
     @Test
@@ -135,5 +123,16 @@ final class EmptyEntityTest {
         verifyRequest(recordedRequest, "/", POST.toString(), "Passed", "true");
     }
 
+    private void verifyRequest(RecordedRequest recordedRequest,
+                               String expectedPath,
+                               String expectedMethod,
+                               String expectedKey,
+                               String expectedValue) {
+        assertNotNull(recordedRequest);
+        assertEquals(expectedPath, recordedRequest.getPath());
+        assertEquals(expectedMethod, recordedRequest.getMethod());
+        assertEquals(expectedValue, recordedRequest.getHeaders().get(expectedKey));
+
+    }
 
 }

@@ -37,6 +37,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 final class RateLimitResetDelayFunctionTest {
@@ -81,6 +82,7 @@ final class RateLimitResetDelayFunctionTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -95,6 +97,8 @@ final class RateLimitResetDelayFunctionTest {
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+
+        verify(server, 2, "/baz");
     }
 
     @Test
@@ -110,6 +114,8 @@ final class RateLimitResetDelayFunctionTest {
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+
+        verify(server, 2, "/baz");
     }
 
     @Test
@@ -126,6 +132,8 @@ final class RateLimitResetDelayFunctionTest {
                                 anySeries().dispatch(status(),
                                         on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                         .join()));
+
+        verify(server, 2, "/baz");
     }
 
     @Test
@@ -140,6 +148,8 @@ final class RateLimitResetDelayFunctionTest {
                         .dispatch(series(),
                                 on(SUCCESSFUL).call(pass()))
                         .join()));
+
+        verify(server, 2, "/baz");
     }
 
     private void atLeast(final Duration minimum, final Runnable runnable) {

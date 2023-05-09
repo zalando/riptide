@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -36,7 +35,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -62,7 +60,8 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.readResourceAsString;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.jsonMockResponseFromResource;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.textMockResponse;
 import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 public abstract class AbstractApacheClientHttpRequestFactoryTest {
@@ -94,13 +93,12 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @AfterEach
     void tearDown() throws IOException {
         factory.destroy();
+        server.shutdown();
     }
 
     @Test
     void shouldReadContributors() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody(readResourceAsString("contributors.json"))
-                .setHeader("Content-Type","application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final RestTemplate template = new RestTemplate(factory);
         template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(createObjectMapper())));
@@ -120,9 +118,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReadContributorsAsync() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody(readResourceAsString("contributors.json"))
-                .setHeader("Content-Type","application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final Capture<List<User>> capture = Capture.empty();
 
@@ -141,9 +137,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReadContributorsManually() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody(readResourceAsString("contributors.json"))
-                .setHeader("Content-Type","application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final URI uri = URI.create(getBaseUrl(server)).resolve("/repos/zalando/riptide/contributors");
         final ClientHttpRequest request = factory.createRequest(uri, POST);
@@ -182,8 +176,8 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReleaseConnection() {
-        server.enqueue(new MockResponse().setBody("Hello world!").setHeader("Content-Type","text/plain"));
-        server.enqueue(new MockResponse().setBody("Hello world!").setHeader("Content-Type","text/plain"));
+        server.enqueue(textMockResponse("Hello world!"));
+        server.enqueue(textMockResponse("Hello world!"));
 
         assertTimeout(Duration.ofMillis(750), () -> {
             http.get("/").call(pass()).join();
@@ -194,8 +188,8 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReleaseConnectionOnFailureToReadBody() {
-        server.enqueue(new MockResponse().setBody("[]").setHeader("Content-Type","text/plain"));
-        server.enqueue(new MockResponse().setBody("[]").setHeader("Content-Type","text/plain"));
+        server.enqueue(textMockResponse("[]"));
+        server.enqueue(textMockResponse("[]"));
 
         final ThrowingRunnable<Throwable> request = throwingRunnable(() -> {
             try {

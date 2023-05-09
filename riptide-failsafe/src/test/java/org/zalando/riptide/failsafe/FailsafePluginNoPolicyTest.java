@@ -24,6 +24,7 @@ import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 
 final class FailsafePluginNoPolicyTest {
 
@@ -58,6 +59,7 @@ final class FailsafePluginNoPolicyTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
@@ -75,6 +77,8 @@ final class FailsafePluginNoPolicyTest {
 
         timeout.exceptionally(partially(SocketTimeoutException.class, this::ignore)).join();
         last.join();
+
+        verify(server, 3, "/foo");
     }
 
     private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {

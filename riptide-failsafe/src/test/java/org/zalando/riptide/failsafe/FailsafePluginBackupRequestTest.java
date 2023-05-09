@@ -51,6 +51,7 @@ final class FailsafePluginBackupRequestTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test

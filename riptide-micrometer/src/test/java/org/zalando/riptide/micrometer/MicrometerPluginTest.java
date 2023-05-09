@@ -6,10 +6,12 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.Search;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -77,11 +79,15 @@ final class MicrometerPluginTest {
                                 .is5xxServerError())))
                         .build()))
             .build();
+    @AfterEach
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
+    }
 
     @Test
     void shouldRecordSuccessResponseMetric() {
         server.enqueue(new MockResponse().setResponseCode(OK.value()));
-
 
         unit.get("/foo")
                 .call(pass())
@@ -100,7 +106,6 @@ final class MicrometerPluginTest {
         assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
 
         verify(server, 1, "/foo");
-
     }
 
     @Test

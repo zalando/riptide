@@ -11,10 +11,12 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,11 +60,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.opentelemetry.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.opentelemetry.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.textMockResponse;
 import static org.zalando.riptide.opentelemetry.MockWebServerUtil.verify;
 
 class OpenTelemetryPluginTest {
@@ -76,23 +78,30 @@ class OpenTelemetryPluginTest {
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
 
     private final Http unit = Http.builder()
-                                      .executor(Executors.newCachedThreadPool())
-                                      .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                              HttpClientBuilder.create()
-                                                      .setDefaultRequestConfig(
-                                                              RequestConfig.custom()
-                                                                      .setSocketTimeout(500)
-                                                                      .build())
-                                                      .build()))
-                                      .baseUrl(getBaseUrl(server))
-                                      .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
-                                              environmentDecorator))
-                                      .build();
+            .executor(Executors.newCachedThreadPool())
+            .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(
+                                    RequestConfig.custom()
+                                            .setSocketTimeout(500)
+                                            .build())
+                            .build()))
+            .baseUrl(getBaseUrl(server))
+            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
+                    environmentDecorator))
+            .build();
+
+    @AfterEach
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
+    }
 
     public static Stream<Arguments> routes() {
         Map<String, Function<AttributeStage, CompletableFuture<ClientHttpResponse>>> args = ImmutableMap.of(
                 //this is an invalid config, because the route in incomplete, but we want to have the http status code nevertheless
-                "incomplete route", stage -> stage.dispatch(Navigators.status(), Bindings.on(HttpStatus.OK).call(pass())),
+                "incomplete route", stage -> stage.dispatch(Navigators.status(), Bindings.on(HttpStatus.OK)
+                        .call(pass())),
                 "complete route", stage -> stage.call(pass())
         );
         return args.entrySet().stream().map(a -> Arguments.of(a.getKey(), a.getValue()));
@@ -100,12 +109,8 @@ class OpenTelemetryPluginTest {
 
     @Test
     void shouldTraceRequestAndResponse() {
-        server.enqueue(new MockResponse()
-                .setResponseCode(OK.value())
-                .setBody("Hello, world!")
-                .setHeader("Retry-After", "60")
-                .setHeader("Content-Type","text/plain")
-        );
+        server.enqueue(textMockResponse("Hello, world!")
+                .setHeader("Retry-After", "60"));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -138,7 +143,7 @@ class OpenTelemetryPluginTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("routes")
     void shouldTraceRequestAndServerError(@SuppressWarnings("unused") String name,
-            Function<AttributeStage, CompletableFuture<ClientHttpResponse>> route) {
+                                          Function<AttributeStage, CompletableFuture<ClientHttpResponse>> route) {
         server.enqueue(new MockResponse().setResponseCode(500));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
@@ -173,12 +178,11 @@ class OpenTelemetryPluginTest {
     void shouldTraceRequestAndNetworkError() {
         server.enqueue(emptyMockResponse().setHeadersDelay(1, SECONDS));
 
-
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
             final CompletableFuture<?> future = unit.get(URI.create(getBaseUrl(server)))
-                                                        .call(noRoute());
+                    .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);
             assertThat(error.getCause(), is(instanceOf(SocketTimeoutException.class)));
@@ -215,7 +219,6 @@ class OpenTelemetryPluginTest {
     @Test
     void shouldTraceRequestAndIgnoreClientError() {
         server.enqueue(new MockResponse().setResponseCode(400));
-
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -265,34 +268,29 @@ class OpenTelemetryPluginTest {
         });
         new OpenTelemetryPlugin().aroundAsync(requestExecution)
                 .execute(RequestArguments.create()
-                                 .withMethod(HttpMethod.GET)
-                                 .withUri(URI.create("https://example.com"))
-                                 .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
+                        .withMethod(HttpMethod.GET)
+                        .withUri(URI.create("https://example.com"))
+                        .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
         otelTesting.assertTraces().singleElement().singleElement().hasName(newName);
     }
 
     @Test
     void shouldOverwriteDefaultSetOfDecorators() {
         final Http unit = Http.builder()
-                                  .executor(Executors.newCachedThreadPool())
-                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                          HttpClientBuilder.create()
-                                                  .setDefaultRequestConfig(
-                                                          RequestConfig.custom()
-                                                                  .setSocketTimeout(500)
-                                                                  .build())
-                                                  .build()))
-                                  .baseUrl(getBaseUrl(server))
-                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
-                                                  .withSpanDecorators(new HttpHostSpanDecorator()))
-                                  .build();
+                .executor(Executors.newCachedThreadPool())
+                .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                        HttpClientBuilder.create()
+                                .setDefaultRequestConfig(
+                                        RequestConfig.custom()
+                                                .setSocketTimeout(500)
+                                                .build())
+                                .build()))
+                .baseUrl(getBaseUrl(server))
+                .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
+                        .withSpanDecorators(new HttpHostSpanDecorator()))
+                .build();
 
-        server.enqueue(new MockResponse()
-                .setResponseCode(OK.value())
-                .setBody("Hello, world!")
-                .setHeader("Content-Type","text/plain")
-        );
-
+        server.enqueue(textMockResponse("Hello, world!"));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 

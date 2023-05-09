@@ -2,6 +2,7 @@ package org.zalando.riptide.stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +35,7 @@ import static org.zalando.riptide.Navigators.reasonPhrase;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.stream.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.stream.MockWebServerUtil.readResourceAsString;
+import static org.zalando.riptide.stream.MockWebServerUtil.jsonMockResponseFromResource;
 import static org.zalando.riptide.stream.MockWebServerUtil.verify;
 import static org.zalando.riptide.stream.Streams.streamConverter;
 import static org.zalando.riptide.stream.Streams.streamOf;
@@ -62,16 +63,16 @@ final class StreamIOTest {
                     singletonList(APPLICATION_JSON)))
             .build();
 
+    @SneakyThrows
     @AfterEach
     void shutdownExecutor() {
         executor.shutdown();
+        server.shutdown();
     }
 
     @Test
     void shouldReadContributors() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody(readResourceAsString("contributors.json"))
-                .setHeader("Content-Type","application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final AtomicReference<Stream<User>> reference = new AtomicReference<>();
 
@@ -89,9 +90,7 @@ final class StreamIOTest {
 
     @Test
     void shouldCancelRequest() throws IOException {
-        server.enqueue(new MockResponse()
-                .setBody(readResourceAsString("contributors.json"))
-                .setHeader("Content-Type","application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final CompletableFuture<ClientHttpResponse> future = http.get("/repos/{org}/{repo}/contributors", "zalando",
                 "riptide")
@@ -107,7 +106,6 @@ final class StreamIOTest {
     @Test
     void shouldReadEmptyResponse() {
         server.enqueue(new MockResponse().setResponseCode(OK.value()));
-
 
         http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
                 .dispatch(reasonPhrase(),
