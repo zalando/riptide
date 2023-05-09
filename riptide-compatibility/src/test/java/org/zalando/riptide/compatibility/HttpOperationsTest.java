@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -114,9 +115,7 @@ final class HttpOperationsTest {
         assertEquals("true", headers.getFirst("Test"));
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/users/1", recorderRequest.getPath());
-        assertEquals(HEAD.toString(), recorderRequest.getMethod());
+        verifyRequest(recorderRequest, "/users/1", HEAD.toString());
     }
 
     static Iterable<Function<RestOperations, URI>> postForLocation() {
@@ -140,11 +139,8 @@ final class HttpOperationsTest {
         assertEquals("/departments/1/users/1", location.toString());
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/departments/1/users", recorderRequest.getPath());
-        assertEquals(POST.toString(), recorderRequest.getMethod());
-        assertEquals("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Function<RestOperations, User>> postForObject() {
@@ -168,11 +164,8 @@ final class HttpOperationsTest {
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/departments/1/users", recorderRequest.getPath());
-        assertEquals(POST.toString(), recorderRequest.getMethod());
-        assertEquals("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> put() {
@@ -193,11 +186,8 @@ final class HttpOperationsTest {
         test.accept(new HttpOperations(http));
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/users/1", recorderRequest.getPath());
-        assertEquals(PUT.toString(), recorderRequest.getMethod());
-        assertEquals("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/users/1", PUT.toString());
+        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     // needs concrete type to see patchForObject
@@ -221,11 +211,8 @@ final class HttpOperationsTest {
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/users/1", recorderRequest.getPath());
-        assertEquals("PATCH", recorderRequest.getMethod());
-        assertEquals("{\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/users/1", "PATCH");
+        verifyRequestBody(recorderRequest, "{\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> delete() {
@@ -244,9 +231,7 @@ final class HttpOperationsTest {
         test.accept(new HttpOperations(http));
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/users/1", recorderRequest.getPath());
-        assertEquals(DELETE.toString(), recorderRequest.getMethod());
+        verifyRequest(recorderRequest, "/users/1", DELETE.toString());
     }
 
     static Iterable<Function<RestOperations, Set<HttpMethod>>> optionsForAllow() {
@@ -267,9 +252,7 @@ final class HttpOperationsTest {
         assertThat(allowed, contains(GET, HEAD));
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/users/1", recorderRequest.getPath());
-        assertEquals(OPTIONS.toString(), recorderRequest.getMethod());
+        verifyRequest(recorderRequest, "/users/1", OPTIONS.toString());
     }
 
     static Iterable<Function<RestOperations, User>> execute() {
@@ -301,11 +284,8 @@ final class HttpOperationsTest {
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/departments/1/users", recorderRequest.getPath());
-        assertEquals(POST.toString(), recorderRequest.getMethod());
-        assertEquals("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
         assertEquals("true", recorderRequest.getHeaders().get("Test"));
     }
 
@@ -319,11 +299,8 @@ final class HttpOperationsTest {
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/departments/1/users", recorderRequest.getPath());
-        assertEquals(POST.toString(), recorderRequest.getMethod());
-        assertEquals("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", recorderRequest.getBody().readString(UTF_8));
-        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     @Test
@@ -336,9 +313,7 @@ final class HttpOperationsTest {
         assertNull(user);
 
         var recorderRequest = getRecorderRequest(server);
-        assertNotNull(recorderRequest);
-        assertEquals("/departments/1/users", recorderRequest.getPath());
-        assertEquals(POST.toString(), recorderRequest.getMethod());
+        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
     }
 
     @Test
@@ -371,4 +346,16 @@ final class HttpOperationsTest {
         verify(server, 1, "/departments/1/users");
     }
 
+    private static void verifyRequestBody(RecordedRequest recorderRequest, String expectedBody) {
+        assertEquals(expectedBody, recorderRequest.getBody().readString(UTF_8));
+        assertEquals("application/json", recorderRequest.getHeaders().get("Content-Type"));
+    }
+
+    private static void verifyRequest(RecordedRequest recorderRequest,
+                                      String expectedPath,
+                                      String expectedMethod) {
+        assertNotNull(recorderRequest);
+        assertEquals(expectedPath, recorderRequest.getPath());
+        assertEquals(expectedMethod, recorderRequest.getMethod());
+    }
 }
