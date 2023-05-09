@@ -1,5 +1,6 @@
 package org.zalando.riptide.compression;
 
+import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
@@ -45,9 +46,11 @@ class RequestCompressionPluginTest {
 
     private final ExecutorService executor = newSingleThreadExecutor();
 
+    @SneakyThrows
     @AfterEach
     void tearDown() {
         executor.shutdown();
+        server.shutdown();
     }
 
     @ParameterizedTest

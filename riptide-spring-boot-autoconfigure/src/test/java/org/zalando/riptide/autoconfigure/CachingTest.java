@@ -62,7 +62,7 @@ final class CachingTest {
 
     @SneakyThrows
     @AfterEach
-    void verify() {
+    void tearDown() {
         server.shutdown();
     }
 
