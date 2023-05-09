@@ -65,8 +65,6 @@ final class BaseURLTest {
 
     @SneakyThrows
     @Test
-    //TODO: previously invocation was to real pages http://www.example.net/ and http://www.example.org/
-    //not to local mock server, so I had to rewrite test
     void changesURL() {
         try {
             server.enqueue(MockWebServerUtil.emptyMockResponse());

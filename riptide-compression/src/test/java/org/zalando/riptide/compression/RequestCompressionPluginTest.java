@@ -39,7 +39,6 @@ import static org.zalando.riptide.compression.MockWebServerUtil.getBaseUrl;
 import static org.zalando.riptide.compression.MockWebServerUtil.getRecordedRequest;
 import static org.zalando.riptide.compression.MockWebServerUtil.textMockResponse;
 
-//TODO: notify that it is impossible to test with Jetty GzipHandler after switching to okhttp MockWebServer
 class RequestCompressionPluginTest {
 
     private final MockWebServer server = new MockWebServer();
