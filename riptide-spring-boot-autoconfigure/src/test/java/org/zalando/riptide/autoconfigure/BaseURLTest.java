@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.autoconfigure.MockWebServerUtil.getRecorderRequest;
+import static org.zalando.riptide.autoconfigure.MockWebServerUtil.getRecordedRequest;
 import static org.zalando.riptide.autoconfigure.MockWebServerUtil.verify;
 
 @SpringBootTest(webEnvironment = NONE)
@@ -79,9 +79,9 @@ final class BaseURLTest {
 
             reference.set(URI.create(MockWebServerUtil.getBaseUrl(server) + "/path2"));
             http.get().call(pass()).join();
-            var recorderRequest = getRecorderRequest(server);
-            assertNotNull(recorderRequest);
-            assertEquals("/path2", recorderRequest.getPath());
+            var recordedRequest = getRecordedRequest(server);
+            assertNotNull(recordedRequest);
+            assertEquals("/path2", recordedRequest.getPath());
         } finally {
             server.shutdown();
         }

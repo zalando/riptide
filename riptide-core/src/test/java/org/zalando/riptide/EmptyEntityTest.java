@@ -19,7 +19,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.MockWebServerUtil.getRecorderRequest;
+import static org.zalando.riptide.MockWebServerUtil.getRecordedRequest;
 import static org.zalando.riptide.PassRoute.pass;
 
 final class EmptyEntityTest {
@@ -62,7 +62,7 @@ final class EmptyEntityTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         verifyRequest(recordedRequest, "/", GET.toString(), "Passed", "true");
     }
 
@@ -102,7 +102,7 @@ final class EmptyEntityTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         verifyRequest(recordedRequest, "/", POST.toString(), "Passed", "true");
 
     }
@@ -131,7 +131,7 @@ final class EmptyEntityTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         verifyRequest(recordedRequest, "/", POST.toString(), "Passed", "true");
     }
 

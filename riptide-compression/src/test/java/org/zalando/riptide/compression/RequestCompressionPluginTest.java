@@ -37,7 +37,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.compression.MockWebServerUtil.emptyTextPlainMockResponse;
 import static org.zalando.riptide.compression.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.compression.MockWebServerUtil.getRecorderRequest;
+import static org.zalando.riptide.compression.MockWebServerUtil.getRecordedRequest;
 
 //TODO: notify that it is impossible to test with Jetty GzipHandler after switching to okhttp MockWebServer
 class RequestCompressionPluginTest {
@@ -63,7 +63,7 @@ class RequestCompressionPluginTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         assertNotNull(recordedRequest);
         assertEquals("/", recordedRequest.getPath());
         assertEquals("POST", recordedRequest.getMethod());
@@ -84,7 +84,7 @@ class RequestCompressionPluginTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         assertNotNull(recordedRequest);
         assertEquals("/", recordedRequest.getPath());
         assertEquals("POST", recordedRequest.getMethod());
@@ -106,7 +106,7 @@ class RequestCompressionPluginTest {
                 .join();
 
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         assertNotNull(recordedRequest);
         assertEquals("/", recordedRequest.getPath());
         assertEquals("POST", recordedRequest.getMethod());
@@ -128,7 +128,7 @@ class RequestCompressionPluginTest {
                 .call(pass())
                 .join();
 
-        RecordedRequest recordedRequest = getRecorderRequest(server);
+        RecordedRequest recordedRequest = getRecordedRequest(server);
         assertNotNull(recordedRequest);
         assertEquals("/", recordedRequest.getPath());
         assertEquals("POST", recordedRequest.getMethod());

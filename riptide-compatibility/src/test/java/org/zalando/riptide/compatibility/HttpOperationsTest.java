@@ -52,7 +52,7 @@ import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.RoutingTree.dispatch;
 import static org.zalando.riptide.compatibility.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.compatibility.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.compatibility.MockWebServerUtil.getRecorderRequest;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.getRecordedRequest;
 import static org.zalando.riptide.compatibility.MockWebServerUtil.jsonMockResponse;
 import static org.zalando.riptide.compatibility.MockWebServerUtil.verify;
 
@@ -114,8 +114,8 @@ final class HttpOperationsTest {
 
         assertEquals("true", headers.getFirst("Test"));
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/users/1", HEAD.toString());
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", HEAD.toString());
     }
 
     static Iterable<Function<RestOperations, URI>> postForLocation() {
@@ -138,9 +138,9 @@ final class HttpOperationsTest {
         assertNotNull(location);
         assertEquals("/departments/1/users/1", location.toString());
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
-        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Function<RestOperations, User>> postForObject() {
@@ -163,9 +163,9 @@ final class HttpOperationsTest {
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
-        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> put() {
@@ -185,9 +185,9 @@ final class HttpOperationsTest {
 
         test.accept(new HttpOperations(http));
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/users/1", PUT.toString());
-        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", PUT.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     // needs concrete type to see patchForObject
@@ -210,9 +210,9 @@ final class HttpOperationsTest {
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/users/1", "PATCH");
-        verifyRequestBody(recorderRequest, "{\"birthday\":\"1984-09-13\"}");
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", "PATCH");
+        verifyRequestBody(recordedRequest, "{\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> delete() {
@@ -230,8 +230,8 @@ final class HttpOperationsTest {
 
         test.accept(new HttpOperations(http));
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/users/1", DELETE.toString());
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", DELETE.toString());
     }
 
     static Iterable<Function<RestOperations, Set<HttpMethod>>> optionsForAllow() {
@@ -251,8 +251,8 @@ final class HttpOperationsTest {
 
         assertThat(allowed, contains(GET, HEAD));
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/users/1", OPTIONS.toString());
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", OPTIONS.toString());
     }
 
     static Iterable<Function<RestOperations, User>> execute() {
@@ -283,10 +283,10 @@ final class HttpOperationsTest {
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
-        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
-        assertEquals("true", recorderRequest.getHeaders().get("Test"));
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        assertEquals("true", recordedRequest.getHeaders().get("Test"));
     }
 
     @Test
@@ -298,9 +298,9 @@ final class HttpOperationsTest {
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
-        verifyRequestBody(recorderRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     @Test
@@ -312,8 +312,8 @@ final class HttpOperationsTest {
 
         assertNull(user);
 
-        var recorderRequest = getRecorderRequest(server);
-        verifyRequest(recorderRequest, "/departments/1/users", POST.toString());
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
     }
 
     @Test

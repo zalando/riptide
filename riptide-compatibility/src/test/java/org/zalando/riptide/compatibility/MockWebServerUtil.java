@@ -1,13 +1,21 @@
 package org.zalando.riptide.compatibility;
 
+import okhttp3.Headers;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.springframework.http.HttpMethod;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import static com.google.common.io.Resources.getResource;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.IntStream.range;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -24,10 +32,23 @@ public class MockWebServerUtil {
     public static MockResponse jsonMockResponse(String body) {
         return new MockResponse().setResponseCode(OK.value())
                 .setBody(body)
-                .setHeader("Content-Type","application/json");
+                .setHeader(CONTENT_TYPE, "application/json");
     }
 
-    public static RecordedRequest getRecorderRequest(MockWebServer server) {
+    public static MockResponse jsonMockResponseFromResource(String resourceName) throws IOException {
+        return new MockResponse().setResponseCode(OK.value())
+                .setBody(readResourceAsString(resourceName))
+                .setHeader(CONTENT_TYPE, "application/json");
+    }
+
+    public static MockResponse textMockResponse(String body) {
+        return new MockResponse()
+                .setResponseCode(OK.value())
+                .setBody(body)
+                .setHeader(CONTENT_TYPE, "text/plain");
+    }
+
+    public static RecordedRequest getRecordedRequest(MockWebServer server) {
         try {
             return server.takeRequest(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -36,14 +57,33 @@ public class MockWebServerUtil {
     }
 
     public static void verify(MockWebServer server,
-                               int expectedRequestsCount,
-                               String expectedPath) {
+                              int expectedRequestsCount,
+                              String expectedPath,
+                              String expectedMethod) {
+        verify(server, expectedRequestsCount, expectedPath, expectedMethod, headers -> {
+        });
+    }
 
+    public static void verify(MockWebServer server,
+                              int expectedRequestsCount,
+                              String expectedPath) {
+        verify(server, expectedRequestsCount, expectedPath, HttpMethod.GET.toString(), headers -> {
+        });
+    }
+
+    public static void verify(MockWebServer server,
+                              int expectedRequestsCount,
+                              String expectedPath,
+                              String expectedMethod,
+                              Consumer<Headers> headersVerifier) {
         assertEquals(expectedRequestsCount, server.getRequestCount());
         range(0, expectedRequestsCount).forEach(i -> {
             try {
                 RecordedRequest recordedRequest = server.takeRequest(5, TimeUnit.SECONDS);
+                assertNotNull(recordedRequest);
                 assertEquals(expectedPath, recordedRequest.getPath());
+                assertEquals(expectedMethod, recordedRequest.getMethod());
+                headersVerifier.accept(recordedRequest.getHeaders());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -53,13 +93,20 @@ public class MockWebServerUtil {
     public static void verify(MockWebServer server, String... expectedPaths) {
 
         assertEquals(expectedPaths.length, server.getRequestCount());
-        for (String expectedPath: expectedPaths) {
+        for (String expectedPath : expectedPaths) {
             try {
                 RecordedRequest recordedRequest = server.takeRequest(5, TimeUnit.SECONDS);
+                assertNotNull(recordedRequest);
                 assertEquals(expectedPath, recordedRequest.getPath());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public static String readResourceAsString(String resourceName) throws IOException {
+        try (var inputStream = getResource(resourceName).openStream()) {
+            return new String(inputStream.readAllBytes(), UTF_8);
         }
     }
 }
