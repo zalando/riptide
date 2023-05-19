@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.github.restdriver.clientdriver.ClientDriverRequest;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -37,10 +35,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -65,10 +59,14 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.jsonMockResponseFromResource;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.textMockResponse;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setMaxConnTotal(1)
@@ -83,7 +81,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     private final Http http = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(new MappingJackson2HttpMessageConverter(createObjectMapper()))
             .build();
 
@@ -95,17 +93,17 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
     @AfterEach
     void tearDown() throws IOException {
         factory.destroy();
+        server.shutdown();
     }
 
     @Test
     void shouldReadContributors() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final RestTemplate template = new RestTemplate(factory);
         template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(createObjectMapper())));
 
-        final List<User> users = template.exchange(driver.getBaseUrl() + "/repos/zalando/riptide/contributors", GET,
+        final List<User> users = template.exchange(getBaseUrl(server) + "/repos/zalando/riptide/contributors", GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
                 }).getBody();
 
@@ -120,8 +118,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     @Test
     void shouldReadContributorsAsync() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final Capture<List<User>> capture = Capture.empty();
 
@@ -135,14 +132,14 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
                 .collect(toList());
 
         assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        verify(server, 1, "/repos/zalando/riptide/contributors");
     }
 
     @Test
     void shouldReadContributorsManually() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors").withMethod(ClientDriverRequest.Method.POST),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
-        final URI uri = URI.create(driver.getBaseUrl()).resolve("/repos/zalando/riptide/contributors");
+        final URI uri = URI.create(getBaseUrl(server)).resolve("/repos/zalando/riptide/contributors");
         final ClientHttpRequest request = factory.createRequest(uri, POST);
 
         request.getHeaders().setAccept(singletonList(APPLICATION_JSON));
@@ -174,23 +171,25 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
                 .collect(toList());
 
         assertThat(names, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        verify(server, 1, "/repos/zalando/riptide/contributors", POST.toString());
     }
 
     @Test
     void shouldReleaseConnection() {
-        driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
-        driver.addExpectation(onRequestTo("/"), giveResponse("Hello world!", "text/plain"));
+        server.enqueue(textMockResponse("Hello world!"));
+        server.enqueue(textMockResponse("Hello world!"));
 
         assertTimeout(Duration.ofMillis(750), () -> {
             http.get("/").call(pass()).join();
             http.get("/").call(pass()).join();
         });
+        verify(server, 2, "/");
     }
 
     @Test
     void shouldReleaseConnectionOnFailureToReadBody() {
-        driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
-        driver.addExpectation(onRequestTo("/wrong-content-type"), giveResponse("[]", "text/plain"));
+        server.enqueue(textMockResponse("[]"));
+        server.enqueue(textMockResponse("[]"));
 
         final ThrowingRunnable<Throwable> request = throwingRunnable(() -> {
             try {
@@ -206,6 +205,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
         assertThat(assertThrows(RestClientException.class, request::run), instanceOf(RestClientException.class));
         assertThat(assertThrows(RestClientException.class, request::run), instanceOf(RestClientException.class));
+        verify(server, 2, "/wrong-content-type");
     }
 
     @Test

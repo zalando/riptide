@@ -2,10 +2,9 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.CircuitBreakerOpenException;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -23,8 +22,6 @@ import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.concurrent.CompletionException;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,11 +30,14 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.TaskDecorator.composite;
 
 final class FailsafePluginCircuitBreakerTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -49,7 +49,7 @@ final class FailsafePluginCircuitBreakerTest {
     private final Http unit = Http.builder()
             .executor(newSingleThreadExecutor())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin()
                     .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
@@ -77,11 +77,13 @@ final class FailsafePluginCircuitBreakerTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
     void shouldOpenCircuit() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
+
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
 
         unit.get("/foo").call(pass())
                 .exceptionally(partially(SocketTimeoutException.class, this::ignore))
@@ -91,6 +93,8 @@ final class FailsafePluginCircuitBreakerTest {
                 unit.get("/foo").call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(CircuitBreakerOpenException.class)));
+
+        verify(server, 1, "/foo");
     }
 
     private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {

@@ -2,12 +2,11 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.base.Stopwatch;
 import dev.failsafe.CircuitBreaker;
-import dev.failsafe.CircuitBreakerBuilder;
 import dev.failsafe.RetryPolicy;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -23,25 +22,27 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.time.Instant.parse;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 final class RateLimitResetDelayFunctionTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -54,7 +55,7 @@ final class RateLimitResetDelayFunctionTest {
     private final Http unit = Http.builder()
             .executor(newSingleThreadExecutor())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin()
                     .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
@@ -81,12 +82,14 @@ final class RateLimitResetDelayFunctionTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
     void shouldRetryWithoutDynamicDelay() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(emptyMockResponse());
+
 
         unit.get("/baz")
                 .dispatch(series(),
@@ -94,13 +97,16 @@ final class RateLimitResetDelayFunctionTest {
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+
+        verify(server, 2, "/baz");
     }
 
     @Test
     void shouldIgnoreDynamicDelayOnInvalidFormatAndRetryImmediately() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("X-RateLimit-Reset", "foo"));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value())
+                .setHeader("X-RateLimit-Reset", "foo")
+        );
+        server.enqueue(emptyMockResponse());
 
         unit.get("/baz")
                 .dispatch(series(),
@@ -108,13 +114,16 @@ final class RateLimitResetDelayFunctionTest {
                         anySeries().dispatch(status(),
                                 on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                 .join();
+
+        verify(server, 2, "/baz");
     }
 
     @Test
     void shouldRetryOnDemandWithDelaySeconds() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("X-RateLimit-Reset", "1"));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value())
+                .setHeader("X-RateLimit-Reset", "1")
+        );
+        server.enqueue(emptyMockResponse());
 
         assertTimeout(Duration.ofMillis(1500), () ->
                 atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
@@ -123,19 +132,24 @@ final class RateLimitResetDelayFunctionTest {
                                 anySeries().dispatch(status(),
                                         on(HttpStatus.SERVICE_UNAVAILABLE).call(retry())))
                         .join()));
+
+        verify(server, 2, "/baz");
     }
 
     @Test
     void shouldRetryWithDelayEpochSeconds() {
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse().withStatus(503)
-                .withHeader("X-RateLimit-Reset", "1523486068"));
-        driver.addExpectation(onRequestTo("/baz"), giveEmptyResponse());
+        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value())
+                .setHeader("X-RateLimit-Reset", "1523486068")
+        );
+        server.enqueue(emptyMockResponse());
 
         assertTimeout(Duration.ofMillis(2000), () ->
                 atLeast(Duration.ofSeconds(1), () -> unit.get("/baz")
                         .dispatch(series(),
                                 on(SUCCESSFUL).call(pass()))
                         .join()));
+
+        verify(server, 2, "/baz");
     }
 
     private void atLeast(final Duration minimum, final Runnable runnable) {
