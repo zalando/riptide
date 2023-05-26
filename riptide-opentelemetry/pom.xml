@@ -17,7 +17,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <opentelemetry.version>1.23.1</opentelemetry.version>
+        <opentelemetry.version>1.24.0</opentelemetry.version>
         <opentelemetry-semconv.version>${opentelemetry.version}-alpha</opentelemetry-semconv.version>
     </properties>
 
@@ -49,10 +49,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.rest-driver</groupId>
-            <artifactId>rest-client-driver</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <scope>test</scope>
@@ -60,6 +56,11 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-failsafe</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

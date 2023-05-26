@@ -1,7 +1,8 @@
 package org.zalando.riptide.logbook;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,10 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.logbook.Correlation;
-import org.zalando.logbook.DefaultSink;
 import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Precorrelation;
+import org.zalando.logbook.core.DefaultSink;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
@@ -23,24 +24,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.logbook.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.logbook.MockWebServerUtil.textMockResponse;
 
 final class LogbookPluginTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final ExecutorService executor = newSingleThreadExecutor();
 
@@ -55,12 +55,13 @@ final class LogbookPluginTest {
             .requestFactory(new SimpleClientHttpRequestFactory())
             .plugin(new RequestCompressionPlugin())
             .plugin(new LogbookPlugin(logbook))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .build();
 
     @AfterEach
-    void shutdownDriver() {
-        driver.shutdown();
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
     }
 
     @AfterEach
@@ -75,8 +76,7 @@ final class LogbookPluginTest {
 
     @Test
     void shouldLog() throws IOException {
-        driver.addExpectation(onRequestTo("/"),
-                giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
 
         http.get("/")
                 .call(pass())
@@ -92,14 +92,13 @@ final class LogbookPluginTest {
         final String response = response();
         assertThat(response, containsString("\"type\":\"response\""));
         assertThat(response, containsString("\"origin\":\"remote\""));
+
+        MockWebServerUtil.verify(server, 1, "/");
     }
 
     @Test
     void shouldLogWithBody() throws IOException {
-        driver.addExpectation(onRequestTo("/greet")
-                        .withMethod(POST)
-                        .withBody(notNullValue(String.class), "text/plain"),
-                giveResponse("World!", "text/plain"));
+        server.enqueue(textMockResponse("World!"));
 
         http.post("/greet")
                 .contentType(MediaType.TEXT_PLAIN)
@@ -120,6 +119,8 @@ final class LogbookPluginTest {
         assertThat(response, containsString("\"origin\":\"remote\""));
         assertThat(response, containsString("text/plain"));
         assertThat(response, containsString("\"body\":\"World!\""));
+
+        MockWebServerUtil.verify(server, 1, "/greet", POST.toString());
     }
 
     /**

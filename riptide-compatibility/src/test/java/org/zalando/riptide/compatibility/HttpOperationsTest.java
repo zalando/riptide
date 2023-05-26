@@ -1,10 +1,10 @@
 package org.zalando.riptide.compatibility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
-import com.github.restdriver.clientdriver.ClientDriverRequest.Method;
-import com.github.restdriver.clientdriver.ClientDriverResponse;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,9 +30,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -42,33 +40,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.HEAD;
+import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.RoutingTree.dispatch;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.getRecordedRequest;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.jsonMockResponse;
+import static org.zalando.riptide.compatibility.MockWebServerUtil.verify;
 
 final class HttpOperationsTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final Http http = Http.builder()
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(new MappingJackson2HttpMessageConverter(
                     new ObjectMapper().setSerializationInclusion(NON_ABSENT)))
             .build();
 
+    @SneakyThrows
     @AfterEach
     void tearDown() {
-        try {
-            driver.verify();
-        } finally {
-            driver.shutdown();
-        }
+        server.shutdown();
     }
 
     static Iterable<Function<RestOperations, User>> get() {
@@ -85,15 +89,14 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("get")
     void shouldGet(final Function<RestOperations, User> test) {
-        final ClientDriverResponse response =
-                giveResponse("{\"name\":\"D. Fault\", \"birthday\":\"1984-09-13\"}", "application/json");
-
-        driver.addExpectation(onRequestTo("/users/1"), response);
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\", \"birthday\":\"1984-09-13\"}"));
 
         final User user = test.apply(new HttpOperations(http));
 
         assertEquals("D. Fault", user.getName());
         assertEquals("1984-09-13", user.getBirthday());
+
+        verify(server, 1, "/users/1");
     }
 
     static Iterable<Function<RestOperations, HttpHeaders>> head() {
@@ -107,12 +110,13 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("head")
     void shouldHead(final Function<RestOperations, HttpHeaders> test) {
-        driver.addExpectation(onRequestTo("/users/1").withMethod(Method.HEAD),
-                giveEmptyResponse().withHeader("Test", "true"));
-
+        server.enqueue(emptyMockResponse().setHeader("Test", "true"));
         final HttpHeaders headers = test.apply(new HttpOperations(http));
 
         assertEquals("true", headers.getFirst("Test"));
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", HEAD.toString());
     }
 
     static Iterable<Function<RestOperations, URI>> postForLocation() {
@@ -128,15 +132,16 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("postForLocation")
     void shouldPostForLocation(final Function<RestOperations, URI> test) {
-        driver.addExpectation(onRequestTo("/departments/1/users")
-                        .withMethod(Method.POST)
-                        .withBody("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"),
-                giveEmptyResponse().withHeader("Location", "/departments/1/users/1"));
+        server.enqueue(emptyMockResponse().setHeader("Location", "/departments/1/users/1"));
 
         final URI location = test.apply(new HttpOperations(http));
 
         assertNotNull(location);
         assertEquals("/departments/1/users/1", location.toString());
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Function<RestOperations, User>> postForObject() {
@@ -152,15 +157,16 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("postForObject")
     void shouldPostForObject(final Function<RestOperations, User> test) {
-        driver.addExpectation(onRequestTo("/departments/1/users")
-                        .withMethod(Method.POST)
-                        .withBody("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"),
-                giveResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json")
-                        .withHeader("Location", "/departments/1/users/1"));
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}")
+                .setHeader("Location", "/departments/1/users/1"));
 
         final User user = test.apply(new HttpOperations(http));
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> put() {
@@ -176,12 +182,13 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("put")
     void shouldPut(final Consumer<RestOperations> test) {
-        driver.addExpectation(onRequestTo("/users/1")
-                        .withMethod(Method.PUT)
-                        .withBody("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"),
-                giveEmptyResponse());
+        server.enqueue(emptyMockResponse());
 
         test.accept(new HttpOperations(http));
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", PUT.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     // needs concrete type to see patchForObject
@@ -198,14 +205,15 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("patchForObject")
     void shouldPatchForObject(final Function<RestOperations, User> test) {
-        driver.addExpectation(onRequestTo("/users/1")
-                        .withMethod(Method.custom("PATCH"))
-                        .withBody("{\"birthday\":\"1984-09-13\"}", "application/json"),
-                giveResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"));
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}"));
 
         final User user = test.apply(new HttpOperations(http));
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", "PATCH");
+        verifyRequestBody(recordedRequest, "{\"birthday\":\"1984-09-13\"}");
     }
 
     static Iterable<Consumer<RestOperations>> delete() {
@@ -219,10 +227,12 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("delete")
     void shouldDelete(final Consumer<RestOperations> test) {
-        driver.addExpectation(onRequestTo("/users/1").withMethod(Method.DELETE),
-                giveEmptyResponse());
+        server.enqueue(emptyMockResponse());
 
         test.accept(new HttpOperations(http));
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", DELETE.toString());
     }
 
     static Iterable<Function<RestOperations, Set<HttpMethod>>> optionsForAllow() {
@@ -236,12 +246,14 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("optionsForAllow")
     void shouldOptionsForAllow(final Function<RestOperations, Set<HttpMethod>> test) {
-        driver.addExpectation(onRequestTo("/users/1").withMethod(Method.OPTIONS),
-                giveEmptyResponse().withHeader("Allow", "GET, HEAD"));
+        server.enqueue(emptyMockResponse().setHeader("Allow", "GET, HEAD"));
 
         final Set<HttpMethod> allowed = test.apply(new HttpOperations(http));
 
         assertThat(allowed, contains(GET, HEAD));
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/users/1", OPTIONS.toString());
     }
 
     static Iterable<Function<RestOperations, User>> execute() {
@@ -266,40 +278,43 @@ final class HttpOperationsTest {
     @ParameterizedTest
     @MethodSource("execute")
     void shouldExecute(final Function<RestOperations, User> test) {
-        driver.addExpectation(onRequestTo("/departments/1/users")
-                        .withMethod(Method.POST)
-                        .withBody("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json")
-                        .withHeader("Test", "true"),
-                giveResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"));
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}"));
 
         final User user = test.apply(new HttpOperations(http));
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        assertEquals("true", recordedRequest.getHeaders().get("Test"));
     }
 
     @Test
     void shouldExchange() {
-        driver.addExpectation(onRequestTo("/departments/1/users")
-                        .withMethod(Method.POST)
-                        .withBody("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"),
-                giveResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}", "application/json"));
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}"));
 
         final User user = new HttpOperations(http).exchange(new RequestEntity<>(new User("D. Fault", "1984-09-13"),
                 POST, URI.create("/departments/1/users")), User.class).getBody();
 
         assertEquals(new User("D. Fault", "1984-09-13"), user);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 
     @Test
     void shouldExecuteWithoutCallbackOrExtractor() {
-        driver.addExpectation(onRequestTo("/departments/1/users")
-                        .withMethod(Method.POST),
-                giveEmptyResponse());
+        server.enqueue(emptyMockResponse());
 
         final RestOperations unit = new HttpOperations(http);
         @Nullable final User user = unit.execute("/departments/{id}/users", POST, null, null, 1);
 
         assertNull(user);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
     }
 
     @Test
@@ -312,8 +327,7 @@ final class HttpOperationsTest {
 
     @Test
     void shouldOverrideDefaultRoutingTree() {
-        driver.addExpectation(onRequestTo("/departments/1/users"),
-                giveResponse("\"error\"", "application/json").withStatus(404));
+        server.enqueue(jsonMockResponse("\"error\"").setResponseCode(404));
 
         final RestOperations unit = new HttpOperations(http)
                 .withDefaultRoutingTree(dispatch(series(),
@@ -326,6 +340,20 @@ final class HttpOperationsTest {
 
         assertThat(exception.getCause(), is(instanceOf(UnsupportedOperationException.class)));
         assertEquals("error", exception.getCause().getMessage());
+
+        verify(server, 1, "/departments/1/users");
     }
 
+    private static void verifyRequestBody(RecordedRequest recordedRequest, String expectedBody) {
+        assertEquals(expectedBody, recordedRequest.getBody().readString(UTF_8));
+        assertEquals("application/json", recordedRequest.getHeaders().get(CONTENT_TYPE));
+    }
+
+    private static void verifyRequest(RecordedRequest recordedRequest,
+                                      String expectedPath,
+                                      String expectedMethod) {
+        assertNotNull(recordedRequest);
+        assertEquals(expectedPath, recordedRequest.getPath());
+        assertEquals(expectedMethod, recordedRequest.getMethod());
+    }
 }

@@ -3,8 +3,8 @@ package org.zalando.riptide;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -16,21 +16,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponseAsBytes;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
-import static com.google.common.io.Resources.getResource;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.MockWebServerUtil.jsonMockResponseFromResource;
+import static org.zalando.riptide.MockWebServerUtil.verify;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Types.listOf;
 
 final class IOTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
     static class User {
@@ -48,7 +48,7 @@ final class IOTest {
     private final Http http = Http.builder()
             .executor(executor)
             .requestFactory(requestFactory)
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
             .build();
 
@@ -59,9 +59,11 @@ final class IOTest {
         return converter;
     }
 
+    @SneakyThrows
     @AfterEach
     void tearDown() {
         executor.shutdown();
+        server.shutdown();
     }
 
     @Test
@@ -77,8 +79,7 @@ final class IOTest {
     }
 
     private void shouldReadContributors() throws IOException {
-        driver.addExpectation(onRequestTo("/repos/zalando/riptide/contributors"),
-                giveResponseAsBytes(getResource("contributors.json").openStream(), "application/json"));
+        server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final AtomicReference<List<User>> reference = new AtomicReference<>();
 
@@ -91,6 +92,7 @@ final class IOTest {
                 .collect(toList());
 
         assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));
+        verify(server, 1, "/repos/zalando/riptide/contributors");
     }
 
 }

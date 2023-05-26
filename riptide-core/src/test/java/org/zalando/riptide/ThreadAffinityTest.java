@@ -1,8 +1,8 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
@@ -14,12 +14,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.lang.Thread.currentThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.MockWebServerUtil.verify;
 import static org.zalando.riptide.Navigators.series;
 
 final class ThreadAffinityTest {
@@ -74,14 +75,15 @@ final class ThreadAffinityTest {
         }
     }
 
+    @SneakyThrows
     void test(final ConfigurationStage stage, final String request, final String dispatch, final String callback) {
-        final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+        final MockWebServer server = new MockWebServer();
 
         try {
-            driver.addExpectation(onRequestTo("/"), giveEmptyResponse());
+            server.enqueue(emptyMockResponse());
 
             final Http http = stage
-                    .baseUrl(driver.getBaseUrl())
+                    .baseUrl(getBaseUrl(server))
                     .build();
 
             final AtomicReference<Thread> requestThread = new AtomicReference<>();
@@ -101,8 +103,9 @@ final class ThreadAffinityTest {
             assertEquals(request, requestThread.get().getName(), "request thread");
             assertEquals(dispatch, callbackThread.get().getName(), "callback thread");
             assertEquals(callback, dispatchThread.get().getName(), "dispatch thread");
+            verify(server, 1, "/");
         } finally {
-            driver.verify();
+            server.shutdown();
         }
     }
 

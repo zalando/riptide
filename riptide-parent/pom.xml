@@ -20,12 +20,12 @@
         <jackson.version>2.14.2</jackson.version>
         <jackson-databind.version>2.14.2</jackson-databind.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
-        <logbook.version>2.16.0</logbook.version>
+        <logbook.version>3.0.0</logbook.version>
         <micrometer.version>1.11.0</micrometer.version>
         <mockito.version>4.11.0</mockito.version>
         <problem.version>0.27.1</problem.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <spring-boot.version>2.7.9</spring-boot.version>
+        <spring-boot.version>2.7.12</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -300,7 +300,7 @@
             <dependency>
                 <groupId>net.jqwik</groupId>
                 <artifactId>jqwik</artifactId>
-                <version>1.7.2</version>
+                <version>1.7.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -342,24 +342,10 @@
 
             <!-- http mock -->
             <dependency>
-                <groupId>com.github.rest-driver</groupId>
-                <artifactId>rest-client-driver</artifactId>
-                <version>2.0.1</version>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>mockwebserver</artifactId>
+                <version>4.10.0</version>
                 <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jcl-over-slf4j</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-library</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <!-- jackson -->

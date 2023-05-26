@@ -1,7 +1,5 @@
 package org.zalando.riptide.opentelemetry;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import com.google.common.collect.ImmutableMap;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -13,8 +11,12 @@ import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,11 +48,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.GET;
-import static com.github.restdriver.clientdriver.ClientDriverRequest.Method.POST;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,8 +59,13 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.textMockResponse;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.verify;
 
 class OpenTelemetryPluginTest {
     @RegisterExtension
@@ -71,28 +73,35 @@ class OpenTelemetryPluginTest {
 
     private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("riptide-opentelemetry");
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
 
     private final Http unit = Http.builder()
-                                      .executor(Executors.newCachedThreadPool())
-                                      .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                              HttpClientBuilder.create()
-                                                      .setDefaultRequestConfig(
-                                                              RequestConfig.custom()
-                                                                      .setSocketTimeout(500)
-                                                                      .build())
-                                                      .build()))
-                                      .baseUrl(driver.getBaseUrl())
-                                      .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
-                                              environmentDecorator))
-                                      .build();
+            .executor(Executors.newCachedThreadPool())
+            .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(
+                                    RequestConfig.custom()
+                                            .setSocketTimeout(500)
+                                            .build())
+                            .build()))
+            .baseUrl(getBaseUrl(server))
+            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
+                    environmentDecorator))
+            .build();
+
+    @AfterEach
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
+    }
 
     public static Stream<Arguments> routes() {
         Map<String, Function<AttributeStage, CompletableFuture<ClientHttpResponse>>> args = ImmutableMap.of(
                 //this is an invalid config, because the route in incomplete, but we want to have the http status code nevertheless
-                "incomplete route", stage -> stage.dispatch(Navigators.status(), Bindings.on(HttpStatus.OK).call(pass())),
+                "incomplete route", stage -> stage.dispatch(Navigators.status(), Bindings.on(HttpStatus.OK)
+                        .call(pass())),
                 "complete route", stage -> stage.call(pass())
         );
         return args.entrySet().stream().map(a -> Arguments.of(a.getKey(), a.getValue()));
@@ -100,12 +109,8 @@ class OpenTelemetryPluginTest {
 
     @Test
     void shouldTraceRequestAndResponse() {
-        driver.addExpectation(onRequestTo("/users/me")
-                                      .withMethod(POST)
-                                      .withHeader("traceparent", notNullValue(String.class)),
-                giveResponse("Hello, world!", "text/plain")
-                        .withStatus(200)
-                        .withHeader("Retry-After", "60"));
+        server.enqueue(textMockResponse("Hello, world!")
+                .setHeader("Retry-After", "60"));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -131,13 +136,15 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("POST"));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(200L));
+
+        verify(server, 1, "/users/me", POST.toString());
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("routes")
     void shouldTraceRequestAndServerError(@SuppressWarnings("unused") String name,
-            Function<AttributeStage, CompletableFuture<ClientHttpResponse>> route) {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(500));
+                                          Function<AttributeStage, CompletableFuture<ClientHttpResponse>> route) {
+        server.enqueue(new MockResponse().setResponseCode(500));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -163,17 +170,19 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(500L));
+
+        verify(server, 1, "/");
     }
 
     @Test
     void shouldTraceRequestAndNetworkError() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().after(1, SECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(1, SECONDS));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
-            final CompletableFuture<?> future = unit.get(URI.create(driver.getBaseUrl()))
-                                                        .call(noRoute());
+            final CompletableFuture<?> future = unit.get(URI.create(getBaseUrl(server)))
+                    .call(noRoute());
 
             final CompletionException error = assertThrows(CompletionException.class, future::join);
             assertThat(error.getCause(), is(instanceOf(SocketTimeoutException.class)));
@@ -203,11 +212,13 @@ class OpenTelemetryPluginTest {
         assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_TYPE), containsString("SocketTimeoutException"));
         assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_MESSAGE), containsString("Read timed out"));
         assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_STACKTRACE), is(notNullValue()));
+
+        verify(server, 1, "/");
     }
 
     @Test
     void shouldTraceRequestAndIgnoreClientError() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(400));
+        server.enqueue(new MockResponse().setResponseCode(400));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -234,6 +245,8 @@ class OpenTelemetryPluginTest {
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
         assertThat(attributes.get(AttributeKey.stringKey("peer.hostname")), is("localhost"));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(400L));
+
+        verify(server, 1, "/");
     }
 
     @Test
@@ -255,33 +268,29 @@ class OpenTelemetryPluginTest {
         });
         new OpenTelemetryPlugin().aroundAsync(requestExecution)
                 .execute(RequestArguments.create()
-                                 .withMethod(HttpMethod.GET)
-                                 .withUri(URI.create("https://example.com"))
-                                 .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
+                        .withMethod(HttpMethod.GET)
+                        .withUri(URI.create("https://example.com"))
+                        .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
         otelTesting.assertTraces().singleElement().singleElement().hasName(newName);
     }
 
     @Test
     void shouldOverwriteDefaultSetOfDecorators() {
         final Http unit = Http.builder()
-                                  .executor(Executors.newCachedThreadPool())
-                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                          HttpClientBuilder.create()
-                                                  .setDefaultRequestConfig(
-                                                          RequestConfig.custom()
-                                                                  .setSocketTimeout(500)
-                                                                  .build())
-                                                  .build()))
-                                  .baseUrl(driver.getBaseUrl())
-                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
-                                                  .withSpanDecorators(new HttpHostSpanDecorator()))
-                                  .build();
+                .executor(Executors.newCachedThreadPool())
+                .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                        HttpClientBuilder.create()
+                                .setDefaultRequestConfig(
+                                        RequestConfig.custom()
+                                                .setSocketTimeout(500)
+                                                .build())
+                                .build()))
+                .baseUrl(getBaseUrl(server))
+                .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
+                        .withSpanDecorators(new HttpHostSpanDecorator()))
+                .build();
 
-        driver.addExpectation(onRequestTo("/")
-                                      .withMethod(GET)
-                                      .withHeader("traceparent", notNullValue(String.class)),
-                giveResponse("Hello, world!", "text/plain")
-                        .withStatus(200));
+        server.enqueue(textMockResponse("Hello, world!"));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
@@ -306,5 +315,7 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.size(), is(1));
         assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
+
+        verify(server, 1, "/");
     }
 }

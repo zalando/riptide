@@ -2,8 +2,7 @@ package org.zalando.riptide.failsafe;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -19,16 +18,17 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 
 final class FailsafePluginNoPolicyTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
             .setDefaultRequestConfig(RequestConfig.custom()
@@ -39,7 +39,7 @@ final class FailsafePluginNoPolicyTest {
     private final Http unit = Http.builder()
             .executor(newSingleThreadExecutor())
             .requestFactory(new ApacheClientHttpRequestFactory(client))
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
             .plugin(new FailsafePlugin())
             .plugin(new OriginalStackTracePlugin())
@@ -59,13 +59,14 @@ final class FailsafePluginNoPolicyTest {
     @AfterEach
     void tearDown() throws IOException {
         client.close();
+        server.shutdown();
     }
 
     @Test
     void shouldNotOpenCircuit() {
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse().after(800, MILLISECONDS));
-        driver.addExpectation(onRequestTo("/foo"), giveEmptyResponse());
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
+        server.enqueue(emptyMockResponse().setHeadersDelay(800, MILLISECONDS));
+        server.enqueue(emptyMockResponse());
 
         unit.get("/foo").call(pass())
                 .exceptionally(this::ignore)
@@ -76,6 +77,8 @@ final class FailsafePluginNoPolicyTest {
 
         timeout.exceptionally(partially(SocketTimeoutException.class, this::ignore)).join();
         last.join();
+
+        verify(server, 3, "/foo");
     }
 
     private ClientHttpResponse ignore(@SuppressWarnings("unused") final Throwable throwable) {
