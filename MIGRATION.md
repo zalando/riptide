@@ -25,6 +25,12 @@ Here are some of the breaking changes that can affect `riptide-failsafe` users:
 Since Spring 5, `AsyncRestTemplate` is deprecated in favor of `WebClient`.
 For that reason, we have removed `AsyncHttpOperations` from `riptide-compatibility` layer.
 
+## OpenTracing
+
+The `SpanDecorators` obtained by `ServiceLoaderSpanDecorator` 
+(via the [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) facility) 
+are loaded eagerly and only once.
+
 
 # Riptide 3.0 Migration Guide
 
