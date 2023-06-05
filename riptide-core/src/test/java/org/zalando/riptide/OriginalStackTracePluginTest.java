@@ -1,7 +1,6 @@
 package org.zalando.riptide;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +12,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,23 +19,26 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.zalando.riptide.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.MockWebServerUtil.jsonMockResponse;
+import static org.zalando.riptide.MockWebServerUtil.verify;
 import static org.zalando.riptide.Navigators.contentType;
 
 final class OriginalStackTracePluginTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
     private final ExecutorService executor = newSingleThreadExecutor();
 
     @BeforeEach
     void setUp() {
-        driver.addExpectation(onRequestTo("/"),
-                giveResponse("", "application/json"));
+        server.enqueue(jsonMockResponse(""));
     }
 
     @AfterEach
     void tearDown() throws Exception {
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS);
+        server.shutdown();
     }
 
     @Test
@@ -52,6 +52,8 @@ final class OriginalStackTracePluginTest {
 
         assertThat(getStackTraceAsString(exception), containsString("Requester$ResponseDispatcher.call("));
         assertThat(getStackTraceAsString(exception), containsString("OriginalStackTracePluginTest.execute("));
+
+        verify(server, 1, "/");
     }
 
     @Test
@@ -66,13 +68,15 @@ final class OriginalStackTracePluginTest {
 
         assertThat(getStackTraceAsString(exception), not(containsString("Requester$ResponseDispatcher.call(")));
         assertThat(getStackTraceAsString(exception), not(containsString("OriginalStackTracePluginTest.execute(")));
+
+        verify(server, 1, "/");
     }
 
     private Http.ConfigurationStage configureRest() {
         return Http.builder()
                 .executor(executor)
                 .requestFactory(new SimpleClientHttpRequestFactory())
-                .baseUrl(driver.getBaseUrl());
+                .baseUrl(getBaseUrl(server));
     }
 
     private CompletableFuture<ClientHttpResponse> execute(final DispatchStage stage) {

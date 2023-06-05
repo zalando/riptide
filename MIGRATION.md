@@ -1,3 +1,37 @@
+# Riptide 4.0 Migration Guide
+
+## Before you start
+
+**Riptide 4** requires java 17 or or up.
+**Riptide 4** requires Spring 6 or or up.
+
+## Failsafe
+
+**Riptide now requires Failsafe 3.3.x**
+
+There are many breaking changes between Failsafe version 2.4.3 and version 3.3.0, 
+see [Failsafe CHANGELOG](https://github.com/failsafe-lib/failsafe/blob/master/CHANGELOG.md#330) for all details.    
+Here are some of the breaking changes that can affect `riptide-failsafe` users:
+
+- The maven group id for Failsafe has changed to `dev.failsafe`
+- All files have been moved to the `dev.failsafe` package
+- `Scheduler`, `DefaultScheduledFuture` and `PolicyExecutor` were moved to the spi package
+- All policies now use a builder API instead of constructors
+- `DelayFunction` interface has been removed, `ContextualSupplier` should be used instead since it provides access to the same information
+- `CircuitBreakerBuilder` `onOpen`, `onClose`, and `onHalfOpen` methods now accept an `EventListener<CircuitBreakerStateChangedEvent>` argument
+
+## Spring
+
+Since Spring 5, `AsyncRestTemplate` is deprecated in favor of `WebClient`.
+For that reason, we have removed `AsyncHttpOperations` from `riptide-compatibility` layer.
+
+## OpenTracing
+
+The `SpanDecorators` obtained by `ServiceLoaderSpanDecorator` 
+(via the [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) facility) 
+are loaded eagerly and only once.
+
+
 # Riptide 3.0 Migration Guide
 
 ## Before You Start

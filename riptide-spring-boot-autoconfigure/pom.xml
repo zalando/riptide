@@ -253,20 +253,13 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.rest-driver</groupId>
-            <artifactId>rest-client-driver</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>javax.servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-            <scope>test</scope>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentracing</groupId>
@@ -325,7 +318,7 @@
                                 <include>**/NoRiptideFailsafeTest.java</include>
                             </includes>
                             <classpathDependencyExcludes>org.zalando:riptide-failsafe</classpathDependencyExcludes>
-                            <classpathDependencyExcludes>net.jodah:failsafe</classpathDependencyExcludes>
+                            <classpathDependencyExcludes>dev:failsafe</classpathDependencyExcludes>
                         </configuration>
                     </execution>
                 </executions>

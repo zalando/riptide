@@ -8,8 +8,8 @@ import io.micrometer.core.instrument.Tags;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.Timeout;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.Timeout;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -35,7 +35,6 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
-import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.failsafe.BackupRequest;
@@ -97,7 +96,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         properties.getClients().forEach((id, client) -> {
             registerHttp(id, client);
             registerHttpOperations(id, client);
-            registerAsyncHttpOperations(id, client);
         });
     }
 
@@ -119,12 +117,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private void registerHttpOperations(final String id, final Client client) {
         registry.registerIfAbsent(id, RestOperations.class, () ->
                 genericBeanDefinition(HttpOperations.class)
-                        .addConstructorArgReference(registerHttp(id, client)));
-    }
-
-    private void registerAsyncHttpOperations(final String id, final Client client) {
-        registry.registerIfAbsent(id, AsyncRestOperations.class, () ->
-                genericBeanDefinition(AsyncHttpOperations.class)
                         .addConstructorArgReference(registerHttp(id, client)));
     }
 

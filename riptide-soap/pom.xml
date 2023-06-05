@@ -26,10 +26,6 @@
             <artifactId>spring-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.rest-driver</groupId>
-            <artifactId>rest-client-driver</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-capture</artifactId>
             <scope>test</scope>
@@ -39,6 +35,17 @@
             <artifactId>riptide-httpclient</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>2.3.6</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

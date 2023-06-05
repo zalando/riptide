@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.event.ExecutionAttemptedEvent;
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.event.ExecutionAttemptedEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
@@ -31,9 +31,10 @@ final class CompositeRetryListenerTest {
         final RequestArguments arguments = RequestArguments.create();
         final IllegalStateException exception = new IllegalStateException();
 
-        Failsafe.with(new RetryPolicy<ClientHttpResponse>()
+        Failsafe.with(RetryPolicy.<ClientHttpResponse>builder()
                 .withMaxRetries(3)
-                .onRetry(new RetryRequestPolicy.RetryListenerAdapter(unit, arguments)))
+                .onRetry(new RetryRequestPolicy.RetryListenerAdapter(unit, arguments))
+                        .build())
                 .run(() -> {
                     if (!success.getAndSet(true)) {
                         throw exception;
@@ -41,9 +42,9 @@ final class CompositeRetryListenerTest {
                 });
 
         verify(first).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
-        verify(first).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastFailure, notNullValue())));
+        verify(first).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastException, notNullValue())));
         verify(second).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastResult, nullValue())));
-        verify(second).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastFailure, notNullValue())));
+        verify(second).onRetry(eq(arguments), argThat(hasFeature(ExecutionAttemptedEvent::getLastException, notNullValue())));
     }
 
 }

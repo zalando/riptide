@@ -49,17 +49,12 @@ final class ClientConfigurationTest {
 
     @Autowired
     @Qualifier("example")
-    private AsyncRestOperations exampleAsyncRestOperations;
-
-    @Autowired
-    @Qualifier("example")
     private HttpClient exampleHttpClient;
 
     @Test
     void shouldWireOAuthCorrectly() {
         assertThat(exampleRest, is(notNullValue()));
         assertThat(exampleRestOperations, is(notNullValue()));
-        assertThat(exampleAsyncRestOperations, is(notNullValue()));
     }
 
     @Test

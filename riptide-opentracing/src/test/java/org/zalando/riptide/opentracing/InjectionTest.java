@@ -1,52 +1,57 @@
 package org.zalando.riptide.opentracing;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import io.opentracing.mock.MockTracer;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.Http;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
+import java.io.IOException;
+
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.verify;
 
 final class InjectionTest {
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
     private final MockTracer tracer = new MockTracer();
 
     private final Http unit = Http.builder()
             .executor(new TracedExecutorService(newSingleThreadExecutor(), tracer))
             .requestFactory(new HttpComponentsClientHttpRequestFactory())
-            .baseUrl(driver.getBaseUrl())
+            .baseUrl(getBaseUrl(server))
             .plugin(new OpenTracingPlugin(tracer)
                 .withInjection(new NoOpInjection()))
             .build();
 
     @Test
     void shouldNotInject() {
-        driver.addExpectation(onRequestTo("/users/me")
-                        .withoutHeader("traceid")
-                        .withoutHeader("spanid"),
-                giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
 
-            unit.get("/users/{user}", "me")
-                    .call(pass())
-                    .join();
+        unit.get("/users/{user}", "me")
+                .call(pass())
+                .join();
 
         assertThat(tracer.finishedSpans(), hasSize(1));
+        verify(server, 1, "/users/me", GET.toString(), headers -> {
+            assertNull(headers.get("traceid"));
+            assertNull(headers.get("spanid"));
+        });
     }
 
     @AfterEach
-    void tearDown() {
-        driver.verify();
-        driver.shutdown();
+    void tearDown() throws IOException {
+        server.shutdown();
     }
 
 }

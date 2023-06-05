@@ -1,7 +1,6 @@
 package org.zalando.riptide.opentelemetry;
 
-import com.github.restdriver.clientdriver.ClientDriver;
-import com.github.restdriver.clientdriver.ClientDriverFactory;
+import dev.failsafe.RetryPolicy;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -9,9 +8,12 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import net.jodah.failsafe.RetryPolicy;
+import lombok.SneakyThrows;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.client.ClientHttpResponse;
@@ -25,13 +27,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import static com.github.restdriver.clientdriver.RestClientDriver.giveEmptyResponse;
-import static com.github.restdriver.clientdriver.RestClientDriver.onRequestTo;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.PassRoute.pass;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.verify;
 
 public class OpenTelemetryPluginRetryTest {
     @RegisterExtension
@@ -39,39 +42,46 @@ public class OpenTelemetryPluginRetryTest {
 
     private final Tracer tracer = otelTesting.getOpenTelemetry().getTracer("riptide-opentelemetry");
 
-    private final ClientDriver driver = new ClientDriverFactory().createClientDriver();
+    private final MockWebServer server = new MockWebServer();
 
     private final SpanDecorator retryDecorator = new RetrySpanDecorator();
 
     private final Http unit = Http.builder()
-                                  .executor(Executors.newCachedThreadPool())
-                                  .requestFactory(new HttpComponentsClientHttpRequestFactory(
-                                          HttpClientBuilder.create()
-                                                           .setDefaultRequestConfig(
-                                                                   RequestConfig.custom()
-                                                                                .setSocketTimeout(500)
-                                                                                .build())
-                                                           .build()))
-                                  .baseUrl(driver.getBaseUrl())
-                                  .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
-                                  .plugin(new FailsafePlugin()
-                                                  .withPolicy(new RetryPolicy<ClientHttpResponse>()
-                                                                      .withMaxRetries(2)
-                                                                      .handleResultIf(response -> true)))
-                                  .build();
+            .executor(Executors.newCachedThreadPool())
+            .requestFactory(new HttpComponentsClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .setDefaultRequestConfig(
+                                    RequestConfig.custom()
+                                            .setSocketTimeout(500)
+                                            .build())
+                            .build()))
+            .baseUrl(getBaseUrl(server))
+            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
+            .plugin(new FailsafePlugin()
+                    .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
+                            .withMaxRetries(2)
+                            .handleResultIf(response -> true)
+                            .build()))
+            .build();
+
+    @AfterEach
+    @SneakyThrows
+    void shutdownServer() {
+        server.shutdown();
+    }
 
     @Test
     void shouldTraceRetries() {
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
-        driver.addExpectation(onRequestTo("/"), giveEmptyResponse().withStatus(200));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
+        server.enqueue(new MockResponse().setResponseCode(OK.value()));
 
         final Span parent = tracer.spanBuilder("test").startSpan();
 
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
-                .call(pass())
-                .join();
+                    .call(pass())
+                    .join();
         } finally {
             parent.end();
         }
@@ -81,9 +91,9 @@ public class OpenTelemetryPluginRetryTest {
         assertThat(spans, hasSize(4));
 
         final List<SpanData> retrySpans = spans.stream()
-                                               .filter(this::hasRetryAttribute)
-                                               .sorted(Comparator.comparing(SpanData::getStartEpochNanos))
-                                               .collect(toList());
+                .filter(this::hasRetryAttribute)
+                .sorted(Comparator.comparing(SpanData::getStartEpochNanos))
+                .collect(toList());
 
         assertThat(retrySpans, hasSize(2));
 
@@ -93,6 +103,8 @@ public class OpenTelemetryPluginRetryTest {
             Attributes attributes = retrySpan.getAttributes();
             assertThat(attributes.get(AttributeKey.longKey("retry_number")), is(retryAttempt++));
         }
+
+        verify(server, 3, "/");
     }
 
     private boolean hasRetryAttribute(SpanData data) {

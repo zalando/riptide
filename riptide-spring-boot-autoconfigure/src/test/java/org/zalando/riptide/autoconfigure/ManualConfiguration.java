@@ -1,15 +1,16 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import net.jodah.failsafe.CircuitBreaker;
-import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.Timeout;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.Timeout;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -44,7 +45,6 @@ import org.zalando.riptide.chaos.ErrorResponseInjection;
 import org.zalando.riptide.chaos.ExceptionInjection;
 import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
-import org.zalando.riptide.compatibility.AsyncHttpOperations;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
@@ -70,6 +70,7 @@ import org.zalando.riptide.stream.Streams;
 import java.net.SocketTimeoutException;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -144,17 +145,18 @@ public class ManualConfiguration {
                     new LogbookPlugin(logbook),
                     new OpenTracingPlugin(tracer),
                     new FailsafePlugin()
-                            .withPolicy(new CircuitBreaker<ClientHttpResponse>()
+                            .withPolicy(CircuitBreaker.<ClientHttpResponse>builder()
                                     .withFailureThreshold(5, 5)
                                     .withDelay(Duration.ofSeconds(30))
                                     .withSuccessThreshold(3, 5)
-                                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                                    .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
                                             new RetryAfterDelayFunction(systemUTC()),
                                             new RateLimitResetDelayFunction(systemUTC())
                                     )))
-                                    .onOpen(listener::onOpen)
-                                    .onHalfOpen(listener::onHalfOpen)
-                                    .onClose(listener::onClose))
+                                    .onOpen(event -> listener.onOpen())
+                                    .onHalfOpen(event -> listener.onHalfOpen())
+                                    .onClose(event -> listener.onClose())
+                                    .build())
                             .withDecorator(new TracedTaskDecorator(tracer)),
                     new FailsafePlugin().withPolicy(
                             new RetryRequestPolicy(
@@ -175,27 +177,24 @@ public class ManualConfiguration {
 
         private RetryPolicy<ClientHttpResponse> retryPolicy(
                 final Predicate<Throwable> predicate) {
+            final CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
 
-            return new RetryPolicy<ClientHttpResponse>()
-                    .handleIf(predicate)
+            return RetryPolicy.<ClientHttpResponse>builder()
+                    .handleIf(checkedPredicate)
                     .withBackoff(50, 2000, MILLIS)
-                    .withDelay(new CompositeDelayFunction<>(Arrays.asList(
+                    .withDelayFn(new CompositeDelayFunction<>(Arrays.asList(
                             new RetryAfterDelayFunction(systemUTC()),
                             new RateLimitResetDelayFunction(systemUTC())
                     )))
                     .withMaxRetries(10)
                     .withMaxDuration(Duration.ofSeconds(2))
-                    .withJitter(0.2);
+                    .withJitter(0.2)
+                    .build();
         }
 
         @Bean
         public RestOperations exampleRestOperations(final Http http) {
             return new HttpOperations(http);
-        }
-
-        @Bean
-        public AsyncRestOperations exampleAsyncRestOperations(final Http http) {
-            return new AsyncHttpOperations(http);
         }
 
         @Bean

@@ -22,7 +22,7 @@ public final class ServiceLoaderSpanDecorator extends ForwardingSpanDecorator {
     }
 
     private static synchronized List<SpanDecorator> loadDecorators() {
-        return stream(load(SpanDecorator.class).spliterator(), false).collect(Collectors.toList());
+        return stream(load(SpanDecorator.class).spliterator(), false).toList();
     }
 
 }
