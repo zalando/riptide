@@ -25,7 +25,7 @@
         <mockito.version>4.11.0</mockito.version>
         <problem.version>0.27.1</problem.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <spring-boot.version>2.7.7</spring-boot.version>
+        <spring-boot.version>2.7.12</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -159,7 +159,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>31.1-jre</version>
+                <version>32.0.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
