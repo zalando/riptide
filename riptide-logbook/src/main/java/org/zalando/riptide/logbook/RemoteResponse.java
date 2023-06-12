@@ -3,7 +3,7 @@ package org.zalando.riptide.logbook;
 import com.google.common.io.ByteStreams;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.logbook.HttpResponse;
 import org.zalando.logbook.Origin;
@@ -187,13 +187,13 @@ final class RemoteResponse implements HttpResponse {
 
         @Nonnull
         @Override
-        public HttpStatus getStatusCode() throws IOException {
+        public HttpStatusCode getStatusCode() throws IOException {
             return response.getStatusCode();
         }
 
         @Override
         public int getRawStatusCode() throws IOException {
-            return response.getRawStatusCode();
+            return response.getStatusCode().value();
         }
 
         @Nonnull

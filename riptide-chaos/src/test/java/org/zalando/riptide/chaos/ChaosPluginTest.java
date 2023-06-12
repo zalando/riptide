@@ -2,9 +2,11 @@ package org.zalando.riptide.chaos;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -25,24 +27,14 @@ import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.*;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
-import static org.zalando.riptide.chaos.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.chaos.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.chaos.MockWebServerUtil.verify;
+import static org.zalando.riptide.chaos.MockWebServerUtil.*;
 
 final class ChaosPluginTest {
 
@@ -53,8 +45,10 @@ final class ChaosPluginTest {
     private final Probability errorResponseProbability = mock(Probability.class);
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(1500)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(1500))
+                            .build())
                     .build())
             .build();
 
@@ -145,7 +139,7 @@ final class ChaosPluginTest {
         response.close();
 
         assertThat(response.getStatusCode(), is(oneOf(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE)));
-        assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
+        assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         assertThat(response.getStatusText(), is(oneOf("Internal Server Error", "Service Unavailable")));
         assertThat(response.getHeaders(), is(anEmptyMap())); // TODO can we do better?
         verify(server, 1, "/foo");
@@ -215,7 +209,7 @@ final class ChaosPluginTest {
         final Instant end = clock.instant();
 
         assertThat(Duration.between(start, end), is(greaterThanOrEqualTo(Duration.ofSeconds(1))));
-        assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
+        assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         verify(server, 1, "/foo");
     }
 

@@ -38,7 +38,7 @@ final class StatusCodeDispatchTest {
         server.expect(requestTo(url)).andRespond(withStatus(HttpStatus.valueOf(expected)));
 
         final ClientHttpResponseConsumer verifier = response ->
-                assertThat(response.getRawStatusCode(), is(expected));
+                assertThat(response.getStatusCode().value(), is(expected));
 
         @SuppressWarnings("unchecked")
         final Binding<Integer>[] bindings = HttpStatuses.supported()

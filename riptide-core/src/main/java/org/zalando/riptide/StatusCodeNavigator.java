@@ -13,7 +13,7 @@ enum StatusCodeNavigator implements EqualityNavigator<Integer> {
 
     @Override
     public Integer attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getRawStatusCode();
+        return response.getStatusCode().value();
     }
 
 }

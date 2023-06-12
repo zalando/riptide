@@ -22,10 +22,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static java.util.EnumSet.allOf;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -41,7 +39,7 @@ import static org.zalando.riptide.UrlResolution.RFC;
 final class RequestUriTest {
 
     static List<Arguments> data() {
-        final Set<Arguments> methods = allOf(HttpMethod.class).stream()
+        final Set<Arguments> methods = stream(HttpMethod.values())
                 .map(Arguments::of)
                 .collect(toSet());
 

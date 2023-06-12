@@ -5,10 +5,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
@@ -39,14 +41,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasToString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.mockito.Mockito.mock;
@@ -59,19 +54,18 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.jsonMockResponseFromResource;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.textMockResponse;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.*;
 
 public abstract class AbstractApacheClientHttpRequestFactoryTest {
 
     private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setMaxConnTotal(1)
-            .setMaxConnPerRoute(1)
-            .setDefaultRequestConfig(RequestConfig.custom().setConnectionRequestTimeout(10).build())
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setMaxConnTotal(1)
+                    .setMaxConnPerRoute(1)
+                    .build())
+            .setDefaultRequestConfig(RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofSeconds(10)).build())
             .build();
 
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client, getMode());
