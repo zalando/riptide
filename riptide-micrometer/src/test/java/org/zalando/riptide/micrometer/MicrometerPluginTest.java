@@ -9,9 +9,9 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -27,6 +27,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -48,12 +49,20 @@ final class MicrometerPluginTest {
 
     private final MockWebServer server = new MockWebServer();
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
+
+    {
+        cm.setConnectionConfig(connConfig);
+    }
+
     private final ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
             HttpClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectTimeout(Timeout.ofMilliseconds(500))
-                            .build())
-            .build());
+                    .setConnectionManager(cm)
+                    .build());
 
     private final MeterRegistry registry = new SimpleMeterRegistry();
 
@@ -68,12 +77,13 @@ final class MicrometerPluginTest {
                             new StaticTagDecorator(singleton(Tag.of("test", "true"))))
                     .withAdditionalTagGenerators(new RetryTagGenerator()))
             .plugin(new FailsafePlugin()
-                .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
-                        .handleIf(error -> false)
-                        .handleResultIf(toCheckedPredicate(throwingPredicate(response -> response.getStatusCode()
-                                .is5xxServerError())))
-                        .build()))
+                    .withPolicy(RetryPolicy.<ClientHttpResponse>builder()
+                            .handleIf(error -> false)
+                            .handleResultIf(toCheckedPredicate(throwingPredicate(response -> response.getStatusCode()
+                                    .is5xxServerError())))
+                            .build()))
             .build();
+
     @AfterEach
     @SneakyThrows
     void shutdownServer() {
@@ -143,7 +153,7 @@ final class MicrometerPluginTest {
 
     @Test
     void shouldRecordErrorResponseMetric() {
-        server.enqueue(new MockResponse().setResponseCode(503));
+        server.enqueue(new MockResponse().setResponseCode(500));
 
         unit.post(URI.create("/bar"))
                 .dispatch(series(),
@@ -156,7 +166,7 @@ final class MicrometerPluginTest {
         assertThat(timer, is(notNullValue()));
         assertThat(timer.getId().getTag("http.method"), is("POST"));
         assertThat(timer.getId().getTag("http.path"), is(""));
-        assertThat(timer.getId().getTag("http.status_code"), is("503"));
+        assertThat(timer.getId().getTag("http.status_code"), is("500"));
         assertThat(timer.getId().getTag("peer.hostname"), is("localhost"));
         assertThat(timer.getId().getTag("error.kind"), is("none"));
         assertThat(timer.getId().getTag("client"), is("example"));
