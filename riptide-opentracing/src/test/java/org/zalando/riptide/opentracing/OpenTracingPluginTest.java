@@ -7,9 +7,9 @@ import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -26,6 +26,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -44,12 +45,20 @@ final class OpenTracingPluginTest {
     private final MockWebServer server = new MockWebServer();
     private final MockTracer tracer = new MockTracer();
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
+
+    {
+        cm.setConnectionConfig(connConfig);
+    }
+
     private final Http unit = Http.builder()
             .executor(new TracedExecutorService(newSingleThreadExecutor(), tracer))
             .requestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectTimeout(Timeout.ofMilliseconds(500))
-                            .build())
+                    .setConnectionManager(cm)
                     .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTracingPlugin(tracer)
@@ -217,23 +226,14 @@ final class OpenTracingPluginTest {
             final LogEntry log = logs.get(i);
 
             switch (i) {
-                case 0: {
+                case 0 -> {
                     assertThat(log.fields(), hasEntry("error.kind", "SocketTimeoutException"));
                     assertThat(log.fields(), hasEntry(is("error.object"), is(instanceOf(SocketTimeoutException.class))));
-                    break;
                 }
-                case 1: {
-                    assertThat(log.fields().get("stack").toString(),
-                            containsString("java.net.SocketTimeoutException: Read timed out"));
-                    break;
-                }
-                case 2: {
-                    assertThat(log.fields(), hasEntry("message", "Read timed out"));
-                    break;
-                }
-                default: {
-                    throw new AssertionError();
-                }
+                case 1 -> assertThat(log.fields().get("stack").toString(),
+                        containsString("java.net.SocketTimeoutException: Read timed out"));
+                case 2 -> assertThat(log.fields(), hasEntry("message", "Read timed out"));
+                default -> throw new AssertionError();
             }
         }
 
