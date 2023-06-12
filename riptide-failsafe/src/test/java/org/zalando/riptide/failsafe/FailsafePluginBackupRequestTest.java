@@ -22,7 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
@@ -88,7 +88,7 @@ final class FailsafePluginBackupRequestTest {
     @Test
     void shouldUseFailedBackupRequest() {
         server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
-        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(new MockResponse().setResponseCode(INTERNAL_SERVER_ERROR.value()));
 
         final CompletionException exception = assertThrows(CompletionException.class, () ->
                 unit.get("/bar")

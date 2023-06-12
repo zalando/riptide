@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
@@ -130,12 +130,12 @@ final class FailsafePluginRetryListenerTest {
 
     @Test
     void shouldInvokeListenersOnExplicitRetry() {
-        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(new MockResponse().setResponseCode(INTERNAL_SERVER_ERROR.value()));
         server.enqueue(emptyMockResponse());
 
         unit.get("/baz")
                 .dispatch(status(),
-                        on(SERVICE_UNAVAILABLE).call(retry()),
+                        on(INTERNAL_SERVER_ERROR).call(retry()),
                         anyStatus().call(pass()))
                 .join();
 
