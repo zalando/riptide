@@ -4,7 +4,7 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,14 +31,10 @@ import java.util.zip.GZIPInputStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.compression.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.compression.MockWebServerUtil.getRecordedRequest;
-import static org.zalando.riptide.compression.MockWebServerUtil.textMockResponse;
+import static org.zalando.riptide.compression.MockWebServerUtil.*;
 
 class RequestCompressionPluginTest {
 

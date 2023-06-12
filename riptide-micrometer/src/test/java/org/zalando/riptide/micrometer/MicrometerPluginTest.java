@@ -9,8 +9,9 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -31,11 +32,7 @@ import static java.util.Collections.singleton;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.iterableWithSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
@@ -45,9 +42,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.verify;
+import static org.zalando.riptide.micrometer.MockWebServerUtil.*;
 
 final class MicrometerPluginTest {
 
@@ -56,7 +51,7 @@ final class MicrometerPluginTest {
     private final ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(
             HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(500)
+                            .setConnectTimeout(Timeout.ofMilliseconds(500))
                             .build())
             .build());
 

@@ -8,9 +8,11 @@ import dev.failsafe.event.ExecutionAttemptedEvent;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -46,8 +48,10 @@ final class FailsafePluginRetryListenerTest {
     private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(500)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(500))
+                            .build())
                     .build())
             .build();
 

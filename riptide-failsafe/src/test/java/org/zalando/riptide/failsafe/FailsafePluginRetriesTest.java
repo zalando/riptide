@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
-import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -40,9 +40,7 @@ import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
@@ -54,9 +52,7 @@ import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Route.call;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.*;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -67,8 +63,10 @@ final class FailsafePluginRetriesTest {
     private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(500)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(500))
+                            .build())
                     .build())
             .build();
 

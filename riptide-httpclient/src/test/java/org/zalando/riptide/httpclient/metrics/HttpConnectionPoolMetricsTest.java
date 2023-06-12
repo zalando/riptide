@@ -5,9 +5,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -21,9 +21,7 @@ import java.util.concurrent.Executors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.*;
 
 final class HttpConnectionPoolMetricsTest {
 
@@ -67,7 +65,7 @@ final class HttpConnectionPoolMetricsTest {
         assertThat(gauge("connection-pool.leased").value(), is(0.0));
         assertThat(gauge("connection-pool.total").value(), is(1.0));
         assertThat(gauge("connection-pool.min").value(), is(0.0));
-        assertThat(gauge("connection-pool.max").value(), is(20.0));
+        assertThat(gauge("connection-pool.max").value(), is(25.0));
         assertThat(gauge("connection-pool.queued").value(), is(0.0));
 
         verify(server, 1, "/");

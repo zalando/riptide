@@ -19,9 +19,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -122,7 +120,7 @@ final class CaptureTest {
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
-        throw new AssertionError(response.getRawStatusCode());
+        throw new AssertionError(response.getStatusCode().value());
     }
 
 }

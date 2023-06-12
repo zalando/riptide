@@ -14,7 +14,7 @@ enum StatusNavigator implements EqualityNavigator<HttpStatus> {
 
     @Override
     public HttpStatus attributeOf(final ClientHttpResponse response) throws IOException {
-        return response.getStatusCode();
+        return HttpStatus.resolve(response.getStatusCode().value());
     }
 
 }

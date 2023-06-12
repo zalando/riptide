@@ -1,5 +1,6 @@
 package org.zalando.riptide.soap;
 
+import jakarta.xml.ws.Endpoint;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -7,7 +8,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.zalando.riptide.Http;
 
-import javax.xml.ws.Endpoint;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;

@@ -3,8 +3,8 @@ package org.zalando.riptide.failsafe;
 import com.google.common.collect.ImmutableMap;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -28,9 +28,7 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.*;
 
 final class FailsafePluginBackupRequestTest {
 

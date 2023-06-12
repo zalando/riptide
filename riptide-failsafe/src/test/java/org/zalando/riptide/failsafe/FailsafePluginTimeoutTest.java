@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.Timeout;
 import dev.failsafe.TimeoutExceededException;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -24,9 +24,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.*;
 
 final class FailsafePluginTimeoutTest {
 

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.With;
 import org.organicdesign.fp.collections.ImList;
 import org.organicdesign.fp.collections.PersistentVector;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -71,12 +70,6 @@ final class DefaultHttpBuilder implements ExecutorStage, RequestFactoryStage, Co
     @Override
     public ConfigurationStage requestFactory(final ClientHttpRequestFactory factory) {
         return withIo(new BlockingIO(factory));
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public ConfigurationStage asyncRequestFactory(final AsyncClientHttpRequestFactory factory) {
-        return withIo(new NonBlockingIO(factory));
     }
 
     @Override

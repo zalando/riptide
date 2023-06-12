@@ -98,17 +98,11 @@
             <artifactId>riptide-httpclient</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient-cache</artifactId>
-            <version>4.5.14</version>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.2.1</version>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
@@ -304,7 +298,8 @@
                             <includes>
                                 <include>**/NoCachingTest.java</include>
                             </includes>
-                            <classpathDependencyExcludes>org.apache.httpcomponents:httpclient-cache</classpathDependencyExcludes>
+                            <classpathDependencyExcludes>org.apache.httpcomponents.client5:httpclient5-cache
+                            </classpathDependencyExcludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -327,4 +322,3 @@
     </build>
 
 </project>
-

@@ -12,17 +12,10 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -107,7 +100,7 @@ final class RouteTest {
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
-        throw new AssertionError(response.getRawStatusCode());
+        throw new AssertionError(response.getStatusCode().value());
     }
 
 }

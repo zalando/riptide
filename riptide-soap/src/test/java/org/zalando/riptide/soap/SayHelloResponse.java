@@ -1,10 +1,9 @@
 package org.zalando.riptide.soap;
 
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "sayHelloResponse", namespace = "http://soap.riptide.zalando.org/")
 @NoArgsConstructor

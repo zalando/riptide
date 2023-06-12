@@ -1,6 +1,9 @@
 package org.zalando.riptide.soap;
 
-import org.apache.http.impl.client.HttpClients;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPFaultException;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -11,9 +14,6 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPFaultException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;

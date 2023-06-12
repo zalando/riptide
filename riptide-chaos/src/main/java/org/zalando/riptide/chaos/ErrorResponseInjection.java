@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestExecution;
 
@@ -39,9 +40,9 @@ public final class ErrorResponseInjection implements FailureInjection {
     private ClientHttpResponse injectIfNecessary(
             final ClientHttpResponse response) throws IOException {
 
-        final HttpStatus statusCode = response.getStatusCode();
+        final HttpStatusCode statusCode = response.getStatusCode();
 
-        if (isError(statusCode)) {
+        if (statusCode.isError()) {
             // only inject error response if not failed already
             return response;
         }

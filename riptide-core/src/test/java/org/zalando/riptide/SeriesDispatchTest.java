@@ -13,11 +13,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
-import static org.springframework.http.HttpStatus.Series.INFORMATIONAL;
-import static org.springframework.http.HttpStatus.Series.REDIRECTION;
-import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
-import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.springframework.http.HttpStatus.Series.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.zalando.riptide.Bindings.on;
@@ -47,7 +43,7 @@ final class SeriesDispatchTest {
         server.expect(requestTo(url)).andRespond(withStatus(expected));
 
         final ClientHttpResponseConsumer verifier = response ->
-                assertThat(response.getStatusCode().series(), is(expected.series()));
+                assertThat(HttpStatus.resolve(response.getStatusCode().value()).series(), is(expected.series()));
 
         unit.get(url)
                 .dispatch(series(),
