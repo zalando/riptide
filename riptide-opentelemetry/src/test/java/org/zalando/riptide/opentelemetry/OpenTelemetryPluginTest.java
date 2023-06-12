@@ -14,9 +14,9 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -64,14 +65,21 @@ class OpenTelemetryPluginTest {
 
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
+
+    {
+        cm.setConnectionConfig(connConfig);
+    }
+
     private final Http unit = Http.builder()
             .executor(Executors.newCachedThreadPool())
             .requestFactory(new HttpComponentsClientHttpRequestFactory(
                     HttpClientBuilder.create()
-                            .setDefaultRequestConfig(
-                                    RequestConfig.custom()
-                                            .setConnectTimeout(Timeout.ofMilliseconds(500))
-                                            .build())
+                            .setConnectionManager(cm)
                             .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
@@ -267,10 +275,7 @@ class OpenTelemetryPluginTest {
                 .executor(Executors.newCachedThreadPool())
                 .requestFactory(new HttpComponentsClientHttpRequestFactory(
                         HttpClientBuilder.create()
-                                .setDefaultRequestConfig(
-                                        RequestConfig.custom()
-                                                .setConnectTimeout(Timeout.ofMilliseconds(500))
-                                                .build())
+                                .setConnectionManager(cm)
                                 .build()))
                 .baseUrl(getBaseUrl(server))
                 .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
