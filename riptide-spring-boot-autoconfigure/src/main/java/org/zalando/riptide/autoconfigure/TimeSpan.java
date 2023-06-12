@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.hc.core5.util.TimeValue;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +57,10 @@ final class TimeSpan {
 
     Duration toDuration() {
         return Duration.of(amount, UNIT_MAPPING.get(unit));
+    }
+
+    TimeValue toTimeValue() {
+        return TimeValue.of(amount, unit);
     }
 
     void applyTo(final BiConsumer<Long, TimeUnit> consumer) {

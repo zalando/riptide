@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apiguardian.api.API;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -117,7 +117,7 @@ public final class RiptideProperties {
                 new Heuristic(
                         false,
                         CacheConfig.DEFAULT_HEURISTIC_COEFFICIENT,
-                        TimeSpan.of(CacheConfig.DEFAULT_HEURISTIC_LIFETIME, SECONDS)
+                        TimeSpan.of(CacheConfig.DEFAULT_HEURISTIC_LIFETIME.toSeconds(), SECONDS)
                 )
         );
 

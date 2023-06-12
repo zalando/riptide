@@ -1,6 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.Timeout;
 import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -8,9 +11,6 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import dev.failsafe.CircuitBreaker;
-import dev.failsafe.RetryPolicy;
-import dev.failsafe.Timeout;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -26,7 +26,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
@@ -40,21 +39,11 @@ import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.PluginTest.CustomPlugin;
-import org.zalando.riptide.chaos.ChaosPlugin;
-import org.zalando.riptide.chaos.ErrorResponseInjection;
-import org.zalando.riptide.chaos.ExceptionInjection;
-import org.zalando.riptide.chaos.LatencyInjection;
-import org.zalando.riptide.chaos.Probability;
+import org.zalando.riptide.chaos.*;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
-import org.zalando.riptide.failsafe.BackupRequest;
-import org.zalando.riptide.failsafe.CircuitBreakerListener;
-import org.zalando.riptide.failsafe.CompositeDelayFunction;
-import org.zalando.riptide.failsafe.FailsafePlugin;
-import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
-import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
-import org.zalando.riptide.failsafe.RetryRequestPolicy;
+import org.zalando.riptide.failsafe.*;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
@@ -70,7 +59,6 @@ import org.zalando.riptide.stream.Streams;
 import java.net.SocketTimeoutException;
 import java.time.Clock;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -81,9 +69,7 @@ import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.*;
 import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
@@ -177,7 +163,7 @@ public class ManualConfiguration {
 
         private RetryPolicy<ClientHttpResponse> retryPolicy(
                 final Predicate<Throwable> predicate) {
-            final CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
+            final CheckedPredicate<Throwable> checkedPredicate = predicate::test;
 
             return RetryPolicy.<ClientHttpResponse>builder()
                     .handleIf(checkedPredicate)

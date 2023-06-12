@@ -2,8 +2,11 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.gag.annotation.remark.Hack;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.cache.HttpCacheStorage;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -12,9 +15,6 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.client.cache.CachingHttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
@@ -24,6 +24,8 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Ke
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -31,10 +33,7 @@ import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -110,7 +109,7 @@ final class HttpClientFactory {
         if (heuristic.getEnabled()) {
             config.setHeuristicCachingEnabled(true);
             config.setHeuristicCoefficient(heuristic.getCoefficient());
-            config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));
+            config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().toTimeValue());
         }
 
         @Hack("return cast tricks classloader in case of missing httpclient-cache")
