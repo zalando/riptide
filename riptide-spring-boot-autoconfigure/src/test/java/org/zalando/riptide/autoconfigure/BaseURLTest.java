@@ -1,9 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
+import java.net.URI;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,11 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
-
-import java.net.URI;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,9 +32,9 @@ final class BaseURLTest {
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
-            OpenTracingFlowIdAutoConfiguration.class,
-            OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
+            FlowAutoConfiguration.class,
+            TracerAutoConfiguration.class,
     })
     public static class TestConfiguration {
 

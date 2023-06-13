@@ -2,10 +2,6 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.apache.hc.core5.util.TimeValue;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -16,6 +12,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -61,6 +61,10 @@ final class TimeSpan {
 
     TimeValue toTimeValue() {
         return TimeValue.of(amount, unit);
+    }
+
+    Timeout toTimeout() {
+        return Timeout.of(amount, unit);
     }
 
     void applyTo(final BiConsumer<Long, TimeUnit> consumer) {

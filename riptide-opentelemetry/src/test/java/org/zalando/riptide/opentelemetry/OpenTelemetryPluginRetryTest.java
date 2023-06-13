@@ -13,7 +13,8 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -52,17 +53,15 @@ public class OpenTelemetryPluginRetryTest {
             .setSocketTimeout(500, TimeUnit.MILLISECONDS)
             .build();
 
-    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
-
-    {
-        cm.setConnectionConfig(connConfig);
-    }
+    private final HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connConfig)
+            .build();
 
     private final Http unit = Http.builder()
             .executor(Executors.newCachedThreadPool())
             .requestFactory(new HttpComponentsClientHttpRequestFactory(
                     HttpClientBuilder.create()
-                            .setConnectionManager(cm)
+                            .setConnectionManager(connectionManager)
                             .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
@@ -90,7 +89,8 @@ public class OpenTelemetryPluginRetryTest {
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
                     .call(pass())
-                    .join();
+                    .join()
+                    .close();
         } finally {
             parent.end();
         }

@@ -1,13 +1,12 @@
 package org.zalando.riptide.autoconfigure;
 
-import lombok.AllArgsConstructor;
-
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;

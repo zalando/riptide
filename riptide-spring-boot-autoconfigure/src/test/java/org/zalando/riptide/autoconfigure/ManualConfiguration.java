@@ -11,10 +11,21 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
+import io.opentracing.noop.NoopTracerFactory;
+import java.net.SocketTimeoutException;
+import java.time.Clock;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +42,6 @@ import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.opentracing.flowid.Flow;
 import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
-import org.zalando.opentracing.flowid.httpclient.FlowHttpRequestInterceptor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -39,11 +49,21 @@ import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.auth.AuthorizationPlugin;
 import org.zalando.riptide.auth.PlatformCredentialsAuthorizationProvider;
 import org.zalando.riptide.autoconfigure.PluginTest.CustomPlugin;
-import org.zalando.riptide.chaos.*;
+import org.zalando.riptide.chaos.ChaosPlugin;
+import org.zalando.riptide.chaos.ErrorResponseInjection;
+import org.zalando.riptide.chaos.ExceptionInjection;
+import org.zalando.riptide.chaos.LatencyInjection;
+import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
-import org.zalando.riptide.failsafe.*;
+import org.zalando.riptide.failsafe.BackupRequest;
+import org.zalando.riptide.failsafe.CircuitBreakerListener;
+import org.zalando.riptide.failsafe.CompositeDelayFunction;
+import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RateLimitResetDelayFunction;
+import org.zalando.riptide.failsafe.RetryAfterDelayFunction;
+import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.metrics.MetricsCircuitBreakerListener;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
@@ -56,21 +76,14 @@ import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 
-import java.net.SocketTimeoutException;
-import java.time.Clock;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Predicate;
-
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.*;
-import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hc.client5.http.ssl.HttpsSupport.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -91,7 +104,7 @@ public class ManualConfiguration {
 
         @Bean
         public Http exampleHttp(final Executor executor, final ClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
+                                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
 
             return Http.builder()
                     .executor(executor)
@@ -105,7 +118,7 @@ public class ManualConfiguration {
 
         @Bean
         public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Logbook logbook,
-                final Tracer tracer) {
+                                           final Tracer tracer) {
 
             final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
                     .withDefaultTags(Tag.of("clientId", "example"));
@@ -186,16 +199,16 @@ public class ManualConfiguration {
         @Bean
         public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
                 final Flow flow) throws Exception {
-            return new ApacheClientHttpRequestFactory(
-                    HttpClientBuilder.create()
-                            .setDefaultRequestConfig(RequestConfig.custom()
-                                    .setConnectTimeout(5000)
-                                    .setSocketTimeout(5000)
+
+            final PoolingHttpClientConnectionManager connectionManager =
+                    PoolingHttpClientConnectionManagerBuilder.create()
+                            .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                    .setConnectTimeout(5, SECONDS)
+                                    .setSocketTimeout(5, SECONDS)
+                                    .setTimeToLive(30, SECONDS)
                                     .build())
-                            .setConnectionTimeToLive(30, SECONDS)
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)
-                            .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
                             .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                     SSLContexts.custom()
                                             .loadTrustMaterial(
@@ -203,18 +216,30 @@ public class ManualConfiguration {
                                                     "password".toCharArray())
                                             .build(),
                                     getDefaultHostnameVerifier()))
+                            .build();
+
+
+            return new ApacheClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .addRequestInterceptorFirst(new FlowAutoConfiguration.FlowHttpRequestInterceptor(flow))
+                            .setConnectionManager(connectionManager)
                             .build());
+        }
+
+        @Bean
+        public Tracer tracer() {
+            return NoopTracerFactory.create();
         }
 
         @Bean(destroyMethod = "shutdown")
         public ExecutorService executor(final Tracer tracer) {
             return new TracedExecutorService(
                     ThreadPoolExecutors.builder()
-                        .elasticSize(1, 20)
-                        .keepAlive(1, MINUTES)
-                        .withoutQueue()
-                        .threadFactory(new CustomizableThreadFactory("http-example-"))
-                        .build(),
+                            .elasticSize(1, 20)
+                            .keepAlive(1, MINUTES)
+                            .withoutQueue()
+                            .threadFactory(new CustomizableThreadFactory("http-example-"))
+                            .build(),
                     tracer);
         }
 

@@ -1,9 +1,8 @@
 package org.zalando.riptide.autoconfigure;
 
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.ReflectionUtils;
-
-import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

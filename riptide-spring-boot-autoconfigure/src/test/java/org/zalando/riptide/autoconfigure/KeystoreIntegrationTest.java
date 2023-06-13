@@ -1,12 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
+import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.zalando.riptide.Http;
-
-import javax.net.ssl.SSLHandshakeException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;

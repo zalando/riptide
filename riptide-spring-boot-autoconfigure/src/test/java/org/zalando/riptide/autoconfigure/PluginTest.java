@@ -1,5 +1,7 @@
 package org.zalando.riptide.autoconfigure;
 
+import java.lang.reflect.Field;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,13 +20,9 @@ import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentelemetry.OpenTelemetryPlugin;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 
-import java.lang.reflect.Field;
-import java.util.List;
-
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;

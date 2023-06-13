@@ -1,12 +1,11 @@
 package org.zalando.riptide.autoconfigure;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter

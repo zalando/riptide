@@ -2,6 +2,12 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BinaryOperator;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Auth;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
@@ -23,13 +29,6 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Telemetry;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Tracing;
 import org.zalando.riptide.autoconfigure.RiptideProperties.TransientFaultDetection;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BinaryOperator;
 
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;

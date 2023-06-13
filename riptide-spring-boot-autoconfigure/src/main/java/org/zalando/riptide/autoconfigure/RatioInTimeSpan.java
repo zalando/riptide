@@ -1,10 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
-import lombok.Getter;
-
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Getter;
 
 @Getter
 final class RatioInTimeSpan {

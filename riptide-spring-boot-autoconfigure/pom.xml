@@ -157,12 +157,24 @@
             <artifactId>opentracing-flowid-starter</artifactId>
             <version>4.2.3</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>logbook-spring-boot-autoconfigure</artifactId>
             <version>${logbook.version}</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.zalando</groupId>
+                    <artifactId>logbook-httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 

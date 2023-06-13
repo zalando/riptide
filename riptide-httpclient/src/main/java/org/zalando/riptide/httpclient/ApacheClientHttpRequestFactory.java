@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.*;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
@@ -41,7 +42,7 @@ public final class ApacheClientHttpRequestFactory implements ClientHttpRequestFa
     private final HttpClient client;
     private final Mode mode;
 
-    public ApacheClientHttpRequestFactory(final HttpClient client) {
+    public ApacheClientHttpRequestFactory(final CloseableHttpClient client) {
         this(client, Mode.STREAMING);
     }
 
