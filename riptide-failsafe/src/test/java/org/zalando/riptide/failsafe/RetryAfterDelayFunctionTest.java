@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import dev.failsafe.CircuitBreaker;
+import dev.failsafe.ExecutionContext;
 import dev.failsafe.RetryPolicy;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -29,7 +30,9 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
@@ -152,6 +155,14 @@ final class RetryAfterDelayFunctionTest {
                         .join()));
 
         verify(server, 2, "/baz");
+    }
+
+    @Test
+    void shouldGetDefaultDuration() {
+        RetryAfterDelayFunction retryAfterDelayFunction = new RetryAfterDelayFunction(clock);
+        @SuppressWarnings("unchecked")
+        ExecutionContext<ClientHttpResponse> context = mock(ExecutionContext.class);
+        assertThat(retryAfterDelayFunction.get(context), is(Duration.ofMinutes(-1)));
     }
 
     private void atLeast(final Duration minimum, final Runnable runnable) {
