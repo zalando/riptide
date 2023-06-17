@@ -33,12 +33,7 @@ import static java.util.Collections.singleton;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.iterableWithSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.OK;
@@ -48,9 +43,7 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.CheckedPredicateConverter.toCheckedPredicate;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.micrometer.MockWebServerUtil.verify;
+import static org.zalando.riptide.micrometer.MockWebServerUtil.*;
 
 final class MicrometerPluginTest {
 
@@ -111,7 +104,7 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("http.method"), is("GET"));
         assertThat(timer.getId().getTag("http.path"), is("/foo"));
         assertThat(timer.getId().getTag("http.status_code"), is("200"));
-        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
+        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
         assertThat(timer.getId().getTag("error.kind"), is("none"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
@@ -137,7 +130,7 @@ final class MicrometerPluginTest {
             assertThat(timer.getId().getTag("http.method"), is("GET"));
             assertThat(timer.getId().getTag("http.path"), is("/foo"));
             assertThat(timer.getId().getTag("http.status_code"), is("500"));
-            assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
+            assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
             assertThat(timer.getId().getTag("error.kind"), is("none"));
             assertThat(timer.getId().getTag("retry_number"), is("0"));
             assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
@@ -149,7 +142,7 @@ final class MicrometerPluginTest {
             assertThat(timer.getId().getTag("http.method"), is("GET"));
             assertThat(timer.getId().getTag("http.path"), is("/foo"));
             assertThat(timer.getId().getTag("http.status_code"), is("200"));
-            assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
+            assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
             assertThat(timer.getId().getTag("error.kind"), is("none"));
             assertThat(timer.getId().getTag("retry_number"), is("1"));
             assertThat(timer.totalTime(NANOSECONDS), is(greaterThan(0.0)));
@@ -174,7 +167,7 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("http.method"), is("POST"));
         assertThat(timer.getId().getTag("http.path"), is(""));
         assertThat(timer.getId().getTag("http.status_code"), is("500"));
-        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
+        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
         assertThat(timer.getId().getTag("error.kind"), is("none"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
@@ -198,7 +191,7 @@ final class MicrometerPluginTest {
         assertThat(timer.getId().getTag("http.method"), is("GET"));
         assertThat(timer.getId().getTag("http.path"), is("/err"));
         assertThat(timer.getId().getTag("http.status_code"), is("0"));
-        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
+        assertThat(timer.getId().getTag("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
         assertThat(timer.getId().getTag("error.kind"), is("SocketTimeoutException"));
         assertThat(timer.getId().getTag("client"), is("example"));
         assertThat(timer.getId().getTag("test"), is("true"));
