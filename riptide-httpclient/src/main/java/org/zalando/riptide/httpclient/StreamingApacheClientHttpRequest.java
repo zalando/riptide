@@ -73,7 +73,7 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
     @Nonnull
     public ClientHttpResponse execute() throws IOException {
         Headers.writeHeaders(headers, request);
-        final HttpResponse response = client.execute(request);
+        final HttpResponse response = client.executeOpen(null, request, null);
         return new ApacheClientHttpResponse(response);
     }
 

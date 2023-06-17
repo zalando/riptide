@@ -64,7 +64,7 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
         Headers.writeHeaders(headers, request);
         request.setEntity(new ByteArrayEntity(output.toByteArray(), toContentType(headers.getContentType())));
 
-        final HttpResponse response = client.execute(request);
+        final HttpResponse response = client.executeOpen(null, request, null);
         return new ApacheClientHttpResponse(response);
     }
 
