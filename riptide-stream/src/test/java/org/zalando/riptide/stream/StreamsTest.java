@@ -260,6 +260,6 @@ final class StreamsTest {
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
-        throw new AssertionError(response.getRawStatusCode());
+        throw new AssertionError(response.getStatusCode().value());
     }
 }

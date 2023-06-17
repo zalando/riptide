@@ -77,7 +77,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
-        <spring.version>6.0.9</spring.version>
+        <spring.version>6.0.10</spring.version>
     </properties>
 
     <build>

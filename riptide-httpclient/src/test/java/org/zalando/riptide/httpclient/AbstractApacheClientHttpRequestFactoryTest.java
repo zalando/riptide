@@ -162,7 +162,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         final ClientHttpResponse response = request.execute();
 
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
-        assertThat(response.getRawStatusCode(), is(200));
+        assertThat(response.getStatusCode().value(), is(200));
         assertThat(response.getStatusText(), is("OK"));
         assertThat(response.getHeaders(), is(not(anEmptyMap())));
 

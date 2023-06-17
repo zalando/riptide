@@ -22,7 +22,7 @@ public final class HttpStatusTagGenerator implements TagGenerator {
             final RequestArguments arguments,
             final ClientHttpResponse response) throws IOException {
 
-        final String status = String.valueOf(response.getRawStatusCode());
+        final String status = String.valueOf(response.getStatusCode().value());
         return singleton(Tag.of(STATUS_CODE, status));
     }
 

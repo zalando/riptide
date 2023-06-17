@@ -150,7 +150,7 @@ final class RemoteResponse implements HttpResponse {
 
     @Override
     public int getStatus() {
-        return throwingFunction(ClientHttpResponse::getRawStatusCode).apply(response);
+        return throwingFunction(response -> ((ClientHttpResponse)response).getStatusCode().value()).apply(response);
     }
 
     @Override
