@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.zalando.riptide.RequestArguments;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,8 @@ import static org.springframework.http.HttpMethod.POST;
 @API(status = EXPERIMENTAL)
 @Slf4j
 public final class MethodOverrideIdempotencyDetector implements IdempotencyDetector {
+
+    private static final List<HttpMethod> validMethods = Arrays.asList(HttpMethod.values());
 
     @Override
     public Decision test(final RequestArguments arguments, final Test root) {
@@ -47,12 +50,13 @@ public final class MethodOverrideIdempotencyDetector implements IdempotencyDetec
             return null;
         }
 
-        try {
-            return HttpMethod.valueOf(override);
-        } catch (final IllegalArgumentException e) {
-            log.warn("Received invalid method in {} header: \"{}\"", name, override);
-            return null;
+        final HttpMethod method = HttpMethod.valueOf(override);
+        if (validMethods.contains(method)) {
+            return method;
         }
+
+        log.warn("Received invalid method in {} header: \"{}\"", name, override);
+        return null;
     }
 
 }
