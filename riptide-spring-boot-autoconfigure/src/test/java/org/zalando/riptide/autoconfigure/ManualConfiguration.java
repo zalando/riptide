@@ -41,7 +41,6 @@ import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.opentracing.flowid.Flow;
-import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -221,7 +220,7 @@ public class ManualConfiguration {
 
             return new ApacheClientHttpRequestFactory(
                     HttpClientBuilder.create()
-                            .addRequestInterceptorFirst(new FlowAutoConfiguration.FlowHttpRequestInterceptor(flow))
+                            .addRequestInterceptorFirst(new FlowHttpRequestInterceptor(flow))
                             .setConnectionManager(connectionManager)
                             .build());
         }

@@ -12,7 +12,7 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
         JacksonAutoConfiguration.class,
         LogbookAutoConfiguration.class,
         OpenTracingTestAutoConfiguration.class,
-        FlowAutoConfiguration.class,
+        OpenTracingFlowIdAutoConfiguration.class,
         MetricsTestAutoConfiguration.class,
 })
 @ActiveProfiles("default")

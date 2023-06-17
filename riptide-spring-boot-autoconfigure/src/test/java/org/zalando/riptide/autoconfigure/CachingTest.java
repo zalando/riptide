@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
-import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
 import org.zalando.riptide.Http;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;

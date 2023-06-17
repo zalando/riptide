@@ -14,7 +14,7 @@ import static org.apiguardian.api.API.Status.STABLE;
 @AutoConfigureAfter(name = {
         "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration",
         "org.zalando.logbook.autoconfigure.LogbookAutoConfiguration",
-        "org.zalando.riptide.autoconfigure.FlowAutoConfiguration",
+        "org.zalando.riptide.autoconfigure.OpenTracingFlowIdAutoConfiguration",
         "org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration",
         "org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration",
 })

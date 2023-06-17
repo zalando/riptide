@@ -154,15 +154,9 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>opentracing-flowid-starter</artifactId>
+            <artifactId>opentracing-flowid</artifactId>
             <version>4.2.3</version>
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>

@@ -32,9 +32,10 @@ final class BaseURLTest {
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             LogbookAutoConfiguration.class,
+            //OpenTracingFlowIdAutoConfiguration.class,
+            OpenTracingFlowIdAutoConfiguration.class,
+            OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
-            FlowAutoConfiguration.class,
-            TracerAutoConfiguration.class,
     })
     public static class TestConfiguration {
 
