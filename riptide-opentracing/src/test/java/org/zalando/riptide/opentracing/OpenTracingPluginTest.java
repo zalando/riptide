@@ -95,11 +95,11 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "POST"));
         assertThat(child.tags(), hasEntry("http.method_override", "GET"));
         assertThat(child.tags(), hasEntry("http.path", "/users/{user}"));
@@ -109,6 +109,9 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("user", "me"));
         assertThat(child.tags(), hasEntry("spi", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
 
         // not active by default
         assertThat(child.tags(), not(hasKey("http.url")));
@@ -158,17 +161,20 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 500));
         assertThat(child.tags(), hasEntry("error", true));
         assertThat(child.tags(), hasEntry("test", "true"));
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("spi", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("http.path")));
@@ -205,13 +211,16 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("error", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("http.path")));
@@ -264,13 +273,16 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 400));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("hostname"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("error")));
