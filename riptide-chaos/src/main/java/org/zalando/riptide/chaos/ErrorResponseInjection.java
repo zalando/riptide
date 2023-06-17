@@ -47,22 +47,10 @@ public final class ErrorResponseInjection implements FailureInjection {
             return response;
         }
 
-        try {
+        try (response) {
             final HttpStatus status = choose();
             log.debug("Injecting '{}' error response", status);
             return new ErrorClientHttpResponse(status);
-        } finally {
-            response.close();
-        }
-    }
-
-    private boolean isError(final HttpStatus status) {
-        switch (status.series()) {
-            case CLIENT_ERROR:
-            case SERVER_ERROR:
-                return true;
-            default:
-                return false;
         }
     }
 
@@ -70,10 +58,7 @@ public final class ErrorResponseInjection implements FailureInjection {
         return statuses.get(ThreadLocalRandom.current().nextInt(statuses.size()));
     }
 
-    @AllArgsConstructor
-    private static class ErrorClientHttpResponse implements ClientHttpResponse {
-
-        private final HttpStatus status;
+    private record ErrorClientHttpResponse(HttpStatus status) implements ClientHttpResponse {
 
         @Nonnull
         @Override
