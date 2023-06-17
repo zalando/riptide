@@ -15,7 +15,7 @@ import static org.springframework.http.HttpMethod.POST;
 class MethodOverrideIdempotencyDetectorTest {
 
     @Test
-    public void should() {
+    public void shouldDealWithIncorrectHttpMethodOverride() {
         final RequestArguments arguments = mock(RequestArguments.class);
         final IdempotencyDetector.Test test = mock(IdempotencyDetector.Test.class);
 
