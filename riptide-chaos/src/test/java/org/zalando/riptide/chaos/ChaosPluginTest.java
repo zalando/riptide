@@ -219,7 +219,7 @@ final class ChaosPluginTest {
         final Instant end = clock.instant();
 
         assertThat(Duration.between(start, end), is(greaterThanOrEqualTo(Duration.ofSeconds(1))));
-        // noinspection deprecation : Using getRawStatusCode() to satisfy coverage
+        // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
         assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
         verify(server, 1, "/foo");
     }
