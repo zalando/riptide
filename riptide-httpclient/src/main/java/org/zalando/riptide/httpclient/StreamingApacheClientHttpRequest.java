@@ -35,6 +35,7 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
     private final HttpUriRequest request;
 
     @Override
+    @Nonnull
     public HttpMethod getMethod() {
         return HttpMethod.valueOf(request.getMethod());
     }
@@ -63,10 +64,13 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
 
     @Override
     public void setBody(final Body body) {
-        request.setEntity(new StreamingHttpEntity(body));
+        try (StreamingHttpEntity streamingHttpEntity = new StreamingHttpEntity(body)) {
+            request.setEntity(streamingHttpEntity);
+        }
     }
 
     @Override
+    @Nonnull
     public ClientHttpResponse execute() throws IOException {
         Headers.writeHeaders(headers, request);
         final HttpResponse response = client.execute(request);
@@ -131,7 +135,7 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
 
         }
 

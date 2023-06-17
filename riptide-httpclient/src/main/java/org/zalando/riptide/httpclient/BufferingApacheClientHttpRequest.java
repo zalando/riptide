@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 @AllArgsConstructor
 final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
@@ -30,6 +31,7 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     private final HttpUriRequest request;
 
     @Override
+    @Nonnull
     public HttpMethod getMethod() {
         return HttpMethod.valueOf(request.getMethod());
     }
@@ -57,6 +59,7 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     }
 
     @Override
+    @Nonnull
     public ClientHttpResponse execute() throws IOException {
         Headers.writeHeaders(headers, request);
         request.setEntity(new ByteArrayEntity(output.toByteArray(), toContentType(headers.getContentType())));
@@ -67,10 +70,10 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
 
     @Nullable
     private ContentType toContentType(@Nullable MediaType mediaType) {
-        if (mediaType == null) {
-            return null;
-        }
-        return ContentType.create(mediaType.toString());
+        return Optional.ofNullable(mediaType)
+                .map(MediaType::toString)
+                .map(ContentType::create)
+                .orElse(null);
     }
 
 }
