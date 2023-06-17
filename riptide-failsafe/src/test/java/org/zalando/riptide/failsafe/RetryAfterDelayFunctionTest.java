@@ -37,7 +37,9 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.Navigators.status;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.*;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 final class RetryAfterDelayFunctionTest {

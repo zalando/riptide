@@ -1,6 +1,5 @@
 package org.zalando.riptide.opentracing.span;
 
-import com.google.common.collect.Lists;
 import io.opentracing.Span;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;

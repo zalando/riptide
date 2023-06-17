@@ -1,6 +1,5 @@
 package org.zalando.riptide;
 
-import com.google.gag.annotation.remark.ThisWouldBeOneLineIn;
 import org.springframework.util.MultiValueMap;
 
 import java.util.List;

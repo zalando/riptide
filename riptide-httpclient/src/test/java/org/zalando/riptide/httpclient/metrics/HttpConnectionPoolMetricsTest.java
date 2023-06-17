@@ -21,7 +21,9 @@ import java.util.concurrent.Executors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.zalando.riptide.Route.call;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.*;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 final class HttpConnectionPoolMetricsTest {
 

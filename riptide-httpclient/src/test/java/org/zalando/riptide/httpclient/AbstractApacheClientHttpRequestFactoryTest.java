@@ -41,7 +41,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasToString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.mockito.Mockito.mock;
@@ -54,7 +61,10 @@ import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.Types.listOf;
-import static org.zalando.riptide.httpclient.MockWebServerUtil.*;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.jsonMockResponseFromResource;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.textMockResponse;
+import static org.zalando.riptide.httpclient.MockWebServerUtil.verify;
 
 public abstract class AbstractApacheClientHttpRequestFactoryTest {
 

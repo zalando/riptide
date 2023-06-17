@@ -7,7 +7,10 @@ import org.springframework.http.HttpStatus;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CHECKPOINT;
+import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
+import static org.springframework.http.HttpStatus.REQUEST_ENTITY_TOO_LARGE;
+import static org.springframework.http.HttpStatus.REQUEST_URI_TOO_LONG;
 
 final class HttpStatuses {
 

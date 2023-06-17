@@ -6,13 +6,6 @@ import dev.failsafe.RetryPolicy;
 import dev.failsafe.RetryPolicyBuilder;
 import dev.failsafe.Timeout;
 import dev.failsafe.function.ContextualSupplier;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
@@ -29,6 +22,14 @@ import org.zalando.riptide.failsafe.RetryException;
 import org.zalando.riptide.failsafe.RetryRequestPolicy;
 import org.zalando.riptide.failsafe.TaskDecorator;
 import org.zalando.riptide.idempotency.IdempotencyPredicate;
+
+import javax.annotation.Nullable;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MILLIS;

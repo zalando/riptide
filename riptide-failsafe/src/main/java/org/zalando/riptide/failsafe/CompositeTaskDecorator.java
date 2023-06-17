@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.AllArgsConstructor;
 import dev.failsafe.function.ContextualSupplier;
+import lombok.AllArgsConstructor;
 
 import java.util.Collection;
 

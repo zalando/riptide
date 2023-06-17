@@ -1,12 +1,13 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;

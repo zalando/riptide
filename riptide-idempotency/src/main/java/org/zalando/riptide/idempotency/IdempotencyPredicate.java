@@ -3,7 +3,6 @@ package org.zalando.riptide.idempotency;
 import com.google.common.collect.Ordering;
 import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
-import org.zalando.riptide.Attribute;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.idempotency.IdempotencyDetector.Test;
 

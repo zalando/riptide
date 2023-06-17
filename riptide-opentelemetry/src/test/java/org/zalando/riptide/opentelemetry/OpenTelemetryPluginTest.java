@@ -28,7 +28,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.riptide.*;
+import org.zalando.riptide.AttributeStage;
+import org.zalando.riptide.Bindings;
+import org.zalando.riptide.Http;
+import org.zalando.riptide.Navigators;
+import org.zalando.riptide.RequestArguments;
+import org.zalando.riptide.RequestExecution;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
@@ -48,12 +53,22 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.opentelemetry.MockWebServerUtil.*;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.textMockResponse;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.verify;
 
 class OpenTelemetryPluginTest {
     @RegisterExtension

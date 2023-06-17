@@ -1,11 +1,11 @@
 package org.zalando.riptide.failsafe.metrics;
 
 import com.google.common.collect.ImmutableList;
+import dev.failsafe.CircuitBreaker.State;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer.Sample;
 import lombok.AllArgsConstructor;
-import dev.failsafe.CircuitBreaker.State;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 
@@ -13,12 +13,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.concat;
-import static io.micrometer.core.instrument.Timer.start;
-import static java.util.Collections.singleton;
-import static lombok.AccessLevel.PRIVATE;
 import static dev.failsafe.CircuitBreaker.State.CLOSED;
 import static dev.failsafe.CircuitBreaker.State.HALF_OPEN;
 import static dev.failsafe.CircuitBreaker.State.OPEN;
+import static io.micrometer.core.instrument.Timer.start;
+import static java.util.Collections.singleton;
+import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.apiguardian.api.API.Status.INTERNAL;
 

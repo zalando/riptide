@@ -1,7 +1,7 @@
 package org.zalando.riptide.failsafe;
 
-import lombok.AllArgsConstructor;
 import dev.failsafe.Policy;
+import lombok.AllArgsConstructor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;
 

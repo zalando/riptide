@@ -14,7 +14,9 @@ import static java.lang.Thread.currentThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
-import static org.zalando.riptide.MockWebServerUtil.*;
+import static org.zalando.riptide.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.MockWebServerUtil.verify;
 import static org.zalando.riptide.Navigators.series;
 
 final class ThreadAffinityTest {

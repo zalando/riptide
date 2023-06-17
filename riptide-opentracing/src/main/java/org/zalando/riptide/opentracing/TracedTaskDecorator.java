@@ -1,10 +1,10 @@
 package org.zalando.riptide.opentracing;
 
+import dev.failsafe.function.ContextualSupplier;
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import lombok.AllArgsConstructor;
-import dev.failsafe.function.ContextualSupplier;
 import org.apiguardian.api.API;
 import org.zalando.riptide.failsafe.TaskDecorator;
 

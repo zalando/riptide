@@ -1,16 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.google.gag.annotation.remark.Hack;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -34,6 +24,17 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
+
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import static java.lang.String.format;
 

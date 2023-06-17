@@ -1,9 +1,9 @@
 package org.zalando.riptide.failsafe.metrics;
 
+import dev.failsafe.CircuitBreaker;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import dev.failsafe.CircuitBreaker;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;

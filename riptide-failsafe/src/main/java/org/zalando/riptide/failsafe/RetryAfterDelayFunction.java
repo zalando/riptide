@@ -1,9 +1,9 @@
 package org.zalando.riptide.failsafe;
 
+import dev.failsafe.ExecutionContext;
 import dev.failsafe.function.ContextualSupplier;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import dev.failsafe.ExecutionContext;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.HttpResponseException;
@@ -11,7 +11,6 @@ import org.zalando.riptide.HttpResponseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 import static lombok.AccessLevel.PRIVATE;

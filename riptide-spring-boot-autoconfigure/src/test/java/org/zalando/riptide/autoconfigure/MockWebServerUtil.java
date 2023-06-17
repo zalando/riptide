@@ -1,13 +1,14 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import okhttp3.Headers;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.springframework.http.HttpMethod;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;

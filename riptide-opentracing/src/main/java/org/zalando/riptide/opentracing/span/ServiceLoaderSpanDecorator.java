@@ -4,7 +4,6 @@ import org.apiguardian.api.API;
 
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.stream.Collectors;
 
 import static java.util.ServiceLoader.load;
 import static java.util.stream.StreamSupport.stream;

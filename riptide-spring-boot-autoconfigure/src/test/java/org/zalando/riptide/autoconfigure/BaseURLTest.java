@@ -1,7 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.net.URI;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -15,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
+
+import java.net.URI;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

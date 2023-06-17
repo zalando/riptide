@@ -1,7 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.lang.reflect.Field;
-import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -16,6 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

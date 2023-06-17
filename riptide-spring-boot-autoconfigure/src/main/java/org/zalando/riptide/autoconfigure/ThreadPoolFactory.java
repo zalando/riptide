@@ -1,9 +1,10 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 import org.zalando.riptide.concurrent.ThreadPoolExecutors;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.zalando.riptide.concurrent.ThreadPoolExecutors.builder;
 

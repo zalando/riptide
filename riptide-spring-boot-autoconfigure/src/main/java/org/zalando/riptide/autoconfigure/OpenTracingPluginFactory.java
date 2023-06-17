@@ -1,15 +1,16 @@
 package org.zalando.riptide.autoconfigure;
 
 import io.opentracing.Tracer;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.opentracing.OpenTracingPlugin;
 import org.zalando.riptide.opentracing.span.RetrySpanDecorator;
 import org.zalando.riptide.opentracing.span.SpanDecorator;
 import org.zalando.riptide.opentracing.span.StaticSpanDecorator;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.zalando.riptide.opentracing.span.CompositeSpanDecorator.composite;
 

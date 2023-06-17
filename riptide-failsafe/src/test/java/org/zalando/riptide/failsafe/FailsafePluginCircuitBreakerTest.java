@@ -32,7 +32,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.zalando.fauxpas.FauxPas.partially;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.failsafe.MockWebServerUtil.*;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 import static org.zalando.riptide.failsafe.TaskDecorator.composite;
 
 final class FailsafePluginCircuitBreakerTest {

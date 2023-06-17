@@ -1,12 +1,13 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
+
+import java.nio.file.Paths;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static org.hamcrest.MatcherAssert.assertThat;

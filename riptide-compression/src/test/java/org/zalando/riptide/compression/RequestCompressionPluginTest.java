@@ -31,10 +31,14 @@ import java.util.zip.GZIPInputStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.compression.MockWebServerUtil.*;
+import static org.zalando.riptide.compression.MockWebServerUtil.getBaseUrl;
+import static org.zalando.riptide.compression.MockWebServerUtil.getRecordedRequest;
+import static org.zalando.riptide.compression.MockWebServerUtil.textMockResponse;
 
 class RequestCompressionPluginTest {
 

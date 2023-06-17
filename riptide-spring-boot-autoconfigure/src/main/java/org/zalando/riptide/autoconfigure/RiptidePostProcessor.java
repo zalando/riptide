@@ -1,6 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.util.function.BiFunction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -11,6 +10,8 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+
+import java.util.function.BiFunction;
 
 import static org.springframework.boot.context.properties.source.ConfigurationPropertySources.from;
 

@@ -1,7 +1,5 @@
 package org.zalando.riptide.opentelemetry;
 
-import javax.annotation.Nonnull;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimaps;
 import io.opentelemetry.api.GlobalOpenTelemetry;
@@ -26,6 +24,7 @@ import org.zalando.riptide.opentelemetry.span.HttpStatusCodeSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.PeerHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

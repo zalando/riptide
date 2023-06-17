@@ -1,12 +1,13 @@
 package org.zalando.riptide.autoconfigure;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.zalando.riptide.Http;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
