@@ -163,13 +163,6 @@
             <artifactId>logbook-spring-boot-autoconfigure</artifactId>
             <version>${logbook.version}</version>
             <optional>true</optional>
-            <exclusions>
-                <!-- This won't be needed when Logbook 3.0.1 is released -->
-                <exclusion>
-                    <groupId>org.zalando</groupId>
-                    <artifactId>logbook-httpclient</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
 
