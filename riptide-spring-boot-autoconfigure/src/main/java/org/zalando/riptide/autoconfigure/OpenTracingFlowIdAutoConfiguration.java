@@ -3,6 +3,7 @@ package org.zalando.riptide.autoconfigure;
 import io.opentracing.Tracer;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apiguardian.api.API;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -22,7 +23,7 @@ import static org.apiguardian.api.API.Status.STABLE;
  * We use org.zalando.riptide.autoconfigure.FlowHttpRequestInterceptor, that is adapted to Apache HttpClient 5.x.
  */
 @API(status = STABLE)
-@Configuration
+@AutoConfiguration
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter(name = {
         "org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration",
