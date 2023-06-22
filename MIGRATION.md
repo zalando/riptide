@@ -25,6 +25,15 @@ Here are some of the breaking changes that can affect `riptide-failsafe` users:
 Since Spring 5, `AsyncRestTemplate` is deprecated in favor of `WebClient`.
 For that reason, we have removed `AsyncHttpOperations` from `riptide-compatibility` layer.
 
+Since Spring 6, `AsyncRestTemplate` and all corresponding classes like `AsyncClientHttpRequestFactory` have been removed.
+For that reason, we have removed `NonBlockingIO` from `riptide-core` to avoid additionally migrating to `WebClient`.
+The same reason applies to the removal of `HttpOutputMessageAsyncClientHttpRequestAdapter` from `riptide-compatibility-layer`.
+
+## Apache HttpClient 5
+
+Apache HttpClient 5 removed the definition of whether a specific HTTP method is allowed to have a body or not. Due to
+this `StreamingApacheClientHttpRequest::setBody` will not throw an exception anymore.
+
 ## OpenTracing
 
 The `SpanDecorators` obtained by `ServiceLoaderSpanDecorator` 
