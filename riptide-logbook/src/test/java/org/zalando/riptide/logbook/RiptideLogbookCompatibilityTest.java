@@ -84,6 +84,7 @@ final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
                         .join();
 
                 assertThat(response.getStatusCode(), is(HttpStatus.OK));
+                // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
                 assertThat(response.getRawStatusCode(), is(200));
                 assertThat(response.getStatusText(), is("OK"));
                 assertThat(response.getHeaders(), hasKey("Content-Type"));

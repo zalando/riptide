@@ -16,7 +16,7 @@ public final class HttpStatusCodeSpanDecorator implements SpanDecorator {
 
     @Override
     public void onResponse(final Span span, final RequestArguments arguments, final ClientHttpResponse response) throws IOException {
-        span.setTag(Tags.HTTP_STATUS, response.getRawStatusCode());
+        span.setTag(Tags.HTTP_STATUS, response.getStatusCode().value());
     }
 
 }

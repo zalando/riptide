@@ -21,7 +21,6 @@ final class ForwardingClientHttpResponseTest {
     @Test
     void shouldDelegateAccessors() throws IOException {
         final ClientHttpResponse response = mock(ClientHttpResponse.class);
-        when(response.getRawStatusCode()).thenReturn(200);
         when(response.getStatusCode()).thenReturn(OK);
         when(response.getStatusText()).thenReturn("OK");
         when(response.getBody()).thenReturn(new ByteArrayInputStream("Hello World!".getBytes(UTF_8)));

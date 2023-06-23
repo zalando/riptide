@@ -98,18 +98,18 @@
             <artifactId>riptide-httpclient</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient-cache</artifactId>
-            <version>4.5.14</version>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
             <!-- required if explicitly enabled by configuration -->
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5-cache</artifactId>
+            <!-- required if explicitly enabled by configuration -->
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>riptide-logbook</artifactId>
@@ -154,7 +154,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>opentracing-flowid-starter</artifactId>
+            <artifactId>opentracing-flowid</artifactId>
             <version>4.2.3</version>
             <optional>true</optional>
         </dependency>
@@ -304,7 +304,6 @@
                             <includes>
                                 <include>**/NoCachingTest.java</include>
                             </includes>
-                            <classpathDependencyExcludes>org.apache.httpcomponents:httpclient-cache</classpathDependencyExcludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -327,4 +326,3 @@
     </build>
 
 </project>
-

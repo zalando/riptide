@@ -2,6 +2,7 @@ package org.zalando.riptide.autoconfigure;
 
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 import static org.springframework.test.web.client.MockRestServiceServer.createServer;
 
 @API(status = EXPERIMENTAL)
-@Configuration
+@AutoConfiguration
 @AutoConfigureBefore(RiptideAutoConfiguration.class)
 public class RiptideTestAutoConfiguration {
 

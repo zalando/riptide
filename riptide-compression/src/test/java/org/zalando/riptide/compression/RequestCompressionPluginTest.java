@@ -4,7 +4,7 @@ import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;

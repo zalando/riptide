@@ -3,32 +3,47 @@ package org.zalando.riptide.idempotency;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
 import org.zalando.riptide.RequestArguments;
 
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.HEAD;
+import static org.springframework.http.HttpMethod.OPTIONS;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpMethod.TRACE;
 import static org.zalando.riptide.Attributes.IDEMPOTENT;
 
 final class IdempotencyPredicateTest {
 
     private final Predicate<RequestArguments> unit = new IdempotencyPredicate();
 
+    private static Stream<HttpMethod> shouldDetectIdempotentMethods() {
+        return Stream.of(DELETE, GET, HEAD, OPTIONS, PUT, TRACE);
+    }
+
     @ParameterizedTest
-    @EnumSource(value = HttpMethod.class, names = {"DELETE", "GET", "HEAD", "OPTIONS", "PUT", "TRACE"})
+    @MethodSource
     void shouldDetectIdempotentMethods(final HttpMethod method) {
         assertTrue(unit.test(RequestArguments.create()
                 .withMethod(method)));
     }
 
+    private static Stream<HttpMethod> shouldNotDetectNonIdempotentMethods() {
+        return Stream.of(POST, PATCH);
+    }
+
     @ParameterizedTest
-    @EnumSource(value = HttpMethod.class, names = {"POST", "PATCH"})
+    @MethodSource
     void shouldNotDetectNonIdempotentMethods(final HttpMethod method) {
         assertFalse(unit.test(RequestArguments.create()
                 .withMethod(method)));
@@ -77,8 +92,12 @@ final class IdempotencyPredicateTest {
                 .withHeader("idempotency-key", "xPkDYMOzZNdBoJ2l")));
     }
 
+    private static Stream<HttpMethod> shouldDetectOverriddenSafeMethod() {
+        return Stream.of(GET, HEAD, OPTIONS, TRACE);
+    }
+
     @ParameterizedTest
-    @EnumSource(value = HttpMethod.class, names = {"GET", "HEAD", "OPTIONS", "TRACE"})
+    @MethodSource
     void shouldDetectOverriddenSafeMethod(final HttpMethod override) {
         assertTrue(unit.test(RequestArguments.create()
                 .withMethod(POST)
@@ -114,8 +133,12 @@ final class IdempotencyPredicateTest {
                 .withHeader("X-HTTP-Method-Override", override)));
     }
 
+    private static Stream<HttpMethod> shouldOnlyDetectMethodOverrideForPostMethod() {
+        return Stream.of(PATCH);
+    }
+
     @ParameterizedTest
-    @EnumSource(value = HttpMethod.class, names = "PATCH")
+    @MethodSource
     void shouldOnlyDetectMethodOverrideForPostMethod(final HttpMethod method) {
         assertFalse(unit.test(RequestArguments.create()
                 .withMethod(method)

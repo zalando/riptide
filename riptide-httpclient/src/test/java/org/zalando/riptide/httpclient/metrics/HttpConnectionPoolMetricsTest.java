@@ -5,9 +5,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -67,7 +67,7 @@ final class HttpConnectionPoolMetricsTest {
         assertThat(gauge("connection-pool.leased").value(), is(0.0));
         assertThat(gauge("connection-pool.total").value(), is(1.0));
         assertThat(gauge("connection-pool.min").value(), is(0.0));
-        assertThat(gauge("connection-pool.max").value(), is(20.0));
+        assertThat(gauge("connection-pool.max").value(), is(25.0));
         assertThat(gauge("connection-pool.queued").value(), is(0.0));
 
         verify(server, 1, "/");

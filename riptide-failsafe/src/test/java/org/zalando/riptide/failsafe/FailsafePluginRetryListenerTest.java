@@ -8,9 +8,11 @@ import dev.failsafe.event.ExecutionAttemptedEvent;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -32,7 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.zalando.riptide.Bindings.anyStatus;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.status;
@@ -46,8 +48,10 @@ final class FailsafePluginRetryListenerTest {
     private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(500)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(500))
+                            .build())
                     .build())
             .build();
 
@@ -126,12 +130,12 @@ final class FailsafePluginRetryListenerTest {
 
     @Test
     void shouldInvokeListenersOnExplicitRetry() {
-        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(new MockResponse().setResponseCode(INTERNAL_SERVER_ERROR.value()));
         server.enqueue(emptyMockResponse());
 
         unit.get("/baz")
                 .dispatch(status(),
-                        on(SERVICE_UNAVAILABLE).call(retry()),
+                        on(INTERNAL_SERVER_ERROR).call(retry()),
                         anyStatus().call(pass()))
                 .join();
 

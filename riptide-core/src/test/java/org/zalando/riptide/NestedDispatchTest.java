@@ -111,7 +111,7 @@ final class NestedDispatchTest {
     }
 
     private void fail(final ClientHttpResponse response) throws IOException {
-        throw new Failure(response.getStatusCode());
+        throw new Failure(HttpStatus.resolve(response.getStatusCode().value()));
     }
 
     @Test

@@ -14,8 +14,9 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -27,12 +28,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.zalando.riptide.AttributeStage;
-import org.zalando.riptide.Bindings;
-import org.zalando.riptide.Http;
-import org.zalando.riptide.Navigators;
-import org.zalando.riptide.RequestArguments;
-import org.zalando.riptide.RequestExecution;
+import org.zalando.riptide.*;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
@@ -45,27 +41,19 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.opentelemetry.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.opentelemetry.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.opentelemetry.MockWebServerUtil.textMockResponse;
-import static org.zalando.riptide.opentelemetry.MockWebServerUtil.verify;
+import static org.zalando.riptide.opentelemetry.MockWebServerUtil.*;
 
 class OpenTelemetryPluginTest {
     @RegisterExtension
@@ -77,14 +65,21 @@ class OpenTelemetryPluginTest {
 
     private final SpanDecorator environmentDecorator = new StaticSpanDecorator(singletonMap("env", "unittest"));
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
+
+    {
+        cm.setConnectionConfig(connConfig);
+    }
+
     private final Http unit = Http.builder()
             .executor(Executors.newCachedThreadPool())
             .requestFactory(new HttpComponentsClientHttpRequestFactory(
                     HttpClientBuilder.create()
-                            .setDefaultRequestConfig(
-                                    RequestConfig.custom()
-                                            .setSocketTimeout(500)
-                                            .build())
+                            .setConnectionManager(cm)
                             .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
@@ -243,7 +238,7 @@ class OpenTelemetryPluginTest {
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.get(AttributeKey.stringKey("env")), is("unittest"));
         assertThat(attributes.get(AttributeKey.stringKey("http.method")), is("GET"));
-        assertThat(attributes.get(AttributeKey.stringKey("peer.hostname")), is("localhost"));
+        assertThat(attributes.get(AttributeKey.stringKey("peer.hostname")), anyOf(is("localhost"), is("127.0.0.1")));
         assertThat(attributes.get(AttributeKey.longKey("http.status_code")), is(400L));
 
         verify(server, 1, "/");
@@ -280,10 +275,7 @@ class OpenTelemetryPluginTest {
                 .executor(Executors.newCachedThreadPool())
                 .requestFactory(new HttpComponentsClientHttpRequestFactory(
                         HttpClientBuilder.create()
-                                .setDefaultRequestConfig(
-                                        RequestConfig.custom()
-                                                .setSocketTimeout(500)
-                                                .build())
+                                .setConnectionManager(cm)
                                 .build()))
                 .baseUrl(getBaseUrl(server))
                 .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry())
@@ -314,7 +306,7 @@ class OpenTelemetryPluginTest {
 
         final Attributes attributes = child.getAttributes();
         assertThat(attributes.size(), is(1));
-        assertThat(attributes.get(AttributeKey.stringKey("http.host")), is("localhost"));
+        assertThat(attributes.get(AttributeKey.stringKey("http.host")), anyOf(is("localhost"), is("127.0.0.1")));
 
         verify(server, 1, "/");
     }

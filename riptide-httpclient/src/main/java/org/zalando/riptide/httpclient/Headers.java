@@ -1,6 +1,6 @@
 package org.zalando.riptide.httpclient;
 
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.springframework.http.HttpHeaders;
 
 import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;

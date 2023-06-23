@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,13 +31,13 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     private final List<MediaType> supportedMediaTypes;
 
     @Override
-    public boolean canRead(final Class<?> clazz, final MediaType mediaType) {
+    public boolean canRead(final Class<?> clazz, @Nullable final MediaType mediaType) {
         // we only support generics
         return false;
     }
 
     @Override
-    public boolean canRead(final Type type, @Nullable final Class<?> contextClass, final MediaType mediaType) {
+    public boolean canRead(final Type type, @Nullable final Class<?> contextClass, @Nullable final MediaType mediaType) {
         final JavaType javaType = getJavaType(type, contextClass);
 
         if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
@@ -52,11 +53,13 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     }
 
     @Override
+    @Nonnull
     public List<MediaType> getSupportedMediaTypes() {
         return Collections.unmodifiableList(supportedMediaTypes);
     }
 
     @Override
+    @Nonnull
     public Stream<T> read(final Class<? extends Stream<T>> clazz, final HttpInputMessage inputMessage)
             throws HttpMessageNotReadableException {
         // we only support generics
@@ -64,7 +67,8 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     }
 
     @Override
-    public Stream<T> read(final Type type, final Class<?> contextClass, final HttpInputMessage inputMessage)
+    @Nonnull
+    public Stream<T> read(final Type type, @Nullable final Class<?> contextClass, final HttpInputMessage inputMessage)
             throws HttpMessageNotReadableException {
         final JavaType javaType = getJavaType(type, contextClass);
         return read(javaType, inputMessage);
@@ -84,7 +88,7 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
             final InputStream body = extractBody(inputMessage);
             return stream(elementType, body);
         } catch (final IOException ex) {
-            throw new HttpMessageNotReadableException("Could not read document: " + ex.getMessage(), ex);
+            throw new HttpMessageNotReadableException("Could not read document: " + ex.getMessage(), ex, inputMessage);
         }
     }
 
@@ -101,22 +105,25 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     }
 
     @Override
-    public boolean canWrite(final Class<?> clazz, final MediaType mediaType) {
+    public boolean canWrite(final Class<?> clazz, @Nullable final MediaType mediaType) {
         return false;
     }
 
     // @Override since 4.2
-    public boolean canWrite(final Type type, final Class<?> clazz, final MediaType mediaType) {
+    public boolean canWrite(@Nullable final Type type, final Class<?> clazz, @Nullable final MediaType mediaType) {
         return false;
     }
 
     @Override
-    public void write(final Stream<T> t, final MediaType mediaType, final HttpOutputMessage message)  {
+    public void write(final Stream<T> t, @Nullable final MediaType mediaType, final HttpOutputMessage message) {
         throw new UnsupportedOperationException();
     }
 
     // @Override since 4.2
-    public void write(final Stream<T> t, final Type type, final MediaType mediaType, final HttpOutputMessage message)  {
+    public void write(final Stream<T> t,
+                      @Nullable final Type type,
+                      @Nullable final MediaType mediaType,
+                      final HttpOutputMessage message) {
         throw new UnsupportedOperationException();
     }
 

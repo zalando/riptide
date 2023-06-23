@@ -1,10 +1,9 @@
 package org.zalando.riptide.soap;
 
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Route;
-
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.soap.SOAPFaultException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;

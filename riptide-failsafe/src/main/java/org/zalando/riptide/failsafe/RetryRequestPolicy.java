@@ -1,11 +1,11 @@
 package org.zalando.riptide.failsafe;
 
 import com.google.common.annotations.VisibleForTesting;
-import dev.failsafe.event.EventListener;
-import lombok.AllArgsConstructor;
 import dev.failsafe.Policy;
 import dev.failsafe.RetryPolicy;
+import dev.failsafe.event.EventListener;
 import dev.failsafe.event.ExecutionAttemptedEvent;
+import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.RequestArguments;

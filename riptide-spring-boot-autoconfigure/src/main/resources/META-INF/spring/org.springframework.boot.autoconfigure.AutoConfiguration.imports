@@ -1,0 +1,3 @@
+org.zalando.riptide.autoconfigure.OpenTracingFlowIdAutoConfiguration
+org.zalando.riptide.autoconfigure.RiptideAutoConfiguration
+org.zalando.riptide.autoconfigure.RiptideTestAutoConfiguration

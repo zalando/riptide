@@ -11,8 +11,10 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -26,6 +28,7 @@ import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -46,14 +49,19 @@ public class OpenTelemetryPluginRetryTest {
 
     private final SpanDecorator retryDecorator = new RetrySpanDecorator();
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            .setDefaultConnectionConfig(connConfig)
+            .build();
+
     private final Http unit = Http.builder()
             .executor(Executors.newCachedThreadPool())
             .requestFactory(new HttpComponentsClientHttpRequestFactory(
                     HttpClientBuilder.create()
-                            .setDefaultRequestConfig(
-                                    RequestConfig.custom()
-                                            .setSocketTimeout(500)
-                                            .build())
+                            .setConnectionManager(connectionManager)
                             .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), retryDecorator))
@@ -81,7 +89,8 @@ public class OpenTelemetryPluginRetryTest {
         try (final Scope ignored = parent.makeCurrent()) {
             unit.get("/")
                     .call(pass())
-                    .join();
+                    .join()
+                    .close();
         } finally {
             parent.end();
         }

@@ -30,7 +30,7 @@ public abstract class HttpResponseException extends RestClientException {
     private final byte[] responseBody;
 
     public HttpResponseException(final String message, final ClientHttpResponse response) throws IOException {
-        this(message, response.getRawStatusCode(), response.getStatusText(), response.getHeaders(),
+        this(message, response.getStatusCode().value(), response.getStatusText(), response.getHeaders(),
                 extractCharset(response), tryWith(response, HttpResponseException::readFromBody));
     }
 

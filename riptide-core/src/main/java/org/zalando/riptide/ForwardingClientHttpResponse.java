@@ -2,7 +2,7 @@ package org.zalando.riptide;
 
 import com.google.common.collect.ForwardingObject;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -20,11 +20,11 @@ abstract class ForwardingClientHttpResponse extends ForwardingObject implements 
 
     @Override
     public int getRawStatusCode() throws IOException {
-        return delegate().getRawStatusCode();
+        return getStatusCode().value();
     }
 
     @Override
-    public HttpStatus getStatusCode() throws IOException {
+    public HttpStatusCode getStatusCode() throws IOException {
         return delegate().getStatusCode();
     }
 

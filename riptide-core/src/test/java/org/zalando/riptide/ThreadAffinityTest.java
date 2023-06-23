@@ -1,12 +1,8 @@
 package org.zalando.riptide;
 
-import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.zalando.riptide.Http.ConfigurationStage;
 
@@ -41,38 +37,6 @@ final class ThreadAffinityTest {
                 .requestFactory(new SimpleClientHttpRequestFactory());
 
         test(stage, "process", "process", "process");
-    }
-
-    @Test
-    void syncNonBlockingApache() throws Exception {
-        final HttpComponentsAsyncClientHttpRequestFactory requestFactory =
-                new HttpComponentsAsyncClientHttpRequestFactory(HttpAsyncClientBuilder.create()
-                        .setThreadFactory(threadFactory("io"))
-                        .build());
-
-        try {
-            final ConfigurationStage stage = Http.builder()
-                    .asyncRequestFactory(requestFactory);
-
-            test(stage, "main", "io", "io");
-        } finally {
-            requestFactory.destroy();
-        }
-    }
-
-    @Test
-    void syncNonBlockingNetty() throws Exception {
-        final Netty4ClientHttpRequestFactory requestFactory = new Netty4ClientHttpRequestFactory(
-                new NioEventLoopGroup(0, threadFactory("io")));
-
-        try {
-            final ConfigurationStage stage = Http.builder()
-                    .asyncRequestFactory(requestFactory);
-
-            test(stage, "main", "io", "io");
-        } finally {
-            requestFactory.destroy();
-        }
     }
 
     @SneakyThrows

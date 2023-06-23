@@ -7,8 +7,9 @@ import io.opentracing.mock.MockSpan.LogEntry;
 import io.opentracing.mock.MockTracer;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -25,41 +26,39 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.OK;
 import static org.zalando.riptide.NoRoute.noRoute;
 import static org.zalando.riptide.PassRoute.pass;
-import static org.zalando.riptide.opentracing.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.opentracing.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.opentracing.MockWebServerUtil.textMockResponse;
-import static org.zalando.riptide.opentracing.MockWebServerUtil.verify;
+import static org.zalando.riptide.opentracing.MockWebServerUtil.*;
 
 final class OpenTracingPluginTest {
 
     private final MockWebServer server = new MockWebServer();
     private final MockTracer tracer = new MockTracer();
 
+    private final ConnectionConfig connConfig = ConnectionConfig.custom()
+            .setSocketTimeout(500, TimeUnit.MILLISECONDS)
+            .build();
+
+    private final BasicHttpClientConnectionManager cm = new BasicHttpClientConnectionManager();
+
+    {
+        cm.setConnectionConfig(connConfig);
+    }
+
     private final Http unit = Http.builder()
             .executor(new TracedExecutorService(newSingleThreadExecutor(), tracer))
             .requestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(500)
-                            .build())
+                    .setConnectionManager(cm)
                     .build()))
             .baseUrl(getBaseUrl(server))
             .plugin(new OpenTracingPlugin(tracer)
@@ -96,11 +95,11 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "POST"));
         assertThat(child.tags(), hasEntry("http.method_override", "GET"));
         assertThat(child.tags(), hasEntry("http.path", "/users/{user}"));
@@ -110,6 +109,9 @@ final class OpenTracingPluginTest {
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("user", "me"));
         assertThat(child.tags(), hasEntry("spi", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
 
         // not active by default
         assertThat(child.tags(), not(hasKey("http.url")));
@@ -159,17 +161,20 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 500));
         assertThat(child.tags(), hasEntry("error", true));
         assertThat(child.tags(), hasEntry("test", "true"));
         assertThat(child.tags(), hasEntry("test.environment", "JUnit"));
         assertThat(child.tags(), hasEntry("spi", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("http.path")));
@@ -206,13 +211,16 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("error", true));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("http.path")));
@@ -227,23 +235,14 @@ final class OpenTracingPluginTest {
             final LogEntry log = logs.get(i);
 
             switch (i) {
-                case 0: {
+                case 0 -> {
                     assertThat(log.fields(), hasEntry("error.kind", "SocketTimeoutException"));
                     assertThat(log.fields(), hasEntry(is("error.object"), is(instanceOf(SocketTimeoutException.class))));
-                    break;
                 }
-                case 1: {
-                    assertThat(log.fields().get("stack").toString(),
-                            containsString("java.net.SocketTimeoutException: Read timed out"));
-                    break;
-                }
-                case 2: {
-                    assertThat(log.fields(), hasEntry("message", "Read timed out"));
-                    break;
-                }
-                default: {
-                    throw new AssertionError();
-                }
+                case 1 -> assertThat(log.fields().get("stack").toString(),
+                        containsString("java.net.SocketTimeoutException: Read timed out"));
+                case 2 -> assertThat(log.fields(), hasEntry("message", "Read timed out"));
+                default -> throw new AssertionError();
             }
         }
 
@@ -274,13 +273,16 @@ final class OpenTracingPluginTest {
         final MockSpan child = spans.get(0);
         assertThat(child.parentId(), is(parent.context().spanId()));
 
+        final int port = server.getPort();
+
         assertThat(child.tags(), hasEntry("component", "Riptide"));
         assertThat(child.tags(), hasEntry("span.kind", "client"));
-        assertThat(child.tags(), hasEntry("peer.address", "localhost:" + server.getPort()));
-        assertThat(child.tags(), hasEntry("peer.hostname", "localhost"));
-        assertThat(child.tags(), hasEntry("peer.port", server.getPort()));
+        assertThat(child.tags(), hasEntry("peer.port", port));
         assertThat(child.tags(), hasEntry("http.method", "GET"));
         assertThat(child.tags(), hasEntry("http.status_code", 400));
+
+        assertThat(child.tags().get("peer.address"), anyOf(is("localhost:" + port), is("127.0.0.1:" + port)));
+        assertThat(child.tags().get("peer.hostname"), anyOf(is("localhost"), is("127.0.0.1")));
 
         // since we didn't use a uri template
         assertThat(child.tags(), not(hasKey("error")));

@@ -1,21 +1,25 @@
 package org.zalando.riptide.httpclient;
 
 import lombok.AllArgsConstructor;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Optional;
 
 @AllArgsConstructor
 final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
@@ -26,22 +30,20 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     private final HttpClient client;
     private final HttpUriRequest request;
 
+    @Override
     @Nonnull
-    @SuppressWarnings("WeakerAccess")
-    @Override
-    public String getMethodValue() {
-        return request.getMethod();
-    }
-
-    @Override
     public HttpMethod getMethod() {
-        return HttpMethod.valueOf(getMethodValue());
+        return HttpMethod.valueOf(request.getMethod());
     }
 
     @Nonnull
     @Override
     public URI getURI() {
-        return request.getURI();
+        try {
+            return request.getUri();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Nonnull
@@ -57,16 +59,21 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     }
 
     @Override
+    @Nonnull
     public ClientHttpResponse execute() throws IOException {
         Headers.writeHeaders(headers, request);
+        request.setEntity(new ByteArrayEntity(output.toByteArray(), toContentType(headers.getContentType())));
 
-        if (request instanceof HttpEntityEnclosingRequest) {
-            final HttpEntityEnclosingRequest enclosing = (HttpEntityEnclosingRequest) request;
-            enclosing.setEntity(new ByteArrayEntity(output.toByteArray()));
-        }
-
-        final HttpResponse response = client.execute(request);
+        final HttpResponse response = client.executeOpen(null, request, null);
         return new ApacheClientHttpResponse(response);
+    }
+
+    @Nullable
+    private ContentType toContentType(@Nullable MediaType mediaType) {
+        return Optional.ofNullable(mediaType)
+                .map(MediaType::toString)
+                .map(ContentType::create)
+                .orElse(null);
     }
 
 }

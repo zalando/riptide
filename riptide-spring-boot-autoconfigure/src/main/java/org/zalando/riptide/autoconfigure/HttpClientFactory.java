@@ -2,21 +2,22 @@ package org.zalando.riptide.autoconfigure;
 
 import com.google.gag.annotation.remark.Hack;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.client.cache.CachingHttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.hc.client5.http.cache.HttpCacheStorage;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
@@ -24,6 +25,8 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Ke
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
 
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -31,13 +34,9 @@ import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
 
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("unused")
 @Slf4j
@@ -56,12 +55,7 @@ final class HttpClientFactory {
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", new SSLConnectionSocketFactory(createSSLContext(client)))
-                        .build(),
-                null, // connection factory
-                null, // scheme port resolver
-                null, // dns resolver
-                connections.getTimeToLive().getAmount(),
-                connections.getTimeToLive().getUnit());
+                        .build());
 
         manager.setMaxTotal(connections.getMaxTotal());
         manager.setDefaultMaxPerRoute(connections.getMaxPerRoute());
@@ -70,28 +64,34 @@ final class HttpClientFactory {
     }
 
     public static CloseableHttpClient createHttpClient(final Client client,
-            final List<HttpRequestInterceptor> firstRequestInterceptors,
-            final HttpClientConnectionManager connectionManager,
-            @Nullable final HttpClientCustomizer customizer,
-            @Nullable final Object cacheStorage) {
+                                                       final List<HttpRequestInterceptor> firstRequestInterceptors,
+                                                       final PoolingHttpClientConnectionManager connectionManager,
+                                                       @Nullable final HttpClientCustomizer customizer,
+                                                       @Nullable final Object cacheStorage) {
 
         final Caching caching = client.getCaching();
         final HttpClientBuilder builder = caching.getEnabled() ?
                 configureCaching(caching, cacheStorage) :
                 HttpClientBuilder.create();
 
-        final RequestConfig.Builder config = RequestConfig.custom();
-
-        firstRequestInterceptors.forEach(builder::addInterceptorFirst);
-
         final Connections connections = client.getConnections();
-        config.setConnectionRequestTimeout((int) connections.getLeaseRequestTimeout().to(MILLISECONDS));
-        config.setConnectTimeout((int) connections.getConnectTimeout().to(MILLISECONDS));
-        config.setSocketTimeout((int) connections.getSocketTimeout().to(MILLISECONDS));
 
-        builder.setConnectionManager(connectionManager);
-        builder.setDefaultRequestConfig(config.build());
-        builder.disableAutomaticRetries();
+        final ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(connections.getConnectTimeout().toTimeout())
+                .setSocketTimeout(connections.getSocketTimeout().toTimeout())
+                .build();
+
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+        firstRequestInterceptors.forEach(builder::addRequestInterceptorFirst);
+
+        final RequestConfig reqConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(connections.getLeaseRequestTimeout().toTimeout())
+                .build();
+
+        builder.setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(reqConfig)
+                .disableAutomaticRetries();
 
         Optional.ofNullable(customizer).ifPresent(customize(builder));
 
@@ -99,7 +99,7 @@ final class HttpClientFactory {
     }
 
     private static HttpClientBuilder configureCaching(final Caching caching,
-            @Nullable final Object cacheStorage) {
+                                                      @Nullable final Object cacheStorage) {
         final Heuristic heuristic = caching.getHeuristic();
 
         final CacheConfig.Builder config = CacheConfig.custom()
@@ -110,16 +110,16 @@ final class HttpClientFactory {
         if (heuristic.getEnabled()) {
             config.setHeuristicCachingEnabled(true);
             config.setHeuristicCoefficient(heuristic.getCoefficient());
-            config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().to(TimeUnit.SECONDS));
+            config.setHeuristicDefaultLifetime(heuristic.getDefaultLifeTime().toTimeValue());
         }
 
         @Hack("return cast tricks classloader in case of missing httpclient-cache")
         CachingHttpClientBuilder builder = CachingHttpClients.custom()
-                                                             .setCacheConfig(config.build())
-                                                             .setHttpCacheStorage((HttpCacheStorage) cacheStorage)
-                                                             .setCacheDir(Optional.ofNullable(caching.getDirectory())
-                                                                                  .map(Path::toFile)
-                                                                                  .orElse(null));
+                .setCacheConfig(config.build())
+                .setHttpCacheStorage((HttpCacheStorage) cacheStorage)
+                .setCacheDir(Optional.ofNullable(caching.getDirectory())
+                        .map(Path::toFile)
+                        .orElse(null));
         return HttpClientBuilder.class.cast(builder);
     }
 

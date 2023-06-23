@@ -2,10 +2,26 @@ package org.zalando.riptide.concurrent;
 
 import lombok.AllArgsConstructor;
 import lombok.With;
-import org.zalando.riptide.concurrent.ThreadPoolExecutors.*;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.Build;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.ElasticSize;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.FixedSize;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.KeepAliveTime;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.PreStart;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.QueueFirst;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.RejectedExecutions;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.ScaleFirst;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.Start;
+import org.zalando.riptide.concurrent.ThreadPoolExecutors.Threads;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 
 import static java.util.concurrent.Executors.defaultThreadFactory;

@@ -1,6 +1,9 @@
 package org.zalando.riptide.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.failsafe.CircuitBreaker;
+import dev.failsafe.RetryPolicy;
+import dev.failsafe.Timeout;
 import dev.failsafe.function.CheckedPredicate;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -8,13 +11,13 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
-import dev.failsafe.CircuitBreaker;
-import dev.failsafe.RetryPolicy;
-import dev.failsafe.Timeout;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
+import io.opentracing.noop.NoopTracerFactory;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -26,13 +29,10 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.web.client.AsyncRestOperations;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.opentracing.flowid.Flow;
-import org.zalando.opentracing.flowid.autoconfigure.OpenTracingFlowIdAutoConfiguration;
-import org.zalando.opentracing.flowid.httpclient.FlowHttpRequestInterceptor;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
@@ -70,7 +70,6 @@ import org.zalando.riptide.stream.Streams;
 import java.net.SocketTimeoutException;
 import java.time.Clock;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -84,7 +83,7 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier;
+import static org.apache.hc.client5.http.ssl.HttpsSupport.getDefaultHostnameVerifier;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
 import static org.zalando.riptide.faults.Predicates.alwaysTrue;
 import static org.zalando.riptide.faults.TransientFaults.transientConnectionFaults;
@@ -105,7 +104,7 @@ public class ManualConfiguration {
 
         @Bean
         public Http exampleHttp(final Executor executor, final ClientHttpRequestFactory requestFactory,
-                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
+                                final ClientHttpMessageConverters converters, final List<Plugin> plugins) {
 
             return Http.builder()
                     .executor(executor)
@@ -119,7 +118,7 @@ public class ManualConfiguration {
 
         @Bean
         public List<Plugin> examplePlugins(final MeterRegistry meterRegistry, final Logbook logbook,
-                final Tracer tracer) {
+                                           final Tracer tracer) {
 
             final CircuitBreakerListener listener = new MetricsCircuitBreakerListener(meterRegistry)
                     .withDefaultTags(Tag.of("clientId", "example"));
@@ -177,7 +176,7 @@ public class ManualConfiguration {
 
         private RetryPolicy<ClientHttpResponse> retryPolicy(
                 final Predicate<Throwable> predicate) {
-            final CheckedPredicate<Throwable> checkedPredicate = t -> predicate.test(t);
+            final CheckedPredicate<Throwable> checkedPredicate = predicate::test;
 
             return RetryPolicy.<ClientHttpResponse>builder()
                     .handleIf(checkedPredicate)
@@ -200,16 +199,16 @@ public class ManualConfiguration {
         @Bean
         public ApacheClientHttpRequestFactory exampleAsyncClientHttpRequestFactory(
                 final Flow flow) throws Exception {
-            return new ApacheClientHttpRequestFactory(
-                    HttpClientBuilder.create()
-                            .setDefaultRequestConfig(RequestConfig.custom()
-                                    .setConnectTimeout(5000)
-                                    .setSocketTimeout(5000)
+
+            final PoolingHttpClientConnectionManager connectionManager =
+                    PoolingHttpClientConnectionManagerBuilder.create()
+                            .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                    .setConnectTimeout(5, SECONDS)
+                                    .setSocketTimeout(5, SECONDS)
+                                    .setTimeToLive(30, SECONDS)
                                     .build())
-                            .setConnectionTimeToLive(30, SECONDS)
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)
-                            .addInterceptorFirst(new FlowHttpRequestInterceptor(flow))
                             .setSSLSocketFactory(new SSLConnectionSocketFactory(
                                     SSLContexts.custom()
                                             .loadTrustMaterial(
@@ -217,18 +216,30 @@ public class ManualConfiguration {
                                                     "password".toCharArray())
                                             .build(),
                                     getDefaultHostnameVerifier()))
+                            .build();
+
+
+            return new ApacheClientHttpRequestFactory(
+                    HttpClientBuilder.create()
+                            .addRequestInterceptorFirst(new FlowHttpRequestInterceptor(flow))
+                            .setConnectionManager(connectionManager)
                             .build());
+        }
+
+        @Bean
+        public Tracer tracer() {
+            return NoopTracerFactory.create();
         }
 
         @Bean(destroyMethod = "shutdown")
         public ExecutorService executor(final Tracer tracer) {
             return new TracedExecutorService(
                     ThreadPoolExecutors.builder()
-                        .elasticSize(1, 20)
-                        .keepAlive(1, MINUTES)
-                        .withoutQueue()
-                        .threadFactory(new CustomizableThreadFactory("http-example-"))
-                        .build(),
+                            .elasticSize(1, 20)
+                            .keepAlive(1, MINUTES)
+                            .withoutQueue()
+                            .threadFactory(new CustomizableThreadFactory("http-example-"))
+                            .build(),
                     tracer);
         }
 

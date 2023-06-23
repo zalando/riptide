@@ -22,12 +22,6 @@ final class HttpOutputMessageClientHttpRequestAdapter implements ClientHttpReque
         throw new UnsupportedOperationException();
     }
 
-    @Nonnull
-    @Override
-    public String getMethodValue() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public HttpMethod getMethod() {
         throw new UnsupportedOperationException();

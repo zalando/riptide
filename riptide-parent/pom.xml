@@ -17,19 +17,26 @@
 
     <properties>
         <fauxpas.version>0.9.0</fauxpas.version>
-        <jackson.version>2.14.2</jackson.version>
-        <jackson-databind.version>2.14.2</jackson-databind.version>
+        <jackson.version>2.15.2</jackson.version>
+        <jackson-databind.version>2.15.2</jackson-databind.version>
         <junit-jupiter.version>5.9.3</junit-jupiter.version>
-        <logbook.version>3.0.0</logbook.version>
-        <micrometer.version>1.10.4</micrometer.version>
-        <mockito.version>4.11.0</mockito.version>
+        <logbook.version>3.1.0</logbook.version>
+        <micrometer.version>1.11.1</micrometer.version>
+        <mockito.version>5.3.1</mockito.version>
         <problem.version>0.27.1</problem.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <spring-boot.version>2.7.12</spring-boot.version>
+        <slf4j.version>2.0.7</slf4j.version>
+        <spring-boot.version>3.1.0</spring-boot.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Resolving CVE-2022-1471 -->
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>2.0</version>
+            </dependency>
+
             <!-- riptide -->
             <dependency>
                 <groupId>org.zalando</groupId>
@@ -179,15 +186,9 @@
 
             <!-- must be listed before spring, otherwise we get the wrong httpclient version -->
             <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.5.14</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>5.2.1</version>
             </dependency>
 
             <!-- spring -->

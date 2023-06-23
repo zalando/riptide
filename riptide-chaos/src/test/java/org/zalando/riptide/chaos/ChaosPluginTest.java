@@ -2,9 +2,11 @@ package org.zalando.riptide.chaos;
 
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpResponse;
@@ -53,8 +55,10 @@ final class ChaosPluginTest {
     private final Probability errorResponseProbability = mock(Probability.class);
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(1500)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(1500))
+                            .build())
                     .build())
             .build();
 
@@ -145,7 +149,7 @@ final class ChaosPluginTest {
         response.close();
 
         assertThat(response.getStatusCode(), is(oneOf(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE)));
-        assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
+        assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         assertThat(response.getStatusText(), is(oneOf("Internal Server Error", "Service Unavailable")));
         assertThat(response.getHeaders(), is(anEmptyMap())); // TODO can we do better?
         verify(server, 1, "/foo");
@@ -215,6 +219,7 @@ final class ChaosPluginTest {
         final Instant end = clock.instant();
 
         assertThat(Duration.between(start, end), is(greaterThanOrEqualTo(Duration.ofSeconds(1))));
+        // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
         assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
         verify(server, 1, "/foo");
     }

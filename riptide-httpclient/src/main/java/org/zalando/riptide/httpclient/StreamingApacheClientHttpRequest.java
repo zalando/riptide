@@ -1,13 +1,12 @@
 package org.zalando.riptide.httpclient;
 
 import lombok.AllArgsConstructor;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicHeader;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.core5.function.Supplier;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.StreamingHttpOutputMessage;
@@ -20,11 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 
 import static org.springframework.http.HttpHeaders.CONTENT_ENCODING;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @AllArgsConstructor
 final class StreamingApacheClientHttpRequest implements ClientHttpRequest, StreamingHttpOutputMessage {
@@ -34,22 +34,20 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
     private final HttpClient client;
     private final HttpUriRequest request;
 
+    @Override
     @Nonnull
-    @SuppressWarnings("WeakerAccess")
-    @Override
-    public String getMethodValue() {
-        return request.getMethod();
-    }
-
-    @Override
     public HttpMethod getMethod() {
-        return HttpMethod.valueOf(getMethodValue());
+        return HttpMethod.valueOf(request.getMethod());
     }
 
     @Nonnull
     @Override
     public URI getURI() {
-        return request.getURI();
+        try {
+            return request.getUri();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Nonnull
@@ -66,18 +64,16 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
 
     @Override
     public void setBody(final Body body) {
-        if (request instanceof HttpEntityEnclosingRequest) {
-            final HttpEntityEnclosingRequest enclosing = (HttpEntityEnclosingRequest) request;
-            enclosing.setEntity(new StreamingHttpEntity(body));
-        } else {
-            throw new IllegalStateException(getMethodValue() + " doesn't support a body");
+        try (StreamingHttpEntity streamingHttpEntity = new StreamingHttpEntity(body)) {
+            request.setEntity(streamingHttpEntity);
         }
     }
 
     @Override
+    @Nonnull
     public ClientHttpResponse execute() throws IOException {
         Headers.writeHeaders(headers, request);
-        final HttpResponse response = client.execute(request);
+        final HttpResponse response = client.executeOpen(null, request, null);
         return new ApacheClientHttpResponse(response);
     }
 
@@ -97,25 +93,25 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
         }
 
         @Override
+        public Set<String> getTrailerNames() {
+            return null;
+        }
+
+        @Override
         public long getContentLength() {
             return headers.getContentLength();
         }
 
         @Override
         @Nullable
-        public Header getContentType() {
-            return Optional.ofNullable(headers.getContentType())
-                    .map(Objects::toString)
-                    .map(type -> new BasicHeader(CONTENT_TYPE, type))
-                    .orElse(null);
+        public String getContentType() {
+            return Objects.toString(headers.getContentType());
         }
 
         @Override
         @Nullable
-        public Header getContentEncoding() {
-            return Optional.ofNullable(headers.getFirst(CONTENT_ENCODING))
-                    .map(encoding -> new BasicHeader(CONTENT_ENCODING, encoding))
-                    .orElse(null);
+        public String getContentEncoding() {
+            return headers.getFirst(CONTENT_ENCODING);
         }
 
         @Override
@@ -134,9 +130,13 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
         }
 
         @Override
-        @Deprecated
-        public void consumeContent() {
-            throw new UnsupportedOperationException();
+        public Supplier<List<? extends Header>> getTrailers() {
+            return null;
+        }
+
+        @Override
+        public void close() {
+
         }
 
     }

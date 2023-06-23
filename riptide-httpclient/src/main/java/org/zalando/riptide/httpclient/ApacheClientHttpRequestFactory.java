@@ -2,16 +2,17 @@ package org.zalando.riptide.httpclient;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpOptions;
+import org.apache.hc.client5.http.classic.methods.HttpPatch;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpTrace;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
@@ -56,7 +57,7 @@ public final class ApacheClientHttpRequestFactory implements ClientHttpRequestFa
     private final HttpClient client;
     private final Mode mode;
 
-    public ApacheClientHttpRequestFactory(final HttpClient client) {
+    public ApacheClientHttpRequestFactory(final CloseableHttpClient client) {
         this(client, Mode.STREAMING);
     }
 

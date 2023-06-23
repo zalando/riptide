@@ -20,7 +20,7 @@ public class HttpStatusCodeSpanDecorator implements SpanDecorator {
     @Override
     public void onResponse(Span span, RequestArguments arguments,
                            ClientHttpResponse response) throws IOException {
-        setStatusCode(span, response.getRawStatusCode());
+        setStatusCode(span, response.getStatusCode().value());
     }
 
     private void setStatusCode(Span span, int statusCode) {

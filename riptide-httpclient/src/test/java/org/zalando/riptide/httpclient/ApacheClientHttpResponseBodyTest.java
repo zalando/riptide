@@ -1,14 +1,15 @@
 package org.zalando.riptide.httpclient;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.conn.EofSensorInputStream;
-import org.apache.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,9 +19,9 @@ final class ApacheClientHttpResponseBodyTest {
     @Test
     void shouldCallCloseOnNormalStreams() throws IOException {
         final InputStream stream = mock(InputStream.class);
-        final HttpResponse response = mock(HttpResponse.class);
-        when(response.getEntity()).thenReturn(new InputStreamEntity(stream));
-        when(response.getAllHeaders()).thenReturn(new Header[0]);
+        final ClassicHttpResponse response = mock(ClassicHttpResponse.class);
+        when(response.getEntity()).thenReturn(new InputStreamEntity(stream, null));
+        when(response.getHeaders()).thenReturn(new Header[0]);
 
         new ApacheClientHttpResponse(response).close();
 
@@ -28,15 +29,13 @@ final class ApacheClientHttpResponseBodyTest {
     }
 
     @Test
-    void shouldCallAbortAndCloseOnConnectionReleaseTrigger() throws IOException {
-        final EofSensorInputStream stream = mock(EofSensorInputStream.class);
-        final HttpResponse response = mock(HttpResponse.class);
-        when(response.getEntity()).thenReturn(new InputStreamEntity(stream));
-        when(response.getAllHeaders()).thenReturn(new Header[0]);
+    void shouldReturnEmptyWhenResponseIsNotHttpEntityContainer() throws IOException {
+        final HttpResponse httpResponse = mock(HttpResponse.class);
+        when(httpResponse.getHeaders()).thenReturn(new Header[0]);
 
-        new ApacheClientHttpResponse(response).close();
-
-        verify(stream).abortConnection();
-        verify(stream).close();
+        try (final ApacheClientHttpResponse x = new ApacheClientHttpResponse(httpResponse)) {
+            assertThat(x.getBody()).isEqualTo(EmptyInputStream.EMPTY);
+        }
     }
+
 }

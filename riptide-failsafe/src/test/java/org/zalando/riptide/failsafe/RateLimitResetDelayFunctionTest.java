@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import dev.failsafe.CircuitBreaker;
+import dev.failsafe.ExecutionContext;
 import dev.failsafe.RetryPolicy;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -27,7 +30,9 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.anySeries;
@@ -45,8 +50,10 @@ final class RateLimitResetDelayFunctionTest {
     private final MockWebServer server = new MockWebServer();
 
     private final CloseableHttpClient client = HttpClientBuilder.create()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setSocketTimeout(1000)
+            .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setSocketTimeout(Timeout.ofMilliseconds(1000))
+                            .build())
                     .build())
             .build();
 
@@ -150,6 +157,14 @@ final class RateLimitResetDelayFunctionTest {
                         .join()));
 
         verify(server, 2, "/baz");
+    }
+
+    @Test
+    void shouldGetDefaultDuration() {
+        RateLimitResetDelayFunction rateLimitResetDelayFunction = new RateLimitResetDelayFunction(clock);
+        @SuppressWarnings("unchecked")
+        ExecutionContext<ClientHttpResponse> context = mock(ExecutionContext.class);
+        assertThat(rateLimitResetDelayFunction.get(context), is(Duration.ofMinutes(-1)));
     }
 
     private void atLeast(final Duration minimum, final Runnable runnable) {

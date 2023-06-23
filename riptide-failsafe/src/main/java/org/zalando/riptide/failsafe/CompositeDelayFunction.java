@@ -1,8 +1,8 @@
 package org.zalando.riptide.failsafe;
 
+import dev.failsafe.ExecutionContext;
 import dev.failsafe.function.ContextualSupplier;
 import lombok.AllArgsConstructor;
-import dev.failsafe.ExecutionContext;
 import org.apiguardian.api.API;
 
 import java.time.Duration;

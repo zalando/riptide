@@ -3,8 +3,8 @@ package org.zalando.riptide.failsafe;
 import com.google.common.collect.ImmutableMap;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -22,7 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.zalando.riptide.Bindings.on;
@@ -90,7 +90,7 @@ final class FailsafePluginBackupRequestTest {
     @Test
     void shouldUseFailedBackupRequest() {
         server.enqueue(emptyMockResponse().setHeadersDelay(2, SECONDS));
-        server.enqueue(new MockResponse().setResponseCode(SERVICE_UNAVAILABLE.value()));
+        server.enqueue(new MockResponse().setResponseCode(INTERNAL_SERVER_ERROR.value()));
 
         final CompletionException exception = assertThrows(CompletionException.class, () ->
                 unit.get("/bar")
