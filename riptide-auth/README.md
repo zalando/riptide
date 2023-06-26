@@ -34,7 +34,6 @@ Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 
 ## Dependencies
 
-- Java 8
 - Riptide: Core
 
 ## Installation

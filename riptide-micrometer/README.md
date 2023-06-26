@@ -21,7 +21,6 @@ Http.builder()
 
 ## Dependencies
 
-- Java 8
 - Riptide Core
 - [Micrometer](https://micrometer.io/)
 

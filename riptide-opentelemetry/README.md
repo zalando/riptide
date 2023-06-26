@@ -24,7 +24,6 @@ Http.builder()
 
 ## Dependencies
 
-- Java 8
 - Riptide Core
 - [OpenTelemetry Java API](https://opentelemetry.io/docs/instrumentation/java/)
 - [Riptide: Failsafe](../riptide-failsafe) (optional)

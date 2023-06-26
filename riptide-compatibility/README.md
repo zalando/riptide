@@ -17,11 +17,10 @@ User user = http.getForObject("/user/{id}", User.class, 1);
 
 - Compatibility adapters for
   - [RestOperations (**RestTemplate** API)](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestOperations.html)
-  - [AsyncRestOperations (**AsyncRestTemplate** API)](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/AsyncRestOperations.html)
 
 ## Dependencies
 
-- Java 8
+- Java 17
 - Riptide: Core
 - Riptide: Capture
 - Riptide: Problem
@@ -42,12 +41,6 @@ Add the following dependency to your project:
 
 ```java
 RestOperations http = new HttpOperations(Http.builder()
-        // ...
-        .build());
-```
-
-```java
-AsyncRestOperations http = new AsyncHttpOperations(Http.builder()
         // ...
         .build());
 ```
@@ -88,8 +81,7 @@ ResponseEntity<User> response = http.getForEntity("/users/{id}", User.class, 1);
 ```
 
 Any operation within [RestOperations](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestOperations.html)
-and [AsyncRestOperations](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/AsyncRestOperations.html)
-are supported.
+is supported.
 
 ## Getting Help
 
