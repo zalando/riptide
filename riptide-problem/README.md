@@ -24,7 +24,6 @@ http.post("/").dispatch(series(),
 
 ## Dependencies
 
-- Java 8
 - Riptide: Core
 - Problem
 

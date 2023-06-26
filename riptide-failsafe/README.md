@@ -24,7 +24,6 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
 
 ## Dependencies
 
-- Java 8
 - Riptide Core
 - Failsafe
 

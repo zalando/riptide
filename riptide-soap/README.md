@@ -21,7 +21,6 @@ http.post()
 
 ## Dependencies
 
-- Java 8
 - JAXB
 - Riptide Core
 

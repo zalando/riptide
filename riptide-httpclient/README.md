@@ -25,7 +25,7 @@ final Http http = Http.builder()
 
 ## Dependencies
 
-- Java 8
+- Java 17
 
 ## Installation
 
@@ -73,16 +73,6 @@ new ApacheClientHttpRequestFactory(client, Mode.BUFFERING)
     without the server noticing.
   </dd>
 </dl>
-
-The `RestAsyncClientHttpRequestFactory` implements `ClientHttpRequestFactory` **as well as** 
-`AsyncClientHttpRequestFactory` and can therefore be used with both: `RestTemplate` and `AsyncRestTemplate`.
-
-```java
-RestAsyncClientHttpRequestFactory factory = ...;
-
-RestTemplate sync = new RestTemplate(factory);
-AsyncRestTemplate async = new AsyncRestTemplate(factory);
-```
 
 ## Getting Help
 

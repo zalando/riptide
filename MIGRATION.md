@@ -2,8 +2,8 @@
 
 ## Before you start
 
-**Riptide 4** requires java 17 or or up.
-**Riptide 4** requires Spring 6 or or up.
+**Riptide 4** requires Java 17 or up.
+**Riptide 4** requires Spring 6 or up.
 
 ## Failsafe
 
@@ -40,6 +40,10 @@ The `SpanDecorators` obtained by `ServiceLoaderSpanDecorator`
 (via the [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) facility) 
 are loaded eagerly and only once.
 
+## OpenTracing FlowId Starter
+
+As the project is in maintenance mode and no changes are planned anymore including support for newer Spring versions,
+it was decided to include an adapted copy into Riptide itself, so the dependency is not needed anymore.
 
 # Riptide 3.0 Migration Guide
 

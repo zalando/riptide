@@ -25,7 +25,6 @@ Http.builder()
 
 ## Dependencies
 
-- Java 8
 - Riptide Core
 - [OpenTracing Java API](https://opentracing.io/guides/java/)
 - [Riptide: Failsafe](../riptide-failsafe) (optional)

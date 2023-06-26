@@ -20,7 +20,9 @@ protocol and Java. Riptide allows users to leverage the power of HTTP with its u
 - **Status**:  Actively maintained and used in production.
 - Riptide is unique in the way that it doesn't abstract HTTP away, but rather embraces it!
 
-:rotating_light: **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md).
+:rotating_light: If you want to upgrade from an older version to the latest one, consult the following migration guides:
+ - **Upgrading from 3.x to 4.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-40-migration-guide).
+ - **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-30-migration-guide).
 
 ## Example
 
@@ -71,8 +73,8 @@ Go checkout the [concept document](docs/concepts.md) for more details.
 
 ## Dependencies
 
-- Spring 4.1 or higher
-  - :warning: Spring Boot integration requires Spring 5
+- Java 17
+- Spring 6
 
 ## Installation
 
@@ -226,30 +228,19 @@ In order to configure the thread pool correctly, please refer to
 
 ### Non-blocking IO
 
-Riptide supports two kinds of request factories:
-
-**[`ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html)**
-
-The following implementations offer blocking IO:
+:rotating_light: While the previous versions of Riptide supported both, blocking and non-blocking request factories,
+due to the removal of `AsyncClientHttpRequestFactory` in Spring 6, Riptide 4 only supports blocking request factories:
 
 - [`ApacheClientHttpRequestFactory`](riptide-httpclient), using the [Apache HTTP Client](https://hc.apache.org/httpcomponents-client-ga/)
-- ~[`HttpComponentsClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html)~, please use the none above
-- [`SimpleClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html), using [`HttpURLConnection`](https://docs.oracle.com/javase/8/docs/api/java/net/HttpURLConnection.html)
-
-**[`AsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/AsyncClientHttpRequestFactory.html)**
-
-The following implementations offer non-blocking IO:
-
+- ~[`HttpComponentsClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html)~, please use the one above
+- [`SimpleClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html), using [`HttpURLConnection`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/HttpURLConnection.html)
 - [`OkHttp3ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/OkHttp3ClientHttpRequestFactory.html), using [OkHttp](https://square.github.io/okhttp/)
-- [`Netty4ClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/Netty4ClientHttpRequestFactory.html), using [Netty](https://netty.io/)
-- [`HttpComponentsAsyncClientHttpRequestFactory`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsAsyncClientHttpRequestFactory.html), using [Apache HTTP Async Client](https://hc.apache.org/httpcomponents-asyncclient-4.1.x/index.html)
 
-Non-blocking IO is asynchronous by nature. In order to provide asynchrony for blocking IO you need to register an executor. Not passing an executor will make all network communication synchronous, i.e. all futures returned by Riptide will already be completed.
+In order to provide asynchrony for blocking IO you need to register an executor. Not passing an executor will make all network communication synchronous, i.e. all futures returned by Riptide will already be completed.
 
-|                 | Synchronous                | Asynchronous                            |
-|-----------------|----------------------------|-----------------------------------------|
-| Blocking IO     | `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory` |
-| Non-blocking IO | n/a                        | `AsyncClientHttpRequestFactory`         |
+| Synchronous                | Asynchronous                            |
+|----------------------------|-----------------------------------------|
+| `ClientHttpRequestFactory` | `Executor` + `ClientHttpRequestFactory` |
 
 ## Usage
 
@@ -355,7 +346,7 @@ Please consult the [Plugin documentation](riptide-core/src/main/java/org/zalando
 
 ### Testing
 
-Riptide is built on the same foundation as Spring's `RestTemplate` and `AsyncRestTemplate`. That allows us, with a small
+Riptide is built on the same foundation as Spring's `RestTemplate`. That allows us, with a small
 trick, to use the same testing facilities, the [`MockRestServiceServer`](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/test/web/client/MockRestServiceServer.html):
 
 ```java
@@ -376,7 +367,7 @@ See [here](riptide-spring-boot-starter#testing).
 
 ## Getting help
 
-If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](../../../issues).
+If you have questions, concerns, bug reports, etc., please file an issue in this repository's [Issue Tracker](issues).
 
 ## Getting involved/Contributing
 

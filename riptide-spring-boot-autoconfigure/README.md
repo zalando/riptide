@@ -70,8 +70,7 @@ private Http example;
 
 ## Dependencies
 
-- Java 8
-- Spring Boot 2
+- Spring Boot 3
 - Riptide
   - Core
   - (Apache) HTTP Client
@@ -221,18 +220,6 @@ Required when `tracing` is enabled.
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-concurrent</artifactId>
     <version>${opentracing-concurrent.version}</version>
-</dependency>
-```
-
-#### X-Flow-ID
-
-Required when `propagate-flow-id` is enabled.
-
-```xml
-<dependency>
-    <groupId>org.zalando</groupId>
-    <artifactId>opentracing-flowid-starter</artifactId>
-    <version>${opentracing-toolbox.version}</version>
 </dependency>
 ```
 

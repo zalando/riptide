@@ -29,7 +29,7 @@ var pool = ThreadPoolExecutors.builder()
 
 ## Dependencies
 
-- Java 8
+- Java 17
 
 ## Installation
 

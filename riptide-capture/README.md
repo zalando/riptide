@@ -26,7 +26,6 @@ Order order = http.get("/sales-orders/{id}", id)
 
 ## Dependencies
 
-- Java 8
 - Riptide: Core
 
 ## Installation

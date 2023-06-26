@@ -28,7 +28,6 @@ Http.builder()
 
 ## Dependencies
 
-- Java 8
 - Riptide: Core
 
 ## Installation
