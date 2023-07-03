@@ -200,9 +200,9 @@ Required when `caching` is enabled.
 
 ```xml
 <dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient-cache</artifactId>
-    <version>${httpclient.version}</version>
+    <groupId>org.apache.httpcomponents.client5</groupId>
+    <artifactId>httpclient5-cache</artifactId>
+    <version>${httpclient5.version}</version>
 </dependency>
 ```
 
