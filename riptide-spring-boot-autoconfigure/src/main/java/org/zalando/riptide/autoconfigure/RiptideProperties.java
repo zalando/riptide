@@ -4,10 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.core5.util.TimeValue;
 import org.apiguardian.api.API;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.stereotype.Component;
 import org.zalando.riptide.UrlResolution;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
@@ -35,6 +36,7 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
 @ConfigurationProperties(prefix = "riptide")
 public final class RiptideProperties {
 
@@ -46,6 +48,11 @@ public final class RiptideProperties {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class Defaults {
+        // These constants where copied from org.apache.hc.client5.http.impl.cache.CacheConfig
+        private static final int DEFAULT_MAX_OBJECT_SIZE_BYTES = 8192;
+        private static final int DEFAULT_MAX_CACHE_ENTRIES = 1000;
+        private static final float DEFAULT_HEURISTIC_COEFFICIENT = 0.1F;
+        private static final TimeValue DEFAULT_HEURISTIC_LIFETIME = TimeValue.ZERO_MILLISECONDS;
 
         private UrlResolution urlResolution = UrlResolution.RFC;
 
@@ -112,12 +119,12 @@ public final class RiptideProperties {
                 false,
                 false,
                 null,
-                CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES,
-                CacheConfig.DEFAULT_MAX_CACHE_ENTRIES,
+                DEFAULT_MAX_OBJECT_SIZE_BYTES,
+                DEFAULT_MAX_CACHE_ENTRIES,
                 new Heuristic(
                         false,
-                        CacheConfig.DEFAULT_HEURISTIC_COEFFICIENT,
-                        TimeSpan.of(CacheConfig.DEFAULT_HEURISTIC_LIFETIME.toSeconds(), SECONDS)
+                        DEFAULT_HEURISTIC_COEFFICIENT,
+                        TimeSpan.of(DEFAULT_HEURISTIC_LIFETIME.toSeconds(), SECONDS)
                 )
         );
 
