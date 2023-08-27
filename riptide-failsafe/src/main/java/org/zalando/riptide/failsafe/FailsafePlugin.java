@@ -13,6 +13,8 @@ import org.zalando.riptide.RequestExecution;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -27,9 +29,10 @@ public final class FailsafePlugin implements Plugin {
 
     private final ImList<RequestPolicy> policies;
     private final ImList<TaskDecorator> decorators;
+    private final ExecutorService executorService;
 
     public FailsafePlugin() {
-        this(vec(), vec());
+        this(vec(), vec(), ForkJoinPool.commonPool());
     }
 
     public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
@@ -43,11 +46,15 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withPolicy(final RequestPolicy policy) {
-        return new FailsafePlugin(policies.append(policy), decorators);
+        return new FailsafePlugin(policies.append(policy), decorators, executorService);
+    }
+
+    public FailsafePlugin withExecutorService(final ExecutorService executorService) {
+        return new FailsafePlugin(policies, decorators, executorService);
     }
 
     public FailsafePlugin withDecorator(final TaskDecorator decorator) {
-        return new FailsafePlugin(policies, decorators.append(decorator));
+        return new FailsafePlugin(policies, decorators.append(decorator), executorService);
     }
 
     @Override
@@ -60,6 +67,7 @@ public final class FailsafePlugin implements Plugin {
             }
 
             return Failsafe.with(select(arguments))
+                    .with(executorService) // according to https://jodah.net/failsafe/schedulers
                     .getStageAsync(decorate(execution, arguments));
         };
     }
