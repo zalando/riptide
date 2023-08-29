@@ -376,4 +376,4 @@ For more details check the [contribution guidelines](.github/CONTRIBUTING.md).
 
 ## Credits and references
 
-- [URL routing](http://littledev.nl/?p=99)
+- [URL routing](https://littledev.nl/blog/2015-01-13-url-routing/)
