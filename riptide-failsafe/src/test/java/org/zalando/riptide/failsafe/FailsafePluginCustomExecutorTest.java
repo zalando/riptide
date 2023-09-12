@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -59,7 +60,6 @@ final class FailsafePluginCustomExecutorTest {
         @Override
         public void execute(@NotNull Runnable command) {
             counter.incrementAndGet();
-            log.info("!!!!!!!!!!!!");
             super.execute(command);
         }
     }
@@ -103,14 +103,19 @@ final class FailsafePluginCustomExecutorTest {
     }
 
     @Test
-    void shouldNotTimeout() {
+    void shouldUseCustomExecutor() {
         server.enqueue(emptyMockResponse());
 
-        unit.get("/foo")
+        int invocationCount = 5;
+        IntStream.range(0, invocationCount).forEach(i -> {
+            server.enqueue(emptyMockResponse());
+
+            unit.get("/foo")
                 .call(pass())
                 .join();
-        verify(server, 1, "/foo");
-        assertEquals(1, countingExecutor.counter.get());
+        });
+        verify(server, invocationCount, "/foo");
+        assertEquals(invocationCount, countingExecutor.counter.get());
     }
 
     @Test
@@ -122,6 +127,7 @@ final class FailsafePluginCustomExecutorTest {
                         .call(pass())::join);
 
         assertThat(exception.getCause(), is(instanceOf(TimeoutExceededException.class)));
+
         verify(server, 1, "/foo");
         assertEquals(1, countingExecutor.counter.get());
     }
