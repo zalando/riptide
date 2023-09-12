@@ -49,7 +49,7 @@ public final class FailsafePlugin implements Plugin {
         return new FailsafePlugin(policies.append(policy), decorators, executorService);
     }
 
-    public FailsafePlugin withExecutorService(final ExecutorService executorService) {
+    public FailsafePlugin withExecutor(final ExecutorService executorService) {
         return new FailsafePlugin(policies, decorators, executorService);
     }
 
