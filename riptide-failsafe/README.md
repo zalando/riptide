@@ -59,8 +59,9 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
                 .withFailureThreshold(3, 10)
                 .withSuccessThreshold(5)
                 .withDelay(Duration.ofMinutes(1))
-                .build()))
-        .build();
+                .build())
+        .withExecutor(Executors.newFixedThreadPool(2)))
+    .build();
 ```
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible configurations. 
@@ -112,6 +113,25 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
         .withPolicy(new BackupRequest(1, SECONDS)))
     .build();
 ```
+
+### Custom executor
+
+The `withExecutor` method allows to specify custom `ExecutorService`, it will be used to perform asynchronous executions and listener callbacks:
+
+```java
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
+    .plugin(new FailsafePlugin()
+        .withPolicy(
+            CircuitBreaker.<ClientHttpResponse>builder()
+                .withFailureThreshold(3, 10)
+                .withSuccessThreshold(5)
+                .withDelay(Duration.ofMinutes(1))
+                .build())
+        .withExecutor(Executors.newFixedThreadPool(2)))
+    .build();
+```
+
+See [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
 
 ## Usage
 
