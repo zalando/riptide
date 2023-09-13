@@ -18,8 +18,8 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -44,11 +44,12 @@ final class FailsafePluginCustomExecutorTest {
 
     public static class CountingExecutorService extends ThreadPoolExecutor {
         AtomicInteger counter = new AtomicInteger();
-        public CountingExecutorService (int corePoolSize,
-                                  int maximumPoolSize,
-                                  long keepAliveTime,
-                                  TimeUnit unit,
-                                  BlockingQueue<Runnable> workQueue) {
+
+        public CountingExecutorService(int corePoolSize,
+                                       int maximumPoolSize,
+                                       long keepAliveTime,
+                                       TimeUnit unit,
+                                       BlockingQueue<Runnable> workQueue) {
             super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
                     Executors.defaultThreadFactory());
         }
@@ -59,8 +60,11 @@ final class FailsafePluginCustomExecutorTest {
 
         @Override
         public void execute(@NotNull Runnable command) {
-            counter.incrementAndGet();
-            super.execute(command);
+            super.execute(() -> {
+                log.info("Failsafe executor runnable");
+                counter.incrementAndGet();
+                command.run();
+            });
         }
     }
 
@@ -69,12 +73,12 @@ final class FailsafePluginCustomExecutorTest {
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
     private final ApacheClientHttpRequestFactory factory = new ApacheClientHttpRequestFactory(client);
 
-    private final CountingExecutorService countingExecutor = new CountingExecutorService(1, 1,
+    private final CountingExecutorService countingExecutor = new CountingExecutorService(3, 3,
             0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>());
 
     private final Http unit = Http.builder()
-            .executor(newSingleThreadExecutor())
+            .executor(newFixedThreadPool(2))
             .requestFactory(factory)
             .baseUrl(getBaseUrl(server))
             .converter(createJsonConverter())
@@ -103,17 +107,20 @@ final class FailsafePluginCustomExecutorTest {
     }
 
     @Test
-    void shouldUseCustomExecutor() {
+    void shouldUseCustomExecutor() throws InterruptedException {
         server.enqueue(emptyMockResponse());
 
         int invocationCount = 5;
-        IntStream.range(0, invocationCount).forEach(i -> {
+        var futures = IntStream.range(0, invocationCount).mapToObj(i -> {
             server.enqueue(emptyMockResponse());
 
-            unit.get("/foo")
-                .call(pass())
+            return unit.get("/foo")
+                    .call(pass());
+        }).toList();
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .join();
-        });
+
         verify(server, invocationCount, "/foo");
         assertEquals(invocationCount, countingExecutor.counter.get());
     }

@@ -14,7 +14,6 @@ import org.zalando.riptide.RequestExecution;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -32,7 +31,7 @@ public final class FailsafePlugin implements Plugin {
     private final ExecutorService executorService;
 
     public FailsafePlugin() {
-        this(vec(), vec(), ForkJoinPool.commonPool());
+        this(vec(), vec(), null);
     }
 
     public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
@@ -64,11 +63,15 @@ public final class FailsafePlugin implements Plugin {
 
             if (policies.isEmpty()) {
                 return execution.execute(arguments);
+            } else if (executorService != null) {
+              return Failsafe.with(select(arguments))
+                        // TODO: need threads count validation? see with method doc
+                        .with(executorService) // according to https://failsafe.dev/async-execution/#custom-schedulers
+                        .getStageAsync(decorate(execution, arguments));
+            } else {
+                return Failsafe.with(select(arguments))
+                        .getStageAsync(decorate(execution, arguments));
             }
-
-            return Failsafe.with(select(arguments))
-                    .with(executorService) // according to https://jodah.net/failsafe/schedulers
-                    .getStageAsync(decorate(execution, arguments));
         };
     }
 
