@@ -66,7 +66,7 @@ public final class FailsafePlugin implements Plugin {
             } else if (executorService != null) {
               return Failsafe.with(select(arguments))
                         // TODO: need threads count validation? see with method doc
-                        .with(executorService) // according to https://failsafe.dev/async-execution/#custom-schedulers
+                        .with(executorService)
                         .getStageAsync(decorate(execution, arguments));
             } else {
                 return Failsafe.with(select(arguments))
