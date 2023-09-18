@@ -116,7 +116,7 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
 
 ### Custom executor
 
-The `withExecutor` method allows to specify custom `ExecutorService`, it will be used to perform asynchronous executions and listener callbacks:
+The `withExecutor` method allows to specify custom `ExecutorService`, it will be used to perform asynchronous executions and listen for callbacks:
 
 ```java
 Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
@@ -130,8 +130,8 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
         .withExecutor(Executors.newFixedThreadPool(2)))
     .build();
 ```
-
-See [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
+If no executor is specified - default executor configured by `Failsafe` will be used, see [Failsafe DelegatingScheduler class](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/internal/util/DelegatingScheduler.java#L111), 
+see also [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
 
 ## Usage
 
