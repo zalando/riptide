@@ -421,11 +421,23 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerRetryPolicyFailsafePlugin(final String id, final Client client) {
         if (client.getRetry().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
+                var failsafeExecutor = registry.find (name(id, "RetryPolicy", ExecutorService.class));
+
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
-                return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("createRetryFailsafePlugin")
-                        .addConstructorArgValue(client)
-                        .addConstructorArgValue(createTaskDecorators(id, client));
+                if (failsafeExecutor.isPresent()) {
+                    return genericBeanDefinition(FailsafePluginFactory.class)
+                            .setFactoryMethod("createRetryFailsafePlugin")
+                            .addConstructorArgValue(client)
+                            .addConstructorArgValue(createTaskDecorators(id, client))
+                            .addConstructorArgValue(ref(failsafeExecutor.get()));
+                } else {
+                    return genericBeanDefinition(FailsafePluginFactory.class)
+                            .setFactoryMethod("createRetryFailsafePlugin")
+                            .addConstructorArgValue(client)
+                            .addConstructorArgValue(createTaskDecorators(id, client))
+                            .addConstructorArgValue(null);
+                }
+
             });
             return Optional.of(pluginId);
         }

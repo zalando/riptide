@@ -11,6 +11,7 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +49,7 @@ public final class FailsafePlugin implements Plugin {
         return new FailsafePlugin(policies.append(policy), decorators, executorService);
     }
 
-    public FailsafePlugin withExecutor(final ExecutorService executorService) {
+    public FailsafePlugin withExecutor(@Nullable final ExecutorService executorService) {
         return new FailsafePlugin(policies, decorators, executorService);
     }
 

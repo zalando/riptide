@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -83,10 +84,13 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin createRetryFailsafePlugin(
-            final Client client, final List<TaskDecorator> decorators) {
+            final Client client,
+            final List<TaskDecorator> decorators,
+            final ExecutorService executorService) {
 
         if (client.getTransientFaultDetection().getEnabled()) {
             return new FailsafePlugin()
+                    .withExecutor(executorService)
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
                             .handleIf(toCheckedPredicate(transientSocketFaults()))
                             .build())
