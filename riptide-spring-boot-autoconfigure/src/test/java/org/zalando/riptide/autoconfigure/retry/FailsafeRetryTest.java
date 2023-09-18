@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -16,8 +15,6 @@ import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
@@ -30,7 +27,7 @@ import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 @RiptideClientTest
 @ActiveProfiles("default")
-public class RetryTest {
+public class FailsafeRetryTest {
     @Configuration
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
@@ -39,10 +36,6 @@ public class RetryTest {
             MetricsTestAutoConfiguration.class,
     })
     static class ContextConfiguration {
-        @Bean(name = "retry-testRetryPolicyExecutorService")
-        public ExecutorService executorService() {
-            return Executors.newFixedThreadPool(2);
-        }
     }
 
     @Autowired
