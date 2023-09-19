@@ -8,13 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
@@ -29,11 +29,9 @@ import java.util.stream.IntStream;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.emptyMockResponse;
 import static org.zalando.riptide.failsafe.MockWebServerUtil.getBaseUrl;
@@ -42,7 +40,7 @@ import static org.zalando.riptide.failsafe.MockWebServerUtil.verify;
 @Slf4j
 final class FailsafePluginCustomExecutorTest {
 
-    public static class CountingExecutorService extends ThreadPoolExecutor {
+    private static class CountingExecutorService extends ThreadPoolExecutor {
         AtomicInteger counter = new AtomicInteger();
 
         public CountingExecutorService(int corePoolSize,
@@ -59,7 +57,7 @@ final class FailsafePluginCustomExecutorTest {
         }
 
         @Override
-        public void execute(@NotNull Runnable command) {
+        public void execute(@Nonnull Runnable command) {
             super.execute(() -> {
                 log.info("Failsafe executor runnable");
                 counter.incrementAndGet();
@@ -133,7 +131,7 @@ final class FailsafePluginCustomExecutorTest {
                 unit.get("/foo")
                         .call(pass())::join);
 
-        assertThat(exception.getCause(), is(instanceOf(TimeoutExceededException.class)));
+        assertTrue(exception.getCause() instanceof TimeoutExceededException);
 
         verify(server, 1, "/foo");
         assertEquals(1, countingExecutor.counter.get());

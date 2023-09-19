@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure.retry;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +16,7 @@ import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +42,7 @@ import static org.zalando.riptide.failsafe.RetryRoute.retry;
 @Slf4j
 public class FailsafeCustomExecutorTest {
 
-    public static class CountingExecutorService extends ThreadPoolExecutor {
+    private static class CountingExecutorService extends ThreadPoolExecutor {
         private final String name;
         AtomicInteger counter = new AtomicInteger();
 
@@ -62,7 +62,7 @@ public class FailsafeCustomExecutorTest {
         }
 
         @Override
-        public void execute(@NotNull Runnable command) {
+        public void execute(@Nonnull Runnable command) {
             super.execute(() -> {
                 log.info("Failsafe executor runnable " + name);
                 counter.incrementAndGet();

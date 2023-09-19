@@ -59,8 +59,7 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
                 .withFailureThreshold(3, 10)
                 .withSuccessThreshold(5)
                 .withDelay(Duration.ofMinutes(1))
-                .build())
-        .withExecutor(Executors.newFixedThreadPool(2)))
+                .build()))
     .build();
 ```
 
