@@ -88,7 +88,7 @@ public class FailsafeCustomExecutorTest {
 
         @Bean(name = "custom-executor-testCircuitBreakerExecutorService")
         public ExecutorService circuitBreakerExecutorService() {
-            return new CountingExecutorService("circuitBreaker", 3, 3,
+            return new CountingExecutorService("circuitBreaker", 1, 1,
                     0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>());
         }

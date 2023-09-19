@@ -4,6 +4,7 @@ import dev.failsafe.Failsafe;
 import dev.failsafe.Policy;
 import dev.failsafe.function.ContextualSupplier;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
@@ -15,6 +16,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -23,6 +25,7 @@ import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.organicdesign.fp.StaticImports.vec;
 import static org.zalando.riptide.Attributes.RETRIES;
 
+@Slf4j
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
 public final class FailsafePlugin implements Plugin {
@@ -50,6 +53,11 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withExecutor(@Nullable final ExecutorService executorService) {
+        if (executorService instanceof ThreadPoolExecutor
+                && ((ThreadPoolExecutor) executorService).getCorePoolSize() == 1) {
+            log.warn("The executorService should have a core pool size or parallelism of at least 2 in order for timeouts to work, " +
+                    "see dev.failsafe.Failsafe documentation for more details");
+        }
         return new FailsafePlugin(policies, decorators, executorService);
     }
 
