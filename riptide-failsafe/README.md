@@ -116,7 +116,7 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
 
 ### Custom executor
 
-The `withExecutor` method allows to specify custom `ExecutorService`, it will be used to perform asynchronous executions and listen for callbacks:
+The `withExecutor` method allows to specify a custom `ExecutorService` being used to perform asynchronous executions and listen for callbacks:
 
 ```java
 Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
