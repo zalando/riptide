@@ -129,7 +129,7 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
         .withExecutor(Executors.newFixedThreadPool(2)))
     .build();
 ```
-```suggestion
+
 If no executor is specified, the default executor configured by `Failsafe` is used. See [Failsafe DelegatingScheduler class](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/internal/util/DelegatingScheduler.java#L111), 
 and also [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
 
