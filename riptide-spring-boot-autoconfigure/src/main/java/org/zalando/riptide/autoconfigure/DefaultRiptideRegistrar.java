@@ -412,10 +412,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
-                                        .setFactoryMethod("createCircuitBreakerPlugin")
-                                        .addConstructorArgValue(registerCircuitBreaker(id, client))
-                                        .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(executorServiceRef);
+                                .setFactoryMethod("createCircuitBreakerPlugin")
+                                .addConstructorArgValue(registerCircuitBreaker(id, client))
+                                .addConstructorArgValue(createTaskDecorators(id, client))
+                                .addConstructorArgValue(executorServiceRef);
                     });
             return Optional.of(pluginId);
         }
@@ -430,10 +430,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createRetryFailsafePlugin")
-                                .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(executorServiceRef);
+                        .setFactoryMethod("createRetryFailsafePlugin")
+                        .addConstructorArgValue(client)
+                        .addConstructorArgValue(createTaskDecorators(id, client))
+                        .addConstructorArgValue(executorServiceRef);
             });
             return Optional.of(pluginId);
         }
@@ -461,10 +461,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
                         log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
-                                        .setFactoryMethod("createBackupRequestPlugin")
-                                        .addConstructorArgValue(client)
-                                        .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(executorServiceRef);
+                                .setFactoryMethod("createBackupRequestPlugin")
+                                .addConstructorArgValue(client)
+                                .addConstructorArgValue(createTaskDecorators(id, client))
+                                .addConstructorArgValue(executorServiceRef);
                     });
             return Optional.of(pluginId);
         }
@@ -479,10 +479,10 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
                 log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createTimeoutPlugin")
-                                .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(executorServiceRef);
+                        .setFactoryMethod("createTimeoutPlugin")
+                        .addConstructorArgValue(client)
+                        .addConstructorArgValue(createTaskDecorators(id, client))
+                        .addConstructorArgValue(executorServiceRef);
             });
             return Optional.of(pluginId);
         }
