@@ -408,18 +408,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(name(id, CircuitBreaker.class, FailsafePlugin.class),
                     () -> {
                         var executorService = registry.find(name(id, "CircuitBreaker", ExecutorService.class));
+                        var executorServiceRef = executorService.map(Registry::ref).orElse(null);
 
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
-                        return executorService.map(executorServiceBeanName -> genericBeanDefinition(FailsafePluginFactory.class)
+                        return genericBeanDefinition(FailsafePluginFactory.class)
                                         .setFactoryMethod("createCircuitBreakerPlugin")
                                         .addConstructorArgValue(registerCircuitBreaker(id, client))
                                         .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(ref(executorServiceBeanName)))
-                                .orElseGet(() -> genericBeanDefinition(FailsafePluginFactory.class)
-                                        .setFactoryMethod("createCircuitBreakerPlugin")
-                                        .addConstructorArgValue(registerCircuitBreaker(id, client))
-                                        .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(null));
+                                        .addConstructorArgValue(executorServiceRef);
                     });
             return Optional.of(pluginId);
         }
@@ -430,18 +426,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getRetry().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
                 var executorService = registry.find(name(id, "RetryPolicy", ExecutorService.class));
+                var executorServiceRef = executorService.map(Registry::ref).orElse(null);
 
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
-                return executorService.map(executorServiceBeanName -> genericBeanDefinition(FailsafePluginFactory.class)
+                return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createRetryFailsafePlugin")
                                 .addConstructorArgValue(client)
                                 .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(ref(executorServiceBeanName)))
-                        .orElseGet(() -> genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createRetryFailsafePlugin")
-                                .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(null));
+                                .addConstructorArgValue(executorServiceRef);
             });
             return Optional.of(pluginId);
         }
@@ -465,17 +457,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             final String pluginId = registry.registerIfAbsent(name(id, BackupRequest.class, FailsafePlugin.class),
                     () -> {
                         var executorService = registry.find(name(id, "BackupRequest", ExecutorService.class));
+                        var executorServiceRef = executorService.map(Registry::ref).orElse(null);
+
                         log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
-                        return executorService.map(executorServiceBeanName -> genericBeanDefinition(FailsafePluginFactory.class)
+                        return genericBeanDefinition(FailsafePluginFactory.class)
                                         .setFactoryMethod("createBackupRequestPlugin")
                                         .addConstructorArgValue(client)
                                         .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(ref(executorServiceBeanName)))
-                                .orElseGet(() -> genericBeanDefinition(FailsafePluginFactory.class)
-                                        .setFactoryMethod("createBackupRequestPlugin")
-                                        .addConstructorArgValue(client)
-                                        .addConstructorArgValue(createTaskDecorators(id, client))
-                                        .addConstructorArgValue(null));
+                                        .addConstructorArgValue(executorServiceRef);
                     });
             return Optional.of(pluginId);
         }
@@ -486,18 +475,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getTimeouts().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
                 var executorService = registry.find(name(id, "Timeout", ExecutorService.class));
+                var executorServiceRef = executorService.map(Registry::ref).orElse(null);
 
                 log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
-                return executorService.map(executorServiceBeanName -> genericBeanDefinition(FailsafePluginFactory.class)
+                return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createTimeoutPlugin")
                                 .addConstructorArgValue(client)
                                 .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(ref(executorServiceBeanName)))
-                        .orElseGet(() -> genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createTimeoutPlugin")
-                                .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(null));
+                                .addConstructorArgValue(executorServiceRef);
             });
             return Optional.of(pluginId);
         }

@@ -55,7 +55,7 @@ public final class FailsafePlugin implements Plugin {
     public FailsafePlugin withExecutor(@Nullable final ExecutorService executorService) {
         if (executorService instanceof ThreadPoolExecutor
                 && ((ThreadPoolExecutor) executorService).getCorePoolSize() == 1) {
-            log.warn("The executorService should have a core pool size or parallelism of at least 2 in order for timeouts to work, " +
+            log.warn("The custom executorService should have a core pool size or parallelism of at least 2 in order for timeouts to work, " +
                     "see dev.failsafe.Failsafe documentation for more details");
         }
         return new FailsafePlugin(policies, decorators, executorService);
