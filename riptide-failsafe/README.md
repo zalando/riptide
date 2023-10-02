@@ -133,6 +133,9 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
 If no executor is specified, the default executor configured by `Failsafe` is used. See [Failsafe DelegatingScheduler class](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/internal/util/DelegatingScheduler.java#L111), 
 and also [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
 
+**Beware** when specifying a custom `ExecutorService` - the `ExecutorService` should have a core pool size or parallelism 
+of at least 2 in order for [timeouts](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/Timeout.java) to work.
+
 ## Usage
 
 Given the failsafe plugin was configured as shown in the last section: A regular call like the following will now be
