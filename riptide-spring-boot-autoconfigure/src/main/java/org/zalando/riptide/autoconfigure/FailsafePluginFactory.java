@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -49,9 +50,11 @@ final class FailsafePluginFactory {
 
     public static Plugin createCircuitBreakerPlugin(
             final CircuitBreaker<ClientHttpResponse> breaker,
-            final List<TaskDecorator> decorators) {
+            final List<TaskDecorator> decorators,
+            @Nullable final ExecutorService executorService) {
 
         return new FailsafePlugin()
+                .withExecutor(executorService)
                 .withPolicy(breaker)
                 .withDecorator(composite(decorators));
     }
@@ -83,10 +86,13 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin createRetryFailsafePlugin(
-            final Client client, final List<TaskDecorator> decorators) {
+            final Client client,
+            final List<TaskDecorator> decorators,
+            @Nullable final ExecutorService executorService) {
 
         if (client.getTransientFaultDetection().getEnabled()) {
             return new FailsafePlugin()
+                    .withExecutor(executorService)
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
                             .handleIf(toCheckedPredicate(transientSocketFaults()))
                             .build())
@@ -99,6 +105,7 @@ final class FailsafePluginFactory {
                     .withDecorator(composite(decorators));
         } else {
             return new FailsafePlugin()
+                    .withExecutor(executorService)
                     .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
                     .withDecorator(composite(decorators));
         }
@@ -145,11 +152,14 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin createBackupRequestPlugin(
-            final Client client, final List<TaskDecorator> decorators) {
+            final Client client,
+            final List<TaskDecorator> decorators,
+            @Nullable final ExecutorService executorService) {
 
         final TimeSpan delay = client.getBackupRequest().getDelay();
 
         return new FailsafePlugin()
+                .withExecutor(executorService)
                 .withPolicy(RequestPolicies.of(
                         new BackupRequest<>(delay.getAmount(), delay.getUnit()),
                         new IdempotencyPredicate()))
@@ -157,11 +167,14 @@ final class FailsafePluginFactory {
     }
 
     public static Plugin createTimeoutPlugin(
-            final Client client, final List<TaskDecorator> decorators) {
+            final Client client,
+            final List<TaskDecorator> decorators,
+            @Nullable final ExecutorService executorService) {
 
         final Duration timeout = client.getTimeouts().getGlobal().toDuration();
 
         return new FailsafePlugin()
+                .withExecutor(executorService)
                 .withPolicy(
                         Timeout.<ClientHttpResponse>builder(timeout)
                                 .withInterrupt()

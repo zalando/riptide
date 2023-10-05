@@ -104,6 +104,22 @@ riptide:
       retry:
         enabled: true
         max-retries: 2
+    custom-executor-test:
+      base-url: http://retry-test
+      transient-fault-detection.enabled: true
+      retry:
+        enabled: true
+        max-retries: 2
+      circuit-breaker:
+        enabled: true
+        failure-rate-threshold: 3 in 5 seconds
+        success-threshold: 1
+      timeouts:
+        enabled: true
+        global: 5 seconds
+      backup-request:
+        enabled: true
+        delay: 75 milliseconds
     failure-rate-test:
       base-url: http://example.com/failure-rate-test
       circuit-breaker:

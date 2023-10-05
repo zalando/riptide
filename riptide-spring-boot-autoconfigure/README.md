@@ -587,28 +587,35 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 
 The following table shows all beans with their respective name (for the `example` client) and type:
 
-| Bean Name                         | Bean Type                                     |
-|-----------------------------------|-----------------------------------------------|
-| `exampleHttp`                     | `Http`                                        |
-| `exampleBaseURL`                  | `BaseURL` (effectively a `Supplier<URI>`)     |
-| `exampleClientHttpRequestFactory` | `ClientHttpRequestFactory`                    |
-| `exampleHttpMessageConverters`    | `ClientHttpMessageConverters`                 |
-| `exampleHttpClient`               | `HttpClient`                                  |
-| `exampleExecutorService`          | `ExecutorService`                             |
-| `exampleFailsafePlugin`           | `FailsafePlugin`                              |
-| `exampleMicrometerPlugin`         | `MicrometerPlugin`                            |
-| `exampleOriginalStackTracePlugin` | `OriginalStackTracePlugin`                    |
-| `examplePlugin`                   | `Plugin` (optional, additional custom plugin) |
-| `exampleScheduledExecutorService` | `ScheduledExecutorService`                    |
-| `exampleRetryPolicy`              | `RetryPolicy`                                 |
-| `exampleCircuitBreaker`           | `CircuitBreaker`                              |
-| `exampleRetryListener`            | `RetryListener`                               |
-| `exampleFaultClassifier`          | `FaultClassifier`                             |
-| `exampleCircuitBreakerListener`   | `CircuitBreakerListener`                      |
-| `exampleAuthorizationProvider`    | `AuthorizationProvider`                       |
+| Bean Name                              | Bean Type                                     |
+|----------------------------------------|-----------------------------------------------|
+| `exampleHttp`                          | `Http`                                        |
+| `exampleBaseURL`                       | `BaseURL` (effectively a `Supplier<URI>`)     |
+| `exampleClientHttpRequestFactory`      | `ClientHttpRequestFactory`                    |
+| `exampleHttpMessageConverters`         | `ClientHttpMessageConverters`                 |
+| `exampleHttpClient`                    | `HttpClient`                                  |
+| `exampleExecutorService`               | `ExecutorService`                             |
+| `exampleFailsafePlugin`                | `FailsafePlugin`                              |
+| `exampleMicrometerPlugin`              | `MicrometerPlugin`                            |
+| `exampleOriginalStackTracePlugin`      | `OriginalStackTracePlugin`                    |
+| `examplePlugin`                        | `Plugin` (optional, additional custom plugin) |
+| `exampleScheduledExecutorService`      | `ScheduledExecutorService`                    |
+| `exampleRetryPolicy`                   | `RetryPolicy`                                 |
+| `exampleCircuitBreaker`                | `CircuitBreaker`                              |
+| `exampleRetryListener`                 | `RetryListener`                               |
+| `exampleFaultClassifier`               | `FaultClassifier`                             |
+| `exampleCircuitBreakerListener`        | `CircuitBreakerListener`                      |
+| `exampleAuthorizationProvider`         | `AuthorizationProvider`                       |
+| `exampleRetryPolicyExecutorService`    | `ExecutorService`                             |
+| `exampleCircuitBreakerExecutorService` | `ExecutorService`                             |
+| `exampleBackupRequestExecutorService`  | `ExecutorService`                             |
+| `exampleTimeoutExecutorService`        | `ExecutorService`                             |
 
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.
+
+You can specify `ExecutorService` for each `FailsafePlugin` by providing beans with the following naming convention:
+`exampleRetryPolicyExecutorService`, `exampleCircuitBreakerExecutorService`, `exampleBackupRequestExecutorService`, `exampleTimeoutExecutorService`.
 
 In case you need more than one custom plugin, please use `Plugin.composite(Plugin...)`.
 

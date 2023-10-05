@@ -50,7 +50,7 @@ final class Registry {
         return find(name(id, types));
     }
 
-    private Optional<String> find(final Name name) {
+    Optional<String> find(final Name name) {
         return name.getAlternatives().stream()
                 .filter(registry::isBeanNameInUse)
                 .findFirst();

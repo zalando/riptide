@@ -4,6 +4,7 @@ import dev.failsafe.Failsafe;
 import dev.failsafe.Policy;
 import dev.failsafe.function.ContextualSupplier;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apiguardian.api.API;
 import org.organicdesign.fp.collections.ImList;
 import org.springframework.http.client.ClientHttpResponse;
@@ -11,8 +12,11 @@ import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestArguments;
 import org.zalando.riptide.RequestExecution;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -21,15 +25,17 @@ import static org.apiguardian.api.API.Status.MAINTAINED;
 import static org.organicdesign.fp.StaticImports.vec;
 import static org.zalando.riptide.Attributes.RETRIES;
 
+@Slf4j
 @API(status = MAINTAINED)
 @AllArgsConstructor(access = PRIVATE)
 public final class FailsafePlugin implements Plugin {
 
     private final ImList<RequestPolicy> policies;
     private final ImList<TaskDecorator> decorators;
+    private final ExecutorService executorService;
 
     public FailsafePlugin() {
-        this(vec(), vec());
+        this(vec(), vec(), null);
     }
 
     public FailsafePlugin withPolicy(final Policy<ClientHttpResponse> policy) {
@@ -43,11 +49,20 @@ public final class FailsafePlugin implements Plugin {
     }
 
     public FailsafePlugin withPolicy(final RequestPolicy policy) {
-        return new FailsafePlugin(policies.append(policy), decorators);
+        return new FailsafePlugin(policies.append(policy), decorators, executorService);
+    }
+
+    public FailsafePlugin withExecutor(@Nullable final ExecutorService executorService) {
+        if (executorService instanceof ThreadPoolExecutor
+                && ((ThreadPoolExecutor) executorService).getCorePoolSize() == 1) {
+            log.warn("The custom executorService should have a core pool size or parallelism of at least 2 in order for timeouts to work, " +
+                    "see dev.failsafe.Failsafe documentation for more details");
+        }
+        return new FailsafePlugin(policies, decorators, executorService);
     }
 
     public FailsafePlugin withDecorator(final TaskDecorator decorator) {
-        return new FailsafePlugin(policies, decorators.append(decorator));
+        return new FailsafePlugin(policies, decorators.append(decorator), executorService);
     }
 
     @Override
@@ -57,10 +72,14 @@ public final class FailsafePlugin implements Plugin {
 
             if (policies.isEmpty()) {
                 return execution.execute(arguments);
+            } else if (executorService != null) {
+              return Failsafe.with(select(arguments))
+                        .with(executorService)
+                        .getStageAsync(decorate(execution, arguments));
+            } else {
+                return Failsafe.with(select(arguments))
+                        .getStageAsync(decorate(execution, arguments));
             }
-
-            return Failsafe.with(select(arguments))
-                    .getStageAsync(decorate(execution, arguments));
         };
     }
 

@@ -27,7 +27,7 @@ import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 @RiptideClientTest
 @ActiveProfiles("default")
-public class RetryTest {
+public class FailsafeRetryTest {
     @Configuration
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,

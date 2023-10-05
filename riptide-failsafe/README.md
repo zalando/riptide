@@ -60,7 +60,7 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
                 .withSuccessThreshold(5)
                 .withDelay(Duration.ofMinutes(1))
                 .build()))
-        .build();
+    .build();
 ```
 
 Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme) in order to see possible configurations. 
@@ -112,6 +112,30 @@ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
         .withPolicy(new BackupRequest(1, SECONDS)))
     .build();
 ```
+
+### Custom executor
+
+The `withExecutor` method allows to specify a custom `ExecutorService` being used to perform asynchronous executions and listen for callbacks:
+
+```java
+Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
+    .plugin(new FailsafePlugin()
+        .withPolicy(
+            CircuitBreaker.<ClientHttpResponse>builder()
+                .withFailureThreshold(3, 10)
+                .withSuccessThreshold(5)
+                .withDelay(Duration.ofMinutes(1))
+                .build())
+        .withExecutor(Executors.newFixedThreadPool(2)))
+    .build();
+```
+
+If no executor is specified, the default executor configured by `Failsafe` is used. See [Failsafe DelegatingScheduler class](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/internal/util/DelegatingScheduler.java#L111), 
+and also [Failsafe documentation](https://failsafe.dev/async-execution/#executorservice-configuration) for more information.
+
+**Beware** when specifying a custom `ExecutorService`: 
+1. The `ExecutorService` should have a core pool size or parallelism of at least 2 in order for [timeouts](https://github.com/failsafe-lib/failsafe/blob/master/core/src/main/java/dev/failsafe/Timeout.java) to work
+2. In general, it is not recommended to specify the same `ExecutorService` for multiple `Http` clients 
 
 ## Usage
 
