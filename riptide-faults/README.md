@@ -56,7 +56,7 @@ new RetryRequestPolicy(
 ```
 
 The default considers the following exceptions to be transient connection faults:
-- [`ConnectionException`](https://docs.oracle.com/javase/8/docs/api/java/net/ConnectionException.html)
+- [`ConnectException`](https://docs.oracle.com/javase/8/docs/api/java/net/ConnectException.html)
 - [`MalformedURLException`](https://docs.oracle.com/javase/8/docs/api/java/net/MalformedURLException.html)
 - [`NoRouteToHostException`](https://docs.oracle.com/javase/8/docs/api/java/net/NoRouteToHostException.html)
 - [`UnknownHostException`](https://docs.oracle.com/javase/8/docs/api/java/net/UnknownHostException.html)
