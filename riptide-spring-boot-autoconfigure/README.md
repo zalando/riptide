@@ -587,6 +587,7 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 ```
 
 The following code can be used if you cannot use your client name in the method name (e.g. your client name is `my-client`):
+```
 @Bean(name = "my-clientCircuitBreakerExecutorService")
 public ClientHttpMessageConverters httpMessageConverters() {
     return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
