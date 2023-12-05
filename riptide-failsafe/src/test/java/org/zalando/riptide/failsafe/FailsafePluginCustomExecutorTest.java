@@ -5,11 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.Timeout;
 import dev.failsafe.TimeoutExceededException;
 import lombok.extern.slf4j.Slf4j;
+import nl.altindag.log.LogCaptor;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.logging.LoggerFactory;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.slf4j.event.LoggingEvent;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -17,13 +23,8 @@ import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -135,6 +136,20 @@ final class FailsafePluginCustomExecutorTest {
 
         verify(server, 1, "/foo");
         assertEquals(1, countingExecutor.counter.get());
+    }
+
+    @Test
+    void shouldLogWarningOnSingleThreadedExecutor() {
+        LogCaptor logCaptor = LogCaptor.forClass(FailsafePlugin.class);
+        new FailsafePlugin().withExecutor(Executors.newFixedThreadPool(1));
+        assertEquals(1, logCaptor.getWarnLogs().size());
+    }
+
+    @Test
+    void shouldNotLogWarningOnMultiThreadedExecutor() {
+        LogCaptor logCaptor = LogCaptor.forClass(FailsafePlugin.class);
+        new FailsafePlugin().withExecutor(ForkJoinPool.commonPool());
+        assertEquals(0, logCaptor.getWarnLogs().size());
     }
 
 }
