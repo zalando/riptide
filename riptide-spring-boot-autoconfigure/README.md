@@ -575,15 +575,25 @@ For every client that is defined in your configuration the following beans will 
 [![Client Dependency Graph](../docs/interceptors.png)](../docs/interceptors.png)
 
 Every single bean in the graph can optionally be replaced by your own, custom version of it. Beans can only be
-overridden by name, **not** by type. As an example, the following code would add XML support to the `example` client:
+overridden by name, **not** by type. You can define bean name by using an appropriate method name or specify it explicitly via `@Bean(name = "...")`,
+you cannot use `@Qualifier("...")` annotation since it doesn't change an actual bean name.
+As an example, the following code would add XML support to the `example` client:
 
 ```java
 @Bean
-@Qualifier("example")
 public ClientHttpMessageConverters exampleHttpMessageConverters() {
     return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
 }
 ```
+
+The following code can be used if you cannot use your client name in the method name (e.g. your client name is `my-client`):
+```java
+@Bean(name = "my-clientCircuitBreakerExecutorService")
+public ClientHttpMessageConverters httpMessageConverters() {
+    return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
+}
+```
+As you can see, any method name can be used in the second example, since bean name is provided explicitly in the annotation.
 
 The following table shows all beans with their respective name (for the `example` client) and type:
 
