@@ -398,7 +398,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
 | `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
 | `│   │   └── queue-size`                | `int`          | `0` (no queue)                                   |
-| `│   ├── timeouts`                      |                |                                                  |
+| `│   ├── timeouts`                      |        |  adds `Failsafe` [Timeout policy](../riptide-failsafe#timeout-policy), can be used in addition to `connections` properties to control the entire duration: from sending the request to processing the response                                               |
 | `│   │   ├── enabled`                   | `boolean`      | `false`                                          |
 | `│   │   └── global`                    | `TimeSpan`     | none                                             |
 | `│   ├── tracing`                       |                |                                                  |
