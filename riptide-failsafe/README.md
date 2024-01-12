@@ -106,8 +106,8 @@ Failsafe and Spring Boot.
 
 You can use `org.springframework.http.client.ClientHttpRequestFactory` configuration to set up proper
 connection timeout, socket timeout and connection time to live.
-In addition you can use `FailsafePlugin` with `dev.failsafe.Timeout` policy to control the entire duration:
-from sending the request to processing the response. See the use cases in `FailsafePluginTimeoutTest` test.
+In addition you can use `FailsafePlugin` with `dev.failsafe.Timeout` policy to control the entire duration
+from sending the request to processing the response. See the use cases in the `FailsafePluginTimeoutTest` test.
 
 Configuration example:
 ```java
