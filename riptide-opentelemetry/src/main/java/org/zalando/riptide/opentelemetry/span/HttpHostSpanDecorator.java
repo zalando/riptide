@@ -1,7 +1,7 @@
 package org.zalando.riptide.opentelemetry.span;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 import org.zalando.riptide.RequestArguments;
 
 public class HttpHostSpanDecorator implements SpanDecorator {
