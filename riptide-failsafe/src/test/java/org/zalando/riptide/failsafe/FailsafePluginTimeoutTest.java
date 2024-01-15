@@ -83,4 +83,16 @@ final class FailsafePluginTimeoutTest {
         verify(server, 1, "/foo");
     }
 
+    @Test
+    void shouldTimeoutOnTooLongResponseProcessing() {
+        server.enqueue(emptyMockResponse());
+
+        final CompletionException exception = assertThrows(CompletionException.class,
+                unit.get("/foo")
+                        .call((response, w) -> Thread.sleep(5000))::join);
+
+        assertThat(exception.getCause(), is(instanceOf(TimeoutExceededException.class)));
+        verify(server, 1, "/foo");
+    }
+
 }

@@ -102,6 +102,22 @@ Make sure you **check out
 [zalando/failsafe-actuator](https://github.com/zalando/failsafe-actuator)** for a seamless integration of
 Failsafe and Spring Boot.
 
+### Timeout policy
+
+You can use `org.springframework.http.client.ClientHttpRequestFactory` configuration to set up proper
+connection timeout, socket timeout and connection time to live.
+In addition you can use `FailsafePlugin` with `dev.failsafe.Timeout` policy to control the entire duration
+from sending the request to processing the response. See the use cases in the `FailsafePluginTimeoutTest` test.
+
+Configuration example:
+```java
+ Http.builder().requestFactory(new HttpComponentsClientHttpRequestFactory())
+                .plugin(new FailsafePlugin()
+                        .withPolicy(Timeout.of(Duration.ofSeconds(5))))
+                .build();
+```
+
+
 ### Backup Requests
 
 The `BackupRequest` policy implements the [*backup request*][abstract] pattern, also known as [*hedged requests*][article]:
