@@ -1,7 +1,7 @@
 package org.zalando.riptide.opentelemetry.span;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.HttpResponseException;
 import org.zalando.riptide.RequestArguments;
