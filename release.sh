@@ -4,7 +4,7 @@
 
 ./mvnw scm:check-local-modification
 
-current=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version --non-recursive | grep -v INFO || echo 0.0.0)
+current=$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.4.1:evaluate -Dexpression=project.version --non-recursive | grep -v INFO || echo 0.0.0)
 release=$(semver ${current} -i $1 --preid RC)
 next=$(semver ${release} -i patch)
 
