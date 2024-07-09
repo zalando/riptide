@@ -18,7 +18,7 @@
 
     <properties>
         <opentelemetry.version>1.39.0</opentelemetry.version>
-        <opentelemetry-semconv.version>1.25.0-alpha</opentelemetry-semconv.version>
+        <opentelemetry-semconv.version>1.26.0-alpha</opentelemetry-semconv.version>
     </properties>
 
     <dependencyManagement>
