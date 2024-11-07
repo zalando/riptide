@@ -77,6 +77,23 @@ RetryPolicy.<ClientHttpResponse>builder()
     .build();
 ```
 
+By default, you can use RetryException in your routes to retry the request:
+
+```java
+retryClient.get()
+    .dispatch(
+        series(), on(CLIENT_ERROR).call(
+            response -> {
+                if (specificCondition(response)) {
+                    throw new RetryException(response); // we will retry this one
+                }  else {
+                    throw new AnyOtherException(response); // we wont retry this one
+                }  
+            }
+        )
+    ).join()
+```
+
 Failsafe supports dynamically computed delays using a custom function.
 
 Riptide: Failsafe offers implementations that understand:
