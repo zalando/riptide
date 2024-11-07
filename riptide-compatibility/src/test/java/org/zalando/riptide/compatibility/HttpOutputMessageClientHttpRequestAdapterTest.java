@@ -20,11 +20,6 @@ class HttpOutputMessageClientHttpRequestAdapterTest {
     }
 
     @Test
-    void getMethodValue() {
-        assertThrows(UnsupportedOperationException.class, unit::getMethodValue);
-    }
-
-    @Test
     void getMethod() {
         assertThrows(UnsupportedOperationException.class, unit::getMethod);
     }
