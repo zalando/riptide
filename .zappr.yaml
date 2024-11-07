@@ -1,7 +1,9 @@
+# for github.com
 approvals:
-  pattern: "^(:\\+1:|👍|\\+1|:thumbsup:|[Ll][Gg][Tt][Mm])$"
-  minimum: 1
-  from:
-    orgs:
-      - zalando
-    collaborators: true
+  groups:
+    zalando:
+      minimum: 1
+      from:
+        orgs:
+          - "zalando"
+X-Zalando-Type: code
