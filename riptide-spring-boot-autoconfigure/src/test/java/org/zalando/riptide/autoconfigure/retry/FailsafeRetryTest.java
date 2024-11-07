@@ -13,14 +13,17 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.autoconfigure.MetricsTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
+import org.zalando.riptide.failsafe.RetryException;
 
 import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
+import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
@@ -51,6 +54,19 @@ public class FailsafeRetryTest {
 
         assertThrows(CompletionException.class,
                      () -> retryClient.get().dispatch(series(), on(SERVER_ERROR).call(retry())).join());
+
+        server.verify();
+    }
+
+    @Test
+    void shouldRetryForCustomRetryException() {
+        server.expect(times(3), requestTo("http://retry-test")).andRespond(withBadRequest());
+
+
+        assertThrows(CompletionException.class,
+                () -> retryClient.get().dispatch(series(), on(CLIENT_ERROR).call(response -> {
+                    throw new RetryException(response);
+                })).join());
 
         server.verify();
     }
