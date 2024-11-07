@@ -11,7 +11,7 @@ import static org.apiguardian.api.API.Status.STABLE;
 @API(status = STABLE)
 public final class RetryException extends HttpResponseException {
 
-    RetryException(final ClientHttpResponse response) throws IOException {
+    public RetryException(final ClientHttpResponse response) throws IOException {
         super("Retrying response", response);
     }
 
