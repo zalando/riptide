@@ -136,6 +136,7 @@
                         <suppressionFiles>
                             <suppressionFile>cve-suppressions.xml</suppressionFile>
                         </suppressionFiles>
+                        <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
                     </configuration>
                 </plugin>
                 <plugin>
