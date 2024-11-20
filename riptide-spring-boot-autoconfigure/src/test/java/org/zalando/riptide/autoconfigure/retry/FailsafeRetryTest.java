@@ -1,11 +1,13 @@
 package org.zalando.riptide.autoconfigure.retry;
 
+import com.google.common.base.Stopwatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
@@ -15,17 +17,27 @@ import org.zalando.riptide.autoconfigure.OpenTracingTestAutoConfiguration;
 import org.zalando.riptide.autoconfigure.RiptideClientTest;
 import org.zalando.riptide.failsafe.RetryException;
 
+import java.time.Duration;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
+import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withTooManyRequests;
+import static org.zalando.riptide.Bindings.anySeries;
 import static org.zalando.riptide.Bindings.on;
 import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Navigators.status;
+import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.failsafe.RetryRoute.retry;
 
 @RiptideClientTest
@@ -69,5 +81,35 @@ public class FailsafeRetryTest {
                 })).join());
 
         server.verify();
+    }
+
+    @Test
+    void shouldRetryWithDelayEpochSeconds() {
+        server.expect(times(1), requestTo("http://retry-test"))
+                .andRespond(withTooManyRequests().header("X-RateLimit-Reset", "2"));
+        server.expect(times(1), requestTo("http://retry-test")).andRespond(withSuccess());
+
+        assertTimeout(Duration.ofMillis(3000), () -> {
+            atLeast(Duration.ofSeconds(2), () -> retryClient.get()
+                    .dispatch(series(),
+                            on(SUCCESSFUL).call(pass()),
+                            anySeries().dispatch(status(),
+                                    on(HttpStatus.TOO_MANY_REQUESTS).call(retry())))
+                    .join());
+        });
+
+        server.verify();
+    }
+
+    private void atLeast(final Duration minimum, final Runnable runnable) {
+        final Duration actual = time(runnable);
+
+        assertThat(actual, greaterThanOrEqualTo(minimum));
+    }
+
+    private Duration time(final Runnable runnable) {
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        runnable.run();
+        return stopwatch.stop().elapsed();
     }
 }

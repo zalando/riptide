@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,8 +42,8 @@ final class CompositeDelayFunctionTest {
     @BeforeEach
     void defaultBehavior() throws Throwable {
         // starting with Mockito 3.4.4, mocks will return Duration.ZERO instead of null, by default
-        when(first.get(any())).thenReturn(null);
-        when(first.get(any())).thenReturn(null);
+        when(first.get(any())).thenReturn(Duration.ofMinutes(-1));
+        when(first.get(any())).thenReturn(Duration.ofMinutes(-1));
     }
 
     @Test
@@ -73,11 +72,18 @@ final class CompositeDelayFunctionTest {
     }
 
     @Test
-    void shouldFallbackToNullDelay() throws Throwable {
+    void shouldFallbackToDefaultDelay() throws Throwable {
         when(first.get(eq(firstContext))).thenReturn(Duration.ofSeconds(1));
         when(second.get(eq(secondContext))).thenReturn(Duration.ofSeconds(2));
 
-        assertNull(unit.get(mock(ExecutionContext.class)));
+        assertEquals(Duration.ofMinutes(-1), unit.get(mock(ExecutionContext.class)));
+    }
+
+    @Test
+    void shouldUseFirstNonDefaultDelay() throws Throwable {
+        when(second.get(eq(secondContext))).thenReturn(Duration.ofSeconds(2));
+
+        assertEquals(Duration.ofSeconds(2), unit.get(secondContext));
     }
 
 }
