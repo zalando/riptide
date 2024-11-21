@@ -29,8 +29,9 @@ public final class CompositeDelayFunction<R> implements ContextualSupplier<R, Du
                     }
                 })
                 .filter(Objects::nonNull)
+                .filter(delay -> !Duration.ofMinutes(-1).equals(delay))
                 .findFirst()
-                .orElse(null);
+                .orElse(Duration.ofMinutes(-1));
     }
 
     @SafeVarargs
