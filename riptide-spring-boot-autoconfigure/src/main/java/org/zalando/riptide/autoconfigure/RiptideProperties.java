@@ -144,6 +144,9 @@ public final class RiptideProperties {
         @NestedConfigurationProperty
         private Soap soap = new Soap(false, "1.1");
 
+        @NestedConfigurationProperty
+        private SslBundleUsage sslBundleUsage = new SslBundleUsage(false, null);
+
     }
 
     @Getter
@@ -213,6 +216,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Soap soap;
+
+        @NestedConfigurationProperty
+        private SslBundleUsage sslBundleUsage;
 
     }
 
@@ -458,6 +464,15 @@ public final class RiptideProperties {
     public static final class Soap {
         private Boolean enabled;
         private String protocol;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class SslBundleUsage {
+        private Boolean enabled;
+        private String sslBundleId;
     }
 
 }

@@ -18,6 +18,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Metrics;
 import org.zalando.riptide.autoconfigure.RiptideProperties.RequestCompression;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Retry.Backoff;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Soap;
+import org.zalando.riptide.autoconfigure.RiptideProperties.SslBundleUsage;
 import org.zalando.riptide.autoconfigure.RiptideProperties.StackTracePreservation;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Telemetry;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Timeouts;
@@ -79,7 +80,8 @@ final class Defaulting {
                 defaults.getTracing(),
                 defaults.getTelemetry(),
                 defaults.getChaos(),
-                defaults.getSoap()
+                defaults.getSoap(),
+                defaults.getSslBundleUsage()
         );
     }
 
@@ -121,7 +123,8 @@ final class Defaulting {
                 merge(base.getTracing(), defaults.getTracing(), Defaulting::merge),
                 merge(base.getTelemetry(), defaults.getTelemetry(), Defaulting::merge),
                 merge(base.getChaos(), defaults.getChaos(), Defaulting::merge),
-                merge(base.getSoap(), defaults.getSoap(), Defaulting::merge)
+                merge(base.getSoap(), defaults.getSoap(), Defaulting::merge),
+                merge(base.getSslBundleUsage(), defaults.getSslBundleUsage(), Defaulting::merge)
         );
     }
 
@@ -339,6 +342,13 @@ final class Defaulting {
         return new Soap(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getProtocol(), defaults.getProtocol())
+        );
+    }
+
+    private static SslBundleUsage merge(final SslBundleUsage base, final SslBundleUsage defaults) {
+        return new SslBundleUsage(
+            either(base.getEnabled(), defaults.getEnabled()),
+            either(base.getSslBundleId(), defaults.getSslBundleId())
         );
     }
 

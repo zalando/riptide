@@ -81,6 +81,7 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Exceptio
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Chaos.Latency;
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.SSL_BUNDLE_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @Slf4j
@@ -568,10 +569,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return registry.registerIfAbsent(id, HttpClient.class, () -> {
             log.debug("Client [{}]: Registering HttpClient", id);
 
-            final String connectionManager = registry.registerIfAbsent(id, HttpClientConnectionManager.class, () ->
-                    genericBeanDefinition(HttpClientFactory.class)
-                            .setFactoryMethod("createHttpClientConnectionManager")
-                            .addConstructorArgValue(client));
+            final String connectionManager = registerConnectionManager(id, client);
 
             if (client.getMetrics().getEnabled()) {
                 registry.registerIfAbsent(id, HttpConnectionPoolMetrics.class, () ->
@@ -590,6 +588,26 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                     .addConstructorArgValue(findCacheStorageReference(id, client).orElse(null))
                     .setDestroyMethodName("close");
         });
+    }
+
+    private String registerConnectionManager(final String id, final Client client) {
+        if(client.getSslBundleUsage().getEnabled() && client.getCertificatePinning().getEnabled()) {
+            throw new SslBundleUsageOrCertificatePinningException(id);
+        }
+
+        if(client.getSslBundleUsage().getEnabled()) {
+            return registry.registerIfAbsent(id, HttpClientConnectionManager.class, () ->
+                genericBeanDefinition(HttpClientFactory.class)
+                    .setFactoryMethod("createHttpClientConnectionManagerWithSslBundle")
+                    .addConstructorArgValue(client)
+                    .addConstructorArgValue(id)
+                    .addConstructorArgValue(SSL_BUNDLE_REGISTRY_REF));
+        } else {
+            return registry.registerIfAbsent(id, HttpClientConnectionManager.class, () ->
+                genericBeanDefinition(HttpClientFactory.class)
+                    .setFactoryMethod("createHttpClientConnectionManager")
+                    .addConstructorArgValue(client));
+        }
     }
 
     private List<BeanMetadataElement> configureFirstRequestInterceptors(final String id, final Client client) {

@@ -18,12 +18,14 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.springframework.boot.ssl.SslBundles;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Caching.Heuristic;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning;
 import org.zalando.riptide.autoconfigure.RiptideProperties.CertificatePinning.Keystore;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import org.zalando.riptide.autoconfigure.RiptideProperties.Connections;
+import org.zalando.riptide.autoconfigure.RiptideProperties.SslBundleUsage;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
@@ -56,6 +58,22 @@ final class HttpClientFactory {
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", new SSLConnectionSocketFactory(createSSLContext(client)))
                         .build());
+
+        manager.setMaxTotal(connections.getMaxTotal());
+        manager.setDefaultMaxPerRoute(connections.getMaxPerRoute());
+
+        return manager;
+    }
+
+    public static HttpClientConnectionManager createHttpClientConnectionManagerWithSslBundle(final Client client, final String clientId, final SslBundles sslBundles) {
+
+        final Connections connections = client.getConnections();
+
+        final PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager(
+            RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", new SSLConnectionSocketFactory(createSslContextFromSslBundle(client, clientId, sslBundles)))
+                .build());
 
         manager.setMaxTotal(connections.getMaxTotal());
         manager.setDefaultMaxPerRoute(connections.getMaxPerRoute());
@@ -144,6 +162,23 @@ final class HttpClientFactory {
             } catch (final Exception e) {
                 log.error("Error loading keystore [{}]:", path,
                         e); // log full exception, bean initialization code swallows it
+                throw e;
+            }
+        }
+
+        return SSLContexts.createDefault();
+    }
+
+    protected static SSLContext createSslContextFromSslBundle(final Client client, final String clientId, final SslBundles sslBundles) {
+        final SslBundleUsage sslBundleUsage = client.getSslBundleUsage();
+        if(sslBundleUsage.getEnabled()) {
+            final String bundleId = Optional.ofNullable(sslBundleUsage.getSslBundleId()).orElse(clientId);
+            try {
+                return sslBundles
+                    .getBundle(bundleId)
+                    .createSslContext();
+            } catch (final Exception e) {
+                log.error("Error loading ssl bundle [{}]:", bundleId, e);
                 throw e;
             }
         }
