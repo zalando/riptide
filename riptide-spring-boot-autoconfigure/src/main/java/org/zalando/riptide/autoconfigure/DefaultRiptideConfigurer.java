@@ -11,6 +11,7 @@ import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
+import org.springframework.boot.ssl.SslBundles;
 import org.zalando.logbook.Logbook;
 
 import java.util.Arrays;
@@ -22,6 +23,7 @@ import java.util.function.Predicate;
 
 import static org.zalando.riptide.autoconfigure.ValueConstants.LOGBOOK_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.METER_REGISTRY_REF;
+import static org.zalando.riptide.autoconfigure.ValueConstants.SSL_BUNDLE_REGISTRY_REF;
 import static org.zalando.riptide.autoconfigure.ValueConstants.TRACER_REF;
 
 @AllArgsConstructor
@@ -54,6 +56,10 @@ class DefaultRiptideConfigurer {
 
         if (any(client -> client.getMetrics().getEnabled())) {
             replacements.put(METER_REGISTRY_REF, getBeanRef(MeterRegistry.class, "meterRegistry"));
+        }
+
+        if (any(client -> client.getSslBundleUsage().getEnabled())) {
+            replacements.put(SSL_BUNDLE_REGISTRY_REF, getBeanRef(SslBundles.class, "sslBundleRegistry"));
         }
 
         return replacements;
