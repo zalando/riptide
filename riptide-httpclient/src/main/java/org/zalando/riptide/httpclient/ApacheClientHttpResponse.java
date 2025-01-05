@@ -6,7 +6,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpEntityContainer;
 import org.apache.hc.core5.http.HttpResponse;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.AbstractClientHttpResponse;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,7 +18,7 @@ import static org.zalando.riptide.httpclient.Closing.closeQuietly;
 import static org.zalando.riptide.httpclient.EmptyInputStream.EMPTY;
 
 @Slf4j
-final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
+final class ApacheClientHttpResponse implements ClientHttpResponse {
 
     private final HttpHeaders headers = new HttpHeaders();
     private final HttpResponse response;
@@ -48,9 +49,10 @@ final class ApacheClientHttpResponse extends AbstractClientHttpResponse {
         });
     }
 
+    @Nonnull
     @Override
-    public int getRawStatusCode() {
-        return response.getCode();
+    public HttpStatusCode getStatusCode() {
+        return HttpStatusCode.valueOf(response.getCode());
     }
 
     @Nonnull

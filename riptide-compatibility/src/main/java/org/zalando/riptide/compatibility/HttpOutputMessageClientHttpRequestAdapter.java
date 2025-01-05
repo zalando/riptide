@@ -9,6 +9,7 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nonnull;
 import java.net.URI;
+import java.util.Map;
 
 @AllArgsConstructor
 final class HttpOutputMessageClientHttpRequestAdapter implements ClientHttpRequest {
@@ -22,6 +23,7 @@ final class HttpOutputMessageClientHttpRequestAdapter implements ClientHttpReque
         throw new UnsupportedOperationException();
     }
 
+    @Nonnull
     @Override
     public HttpMethod getMethod() {
         throw new UnsupportedOperationException();
@@ -33,4 +35,9 @@ final class HttpOutputMessageClientHttpRequestAdapter implements ClientHttpReque
         throw new UnsupportedOperationException();
     }
 
+    @Nonnull
+    @Override
+    public Map<String, Object> getAttributes() {
+        throw new UnsupportedOperationException();
+    }
 }

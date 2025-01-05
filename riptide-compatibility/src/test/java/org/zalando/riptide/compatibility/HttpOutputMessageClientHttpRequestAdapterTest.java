@@ -29,4 +29,10 @@ class HttpOutputMessageClientHttpRequestAdapterTest {
         assertThrows(UnsupportedOperationException.class, unit::getURI);
     }
 
+    @Test
+    void getAttributes() {
+        assertThrows(UnsupportedOperationException.class, unit::getAttributes);
+    }
+
+
 }

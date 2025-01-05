@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -44,6 +45,12 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public Map<String, Object> getAttributes() {
+        throw new UnsupportedOperationException();
     }
 
     @Nonnull
