@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -48,6 +49,12 @@ final class StreamingApacheClientHttpRequest implements ClientHttpRequest, Strea
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @Nonnull
+    @Override
+    public Map<String, Object> getAttributes() {
+        throw new UnsupportedOperationException();
     }
 
     @Nonnull

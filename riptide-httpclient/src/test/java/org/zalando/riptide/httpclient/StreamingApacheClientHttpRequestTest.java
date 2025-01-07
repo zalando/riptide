@@ -51,4 +51,14 @@ final class StreamingApacheClientHttpRequestTest {
         assertThrows(IllegalArgumentException.class, request::getURI);
     }
 
+    @Test
+    void shouldNotSupportGetAttributes() {
+        final HttpClient client = mock(HttpClient.class);
+        final HttpPost request = new HttpPost("https://example.org");
+
+        final ClientHttpRequest unit = new StreamingApacheClientHttpRequest(client, request);
+
+        assertThrows(UnsupportedOperationException.class, unit::getAttributes);
+    }
+
 }
