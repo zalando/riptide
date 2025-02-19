@@ -18,7 +18,7 @@
 
     <properties>
         <opentelemetry.version>1.39.0</opentelemetry.version>
-        <opentelemetry-semconv.version>1.25.0-alpha</opentelemetry-semconv.version>
+        <opentelemetry-semconv.version>1.30.0-rc.1</opentelemetry-semconv.version>
     </properties>
 
     <dependencyManagement>
@@ -47,6 +47,11 @@
             <groupId>io.opentelemetry.semconv</groupId>
             <artifactId>opentelemetry-semconv</artifactId>
             <version>${opentelemetry-semconv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.semconv</groupId>
+            <artifactId>opentelemetry-semconv-incubating</artifactId>
+            <version>1.30.0-alpha-rc.1</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
