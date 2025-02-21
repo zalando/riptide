@@ -10,7 +10,7 @@ import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.ExceptionAttributes;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -204,9 +204,9 @@ class OpenTelemetryPluginTest {
         assertThat(events.size(), is(1));
 
         final Attributes eventAttributes = child.getEvents().get(0).getAttributes();
-        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_TYPE), containsString("SocketTimeoutException"));
-        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_MESSAGE), containsString("Read timed out"));
-        assertThat(eventAttributes.get(SemanticAttributes.EXCEPTION_STACKTRACE), is(notNullValue()));
+        assertThat(eventAttributes.get(ExceptionAttributes.EXCEPTION_TYPE), containsString("SocketTimeoutException"));
+        assertThat(eventAttributes.get(ExceptionAttributes.EXCEPTION_MESSAGE), containsString("Read timed out"));
+        assertThat(eventAttributes.get(ExceptionAttributes.EXCEPTION_STACKTRACE), is(notNullValue()));
 
         verify(server, 1, "/");
     }

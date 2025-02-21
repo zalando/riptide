@@ -1,7 +1,7 @@
 package org.zalando.riptide.opentelemetry.span;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.incubating.HttpIncubatingAttributes;
 import org.springframework.http.client.ClientHttpResponse;
 import org.zalando.riptide.HttpResponseException;
 import org.zalando.riptide.RequestArguments;
@@ -24,6 +24,6 @@ public class HttpStatusCodeSpanDecorator implements SpanDecorator {
     }
 
     private void setStatusCode(Span span, int statusCode) {
-        span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, statusCode);
+        span.setAttribute(HttpIncubatingAttributes.HTTP_STATUS_CODE, statusCode);
     }
 }
