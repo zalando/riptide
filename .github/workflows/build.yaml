@@ -16,7 +16,6 @@ env:
     -Dhttp.keepAlive=false
     -Dmaven.wagon.http.pool=false
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
-  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
 jobs:
   build:
