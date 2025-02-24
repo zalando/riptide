@@ -51,7 +51,7 @@
         <dependency>
             <groupId>io.opentelemetry.semconv</groupId>
             <artifactId>opentelemetry-semconv-incubating</artifactId>
-            <version>1.30.0-alpha-rc.1</version>
+            <version>1.30.0-alpha</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
