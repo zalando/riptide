@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import lombok.AllArgsConstructor;
 import org.apiguardian.api.API;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,11 +13,9 @@ import java.util.function.Supplier;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static io.micrometer.core.instrument.binder.BaseUnits.TASKS;
 import static io.micrometer.core.instrument.binder.BaseUnits.THREADS;
-import static lombok.AccessLevel.PRIVATE;
 import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 @API(status = EXPERIMENTAL)
-@AllArgsConstructor(access = PRIVATE)
 public final class ThreadPoolMetrics implements MeterBinder {
 
     private final ThreadPoolExecutor executor;
@@ -27,6 +24,12 @@ public final class ThreadPoolMetrics implements MeterBinder {
 
     public ThreadPoolMetrics(final ThreadPoolExecutor executor) {
         this(executor, "http.client.threads", ImmutableList.of());
+    }
+
+    private ThreadPoolMetrics(ThreadPoolExecutor executor, String metricName, ImmutableList<Tag> defaultTags) {
+        this.executor = executor;
+        this.metricName = metricName;
+        this.defaultTags = defaultTags;
     }
 
     public ThreadPoolMetrics withMetricName(final String metricName) {
