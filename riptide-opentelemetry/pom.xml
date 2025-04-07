@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.zalando</groupId>
         <artifactId>riptide-parent</artifactId>
-        <version>4.2.1-SNAPSHOT</version>
+        <version>4.3.1-SNAPSHOT</version>
         <relativePath>../riptide-parent</relativePath>
     </parent>
 
@@ -17,7 +17,7 @@
     <description>Client side response routing</description>
 
     <properties>
-        <opentelemetry.version>1.39.0</opentelemetry.version>
+        <opentelemetry.version>1.47.0</opentelemetry.version>
         <opentelemetry-semconv.version>1.30.0</opentelemetry-semconv.version>
     </properties>
 

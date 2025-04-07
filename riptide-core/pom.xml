@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.zalando</groupId>
         <artifactId>riptide-parent</artifactId>
-        <version>4.2.1-SNAPSHOT</version>
+        <version>4.3.1-SNAPSHOT</version>
         <relativePath>../riptide-parent</relativePath>
     </parent>
 
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.111.Final</version>
+            <version>4.1.119.Final</version>
             <scope>test</scope>
         </dependency>
         <dependency>
