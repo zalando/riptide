@@ -27,11 +27,23 @@ riptide.clients:
       enabled: true
       fixed-delay: 50 milliseconds
       max-retries: 5
+      threads:
+        max-size: 10
+        min-size: 2
+        enabled: true
+        keep-alive: 5 minutes
+        queue-size: 10
     circuit-breaker:
       enabled: true
       failure-threshold: 3 out of 5
       delay: 30 seconds
       success-threshold: 5 out of 5
+      threads:
+        max-size: 10
+        min-size: 2
+        enabled: true
+        keep-alive: 5 minutes
+        queue-size: 10
     caching:
       enabled: true
       shared: false
@@ -274,18 +286,42 @@ riptide:
         max-retries: 5
         max-duration: 2 seconds
         jitter: 25 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       circuit-breaker:
         enabled: true
         failure-threshold: 3 out of 5
         failure-rate-threshold: 3 out of 5 in 5 seconds
         delay: 30 seconds
         success-threshold: 5 out of 5
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       backup-request:
         enabled: true
         delay: 75 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       timeouts:
         enabled: true
         global: 500 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       caching:
         enabled: true
         shared: true
@@ -624,8 +660,51 @@ The following table shows all beans with their respective name (for the `example
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.
 
-You can specify `ExecutorService` for each `FailsafePlugin` by providing beans with the following naming convention:
-`exampleRetryPolicyExecutorService`, `exampleCircuitBreakerExecutorService`, `exampleBackupRequestExecutorService`, `exampleTimeoutExecutorService`.
+Riptide uses Failsafe underneath to manage resiliency flows, and Failsafe supports custom thread pool executors. For more details, refer to the [riptide-failsafe](https://github.com/zalando/riptide/tree/main/riptide-failsafe#custom-executor) documentation. To configure a custom thread pool executor for retry, circuit breaker, backup requests, and timeout features, follow the configuration steps below.
+```yaml
+      retry:
+        enabled: true
+        fixed-delay: 50 milliseconds
+        max-retries: 5
+        max-duration: 2 seconds
+        jitter: 25 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
+      circuit-breaker:
+        enabled: true
+        failure-threshold: 3 out of 5
+        failure-rate-threshold: 3 out of 5 in 5 seconds
+        delay: 30 seconds
+        success-threshold: 5 out of 5
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
+      backup-request:
+        enabled: true
+        delay: 75 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
+      timeouts:
+        enabled: true
+        global: 500 milliseconds
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
+```
 
 In case you need more than one custom plugin, please use `Plugin.composite(Plugin...)`.
 

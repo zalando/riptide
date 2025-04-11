@@ -97,16 +97,16 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Retry retry = new Retry(false, null,
-                new Backoff(false, null, null, null), -1, TimeSpan.of(5, SECONDS), null, null);
+                new Backoff(false, null, null, null), -1, TimeSpan.of(5, SECONDS), null, null,null);
 
         @NestedConfigurationProperty
-        private CircuitBreaker circuitBreaker = new CircuitBreaker(false, null, null, TimeSpan.of(0, SECONDS), null);
+        private CircuitBreaker circuitBreaker = new CircuitBreaker(false, null, null, TimeSpan.of(0, SECONDS), null, null);
 
         @NestedConfigurationProperty
-        private BackupRequest backupRequest = new BackupRequest(false, null);
+        private BackupRequest backupRequest = new BackupRequest(false, null, null);
 
         @NestedConfigurationProperty
-        private Timeouts timeouts = new Timeouts(false, null);
+        private Timeouts timeouts = new Timeouts(false, null, null);
 
         @NestedConfigurationProperty
         private RequestCompression requestCompression = new RequestCompression(false);
@@ -306,6 +306,7 @@ public final class RiptideProperties {
         private TimeSpan maxDuration;
         private Double jitterFactor;
         private TimeSpan jitter;
+        private Threads threads;
 
         @Getter
         @Setter
@@ -329,6 +330,7 @@ public final class RiptideProperties {
         private RatioInTimeSpan failureRateThreshold;
         private TimeSpan delay;
         private Ratio successThreshold;
+        private Threads threads;
     }
 
     @Getter
@@ -338,6 +340,7 @@ public final class RiptideProperties {
     public static final class BackupRequest {
         private Boolean enabled;
         private TimeSpan delay;
+        private Threads threads;
     }
 
     @Getter
@@ -347,6 +350,7 @@ public final class RiptideProperties {
     public static final class Timeouts {
         private Boolean enabled;
         private TimeSpan global;
+        private Threads threads;
     }
 
     @Getter

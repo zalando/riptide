@@ -110,16 +110,40 @@ riptide:
       retry:
         enabled: true
         max-retries: 2
+        threads:
+          max-size: 13
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       circuit-breaker:
         enabled: true
         failure-rate-threshold: 3 in 5 seconds
         success-threshold: 1
+        threads:
+          max-size: 10
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       timeouts:
         enabled: true
         global: 5 seconds
+        threads:
+          max-size: 11
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
       backup-request:
         enabled: true
         delay: 75 milliseconds
+        threads:
+          max-size: 12
+          min-size: 2
+          enabled: true
+          keep-alive: 5 minutes
+          queue-size: 10
     failure-rate-test:
       base-url: http://example.com/failure-rate-test
       circuit-breaker:
