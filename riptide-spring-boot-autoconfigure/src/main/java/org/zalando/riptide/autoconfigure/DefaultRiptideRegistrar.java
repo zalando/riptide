@@ -55,6 +55,8 @@ import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Clock;
@@ -105,7 +107,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             return genericBeanDefinition(HttpFactory.class)
                     .setFactoryMethod("create")
-                    .addConstructorArgValue(createExecutor(id, client))
+                    .addConstructorArgValue(createExecutor(id, "http.client.threads", client, client.getThreads()))
                     .addConstructorArgReference(registerClientHttpRequestFactory(id, client))
                     .addConstructorArgReference(registerBaseURL(id, client))
                     .addConstructorArgValue(client.getUrlResolution())
@@ -138,19 +140,21 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         });
     }
 
-    private Object createExecutor(final String id, final Client client) {
-        if (client.getThreads().getEnabled()) {
-            return ref(registerExecutor(id, client));
+    private Object createExecutor(final String id, final String metricName, final Client client, @Nullable final RiptideProperties.Threads threads) {
+        if (threads != null && threads.getEnabled()) {
+            return ref(registerExecutor(id, metricName, threads, client));
         }
-
         return null;
     }
 
-    private String registerExecutor(final String id, final Client client) {
+    private String registerExecutor(final String id,
+                                    final String metricName,
+                                    @Nonnull final RiptideProperties.Threads threads,
+                                    final Client client) {
         final String executorId = registry.registerIfAbsent(id, ExecutorService.class, () ->
                 genericBeanDefinition(ThreadPoolFactory.class)
                         .addConstructorArgValue(id)
-                        .addConstructorArgValue(client.getThreads())
+                        .addConstructorArgValue(threads)
                         .setFactoryMethod("create")
                         .setDestroyMethodName("shutdown"));
 
@@ -158,7 +162,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
             registry.registerIfAbsent(id, ThreadPoolMetrics.class, () ->
                     genericBeanDefinition(ThreadPoolMetrics.class)
                             .addConstructorArgReference(executorId)
-                            .addConstructorArgValue("http.client.threads")
+                            .addConstructorArgValue(metricName)
                             .addConstructorArgValue(ImmutableList.of(clientId(id))));
         }
 
@@ -171,6 +175,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
         return executorId;
     }
+
 
     private static final class HttpMessageConverters {
 
@@ -408,15 +413,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getCircuitBreaker().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, CircuitBreaker.class, FailsafePlugin.class),
                     () -> {
-                        var executorService = registry.find(name(id, "CircuitBreaker", ExecutorService.class));
-                        var executorServiceRef = executorService.map(Registry::ref).orElse(null);
-
                         log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createCircuitBreakerPlugin")
                                 .addConstructorArgValue(registerCircuitBreaker(id, client))
                                 .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(executorServiceRef);
+                                .addConstructorArgValue(createExecutor(id + "-circuit-breaker", "failsafe.circuitbreaker.executor", client, client.getCircuitBreaker().getThreads()));
                     });
             return Optional.of(pluginId);
         }
@@ -425,16 +427,14 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
     private Optional<String> registerRetryPolicyFailsafePlugin(final String id, final Client client) {
         if (client.getRetry().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
-                var executorService = registry.find(name(id, "RetryPolicy", ExecutorService.class));
-                var executorServiceRef = executorService.map(Registry::ref).orElse(null);
 
+            final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
                 log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createRetryFailsafePlugin")
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(createTaskDecorators(id, client))
-                        .addConstructorArgValue(executorServiceRef);
+                        .addConstructorArgValue(createExecutor(id + "-retry-policy", "failsafe.retry.executor", client, client.getRetry().getThreads()));
             });
             return Optional.of(pluginId);
         }
@@ -457,15 +457,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         if (client.getBackupRequest().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, BackupRequest.class, FailsafePlugin.class),
                     () -> {
-                        var executorService = registry.find(name(id, "BackupRequest", ExecutorService.class));
-                        var executorServiceRef = executorService.map(Registry::ref).orElse(null);
-
                         log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
                         return genericBeanDefinition(FailsafePluginFactory.class)
                                 .setFactoryMethod("createBackupRequestPlugin")
                                 .addConstructorArgValue(client)
                                 .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(executorServiceRef);
+                                .addConstructorArgValue(createExecutor(id + "-backup-request", "failsafe.backuprequest.executor", client, client.getBackupRequest().getThreads()));
                     });
             return Optional.of(pluginId);
         }
@@ -475,15 +472,12 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private Optional<String> registerTimeoutFailsafePlugin(final String id, final Client client) {
         if (client.getTimeouts().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
-                var executorService = registry.find(name(id, "Timeout", ExecutorService.class));
-                var executorServiceRef = executorService.map(Registry::ref).orElse(null);
-
                 log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
                         .setFactoryMethod("createTimeoutPlugin")
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(createTaskDecorators(id, client))
-                        .addConstructorArgValue(executorServiceRef);
+                        .addConstructorArgValue(createExecutor(id + "-timeout","failsafe.timeout.executor", client, client.getTimeouts().getThreads()));
             });
             return Optional.of(pluginId);
         }

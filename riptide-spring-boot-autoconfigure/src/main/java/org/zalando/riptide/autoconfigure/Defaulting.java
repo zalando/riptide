@@ -204,7 +204,8 @@ final class Defaulting {
                 either(base.getMaxRetries(), defaults.getMaxRetries()),
                 either(base.getMaxDuration(), defaults.getMaxDuration()),
                 either(base.getJitterFactor(), defaults.getJitterFactor()),
-                either(base.getJitter(), defaults.getJitter())
+                either(base.getJitter(), defaults.getJitter()),
+                either(base.getThreads(), defaults.getThreads())
         );
     }
 
@@ -223,21 +224,24 @@ final class Defaulting {
                 either(base.getFailureThreshold(), defaults.getFailureThreshold()),
                 either(base.getFailureRateThreshold(), defaults.getFailureRateThreshold()),
                 either(base.getDelay(), defaults.getDelay()),
-                either(base.getSuccessThreshold(), defaults.getSuccessThreshold())
+                either(base.getSuccessThreshold(), defaults.getSuccessThreshold()),
+                either(base.getThreads(), defaults.getThreads())
         );
     }
 
     private static BackupRequest merge(final BackupRequest base, final BackupRequest defaults) {
         return new BackupRequest(
                 either(base.getEnabled(), defaults.getEnabled()),
-                either(base.getDelay(), defaults.getDelay())
+                either(base.getDelay(), defaults.getDelay()),
+                either(base.getThreads(), defaults.getThreads())
         );
     }
 
     private static Timeouts merge(final Timeouts base, final Timeouts defaults) {
         return new Timeouts(
                 either(base.getEnabled(), defaults.getEnabled()),
-                either(base.getGlobal(), defaults.getGlobal())
+                either(base.getGlobal(), defaults.getGlobal()),
+                either(base.getThreads(), defaults.getThreads())
         );
     }
 
