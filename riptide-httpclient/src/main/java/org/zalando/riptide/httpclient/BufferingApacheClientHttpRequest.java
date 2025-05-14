@@ -78,8 +78,7 @@ final class BufferingApacheClientHttpRequest implements ClientHttpRequest {
     @Nullable
     private ContentType toContentType(@Nullable MediaType mediaType) {
         return Optional.ofNullable(mediaType)
-                .map(MediaType::toString)
-                .map(ContentType::create)
+                .map(ContentTypeConverter::toContentType)
                 .orElse(null);
     }
 
