@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-class OpenTelemetryPluginFactoryTest {
+public class OpenTelemetryPluginFactoryTest {
 
     private static final Field SPAN_DECORATOR_FIELD = ReflectionUtils.findField(OpenTelemetryPlugin.class, "spanDecorator");
     private static final Field DECORATORS_FIELD = ReflectionUtils.findField(CompositeSpanDecorator.class, "decorators");
