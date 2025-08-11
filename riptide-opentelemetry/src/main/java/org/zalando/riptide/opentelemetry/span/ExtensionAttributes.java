@@ -3,6 +3,7 @@ package org.zalando.riptide.opentelemetry.span;
 import io.opentelemetry.api.common.AttributeKey;
 
 public class ExtensionAttributes {
+    public static final AttributeKey<String> FLOW_ID = AttributeKey.stringKey("flow_id");
     public static final AttributeKey<String> HTTP_PATH = AttributeKey.stringKey("http.path");
     public static final AttributeKey<Boolean> RETRY = AttributeKey.booleanKey("retry");
     public static final AttributeKey<String> PEER_HOST = AttributeKey.stringKey("peer.hostname");
