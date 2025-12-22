@@ -84,10 +84,8 @@ final class RiptideLogbookCompatibilityTest implements CompatibilityTest {
                         .join();
 
                 assertThat(response.getStatusCode(), is(HttpStatus.OK));
-                // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
-                assertThat(response.getRawStatusCode(), is(200));
                 assertThat(response.getStatusText(), is("OK"));
-                assertThat(response.getHeaders(), hasKey("Content-Type"));
+                assertThat(response.getHeaders().containsHeader("Content-Type"), is(true));
                 assertThat(new String(toByteArray(response.getBody()), UTF_8), is("World!"));
                 MockWebServerUtil.verify(server, 1, "/greet", POST.toString());
 

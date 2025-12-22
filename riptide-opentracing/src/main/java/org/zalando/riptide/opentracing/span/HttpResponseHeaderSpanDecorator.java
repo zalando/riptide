@@ -20,7 +20,7 @@ final class HttpResponseHeaderSpanDecorator implements SpanDecorator {
             final RequestArguments arguments,
             final ClientHttpResponse response) {
 
-        operator.apply(span, response.getHeaders());
+        operator.apply(span, response.getHeaders().asMultiValueMap());
     }
 
 }

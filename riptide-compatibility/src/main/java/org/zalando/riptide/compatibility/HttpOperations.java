@@ -154,53 +154,53 @@ public final class HttpOperations implements RestOperations {
     @Override
     public <T> ResponseEntity<T> postForEntity(final String url, @Nullable final Object body,
             final Class<T> responseType, final Object... uriVariables) {
-        return exchange(url, POST, new HttpEntity<>(body, null), responseType, uriVariables);
+        return exchange(url, POST, new HttpEntity<>(body ), responseType, uriVariables);
     }
 
     @Nonnull
     @Override
     public <T> ResponseEntity<T> postForEntity(final String url, @Nullable final Object body,
             final Class<T> responseType, final Map<String, ?> uriVariables) {
-        return exchange(url, POST, new HttpEntity<>(body, null), responseType, uriVariables);
+        return exchange(url, POST, new HttpEntity<>(body), responseType, uriVariables);
     }
 
     @Nonnull
     @Override
     public <T> ResponseEntity<T> postForEntity(final URI url, @Nullable final Object body,
             final Class<T> responseType) {
-        return exchange(url, POST, new HttpEntity<>(body, null), responseType);
+        return exchange(url, POST, new HttpEntity<>(body), responseType);
     }
 
     @Override
     public void put(final String url, @Nullable final Object body, final Object... uriVariables) {
-        exchange(url, PUT, new HttpEntity<>(body, null), Void.class, uriVariables);
+        exchange(url, PUT, new HttpEntity<>(body), Void.class, uriVariables);
     }
 
     @Override
     public void put(final String url, @Nullable final Object body, final Map<String, ?> uriVariables) {
-        exchange(url, PUT, new HttpEntity<>(body, null), Void.class, uriVariables);
+        exchange(url, PUT, new HttpEntity<>(body), Void.class, uriVariables);
     }
 
     @Override
     public void put(final URI url, @Nullable final Object body) {
-        exchange(url, PUT, new HttpEntity<>(body, null), Void.class);
+        exchange(url, PUT, new HttpEntity<>(body), Void.class);
     }
 
     @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Object... uriVariables) {
-        return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
+        return exchange(url, PATCH, new HttpEntity<>(body), responseType, uriVariables).getBody();
     }
 
     @Override
     public <T> T patchForObject(final String url, @Nullable final Object body, final Class<T> responseType,
             final Map<String, ?> uriVariables) {
-        return exchange(url, PATCH, new HttpEntity<>(body, null), responseType, uriVariables).getBody();
+        return exchange(url, PATCH, new HttpEntity<>(body), responseType, uriVariables).getBody();
     }
 
     @Override
     public <T> T patchForObject(final URI url, @Nullable final Object body, final Class<T> responseType) {
-        return exchange(url, PATCH, new HttpEntity<>(body, null), responseType).getBody();
+        return exchange(url, PATCH, new HttpEntity<>(body), responseType).getBody();
     }
 
     @Override
@@ -352,7 +352,7 @@ public final class HttpOperations implements RestOperations {
             final Object[] uriVariables) {
 
         return http.execute(method, url, uriVariables)
-                .headers(getHeaders(entity))
+                .headers(getHeaders(entity).asMultiValueMap())
                 .body(getBody(entity))
                 .call(route(route))
                 .thenApply(function).join();
@@ -381,7 +381,7 @@ public final class HttpOperations implements RestOperations {
             @Nullable final HttpEntity<?> entity, final Route route, final Function<ClientHttpResponse, T> function) {
 
         return http.execute(method, url)
-                .headers(getHeaders(entity))
+                .headers(getHeaders(entity).asMultiValueMap())
                 .body(getBody(entity))
                 .call(route(route))
                 .thenApply(function).join();

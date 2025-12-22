@@ -1,6 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.failsafe.CircuitBreaker;
@@ -20,7 +19,8 @@ import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+//import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestOperations;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
@@ -54,6 +54,8 @@ import org.zalando.riptide.soap.PreserveContextClassLoaderTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -213,7 +215,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
 
             log.debug("Client [{}]: Registering MappingJackson2HttpMessageConverter referencing [{}]", id,
                     objectMapperId);
-            list.add(genericBeanDefinition(MappingJackson2HttpMessageConverter.class)
+            list.add(genericBeanDefinition(JacksonJsonHttpMessageConverter.class)
                     .addConstructorArgReference(objectMapperId)
                     .getBeanDefinition());
 
@@ -240,7 +242,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     }
 
     private String findObjectMapper(final String id) {
-        return registry.find(id, ObjectMapper.class).orElse("jacksonObjectMapper");
+        return registry.find(id, JsonMapper.class).orElse("jacksonJsonMapper");
     }
 
     private List<BeanReference> registerPlugins(final String id, final Client client) {

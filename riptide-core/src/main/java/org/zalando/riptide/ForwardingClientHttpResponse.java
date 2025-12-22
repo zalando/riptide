@@ -18,10 +18,10 @@ abstract class ForwardingClientHttpResponse extends ForwardingObject implements 
         delegate().close();
     }
 
-    @Override
-    public int getRawStatusCode() throws IOException {
-        return getStatusCode().value();
-    }
+//    @Override
+//    public int getRawStatusCode() throws IOException {
+//        return getStatusCode().value();
+//    }
 
     @Override
     public HttpStatusCode getStatusCode() throws IOException {

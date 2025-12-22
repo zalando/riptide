@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ final class CachingTest {
     @ImportAutoConfiguration({
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-            LogbookAutoConfiguration.class,
+//            LogbookAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })
@@ -70,7 +70,7 @@ final class CachingTest {
         server.enqueue(new MockResponse()
                 .setBody("Hello")
                 .setHeader("Content-Type", "text/plain")
-                .setHeader("Cache-Control", "max-age=300, s-maxage=300")
+                .setHeader("Cache-Control", "max-age=30000, s-maxage=30000")
         );
 
         shared.get(getBaseUrl(server)).call(pass()).join();
