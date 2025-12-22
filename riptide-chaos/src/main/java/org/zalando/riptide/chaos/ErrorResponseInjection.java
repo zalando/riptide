@@ -66,10 +66,10 @@ public final class ErrorResponseInjection implements FailureInjection {
             return status;
         }
 
-        @Override
-        public int getRawStatusCode() {
-            return status.value();
-        }
+//        @Override
+//        public int getRawStatusCode() {
+//            return status.value();
+//        }
 
         @Nonnull
         @Override

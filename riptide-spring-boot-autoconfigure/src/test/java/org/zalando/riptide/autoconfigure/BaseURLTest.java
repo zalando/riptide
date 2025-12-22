@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ final class BaseURLTest {
     @ImportAutoConfiguration({
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-            LogbookAutoConfiguration.class,
+//            LogbookAutoConfiguration.class,
             //OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,

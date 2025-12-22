@@ -18,8 +18,8 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MetricsAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.web.client.RestOperations;
 import org.zalando.logbook.Logbook;
@@ -66,6 +66,7 @@ import org.zalando.riptide.opentracing.TracedTaskDecorator;
 import org.zalando.riptide.soap.SOAPFaultHttpMessageConverter;
 import org.zalando.riptide.soap.SOAPHttpMessageConverter;
 import org.zalando.riptide.stream.Streams;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.SocketTimeoutException;
 import java.time.Clock;
@@ -249,12 +250,12 @@ public class ManualConfiguration {
         }
 
         @Bean
-        public ClientHttpMessageConverters exampleHttpMessageConverters(final ObjectMapper mapper) {
+        public ClientHttpMessageConverters exampleHttpMessageConverters(final JsonMapper mapper) {
             final StringHttpMessageConverter textConverter = new StringHttpMessageConverter();
             textConverter.setWriteAcceptCharset(false);
 
             return new ClientHttpMessageConverters(Arrays.asList(
-                    new MappingJackson2HttpMessageConverter(mapper),
+                    new JacksonJsonHttpMessageConverter(mapper),
                     Streams.streamConverter(mapper),
                     new SOAPHttpMessageConverter(),
                     new SOAPFaultHttpMessageConverter(),

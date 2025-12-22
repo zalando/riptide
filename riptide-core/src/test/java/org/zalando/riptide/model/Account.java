@@ -1,12 +1,13 @@
 package org.zalando.riptide.model;
 
+import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 @Value
-final class Account {
-
-    private final String id;
-    private final String revision;
-    private final String name;
-
+@Builder
+class Account {
+    String id;
+    String revision;
+    String name;
 }

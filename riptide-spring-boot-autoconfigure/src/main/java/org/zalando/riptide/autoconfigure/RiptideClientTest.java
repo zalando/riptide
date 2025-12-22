@@ -2,8 +2,8 @@ package org.zalando.riptide.autoconfigure;
 
 import org.apiguardian.api.API;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import  org.springframework.boot.restclient.test.autoconfigure.RestClientTest;
+import  org.springframework.boot.restclient.test.autoconfigure.AutoConfigureMockRestServiceServer;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.Documented;

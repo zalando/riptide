@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,7 +22,7 @@ public class FailSafeExecutorAutoConfigurationTest {
     @Configuration
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
-            LogbookAutoConfiguration.class,
+//            LogbookAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })

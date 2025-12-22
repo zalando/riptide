@@ -80,10 +80,10 @@ final class ContentTypeDispatchTest {
 
         final Problem problem = perform(Problem.class);
 
-        assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
-        assertThat(problem.getTitle(), is("Unprocessable Entity"));
-        assertThat(problem.getStatus(), is(422));
-        assertThat(problem.getDetail(), is("A problem occurred."));
+        assertThat(problem.type(), is(URI.create("http://httpstatus.es/422")));
+        assertThat(problem.title(), is("Unprocessable Entity"));
+        assertThat(problem.status(), is(422));
+        assertThat(problem.detail(), is("A problem occurred."));
     }
 
     @Test
@@ -95,8 +95,8 @@ final class ContentTypeDispatchTest {
 
         final Error error = perform(Error.class);
 
-        assertThat(error.getMessage(), is("A problem occurred."));
-        assertThat(error.getPath(), is(url));
+        assertThat(error.message(), is("A problem occurred."));
+        assertThat(error.path(), is(url));
     }
 
     @Test

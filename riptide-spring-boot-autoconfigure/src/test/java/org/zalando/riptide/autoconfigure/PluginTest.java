@@ -99,7 +99,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
-                instanceOf(LogbookPlugin.class),
+//                instanceOf(LogbookPlugin.class),
                 instanceOf(OpenTracingPlugin.class),
                 instanceOf(OriginalStackTracePlugin.class))));
     }

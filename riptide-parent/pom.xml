@@ -19,13 +19,13 @@
         <fauxpas.version>0.9.0</fauxpas.version>
         <jackson.version>2.18.3</jackson.version>
         <jackson-databind.version>2.18.3</jackson-databind.version>
-        <junit-jupiter.version>5.12.1</junit-jupiter.version>
+        <junit-jupiter.version>6.0.1</junit-jupiter.version>
         <logbook.version>3.11.0</logbook.version>
         <micrometer.version>1.13.6</micrometer.version>
         <mockito.version>5.3.1</mockito.version>
         <problem.version>0.27.1</problem.version>
         <slf4j.version>2.0.7</slf4j.version>
-        <spring-boot.version>3.1.12</spring-boot.version>
+        <spring-boot.version>4.0.0</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -188,7 +188,7 @@
             <dependency>
                 <groupId>org.apache.httpcomponents.client5</groupId>
                 <artifactId>httpclient5</artifactId>
-                <version>5.3.1</version>
+                <version>5.5.1</version>
             </dependency>
 
             <!-- spring -->
@@ -351,33 +351,21 @@
 
             <!-- jackson -->
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
+                <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
+                <version>3.0.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>2.20</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
+                <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson-databind.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-parameter-names</artifactId>
-                <version>${jackson.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jdk8</artifactId>
-                <version>${jackson.version}</version>
+                <version>3.0.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -462,20 +450,12 @@
 
         <!-- jackson -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
+            <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-parameter-names</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>

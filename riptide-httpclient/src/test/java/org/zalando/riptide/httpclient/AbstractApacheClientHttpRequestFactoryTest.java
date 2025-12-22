@@ -164,7 +164,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertThat(response.getStatusCode().value(), is(200));
         assertThat(response.getStatusText(), is("OK"));
-        assertThat(response.getHeaders(), is(not(anEmptyMap())));
+        assertThat(response.getHeaders().asMultiValueMap(), is(not(anEmptyMap())));
 
         final InputStream stream = response.getBody();
         final ObjectMapper mapper = createObjectMapper();

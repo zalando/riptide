@@ -86,8 +86,8 @@ final class CallTest {
         final ResponseEntity<AccountBody> entity = captor.getValue();
 
         assertThat(entity.getStatusCode(), is(OK));
-        assertThat(entity.getHeaders(), is(not(anEmptyMap())));
-        assertThat(entity.getBody().getName(), is("Acme Corporation"));
+        assertThat(entity.getHeaders().asMultiValueMap(), is(not(anEmptyMap())));
+        assertThat(entity.getBody().name(), is("Acme Corporation"));
     }
 
     @Test

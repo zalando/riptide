@@ -155,7 +155,7 @@ final class RemoteResponse implements HttpResponse {
 
     @Override
     public org.zalando.logbook.HttpHeaders getHeaders() {
-        return org.zalando.logbook.HttpHeaders.of(response.getHeaders());
+        return org.zalando.logbook.HttpHeaders.of(response.getHeaders().asMultiValueMap());
     }
 
     @Nullable
@@ -191,10 +191,10 @@ final class RemoteResponse implements HttpResponse {
             return response.getStatusCode();
         }
 
-        @Override
-        public int getRawStatusCode() throws IOException {
-            return response.getStatusCode().value();
-        }
+//        @Override
+//        public int getRawStatusCode() throws IOException {
+//            return response.getStatusCode().value();
+//        }
 
         @Nonnull
         @Override

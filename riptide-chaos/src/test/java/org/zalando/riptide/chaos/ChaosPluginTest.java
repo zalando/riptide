@@ -9,6 +9,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.Http;
@@ -151,7 +152,7 @@ final class ChaosPluginTest {
         assertThat(response.getStatusCode(), is(oneOf(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE)));
         assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         assertThat(response.getStatusText(), is(oneOf("Internal Server Error", "Service Unavailable")));
-        assertThat(response.getHeaders(), is(anEmptyMap())); // TODO can we do better?
+        assertThat(response.getHeaders().asMultiValueMap(), is(anEmptyMap())); // TODO can we do better?
         verify(server, 1, "/foo");
     }
 
@@ -219,8 +220,7 @@ final class ChaosPluginTest {
         final Instant end = clock.instant();
 
         assertThat(Duration.between(start, end), is(greaterThanOrEqualTo(Duration.ofSeconds(1))));
-        // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
-        assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
+        assertThat(response.getStatusCode(), is(oneOf(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.SERVICE_UNAVAILABLE)));
         verify(server, 1, "/foo");
     }
 

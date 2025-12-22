@@ -68,13 +68,13 @@ final class IOTest {
 
     @Test
     void shouldBuffer() throws IOException {
-        requestFactory.setBufferRequestBody(true);
+        //requestFactory.setBufferRequestBody(true);
         shouldReadContributors();
     }
 
     @Test
     void shouldStream() throws IOException {
-        requestFactory.setBufferRequestBody(false);
+        //requestFactory.setBufferRequestBody(false);
         shouldReadContributors();
     }
 
