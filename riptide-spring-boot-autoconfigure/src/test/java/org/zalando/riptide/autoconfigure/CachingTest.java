@@ -38,7 +38,7 @@ final class CachingTest {
     @ImportAutoConfiguration({
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-//            LogbookAutoConfiguration.class,
+            LogbookAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })

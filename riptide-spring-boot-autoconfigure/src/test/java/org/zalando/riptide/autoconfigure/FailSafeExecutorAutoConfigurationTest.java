@@ -22,7 +22,7 @@ public class FailSafeExecutorAutoConfigurationTest {
     @Configuration
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
-//            LogbookAutoConfiguration.class,
+            LogbookAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
     })

@@ -10,7 +10,7 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 @ImportAutoConfiguration({
         RiptideAutoConfiguration.class,
         JacksonAutoConfiguration.class,
-//        LogbookAutoConfiguration.class,
+        LogbookAutoConfiguration.class,
         OpenTracingTestAutoConfiguration.class,
         OpenTracingFlowIdAutoConfiguration.class,
         MetricsTestAutoConfiguration.class,

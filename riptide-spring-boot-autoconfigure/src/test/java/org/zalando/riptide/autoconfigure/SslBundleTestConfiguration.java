@@ -11,7 +11,7 @@ import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
     SslAutoConfiguration.class,
     RiptideAutoConfiguration.class,
     JacksonAutoConfiguration.class,
-//    LogbookAutoConfiguration.class,
+    LogbookAutoConfiguration.class,
     OpenTracingTestAutoConfiguration.class,
     OpenTracingFlowIdAutoConfiguration.class,
     MetricsTestAutoConfiguration.class,

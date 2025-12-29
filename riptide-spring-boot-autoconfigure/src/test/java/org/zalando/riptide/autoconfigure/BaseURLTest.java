@@ -32,7 +32,7 @@ final class BaseURLTest {
     @ImportAutoConfiguration({
             RiptideAutoConfiguration.class,
             JacksonAutoConfiguration.class,
-//            LogbookAutoConfiguration.class,
+            LogbookAutoConfiguration.class,
             //OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,

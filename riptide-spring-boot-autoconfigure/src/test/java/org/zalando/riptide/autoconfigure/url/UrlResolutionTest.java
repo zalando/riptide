@@ -29,7 +29,7 @@ final class UrlResolutionTest {
     @Configuration
     @ImportAutoConfiguration({
             JacksonAutoConfiguration.class,
-//            LogbookAutoConfiguration.class,
+            LogbookAutoConfiguration.class,
             OpenTracingFlowIdAutoConfiguration.class,
             OpenTracingTestAutoConfiguration.class,
             MetricsTestAutoConfiguration.class,
