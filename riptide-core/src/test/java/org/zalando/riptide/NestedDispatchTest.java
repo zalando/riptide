@@ -25,14 +25,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.ACCEPTED;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -97,7 +93,6 @@ final class NestedDispatchTest {
                 anyContentType().call(this::fail));
     }
 
-    @SuppressWarnings("serial")
     private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 
@@ -141,7 +136,7 @@ final class NestedDispatchTest {
     @Test
     void shouldDispatchLevelThree() {
         server.expect(requestTo(url)).andRespond(
-                withStatus(UNPROCESSABLE_ENTITY)
+                withStatus(UNPROCESSABLE_CONTENT)
                         .body(new ClassPathResource("problem.json"))
                         .contentType(ERROR));
 
