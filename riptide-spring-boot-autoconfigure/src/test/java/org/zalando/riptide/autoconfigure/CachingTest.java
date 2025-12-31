@@ -68,7 +68,7 @@ final class CachingTest {
     void shouldCacheInSharedCacheMode() {
         server.enqueue(textMockResponse("Hello")
                 .setHeader("Content-Type", "text/plain")
-                .setHeader("Cache-Control", "max-age=30000, s-maxage=30000")
+                .setHeader("Cache-Control", "max-age=300, s-maxage=300")
         );
 
         shared.get(getBaseUrl(server)).call(pass()).join();
