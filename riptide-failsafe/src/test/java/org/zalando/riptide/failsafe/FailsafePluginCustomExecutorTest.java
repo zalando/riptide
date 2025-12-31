@@ -11,19 +11,13 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.logging.LoggerFactory;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.slf4j.event.LoggingEvent;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -87,10 +81,8 @@ final class FailsafePluginCustomExecutorTest {
             )
             .build();
 
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(createObjectMapper());
-        return converter;
+    private static JacksonJsonHttpMessageConverter createJsonConverter() {
+        return new JacksonJsonHttpMessageConverter();
     }
 
     private static ObjectMapper createObjectMapper() {

@@ -1,16 +1,15 @@
 package org.zalando.riptide.capture;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.riptide.Http;
+import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -50,10 +49,8 @@ final class CaptureTest {
                 .build();
     }
 
-    private MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        return converter;
+    private JacksonJsonHttpMessageConverter createJsonConverter() {
+        return new JacksonJsonHttpMessageConverter();
     }
 
     @Test
@@ -63,16 +60,16 @@ final class CaptureTest {
                         .body(new ClassPathResource("message.json"))
                         .contentType(APPLICATION_JSON));
 
-        final Capture<ObjectNode> capture = Capture.empty();
+        final Capture<JsonNode> capture = Capture.empty();
 
         final CompletableFuture<ClientHttpResponse> future = unit.get("/accounts/123")
                 .dispatch(status(),
-                        on(OK).call(ObjectNode.class, capture),
+                        on(OK).call(JsonNode.class, capture),
                         anyStatus().call(this::fail));
 
-        final ObjectNode node = future.thenApply(capture).join();
+        final JsonNode node = future.thenApply(capture).join();
 
-        assertThat(node.get("message").asText(), is("Hello World!"));
+        assertThat(node.get("message").asString(), is("Hello World!"));
     }
 
     @Test

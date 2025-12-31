@@ -212,7 +212,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                         .getBeanDefinition());
             }
 
-            log.debug("Client [{}]: Registering MappingJackson2HttpMessageConverter referencing [{}]", id,
+            log.debug("Client [{}]: Registering JacksonJsonHttpMessageConverter referencing [{}]", id,
                     objectMapperId);
             list.add(genericBeanDefinition(JacksonJsonHttpMessageConverter.class)
                     .addConstructorArgReference(objectMapperId)

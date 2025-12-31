@@ -1,21 +1,17 @@
 package org.zalando.riptide;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,13 +28,7 @@ final class IOTest {
 
     private final MockWebServer server = new MockWebServer();
 
-    @JsonAutoDetect(fieldVisibility = NON_PRIVATE)
-    static class User {
-        String login;
-
-        String getLogin() {
-            return login;
-        }
+    record User(String login) {
     }
 
     private final ExecutorService executor = newSingleThreadExecutor();
@@ -52,11 +42,8 @@ final class IOTest {
             .converter(createJsonConverter())
             .build();
 
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES));
-        return converter;
+    private static JacksonJsonHttpMessageConverter createJsonConverter() {
+        return new JacksonJsonHttpMessageConverter();
     }
 
     @SneakyThrows
@@ -88,7 +75,7 @@ final class IOTest {
                         on(SUCCESSFUL).call(listOf(User.class), reference::set)).join();
 
         final List<String> users = reference.get().stream()
-                .map(User::getLogin)
+                .map(User::login)
                 .collect(toList());
 
         assertThat(users, hasItems("jhorstmann", "lukasniemeier-zalando", "whiskeysierra"));

@@ -9,7 +9,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
 
@@ -44,10 +44,8 @@ final class FailsafePluginTimeoutTest {
                     .withPolicy(Timeout.of(Duration.ofSeconds(1))))
             .build();
 
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(createObjectMapper());
-        return converter;
+    private static JacksonJsonHttpMessageConverter createJsonConverter() {
+        return new JacksonJsonHttpMessageConverter();
     }
 
     private static ObjectMapper createObjectMapper() {

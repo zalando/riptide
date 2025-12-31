@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.zalando.fauxpas.ThrowingRunnable;
@@ -86,7 +86,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
             .executor(Executors.newSingleThreadExecutor())
             .requestFactory(factory)
             .baseUrl(getBaseUrl(server))
-            .converter(new MappingJackson2HttpMessageConverter(createObjectMapper()))
+            .converter(new JacksonJsonHttpMessageConverter())
             .build();
 
     private static ObjectMapper createObjectMapper() {
@@ -105,7 +105,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final RestTemplate template = new RestTemplate(factory);
-        template.setMessageConverters(singletonList(new MappingJackson2HttpMessageConverter(createObjectMapper())));
+        template.setMessageConverters(singletonList(new JacksonJsonHttpMessageConverter()));
 
         final List<User> users = template.exchange(getBaseUrl(server) + "/repos/zalando/riptide/contributors", GET,
                 HttpEntity.EMPTY, new ParameterizedTypeReference<List<User>>() {
@@ -164,7 +164,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         assertThat(response.getStatusCode(), is(HttpStatus.OK));
         assertThat(response.getStatusCode().value(), is(200));
         assertThat(response.getStatusText(), is("OK"));
-        assertThat(response.getHeaders().asMultiValueMap(), is(not(anEmptyMap())));
+        assertThat(response.getHeaders().toSingleValueMap(), is(not(anEmptyMap())));
 
         final InputStream stream = response.getBody();
         final ObjectMapper mapper = createObjectMapper();
