@@ -191,11 +191,6 @@ final class RemoteResponse implements HttpResponse {
             return response.getStatusCode();
         }
 
-//        @Override
-//        public int getRawStatusCode() throws IOException {
-//            return response.getStatusCode().value();
-//        }
-
         @Nonnull
         @Override
         public String getStatusText() throws IOException {
