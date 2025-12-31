@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
 import lombok.SneakyThrows;
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.impl.cache.BasicHttpCacheStorage;
@@ -18,12 +17,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.zalando.logbook.autoconfigure.LogbookAutoConfiguration;
 import org.zalando.riptide.Http;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.zalando.riptide.PassRoute.pass;
@@ -52,8 +45,7 @@ final class CachingTest {
     }
 
     private final MockWebServer server = new MockWebServer();
-    String responseDate = DateTimeFormatter.RFC_1123_DATE_TIME
-            .format(ZonedDateTime.now(ZoneOffset.UTC));
+
     @Autowired
     @Qualifier("public")
     private Http shared;
@@ -74,11 +66,9 @@ final class CachingTest {
 
     @Test
     void shouldCacheInSharedCacheMode() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Content-Type", "text/plain")
                 .setHeader("Cache-Control", "max-age=30000, s-maxage=30000")
-                .setHeader("Date", responseDate)
         );
 
         shared.get(getBaseUrl(server)).call(pass()).join();
@@ -110,7 +100,6 @@ final class CachingTest {
     void shouldCacheWithAuthorizationInSharedCacheModeWithPublicDirective() {
         server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "public, s-maxage=300")
-                .setHeader("Date", responseDate)
         );
 
         shared.get(getBaseUrl(server))
@@ -128,7 +117,6 @@ final class CachingTest {
     void shouldCacheInNonSharedCacheMode() {
         server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
-                .setHeader("Date", responseDate)
         );
 
         nonShared.get(getBaseUrl(server)).call(pass()).join();
@@ -141,7 +129,6 @@ final class CachingTest {
     void shouldCacheWithAuthorizationInNonSharedCacheMode() {
         server.enqueue(textMockResponse("Hello")
                 .setHeader("Cache-Control", "max-age=300")
-                .setHeader("Date", responseDate)
         );
 
         nonShared.get(getBaseUrl(server))
@@ -157,9 +144,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithHeuristic() {
-        server.enqueue(textMockResponse("Hello")
-                .setHeader("Date", responseDate)
-        );
+        server.enqueue(textMockResponse("Hello"));
 
         heuristic.get(getBaseUrl(server)).call(pass()).join();
         heuristic.get(getBaseUrl(server)).call(pass()).join();
@@ -169,8 +154,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheWithAuthorizationAndHeuristic() {
-        server.enqueue(textMockResponse("Hello")
-                .setHeader("Date", responseDate));
+        server.enqueue(textMockResponse("Hello"));
 
         heuristic.get(getBaseUrl(server))
                 .header("Authorization", "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.e30.")
