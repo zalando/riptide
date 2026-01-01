@@ -1,7 +1,5 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.Timeout;
 import dev.failsafe.TimeoutExceededException;
 import lombok.extern.slf4j.Slf4j;
@@ -83,11 +81,6 @@ final class FailsafePluginCustomExecutorTest {
 
     private static JacksonJsonHttpMessageConverter createJsonConverter() {
         return new JacksonJsonHttpMessageConverter();
-    }
-
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     @AfterEach

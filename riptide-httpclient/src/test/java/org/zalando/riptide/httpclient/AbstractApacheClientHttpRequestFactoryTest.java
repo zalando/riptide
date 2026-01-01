@@ -1,9 +1,7 @@
 package org.zalando.riptide.httpclient;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -26,6 +24,7 @@ import org.zalando.fauxpas.ThrowingRunnable;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.capture.Capture;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory.Mode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,11 +87,6 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
             .baseUrl(getBaseUrl(server))
             .converter(new JacksonJsonHttpMessageConverter())
             .build();
-
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    }
 
     @AfterEach
     void tearDown() throws IOException {
@@ -167,7 +161,7 @@ public abstract class AbstractApacheClientHttpRequestFactoryTest {
         assertThat(response.getHeaders().toSingleValueMap(), is(not(anEmptyMap())));
 
         final InputStream stream = response.getBody();
-        final ObjectMapper mapper = createObjectMapper();
+        final JsonMapper mapper = JsonMapper.builder().build();
         final List<User> users = mapper.readValue(stream, new TypeReference<List<User>>() {
         });
         final List<String> names = users.stream()

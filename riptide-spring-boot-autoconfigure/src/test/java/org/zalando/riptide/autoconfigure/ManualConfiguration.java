@@ -1,6 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
 import dev.failsafe.Timeout;

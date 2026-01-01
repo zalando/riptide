@@ -136,7 +136,7 @@ Http.builder()
     .executor(Executors.newCachedThreadPool())
     .requestFactory(new HttpComponentsClientHttpRequestFactory())
     .baseUrl("https://api.github.com")
-    .converter(new MappingJackson2HttpMessageConverter())
+    .converter(new JacksonJsonHttpMessageConverter())
     .converter(new Jaxb2RootElementHttpMessageConverter())
     .plugin(new OriginalStackTracePlugin())
     .build();

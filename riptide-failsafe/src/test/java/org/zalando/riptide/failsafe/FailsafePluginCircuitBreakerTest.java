@@ -1,7 +1,5 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.CircuitBreakerOpenException;
 import okhttp3.mockwebserver.MockWebServer;
@@ -69,11 +67,6 @@ final class FailsafePluginCircuitBreakerTest {
 
     private static JacksonJsonHttpMessageConverter createJsonConverter() {
         return new JacksonJsonHttpMessageConverter();
-    }
-
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     @AfterEach

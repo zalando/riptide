@@ -1,6 +1,5 @@
 package org.zalando.riptide.compatibility;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -258,7 +257,7 @@ final class HttpOperationsTest {
     }
 
     static Iterable<Function<RestOperations, User>> execute() {
-        final ObjectMapper mapper = new ObjectMapper();
+        final JsonMapper mapper = new JsonMapper();
 
         final RequestCallback callback = request -> {
             request.getHeaders().add("Test", "true");

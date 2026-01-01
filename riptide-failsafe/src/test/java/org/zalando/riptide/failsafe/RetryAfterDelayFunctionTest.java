@@ -1,7 +1,5 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Stopwatch;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.ExecutionContext;
