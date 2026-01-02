@@ -52,12 +52,6 @@
             <artifactId>httpclient5</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.119.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
             <scope>test</scope>

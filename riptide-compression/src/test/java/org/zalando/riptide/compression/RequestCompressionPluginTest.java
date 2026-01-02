@@ -181,7 +181,6 @@ class RequestCompressionPluginTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return Stream.of(
                     new SimpleClientHttpRequestFactory(),
-                    // new Netty4ClientHttpRequestFactory(), # broken, see #823
                     new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()),
                     new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.BUFFERING),
                     new ApacheClientHttpRequestFactory(HttpClients.createDefault(), Mode.STREAMING)
