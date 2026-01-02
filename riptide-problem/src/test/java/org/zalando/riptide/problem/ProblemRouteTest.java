@@ -6,7 +6,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.ErrorResponseException;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.problem.Exceptional;
 import org.zalando.problem.ThrowableProblem;
@@ -42,7 +44,7 @@ final class ProblemRouteTest {
     private final MockRestServiceServer server;
 
     @Mock
-    private ThrowingConsumer<Exceptional, RuntimeException> consumer;
+    private ThrowingConsumer<ProblemDetail, RuntimeException> consumer;
 
     @Mock
     private Route fallback;
@@ -80,7 +82,7 @@ final class ProblemRouteTest {
                                                                          on(SUCCESSFUL).call(pass()),
                                                                          anySeries().call(problemHandling()))::join);
 
-        assertThat(exception.getCause(), is(instanceOf(ThrowableProblem.class)));
+        assertThat(exception.getCause(), is(instanceOf(ProblemResponseException.class)));
     }
 
     @Test

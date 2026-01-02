@@ -368,12 +368,6 @@
                 <version>3.0.1</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>problem-jackson3</artifactId>
-                <version>${problem.version}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -456,10 +450,6 @@
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>problem-jackson3</artifactId>
         </dependency>
     </dependencies>
 
