@@ -152,7 +152,7 @@ final class ChaosPluginTest {
         assertThat(response.getStatusCode(), is(oneOf(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE)));
         assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         assertThat(response.getStatusText(), is(oneOf("Internal Server Error", "Service Unavailable")));
-        assertThat(response.getHeaders().asMultiValueMap(), is(anEmptyMap())); // TODO can we do better?
+        assertThat(response.getHeaders().isEmpty(), is(true));
         verify(server, 1, "/foo");
     }
 
