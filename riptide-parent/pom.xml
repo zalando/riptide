@@ -370,7 +370,7 @@
             </dependency>
             <dependency>
                 <groupId>org.zalando</groupId>
-                <artifactId>jackson-datatype-problem</artifactId>
+                <artifactId>problem-jackson3</artifactId>
                 <version>${problem.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -459,7 +459,7 @@
         </dependency>
         <dependency>
             <groupId>org.zalando</groupId>
-            <artifactId>jackson-datatype-problem</artifactId>
+            <artifactId>problem-jackson3</artifactId>
         </dependency>
     </dependencies>
 

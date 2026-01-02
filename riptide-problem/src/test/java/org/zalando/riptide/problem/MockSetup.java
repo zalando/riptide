@@ -5,7 +5,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import org.zalando.problem.jackson.ProblemModule;
 import org.zalando.riptide.Http;
 import tools.jackson.databind.json.JsonMapper;
 
