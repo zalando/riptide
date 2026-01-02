@@ -2,9 +2,8 @@ package org.zalando.riptide.problem;
 
 import org.apiguardian.api.API;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.Problem;
 import org.zalando.riptide.Navigators;
 import org.zalando.riptide.Route;
 
@@ -32,7 +31,11 @@ public final class ProblemRoute {
      */
     private static final MediaType X_DASH_PROBLEM = parseMediaType("application/x-problem+json");
 
-    private static final Route PROPAGATE = problemHandling(Exceptional::propagate);
+    private static final ThrowingConsumer<ProblemDetail,  ? extends Exception> PROBLEM_CONSUMER = problem -> {
+        throw new ProblemResponseException(problem);
+    };
+
+    private static final Route PROPAGATE = problemHandling(PROBLEM_CONSUMER);
 
     private ProblemRoute() {
 
@@ -60,7 +63,7 @@ public final class ProblemRoute {
      * @param consumer the exception handler
      * @return a route for handling problems dynamically
      */
-    public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer) {
+    public static Route problemHandling(final ThrowingConsumer<ProblemDetail, ? extends Exception> consumer) {
         return problemHandling(consumer, noRoute());
     }
 
@@ -74,7 +77,7 @@ public final class ProblemRoute {
      * @return a route for handling problems dynamically
      */
     public static Route problemHandling(final Route fallback) {
-        return problemHandling(Exceptional::propagate, fallback);
+        return problemHandling(PROBLEM_CONSUMER, fallback);
     }
 
     /**
@@ -87,10 +90,10 @@ public final class ProblemRoute {
      * @param fallback the fallback route
      * @return a route for handling problems dynamically
      */
-    public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer,
+    public static Route problemHandling(final ThrowingConsumer<ProblemDetail, ? extends Exception> consumer,
             final Route fallback) {
 
-        final Route route = call(Exceptional.class, consumer);
+        final Route route = call(ProblemDetail.class, consumer);
 
         return dispatch(contentType(),
                 on(PROBLEM).call(route),

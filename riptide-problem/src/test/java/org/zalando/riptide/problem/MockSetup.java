@@ -22,7 +22,7 @@ final class MockSetup {
                     createJsonConverter());
 
     private static JacksonJsonHttpMessageConverter createJsonConverter() {
-        var mapper = JsonMapper.builder().findAndAddModules().build();
+        var mapper = JsonMapper.builder().build();
         return new JacksonJsonHttpMessageConverter(mapper);
     }
 
@@ -34,10 +34,6 @@ final class MockSetup {
 
     public MockSetup() {
         this("https://api.example.com", null);
-    }
-
-    public MockSetup(final String baseUrl) {
-        this(baseUrl, null);
     }
 
     private MockSetup(@Nullable final String baseUrl, @Nullable final Iterable<HttpMessageConverter<?>> converters) {

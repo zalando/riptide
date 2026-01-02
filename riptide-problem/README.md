@@ -41,9 +41,7 @@ Add the following dependency to your project:
 
 ## Usage
 
-If a problem is being received it will be mapped to a
-[`ThrowableProblem`/`Exceptional`](https://github.com/zalando/problem#throwing-problems). It can be inspected as the
-cause of the `CompletionException`:
+If a problem is being received it will be mapped to a `ProblemDetail` wrapped into `ProblemResponseException`.
 
 ```java
 import static org.zalando.riptide.problem.ProblemRoute.problemHandling;
@@ -54,7 +52,8 @@ try {
         anySeries().call(problemHandling()))
         .join();
 } catch (CompletionException e) {
-    assert e.getCause() instanceof Problem; // TODO handle
+    assert e.getCause() instanceof ProblemResponseException; // TODO handle
+    ProblemDetail problem = e.getCause().getProblem();
 }
 ```
 

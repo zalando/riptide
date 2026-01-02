@@ -23,7 +23,6 @@
         <logbook.version>4.0.0-RC.1</logbook.version>
         <micrometer.version>1.13.6</micrometer.version>
         <mockito.version>5.3.1</mockito.version>
-        <problem.version>0.28.0-SNAPSHOT</problem.version>
         <slf4j.version>2.0.7</slf4j.version>
         <spring-boot.version>4.0.0</spring-boot.version>
     </properties>
@@ -368,12 +367,6 @@
                 <version>3.0.1</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>problem-jackson3</artifactId>
-                <version>${problem.version}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -456,10 +449,6 @@
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>problem-jackson3</artifactId>
         </dependency>
     </dependencies>
 
