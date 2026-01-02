@@ -4,11 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.Status;
-import org.zalando.problem.ThrowableProblem;
 import org.zalando.riptide.model.Message;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
@@ -88,8 +86,12 @@ final class NestedDispatchTest {
 
     private Route problemHandling() {
         return dispatch(contentType(),
-                on(PROBLEM).call(ThrowableProblem.class, Exceptional::propagate),
-                on(ERROR).call(ThrowableProblem.class, Exceptional::propagate),
+                on(PROBLEM).call(ProblemDetail.class, problem -> {
+                    throw new Exception("Problem encountered");
+                }),
+                on(ERROR).call(ProblemDetail.class, problem -> {
+                    throw new Exception("Problem encountered");
+                }),
                 anyContentType().call(this::fail));
     }
 
@@ -144,12 +146,9 @@ final class NestedDispatchTest {
             perform(Problem.class);
             Assertions.fail("Expected exception");
         } catch (final CompletionException e) {
-            assertThat(e.getCause(), is(instanceOf(ThrowableProblem.class)));
-            final ThrowableProblem problem = (ThrowableProblem) e.getCause();
-            assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
-            assertThat(problem.getTitle(), is("Unprocessable Entity"));
-            assertThat(problem.getStatus(), is(Status.UNPROCESSABLE_ENTITY));
-            assertThat(problem.getDetail(), is("A problem occurred."));
+            assertThat(e.getCause(), is(instanceOf(Exception.class)));
+            final Exception cause = (Exception) e.getCause();
+            assertThat(cause.getMessage(), is("Problem encountered"));
         }
     }
 

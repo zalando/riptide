@@ -26,7 +26,7 @@ final class MockSetup {
     private final MockRestServiceServer server;
 
     private static JacksonJsonHttpMessageConverter defaultJsonConverter() {
-        var mapper = JsonMapper.builder().findAndAddModules().build();
+        var mapper = JsonMapper.builder().build();
         return new JacksonJsonHttpMessageConverter(mapper);
     }
 
