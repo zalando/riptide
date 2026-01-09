@@ -21,6 +21,7 @@ protocol and Java. Riptide allows users to leverage the power of HTTP with its u
 - Riptide is unique in the way that it doesn't abstract HTTP away, but rather embraces it!
 
 :rotating_light: If you want to upgrade from an older version to the latest one, consult the following migration guides:
+ - **Upgrading from 4.x to 5.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-50-migration-guide).
  - **Upgrading from 3.x to 4.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-40-migration-guide).
  - **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-30-migration-guide).
 
@@ -74,7 +75,7 @@ Go checkout the [concept document](docs/concepts.md) for more details.
 ## Dependencies
 
 - Java 17
-- Spring 6
+- Spring 7 (Spring Boot 4)
 
 ## Installation
 

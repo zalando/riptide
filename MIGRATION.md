@@ -1,3 +1,239 @@
+# Riptide 5.0 Migration Guide
+
+## Before you start
+
+**Riptide 5** requires Java 17 or up.
+**Riptide 5** requires Spring 7 (Spring Boot 4) or up.
+
+## Spring Framework 7 / Spring Boot 4
+
+Riptide 5.0 migrates to Spring Framework 7 and Spring Boot 4, which include several breaking changes that affect Riptide users.
+
+### Jackson 3.x Migration
+
+Spring Boot 4 migrates from Jackson 2.x to Jackson 3.x, which includes a major package rename from `com.fasterxml.jackson` to `tools.jackson`.
+
+**Key Changes:**
+
+- Jackson group ID changed from `com.fasterxml.jackson.*` to `tools.jackson.*` (for core modules)
+- Jackson Annotations remains at `com.fasterxml.jackson.core:jackson-annotations` but version 2.20+
+- If you use Jackson directly in your code, you'll need to update imports:
+  - `com.fasterxml.jackson.databind.*` → `tools.jackson.databind.*`
+  - `com.fasterxml.jackson.core.*` → `tools.jackson.core.*`
+
+**Migration Steps:**
+
+1. Update your Jackson dependencies to Jackson 3.x compatible versions
+2. Replace all `com.fasterxml.jackson.databind` imports with `tools.jackson.databind`
+3. Replace all `com.fasterxml.jackson.core` imports with `tools.jackson.core`
+4. Keep `com.fasterxml.jackson.core.jackson-annotations` imports unchanged
+
+### HTTP Message Converters
+
+Spring Boot 4 renames the primary Jackson HTTP message converter:
+
+**Before (Riptide 4.x):**
+```java
+Http.builder()
+    .converter(new MappingJackson2HttpMessageConverter())
+    .build();
+```
+
+**After (Riptide 5.x):**
+```java
+Http.builder()
+    .converter(new JacksonJsonHttpMessageConverter())
+    .build();
+```
+
+### Removed Jackson Modules
+
+The following Jackson modules are no longer automatically included:
+
+- `jackson-module-parameter-names`
+- `jackson-datatype-jdk8`
+- `jackson-datatype-problem`
+
+### Problem Library Changes
+
+Riptide 5.0 removes the dependency on Zalando's `problem` library in favor of Spring's built-in `ProblemDetail` support (RFC 9457).
+
+**Before (Riptide 4.x):**
+```java
+import org.zalando.problem.Problem;
+import org.zalando.problem.Exceptional;
+
+try {
+    http.post("/").dispatch(series(),
+        on(SUCCESSFUL).call(pass()),
+        anySeries().call(problemHandling()))
+        .join();
+} catch (CompletionException e) {
+    Problem problem = (Problem) e.getCause();
+    // handle problem
+}
+```
+
+**After (Riptide 5.x):**
+```java
+import org.springframework.http.ProblemDetail;
+import org.zalando.riptide.problem.ProblemResponseException;
+
+try {
+    http.post("/").dispatch(series(),
+        on(SUCCESSFUL).call(pass()),
+        anySeries().call(problemHandling()))
+        .join();
+} catch (CompletionException e) {
+    if (e.getCause() instanceof ProblemResponseException) {
+        ProblemDetail problem = ((ProblemResponseException) e.getCause()).getProblem();
+        // handle problem
+    }
+}
+```
+
+**Migration Steps:**
+
+1. Replace `org.zalando.problem.Problem` with `org.springframework.http.ProblemDetail`
+2. Replace `org.zalando.problem.Exceptional` with `org.zalando.riptide.problem.ProblemResponseException`
+3. Update exception handling to unwrap `ProblemDetail` from `ProblemResponseException`
+4. Remove `org.zalando:problem` dependency if no longer needed
+5. Remove `org.zalando:jackson-datatype-problem` dependency
+
+### Spring Framework Changes
+
+**MediaType.SPECIFICITY_COMPARATOR Removed:**
+
+Spring 7 removed the deprecated `MediaType.SPECIFICITY_COMPARATOR`. Riptide now uses a custom comparator internally based on `MediaType.isMoreSpecific()`.
+
+This change is internal to Riptide and should not affect user code unless you were directly using this constant.
+
+### Spring Boot AutoConfiguration Package Changes
+
+Spring Boot 4 reorganizes some autoconfiguration classes into more specific packages:
+
+**Jackson AutoConfiguration:**
+- Old: `org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration`
+- New: `org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration`
+
+**Metrics AutoConfiguration:**
+- Old: `org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration`
+- New: `org.springframework.boot.micrometer.metrics.autoconfigure.MetricsAutoConfiguration`
+
+If you're importing these autoconfiguration classes in your tests (e.g., with `@ImportAutoConfiguration`), you'll need to update the import statements.
+
+### Compatibility Module - ListenableFuture Removal
+
+Spring Framework 7 removed `ListenableFuture` and related classes. As a result, Riptide 5.0 removes the `CompletableToListenableFutureAdapter` from the `riptide-compatibility` module.
+
+**Removed class:**
+- `org.zalando.riptide.compatibility.CompletableToListenableFutureAdapter`
+
+**Migration:**
+If you were using this adapter, you need to migrate to `CompletableFuture` directly. Spring Framework 7 recommends using `CompletableFuture` or reactive types (Reactor, RxJava) instead of `ListenableFuture`.
+
+Before (Riptide 4.x):
+```java
+ListenableFuture<ClientHttpResponse> future = 
+    new CompletableToListenableFutureAdapter<>(http.get("/api").call(pass()));
+```
+
+After (Riptide 5.x):
+```java
+CompletableFuture<ClientHttpResponse> future = http.get("/api").call(pass());
+```
+
+### Dependency Version Updates
+
+The following dependencies have been updated:
+
+| Dependency | Riptide 4.x | Riptide 5.x |
+|------------|-------------|-------------|
+| Spring Framework | 6.2.x | 7.0.x |
+| Spring Boot | 3.1.x | 4.0.x |
+| Jackson | 2.18.x | 3.0.x |
+| Apache HttpClient | 5.3.x | 5.5.x |
+| JUnit Jupiter | 5.12.x | 6.0.x |
+| Logbook | 3.11.x | 4.0.0-RC.1 |
+
+### Testing Changes
+
+If you use Jackson in your tests, update your test setup:
+
+**Before:**
+```java
+private static MappingJackson2HttpMessageConverter createJsonConverter() {
+    final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+    converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
+    return converter;
+}
+```
+
+**After:**
+```java
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+
+private static JacksonJsonHttpMessageConverter createJsonConverter() {
+    var mapper = JsonMapper.builder().build();
+    return new JacksonJsonHttpMessageConverter(mapper);
+}
+```
+
+### Streams Module Changes
+
+The `riptide-stream` module has been updated to use Jackson 3.x APIs. If you're using the Streams module, note the following changes:
+
+**ObjectMapper replaced with JsonMapper:**
+
+Before (Riptide 4.x):
+```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+StreamConverter<T> converter = Streams.streamConverter(new ObjectMapper());
+```
+
+After (Riptide 5.x):
+```java
+import tools.jackson.databind.json.JsonMapper;
+
+StreamConverter<T> converter = Streams.streamConverter(new JsonMapper());
+```
+
+**Internal API changes:**
+- `ObjectMapper.getFactory().createParser()` → `JsonMapper.createParser()`
+- `parser.getCodec().readValue()` → `parser.readValueAs()`
+- Removed deprecated `TypeFactory.constructType()` overload with context class
+
+These changes are mostly internal to the Streams module, but if you're extending or customizing the stream converters, you'll need to update to the Jackson 3.x APIs.
+
+## Summary of Breaking Changes
+
+1. **Spring 7 / Spring Boot 4 required** - Update all Spring dependencies
+2. **Jackson 3.x migration** - Update Jackson imports and dependencies
+3. **HTTP Message Converter renamed** - Use `JacksonJsonHttpMessageConverter` instead of `MappingJackson2HttpMessageConverter`
+4. **Problem library removed** - Use Spring's `ProblemDetail` instead of Zalando's `Problem`
+5. **Removed Jackson modules** - Explicitly add if needed: `jackson-module-parameter-names`, `jackson-datatype-jdk8`
+6. **AutoConfiguration package changes** - Update imports for `JacksonAutoConfiguration` and `MetricsAutoConfiguration`
+7. **Compatibility module** - `CompletableToListenableFutureAdapter` removed; use `CompletableFuture` directly
+8. **Streams module** - Use `JsonMapper` instead of `ObjectMapper` for stream converters
+9. **Dependency updates** - Apache HttpClient 5.5.x, JUnit Jupiter 6.x, Logbook 4.x
+
+## Migration Checklist
+
+- [ ] Update to Spring Boot 4.0.0 or later
+- [ ] Update Jackson imports from `com.fasterxml.jackson` to `tools.jackson` where applicable
+- [ ] Replace `MappingJackson2HttpMessageConverter` with `JacksonJsonHttpMessageConverter`
+- [ ] Replace Zalando `Problem` with Spring `ProblemDetail`
+- [ ] Update exception handling for `ProblemResponseException`
+- [ ] Remove `org.zalando:problem` and `org.zalando:jackson-datatype-problem` dependencies if no longer needed
+- [ ] Add back any Jackson modules you need explicitly
+- [ ] Update autoconfiguration imports (`JacksonAutoConfiguration`, `MetricsAutoConfiguration`)
+- [ ] Replace `CompletableToListenableFutureAdapter` usage with `CompletableFuture` (if using compatibility module)
+- [ ] If using Streams module, replace `ObjectMapper` with `JsonMapper` in stream converters
+- [ ] Update test code to use Jackson 3.x APIs
+- [ ] Test thoroughly - Jackson 3.x has behavioral changes
+
 # Riptide 4.0 Migration Guide
 
 ## Before you start
