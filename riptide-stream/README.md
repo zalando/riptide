@@ -28,7 +28,7 @@ http.get("/sales-orders")
 
 ## Dependencies
 
-- Java 8
+- Java 17
 
 ## Installation
 
