@@ -45,16 +45,7 @@ Add the following dependency to your project:
 ## Configuration
 
 In order to enable streaming you only need to register the
-[`StreamConverter`](src/main/java/org/zalando/riptide/stream/StreamConverter.java). You're also strongly encouraged to
-use `RestAsyncClientHttpRequestFactory` provided by [*Riptide: HTTP Client*](../riptide-httpclient) as it fixes an
-[issue with Spring's implementation](https://jira.spring.io/browse/SPR-14882) which tries to consume infinite streams when trying to close a connection.
-
-```java
-Http.builder()
-    .requestFactory(new RestAsyncClientHttpRequestFactory(client, executor))
-    .converter(Streams.streamConverter(mapper))
-    .build();
-```
+[`StreamConverter`](src/main/java/org/zalando/riptide/stream/StreamConverter.java).
 
 ## Usage
 
