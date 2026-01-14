@@ -156,7 +156,7 @@ The following dependencies have been updated:
 | JUnit Jupiter | 5.12.x | 6.0.x |
 | Logbook | 3.11.x | 4.0.0-RC.1 |
 
-### Testing Changes
+### Migration of Tests
 
 If you use Jackson in your tests, update your test setup:
 
