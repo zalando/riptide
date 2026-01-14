@@ -2,21 +2,21 @@
 
 ## Before you start
 
-**Riptide 5** requires Java 17 or up.
-**Riptide 5** requires Spring 7 (Spring Boot 4) or up.
+**Riptide 5** requires Java 17 or higher.
+**Riptide 5** requires Spring 7 (Spring Boot 4) or higher.
 
 ## Spring Framework 7 / Spring Boot 4
 
-Riptide 5.0 migrates to Spring Framework 7 and Spring Boot 4, which include several breaking changes that affect Riptide users.
+Riptide 5.0 migrates to Spring Framework 7 and Spring Boot 4 including several breaking changes that affect Riptide users.
 
 ### Jackson 3.x Migration
 
-Spring Boot 4 migrates from Jackson 2.x to Jackson 3.x, which includes a major package rename from `com.fasterxml.jackson` to `tools.jackson`.
+Spring Boot 4 migrates from Jackson 2.x to Jackson 3.x including a major package switch from `com.fasterxml.jackson` to `tools.jackson`.
 
 **Key Changes:**
 
-- Jackson group ID changed from `com.fasterxml.jackson.*` to `tools.jackson.*` (for core modules)
-- Jackson Annotations remains at `com.fasterxml.jackson.core:jackson-annotations` but version 2.20+
+- Jackson group id changed from `com.fasterxml.jackson.*` to `tools.jackson.*` (for core modules)
+- Jackson Annotations remains at `com.fasterxml.jackson.core:jackson-annotations` but switches to version 2.20+
 - If you use Jackson directly in your code, you'll need to update imports:
   - `com.fasterxml.jackson.databind.*` → `tools.jackson.databind.*`
   - `com.fasterxml.jackson.core.*` → `tools.jackson.core.*`
@@ -26,7 +26,7 @@ Spring Boot 4 migrates from Jackson 2.x to Jackson 3.x, which includes a major p
 1. Update your Jackson dependencies to Jackson 3.x compatible versions
 2. Replace all `com.fasterxml.jackson.databind` imports with `tools.jackson.databind`
 3. Replace all `com.fasterxml.jackson.core` imports with `tools.jackson.core`
-4. Keep `com.fasterxml.jackson.core.jackson-annotations` imports unchanged
+4. Leave `com.fasterxml.jackson.core.jackson-annotations` imports unchanged
 
 ### HTTP Message Converters
 
@@ -56,7 +56,7 @@ The following Jackson modules are no longer automatically included:
 
 ### Problem Library Changes
 
-Riptide 5.0 removes the dependency on Zalando's `problem` library in favor of Spring's built-in `ProblemDetail` support (RFC 9457).
+Riptide 5.0 removes the dependency on Zalando's `problem` library in favor of Spring's built-in `ProblemDetail` support (RFC 9457):
 
 **Before (Riptide 4.x):**
 ```java
@@ -106,7 +106,7 @@ try {
 
 Spring 7 removed the deprecated `MediaType.SPECIFICITY_COMPARATOR`. Riptide now uses a custom comparator internally based on `MediaType.isMoreSpecific()`.
 
-This change is internal to Riptide and should not affect user code unless you were directly using this constant.
+This change is Riptide internal and should not affect user code unless you were directly using this constant.
 
 ### Spring Boot AutoConfiguration Package Changes
 
