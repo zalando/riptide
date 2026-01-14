@@ -97,7 +97,7 @@ try {
 1. Replace `org.zalando.problem.Problem` with `org.springframework.http.ProblemDetail`
 2. Replace `org.zalando.problem.Exceptional` with `org.zalando.riptide.problem.ProblemResponseException`
 3. Update exception handling to unwrap `ProblemDetail` from `ProblemResponseException`
-4. Remove `org.zalando:problem` dependency if no longer needed
+4. Remove `org.zalando:problem` dependency as it is no longer needed
 5. Remove `org.zalando:jackson-datatype-problem` dependency
 
 ### Spring Framework Changes
