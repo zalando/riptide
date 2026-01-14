@@ -28,24 +28,14 @@ import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.*;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
-import static org.zalando.riptide.chaos.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.chaos.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.chaos.MockWebServerUtil.verify;
+import static org.zalando.riptide.chaos.MockWebServerUtil.*;
 
 final class ChaosPluginTest {
 
