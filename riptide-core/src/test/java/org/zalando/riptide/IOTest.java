@@ -54,18 +54,7 @@ final class IOTest {
     }
 
     @Test
-    void shouldBuffer() throws IOException {
-        //requestFactory.setBufferRequestBody(true);
-        shouldReadContributors();
-    }
-
-    @Test
-    void shouldStream() throws IOException {
-        //requestFactory.setBufferRequestBody(false);
-        shouldReadContributors();
-    }
-
-    private void shouldReadContributors() throws IOException {
+    void shouldReadContributors() throws IOException {
         server.enqueue(jsonMockResponseFromResource("contributors.json"));
 
         final AtomicReference<List<User>> reference = new AtomicReference<>();
