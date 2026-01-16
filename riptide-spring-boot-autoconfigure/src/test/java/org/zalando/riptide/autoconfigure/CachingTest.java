@@ -1,7 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
 import lombok.SneakyThrows;
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.impl.cache.BasicHttpCacheStorage;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,8 +66,7 @@ final class CachingTest {
 
     @Test
     void shouldCacheInSharedCacheMode() {
-        server.enqueue(new MockResponse()
-                .setBody("Hello")
+        server.enqueue(textMockResponse("Hello")
                 .setHeader("Content-Type", "text/plain")
                 .setHeader("Cache-Control", "max-age=300, s-maxage=300")
         );

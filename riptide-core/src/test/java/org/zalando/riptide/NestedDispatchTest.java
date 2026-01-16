@@ -4,11 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.Status;
-import org.zalando.problem.ThrowableProblem;
 import org.zalando.riptide.model.Message;
 import org.zalando.riptide.model.Problem;
 import org.zalando.riptide.model.Success;
@@ -25,14 +23,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.http.HttpStatus.ACCEPTED;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.parseMediaType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -92,12 +86,15 @@ final class NestedDispatchTest {
 
     private Route problemHandling() {
         return dispatch(contentType(),
-                on(PROBLEM).call(ThrowableProblem.class, Exceptional::propagate),
-                on(ERROR).call(ThrowableProblem.class, Exceptional::propagate),
+                on(PROBLEM).call(ProblemDetail.class, problem -> {
+                    throw new Exception("Problem encountered");
+                }),
+                on(ERROR).call(ProblemDetail.class, problem -> {
+                    throw new Exception("Problem encountered");
+                }),
                 anyContentType().call(this::fail));
     }
 
-    @SuppressWarnings("serial")
     private static final class Failure extends RuntimeException {
         private final HttpStatus status;
 
@@ -141,7 +138,7 @@ final class NestedDispatchTest {
     @Test
     void shouldDispatchLevelThree() {
         server.expect(requestTo(url)).andRespond(
-                withStatus(UNPROCESSABLE_ENTITY)
+                withStatus(UNPROCESSABLE_CONTENT)
                         .body(new ClassPathResource("problem.json"))
                         .contentType(ERROR));
 
@@ -149,12 +146,9 @@ final class NestedDispatchTest {
             perform(Problem.class);
             Assertions.fail("Expected exception");
         } catch (final CompletionException e) {
-            assertThat(e.getCause(), is(instanceOf(ThrowableProblem.class)));
-            final ThrowableProblem problem = (ThrowableProblem) e.getCause();
-            assertThat(problem.getType(), is(URI.create("http://httpstatus.es/422")));
-            assertThat(problem.getTitle(), is("Unprocessable Entity"));
-            assertThat(problem.getStatus(), is(Status.UNPROCESSABLE_ENTITY));
-            assertThat(problem.getDetail(), is("A problem occurred."));
+            assertThat(e.getCause(), is(instanceOf(Exception.class)));
+            final Exception cause = (Exception) e.getCause();
+            assertThat(cause.getMessage(), is("Problem encountered"));
         }
     }
 

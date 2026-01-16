@@ -7,6 +7,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -20,6 +23,8 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 public class MockWebServerUtil {
+    private static final String RESPONSE_DATE = DateTimeFormatter.RFC_1123_DATE_TIME
+            .format(ZonedDateTime.now(ZoneOffset.UTC));
 
     public static String getBaseUrl(MockWebServer server) {
         return String.format("http://%s:%s", server.getHostName(), server.getPort());
@@ -45,6 +50,7 @@ public class MockWebServerUtil {
         return new MockResponse()
                 .setResponseCode(OK.value())
                 .setBody(body)
+                .setHeader("Date", RESPONSE_DATE)
                 .setHeader(CONTENT_TYPE, "text/plain");
     }
 

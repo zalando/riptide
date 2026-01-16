@@ -24,7 +24,7 @@ final class BlockingIO implements IO {
 
         final ClientHttpRequest request = requestFactory.createRequest(uri, method);
 
-        copyTo(arguments.getHeaders(), request.getHeaders());
+        copyTo(arguments.getHeaders(), request.getHeaders().asMultiValueMap());
         arguments.getEntity().writeTo(request);
 
         return completedFuture(request.execute());

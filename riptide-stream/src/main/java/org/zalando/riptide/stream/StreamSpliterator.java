@@ -1,8 +1,9 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JavaType;
+
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.JavaType;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -34,7 +35,7 @@ final class StreamSpliterator<T> implements Spliterator<T> {
                 return false;
             }
 
-            final T value = parser.getCodec().readValue(parser, type);
+            final T value = parser.readValueAs(type);
             action.accept(value);
             return true;
         } catch (final IOException e) {
@@ -43,18 +44,17 @@ final class StreamSpliterator<T> implements Spliterator<T> {
     }
 
     private boolean skipArrayTokens(final JsonToken token) throws IOException {
-        switch (token) {
-            case START_ARRAY:
+        return switch (token) {
+            case START_ARRAY -> {
                 parser.nextToken();
-                return false;
-
-            case END_ARRAY:
+                yield false;
+            }
+            case END_ARRAY -> {
                 parser.nextToken();
-                return true;
-
-            default:
-                return false;
-        }
+                yield true;
+            }
+            default -> false;
+        };
     }
 
     @Override

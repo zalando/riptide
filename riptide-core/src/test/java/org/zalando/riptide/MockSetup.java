@@ -1,11 +1,12 @@
 package org.zalando.riptide;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -24,10 +25,9 @@ final class MockSetup {
     private final RestTemplate template;
     private final MockRestServiceServer server;
 
-    private static MappingJackson2HttpMessageConverter defaultJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper().findAndRegisterModules());
-        return converter;
+    private static JacksonJsonHttpMessageConverter defaultJsonConverter() {
+        var mapper = JsonMapper.builder().build();
+        return new JacksonJsonHttpMessageConverter(mapper);
     }
 
     public MockSetup() {

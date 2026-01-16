@@ -1,7 +1,5 @@
 package org.zalando.riptide.failsafe;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.CircuitBreaker;
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
@@ -12,11 +10,12 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.zalando.riptide.Http;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.RequestExecution;
@@ -83,7 +82,7 @@ final class FailsafePluginRetriesTest {
             .converter(createJsonConverter())
             .plugin(new Plugin() {
                 @Override
-                public RequestExecution aroundNetwork(final RequestExecution execution) {
+                public RequestExecution aroundNetwork(final @NotNull RequestExecution execution) {
                     return arguments -> {
                         arguments.getAttribute(RETRIES).ifPresent(attempt::set);
                         return execution.execute(arguments);
@@ -119,16 +118,10 @@ final class FailsafePluginRetriesTest {
         return response != null && response.getStatusCode() == HttpStatus.BAD_GATEWAY;
     }
 
-    private static MappingJackson2HttpMessageConverter createJsonConverter() {
-        final MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(createObjectMapper());
-        return converter;
+    private static JacksonJsonHttpMessageConverter createJsonConverter() {
+        return new JacksonJsonHttpMessageConverter();
     }
 
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    }
 
     @AfterEach
     void tearDown() throws IOException {

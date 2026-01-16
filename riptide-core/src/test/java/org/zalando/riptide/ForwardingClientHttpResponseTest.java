@@ -34,7 +34,6 @@ final class ForwardingClientHttpResponseTest {
             }
         };
 
-        assertThat(unit.getRawStatusCode(), is(200));
         assertThat(unit.getStatusCode(), is(OK));
         assertThat(unit.getStatusText(), is("OK"));
         assertThat(new String(toByteArray(unit.getBody()), UTF_8), is("Hello World!"));

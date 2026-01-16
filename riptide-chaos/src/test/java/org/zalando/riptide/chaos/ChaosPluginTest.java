@@ -9,6 +9,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.Http;
@@ -27,24 +28,14 @@ import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.*;
 import static org.zalando.riptide.PassRoute.pass;
 import static org.zalando.riptide.chaos.FailureInjection.composite;
-import static org.zalando.riptide.chaos.MockWebServerUtil.emptyMockResponse;
-import static org.zalando.riptide.chaos.MockWebServerUtil.getBaseUrl;
-import static org.zalando.riptide.chaos.MockWebServerUtil.verify;
+import static org.zalando.riptide.chaos.MockWebServerUtil.*;
 
 final class ChaosPluginTest {
 
@@ -151,7 +142,7 @@ final class ChaosPluginTest {
         assertThat(response.getStatusCode(), is(oneOf(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE)));
         assertThat(response.getStatusCode().value(), is(oneOf(500, 503)));
         assertThat(response.getStatusText(), is(oneOf("Internal Server Error", "Service Unavailable")));
-        assertThat(response.getHeaders(), is(anEmptyMap())); // TODO can we do better?
+        assertThat(response.getHeaders().isEmpty(), is(true));
         verify(server, 1, "/foo");
     }
 
@@ -219,8 +210,7 @@ final class ChaosPluginTest {
         final Instant end = clock.instant();
 
         assertThat(Duration.between(start, end), is(greaterThanOrEqualTo(Duration.ofSeconds(1))));
-        // noinspection deprecation: Using getRawStatusCode() to satisfy coverage
-        assertThat(response.getRawStatusCode(), is(oneOf(500, 503)));
+        assertThat(response.getStatusCode(), is(oneOf(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.SERVICE_UNAVAILABLE)));
         verify(server, 1, "/foo");
     }
 

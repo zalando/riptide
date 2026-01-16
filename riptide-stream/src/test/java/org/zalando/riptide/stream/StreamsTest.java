@@ -1,6 +1,5 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
@@ -9,6 +8,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.zalando.fauxpas.ThrowingConsumer;
 import org.zalando.riptide.Http;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -53,7 +54,7 @@ final class StreamsTest {
     private final MockRestServiceServer server;
 
     StreamsTest() {
-        final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+        final JsonMapper mapper = new JsonMapper();
         final MockSetup setup = new MockSetup(baseUrl, singletonList(streamConverter(mapper)));
         this.server = setup.getServer();
         this.unit = setup.getRest();
@@ -253,7 +254,7 @@ final class StreamsTest {
                                                                                      forEach(verifier)),
                                                                          anyStatus().call(this::fail))::join);
 
-        assertThat(exception.getCause(), is(instanceOf(UncheckedIOException.class)));
+        assertThat(exception.getCause(), is(instanceOf(StreamReadException.class)));
 
         verify(verifier).accept(new AccountBody("1234567890", "Acme Corporation"));
         verifyNoMoreInteractions(verifier);

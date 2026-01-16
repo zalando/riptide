@@ -82,7 +82,7 @@ private Http example;
 
 ## Dependencies
 
-- Spring Boot 3
+- Spring Boot 4
 - Riptide
   - Core
   - (Apache) HTTP Client
