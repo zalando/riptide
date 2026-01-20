@@ -88,7 +88,7 @@ public final class HttpConnectionPoolMetrics implements MeterBinder {
                 .register(registry);
     }
 
-    private Gauge.Builder<Supplier<Number>> gauge(
+    private Gauge.Builder<Supplier<Integer>> gauge(
             final String name,
             final ToIntFunction<PoolStats> function) {
 
