@@ -2,9 +2,8 @@ package org.zalando.riptide.problem;
 
 import org.apiguardian.api.API;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.zalando.fauxpas.ThrowingConsumer;
-import org.zalando.problem.Exceptional;
-import org.zalando.problem.Problem;
 import org.zalando.riptide.Navigators;
 import org.zalando.riptide.Route;
 
@@ -32,7 +31,11 @@ public final class ProblemRoute {
      */
     private static final MediaType X_DASH_PROBLEM = parseMediaType("application/x-problem+json");
 
-    private static final Route PROPAGATE = problemHandling(Exceptional::propagate);
+    private static final ThrowingConsumer<ProblemDetail,  ? extends Exception> PROBLEM_CONSUMER = problem -> {
+        throw new ProblemResponseException(problem);
+    };
+
+    private static final Route PROPAGATE = problemHandling(PROBLEM_CONSUMER);
 
     private ProblemRoute() {
 
@@ -41,11 +44,10 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and {@link Exceptional#propagate() propagates}
-     * them.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems}.
      *
      * @see #problemHandling(ThrowingConsumer)
-     * @see Exceptional#propagate()
+     * @see ProblemResponseException
      * @return static route for handling problems by propagating them as exceptions
      */
     public static Route problemHandling() {
@@ -55,42 +57,42 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and handles them given the supplied consumer.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems} and handles them given the supplied consumer.
      *
      * @param consumer the exception handler
      * @return a route for handling problems dynamically
      */
-    public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer) {
+    public static Route problemHandling(final ThrowingConsumer<ProblemDetail, ? extends Exception> consumer) {
         return problemHandling(consumer, noRoute());
     }
 
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and {@link Exceptional#propagate() propagates}
-     * them. The given fallback will be used if none of the mentioned content types matches.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems}.
+     * The given fallback will be used if none of the mentioned content types matches.
      *
      * @param fallback the fallback route
      * @return a route for handling problems dynamically
      */
     public static Route problemHandling(final Route fallback) {
-        return problemHandling(Exceptional::propagate, fallback);
+        return problemHandling(PROBLEM_CONSUMER, fallback);
     }
 
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and handles them given the supplied consumer.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems} and handles them given the supplied consumer.
      * The given fallback will be used if none of the mentioned content types matches.
      *
      * @param consumer the exception handler
      * @param fallback the fallback route
      * @return a route for handling problems dynamically
      */
-    public static Route problemHandling(final ThrowingConsumer<Exceptional, ? extends Exception> consumer,
+    public static Route problemHandling(final ThrowingConsumer<ProblemDetail, ? extends Exception> consumer,
             final Route fallback) {
 
-        final Route route = call(Exceptional.class, consumer);
+        final Route route = call(ProblemDetail.class, consumer);
 
         return dispatch(contentType(),
                 on(PROBLEM).call(route),

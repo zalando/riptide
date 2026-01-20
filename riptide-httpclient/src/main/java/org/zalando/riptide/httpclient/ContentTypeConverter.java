@@ -5,6 +5,8 @@ import org.springframework.http.MediaType;
 
 public class ContentTypeConverter {
 
+    private ContentTypeConverter() {}
+
     public static ContentType toContentType(MediaType mediaType) {
         return ContentType.create(mediaType.getType() + "/" + mediaType.getSubtype(), mediaType.getCharset());
     }

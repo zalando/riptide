@@ -5,9 +5,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Optional;
-
-import static org.springframework.http.MediaType.SPECIFICITY_COMPARATOR;
 
 /**
  * @see Navigators#contentType()
@@ -16,6 +15,11 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
 
     INSTANCE;
 
+
+    static final Comparator<MediaType> SPECIFIC_COMPARATOR = (t1, t2) -> {
+        if (t1.equals(t2)) return 0;
+        return t2.isMoreSpecific(t1) ? 1 : -1;
+    };
 
     @Nullable
     @Override
@@ -46,7 +50,7 @@ enum ContentTypeNavigator implements EqualityNavigator<MediaType> {
 
         return tree.keySet().stream()
                 .filter(mediaType -> mediaType.includes(contentType))
-                .min(SPECIFICITY_COMPARATOR)
+                .min(SPECIFIC_COMPARATOR)
                 .flatMap(tree::get);
     }
 }

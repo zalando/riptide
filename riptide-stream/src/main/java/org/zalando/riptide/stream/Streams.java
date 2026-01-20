@@ -1,11 +1,11 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.apiguardian.api.API;
 import org.springframework.http.MediaType;
 import org.zalando.fauxpas.ThrowingConsumer;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +17,7 @@ import static org.apiguardian.api.API.Status.STABLE;
  * Main entry point for <b>Riptide Streams</b> extension to capture arbitrary infinite object streams. It allows to
  * receive infinite streams using application/x-json-stream and application/json-seq format, as well as simple finite
  * streams from lists and arrays. The feature must be enabled by registering the {@link StreamConverter} with Riptide
- * (using {@link Streams#streamConverter(ObjectMapper)} and declare a route for your stream that is calling a the stream consumer
+ * (using {@link Streams#streamConverter(JsonMapper)} and declare a route for your stream that is calling a the stream consumer
  * as follows:
  * 
  * <pre>{@code
@@ -120,32 +120,32 @@ public final class Streams {
      * @return default stream converter.
      */
     public static <T> StreamConverter<T> streamConverter() {
-        return streamConverter(new ObjectMapper());
+        return streamConverter(new JsonMapper());
     }
 
     /**
-     * Create stream converter with custom {@link ObjectMapper object mapper}.
+     * Create stream converter with custom {@link JsonMapper object mapper}.
      *
      * @param <T> generic stream element type
-     * @param mapper custom {@link ObjectMapper object mapper}.
+     * @param mapper custom {@link JsonMapper object mapper}.
      * @return stream converter with customer object mapper.
      */
-    public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper) {
+    public static <T> StreamConverter<T> streamConverter(final JsonMapper mapper) {
         return streamConverter(mapper, Arrays.asList(
                 APPLICATION_JSON_SEQ, APPLICATION_STREAM_JSON, APPLICATION_X_JSON_STREAM));
     }
 
     /**
-     * Create stream converter with custom {@link ObjectMapper object mapper}, and custom list of
+     * Create stream converter with custom {@link JsonMapper object mapper}, and custom list of
      * {@link MediaType supported media types}.
      *
      * @param <T> generic stream element type
-     * @param mapper custom {@link ObjectMapper object mapper}.
+     * @param mapper custom {@link JsonMapper object mapper}.
      * @param supportedMediaTypes custom list of {@link MediaType media types}.
      * @return stream converter with customer object mapper.
      */
     @SuppressWarnings("unchecked")
-    public static <T> StreamConverter<T> streamConverter(final ObjectMapper mapper,
+    public static <T> StreamConverter<T> streamConverter(final JsonMapper mapper,
             final List<MediaType> supportedMediaTypes) {
         return new StreamConverter(mapper, supportedMediaTypes);
     }

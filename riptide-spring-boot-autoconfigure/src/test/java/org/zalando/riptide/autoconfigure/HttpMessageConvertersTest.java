@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,7 +32,7 @@ final class HttpMessageConvertersTest {
         final List<HttpMessageConverter<?>> converters = unit.getConverters();
         assertThat(converters, hasSize(3));
         assertThat(converters, hasItem(instanceOf(StringHttpMessageConverter.class)));
-        assertThat(converters, hasItem(instanceOf(MappingJackson2HttpMessageConverter.class)));
+        assertThat(converters, hasItem(instanceOf(JacksonJsonHttpMessageConverter.class)));
         assertThat(converters, hasItem(hasToString(containsString("StreamConverter"))));
     }
 }

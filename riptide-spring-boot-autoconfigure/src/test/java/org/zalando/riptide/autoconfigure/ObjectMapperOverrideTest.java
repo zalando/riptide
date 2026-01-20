@@ -1,6 +1,5 @@
 package org.zalando.riptide.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -26,21 +26,21 @@ final class ObjectMapperOverrideTest {
 
         @Bean
         @Primary
-        public ObjectMapper jacksonObjectMapper() {
-            return mock(ObjectMapper.class);
+        public JsonMapper jacksonJsonMapper() {
+            return mock(JsonMapper.class);
         }
 
         @Bean
         @Qualifier("example")
-        public ObjectMapper exampleObjectMapper() {
-            return mock(ObjectMapper.class);
+        public JsonMapper exampleJsonMapper() {
+            return mock(JsonMapper.class);
         }
 
     }
 
     @Autowired
     @Qualifier("example")
-    private ObjectMapper unit;
+    private JsonMapper unit;
 
     @Test
     void shouldOverride() {

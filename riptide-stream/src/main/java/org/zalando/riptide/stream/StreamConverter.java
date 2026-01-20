@@ -1,15 +1,15 @@
 package org.zalando.riptide.stream;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.type.TypeFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ import static org.zalando.riptide.stream.Streams.APPLICATION_JSON_SEQ;
 @AllArgsConstructor
 final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>> {
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final List<MediaType> supportedMediaTypes;
 
     @Override
@@ -41,8 +41,7 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
         final JavaType javaType = getJavaType(type, contextClass);
 
         if (Stream.class.isAssignableFrom(javaType.getRawClass())) {
-            final JavaType containedType = javaType.containedType(0);
-            return mapper.canDeserialize(containedType) && canRead(mediaType);
+            return canRead(mediaType);
         }
 
         return false;
@@ -74,12 +73,9 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
         return read(javaType, inputMessage);
     }
 
-    @SuppressWarnings("deprecation")
     private JavaType getJavaType(final Type type, @Nullable final Class<?> contextClass) {
         final TypeFactory factory = mapper.getTypeFactory();
-        // Conditional call because Jackson 2.7 does not support null contextClass anymore
-        // TypeVariable resolution will not work with Jackson 2.7, see SPR-13853 for more details
-        return contextClass == null ? factory.constructType(type) : factory.constructType(type, contextClass);
+        return factory.constructType(type);
     }
 
     private Stream<T> read(final JavaType javaType, final HttpInputMessage inputMessage) {
@@ -99,7 +95,7 @@ final class StreamConverter<T> implements GenericHttpMessageConverter<Stream<T>>
     }
 
     private Stream<T> stream(final JavaType elementType, final InputStream stream) throws IOException {
-        final JsonParser parser = mapper.getFactory().createParser(stream);
+        final JsonParser parser = mapper.createParser(stream);
         final StreamSpliterator<T> split = new StreamSpliterator<>(elementType, parser);
         return StreamSupport.stream(split, false).onClose(throwingRunnable(parser::close));
     }
