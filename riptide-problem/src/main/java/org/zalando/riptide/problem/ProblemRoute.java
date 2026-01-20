@@ -44,11 +44,10 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and {@link Exceptional#propagate() propagates}
-     * them.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems}.
      *
      * @see #problemHandling(ThrowingConsumer)
-     * @see Exceptional#propagate()
+     * @see ProblemResponseException
      * @return static route for handling problems by propagating them as exceptions
      */
     public static Route problemHandling() {
@@ -58,7 +57,7 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and handles them given the supplied consumer.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems} and handles them given the supplied consumer.
      *
      * @param consumer the exception handler
      * @return a route for handling problems dynamically
@@ -70,8 +69,8 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and {@link Exceptional#propagate() propagates}
-     * them. The given fallback will be used if none of the mentioned content types matches.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems}.
+     * The given fallback will be used if none of the mentioned content types matches.
      *
      * @param fallback the fallback route
      * @return a route for handling problems dynamically
@@ -83,7 +82,7 @@ public final class ProblemRoute {
     /**
      * Produces a {@link Route route} that dispatches on the {@link Navigators#contentType() content type} and
      * recognises {@code application/problem+json} as well as {@code application/x-problem+json} and
-     * {@code application/x.problem+json} as {@link Problem problems} and handles them given the supplied consumer.
+     * {@code application/x.problem+json} as {@link ProblemDetail problems} and handles them given the supplied consumer.
      * The given fallback will be used if none of the mentioned content types matches.
      *
      * @param consumer the exception handler
