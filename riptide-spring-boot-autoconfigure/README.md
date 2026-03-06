@@ -431,7 +431,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   ├── threads`                       |                |                                                  |
 | `│   │   ├── enabled`                   | `boolean`      | `true`                                           |
 | `│   │   ├── min-size`                  | `int`          | `1`                                              |
-| `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`                  |
+| `│   │   ├── max-size`                  | `int`          | same as `connections.max-total`; if set explicitly, it takes priority over `connections.max-per-route` even when the latter is higher — a warning is logged in that case |
 | `│   │   ├── keep-alive`                | `TimeSpan`     | `1 minute`                                       |
 | `│   │   └── queue-size`                | `int`          | `0` (no queue)                                   |
 | `│   ├── timeouts`                      |        |  adds `Failsafe` [Timeout policy](../riptide-failsafe#timeout-policy), can be used in addition to `connections` properties to control the entire duration: from sending the request to processing the response  |

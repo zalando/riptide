@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
+import com.google.common.collect.Maps;
+
 import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
@@ -91,19 +93,26 @@ final class Defaulting {
             final boolean defaultThreadMaxSizeExplicit) {
         return new RiptideProperties(
                 defaults,
-                ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(requireNonNull(client), defaults, defaultThreadMaxSizeExplicit)))
+                ImmutableMap.copyOf(Maps.transformEntries(base.getClients(), (id, client) ->
+                        merge(id, requireNonNull(client), defaults, defaultThreadMaxSizeExplicit)))
         );
     }
 
-    private static Client merge(final Client base, final Defaults defaults,
+    private static Client merge(final String clientId, final Client base, final Defaults defaults,
             final boolean defaultThreadMaxSizeExplicit) {
         final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
 
-        final Integer threadMaxSize = either(
+        final Integer explicitThreadMaxSize = either(
                 base.getThreads() == null ? null : base.getThreads().getMaxSize(),
-                defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null,
-                connections.getMaxTotal());
+                defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null);
+
+        if (explicitThreadMaxSize != null && connections.getMaxPerRoute() > explicitThreadMaxSize) {
+            log.warn("Client [{}]: connections.max-per-route ({}) exceeds threads.max-size ({}). " +
+                    "The thread pool size will be capped at threads.max-size, which may limit throughput.",
+                    clientId, connections.getMaxPerRoute(), explicitThreadMaxSize);
+        }
+
+        final Integer threadMaxSize = either(explicitThreadMaxSize, connections.getMaxTotal());
 
         final Auth pick = pick(
                 merge(base.getAuth(), defaults.getAuth(), Defaulting::merge),
