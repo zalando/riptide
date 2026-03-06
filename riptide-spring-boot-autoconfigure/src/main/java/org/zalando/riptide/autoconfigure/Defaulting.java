@@ -50,7 +50,9 @@ final class Defaulting {
     }
 
     static RiptideProperties withDefaults(final RiptideProperties base) {
-        return merge(base, merge(base.getDefaults()));
+        final boolean defaultThreadMaxSizeExplicit =
+                base.getDefaults().getThreads().getMaxSize() != null;
+        return merge(base, merge(base.getDefaults()), defaultThreadMaxSizeExplicit);
     }
 
     private static Defaults merge(final Defaults defaults) {
@@ -85,16 +87,23 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
+    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults,
+            final boolean defaultThreadMaxSizeExplicit) {
         return new RiptideProperties(
                 defaults,
                 ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(requireNonNull(client), defaults)))
+                        merge(requireNonNull(client), defaults, defaultThreadMaxSizeExplicit)))
         );
     }
 
-    private static Client merge(final Client base, final Defaults defaults) {
+    private static Client merge(final Client base, final Defaults defaults,
+            final boolean defaultThreadMaxSizeExplicit) {
         final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
+
+        final Integer threadMaxSize = either(
+                base.getThreads() == null ? null : base.getThreads().getMaxSize(),
+                defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null,
+                connections.getMaxTotal());
 
         final Auth pick = pick(
                 merge(base.getAuth(), defaults.getAuth(), Defaulting::merge),
@@ -105,7 +114,7 @@ final class Defaulting {
                 either(base.getUrlResolution(), defaults.getUrlResolution()),
                 connections,
                 merge(base.getThreads(),
-                        merge(new Threads(connections.getMaxTotal()), defaults.getThreads()),
+                        merge(new Threads(threadMaxSize), defaults.getThreads()),
                         Defaulting::merge),
                 pick,
                 pick,

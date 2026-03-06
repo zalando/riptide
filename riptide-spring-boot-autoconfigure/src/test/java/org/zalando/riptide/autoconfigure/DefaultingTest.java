@@ -103,6 +103,60 @@ final class DefaultingTest {
     }
 
     @Test
+    void shouldRespectDefaultThreadsMaxSizeWhenConnectionsMaxPerRouteIsHigher() {
+        // Bug case from issue #1642: explicit threads.max-size=15 must not be overridden
+        // by connections.max-per-route=30
+        final RiptideProperties properties = new RiptideProperties();
+        properties.getDefaults().getThreads().setMaxSize(15);
+        properties.getDefaults().getConnections().setMaxPerRoute(30);
+        properties.getClients().put("example", new Client());
+        final RiptideProperties actual = Defaulting.withDefaults(properties);
+
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(15));
+    }
+
+    @Test
+    void shouldFallbackClientThreadsMaxSizeToConnectionsMaxTotalWhenNotConfigured() {
+        // Auto-sizing fallback: when threads.max-size is NOT configured anywhere,
+        // the client's thread pool should auto-size to connections.max-per-route
+        final RiptideProperties properties = new RiptideProperties();
+        properties.getDefaults().getConnections().setMaxPerRoute(30);
+        properties.getClients().put("example", new Client());
+        final RiptideProperties actual = Defaulting.withDefaults(properties);
+
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(30));
+    }
+
+    @Test
+    void shouldRespectClientThreadsMaxSizeOverDefaultAndConnections() {
+        // Client-level explicit value always wins over defaults and connections
+        final RiptideProperties properties = new RiptideProperties();
+        properties.getDefaults().getThreads().setMaxSize(15);
+        properties.getDefaults().getConnections().setMaxPerRoute(30);
+        final Client client = new Client();
+        client.setThreads(new Threads(true, null, 5, null, null));
+        properties.getClients().put("example", client);
+        final RiptideProperties actual = Defaulting.withDefaults(properties);
+
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(5));
+    }
+
+    @Test
+    void shouldFallbackClientThreadsMaxSizeToClientConnectionsMaxTotalWhenNotConfigured() {
+        // When no threads.max-size is configured anywhere, client-specific connections
+        // should drive the thread pool size (not global defaults connections)
+        final RiptideProperties properties = new RiptideProperties();
+        // no threads.max-size configured anywhere
+        final Client client = new Client();
+        client.setConnections(new Connections());
+        client.getConnections().setMaxPerRoute(50); // client has its own higher connection count
+        properties.getClients().put("example", client);
+        final RiptideProperties actual = Defaulting.withDefaults(properties);
+
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(50));
+    }
+
+    @Test
     void shouldMergeCaching() {
         final Caching actual = Defaulting.merge(
                 new Caching(false, true, null, 4096, 100,
