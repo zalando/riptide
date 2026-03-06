@@ -34,7 +34,6 @@ import java.util.function.BinaryOperator;
 
 import com.google.common.collect.Maps;
 
-import static com.google.common.collect.Maps.transformValues;
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
