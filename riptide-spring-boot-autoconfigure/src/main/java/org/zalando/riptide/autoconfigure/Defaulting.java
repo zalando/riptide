@@ -57,7 +57,11 @@ final class Defaulting {
     }
 
     private static Defaults merge(final Defaults defaults) {
-        final Connections connections = merge("riptide.defaults", defaults.getConnections(), defaults.getConnections());
+        final Connections connections = merge(
+                new Connections(null, null, null, null, null, max(
+                        defaults.getConnections().getMaxTotal(),
+                        defaults.getConnections().getMaxPerRoute()), null),
+                defaults.getConnections());
 
         return new Defaults(
                 defaults.getUrlResolution(),
@@ -95,16 +99,16 @@ final class Defaulting {
 
     private static Client merge(final String clientId, final Client base, final Defaults defaults,
             final boolean defaultThreadMaxSizeExplicit) {
-        final Connections connections = merge(base.getConnections(), defaults.getConnections(), (b, d) -> merge(clientId, b, d));
+        final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
 
         final Integer explicitThreadMaxSize = either(
                 base.getThreads() == null ? null : base.getThreads().getMaxSize(),
                 defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null);
 
         if (explicitThreadMaxSize != null && connections.getMaxTotal() > explicitThreadMaxSize) {
-            log.warn("[{}]: connections.max-total ({}) exceeds threads.max-size ({}). " +
-                    "The thread pool size will be capped at threads.max-size, which may limit throughput.",
-                    clientId, connections.getMaxTotal(), explicitThreadMaxSize);
+            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). " +
+                    "This may limit throughput.",
+                    clientId, explicitThreadMaxSize, connections.getMaxTotal());
         }
 
         final Integer threadMaxSize = either(explicitThreadMaxSize, connections.getMaxTotal());
@@ -141,15 +145,15 @@ final class Defaulting {
         );
     }
 
-    private static Connections merge(final String id, final Connections base, final Connections defaults) {
+    private static Connections merge(final Connections base, final Connections defaults) {
         final int maxPerRoute = either(base.getMaxPerRoute(), defaults.getMaxPerRoute());
         final int configuredMaxTotal = either(base.getMaxTotal(), defaults.getMaxTotal());
         final int maxTotal = max(maxPerRoute, configuredMaxTotal);
 
         if (configuredMaxTotal < maxPerRoute) {
-            log.warn("[{}]: connections.max-total ({}) is lower than connections.max-per-route ({}). " +
+            log.warn("connections.max-total ({}) is lower than connections.max-per-route ({}). " +
                     "Effective max-total will be raised to {}.",
-                    id, configuredMaxTotal, maxPerRoute, maxTotal);
+                    configuredMaxTotal, maxPerRoute, maxTotal);
         }
 
         return new Connections(
