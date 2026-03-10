@@ -104,8 +104,9 @@ final class Defaulting {
                 defaults.getThreads().getMaxSize());
 
         if (explicitThreadMaxSize != null && maxTotal > explicitThreadMaxSize) {
-            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). This may limit throughput.",
-                    clientId, explicitThreadMaxSize, maxTotal);
+            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). " +
+                    "Effective max-size will be raised to {}.",
+                    clientId, explicitThreadMaxSize, maxTotal, maxTotal);
         }
 
         final Integer threadMaxSize = explicitThreadMaxSize != null
