@@ -50,9 +50,7 @@ final class Defaulting {
     }
 
     static RiptideProperties withDefaults(final RiptideProperties base) {
-        final boolean defaultThreadMaxSizeExplicit =
-                base.getDefaults().getThreads().getMaxSize() != null;
-        return merge(base, merge(base.getDefaults()), defaultThreadMaxSizeExplicit);
+        return merge(base, merge(base.getDefaults()), base.getDefaults().getThreads().getMaxSize());
     }
 
     private static Defaults merge(final Defaults defaults) {
@@ -88,16 +86,16 @@ final class Defaulting {
     }
 
     private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults,
-            final boolean defaultThreadMaxSizeExplicit) {
+            @Nullable final Integer defaultThreadsMaxSize) {
         return new RiptideProperties(
                 defaults,
                 ImmutableMap.copyOf(transformEntries(base.getClients(), (id, client) ->
-                        merge(id, requireNonNull(client), defaults, defaultThreadMaxSizeExplicit)))
+                        merge(id, requireNonNull(client), defaults, defaultThreadsMaxSize)))
         );
     }
 
     private static Client merge(final String clientId, final Client base, final Defaults defaults,
-            final boolean defaultThreadMaxSizeExplicit) {
+            @Nullable final Integer defaultThreadsMaxSize) {
         final Connections connections = merge(base.getConnections(), defaults.getConnections(),
                 (b, d) -> merge(clientId, b, d));
 
@@ -105,7 +103,7 @@ final class Defaulting {
 
         final Integer explicitThreadMaxSize = either(
                 base.getThreads() == null ? null : base.getThreads().getMaxSize(),
-                defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null);
+                defaultThreadsMaxSize);
 
         if (explicitThreadMaxSize != null && maxTotal > explicitThreadMaxSize) {
             log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). This may limit throughput.",
