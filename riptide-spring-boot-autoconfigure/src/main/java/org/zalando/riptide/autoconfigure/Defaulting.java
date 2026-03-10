@@ -50,7 +50,7 @@ final class Defaulting {
     }
 
     static RiptideProperties withDefaults(final RiptideProperties base) {
-        return merge(base, merge(base.getDefaults()), base.getDefaults().getThreads().getMaxSize());
+        return merge(base, merge(base.getDefaults()));
     }
 
     private static Defaults merge(final Defaults defaults) {
@@ -85,17 +85,15 @@ final class Defaulting {
         );
     }
 
-    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults,
-            @Nullable final Integer defaultThreadsMaxSize) {
+    private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
         return new RiptideProperties(
                 defaults,
                 ImmutableMap.copyOf(transformEntries(base.getClients(), (id, client) ->
-                        merge(id, requireNonNull(client), defaults, defaultThreadsMaxSize)))
+                        merge(id, requireNonNull(client), defaults)))
         );
     }
 
-    private static Client merge(final String clientId, final Client base, final Defaults defaults,
-            @Nullable final Integer defaultThreadsMaxSize) {
+    private static Client merge(final String clientId, final Client base, final Defaults defaults) {
         final Connections connections = merge(base.getConnections(), defaults.getConnections(),
                 (b, d) -> merge(clientId, b, d));
 
@@ -103,7 +101,7 @@ final class Defaulting {
 
         final Integer explicitThreadMaxSize = either(
                 base.getThreads() == null ? null : base.getThreads().getMaxSize(),
-                defaultThreadsMaxSize);
+                defaults.getThreads().getMaxSize());
 
         if (explicitThreadMaxSize != null && maxTotal > explicitThreadMaxSize) {
             log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). This may limit throughput.",
