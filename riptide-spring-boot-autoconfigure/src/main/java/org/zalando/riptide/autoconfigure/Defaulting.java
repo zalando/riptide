@@ -32,8 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
-import com.google.common.collect.Maps;
-
+import static com.google.common.collect.Maps.transformEntries;
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
@@ -92,26 +91,30 @@ final class Defaulting {
             final boolean defaultThreadMaxSizeExplicit) {
         return new RiptideProperties(
                 defaults,
-                ImmutableMap.copyOf(Maps.transformEntries(base.getClients(), (id, client) ->
+                ImmutableMap.copyOf(transformEntries(base.getClients(), (id, client) ->
                         merge(id, requireNonNull(client), defaults, defaultThreadMaxSizeExplicit)))
         );
     }
 
     private static Client merge(final String clientId, final Client base, final Defaults defaults,
             final boolean defaultThreadMaxSizeExplicit) {
-        final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
+        final Connections connections = merge(base.getConnections(), defaults.getConnections(),
+                (b, d) -> merge(clientId, b, d));
+
+        final int maxTotal = connections.getMaxTotal();
 
         final Integer explicitThreadMaxSize = either(
                 base.getThreads() == null ? null : base.getThreads().getMaxSize(),
                 defaultThreadMaxSizeExplicit ? defaults.getThreads().getMaxSize() : null);
 
-        if (explicitThreadMaxSize != null && connections.getMaxTotal() > explicitThreadMaxSize) {
-            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). " +
-                    "This may limit throughput.",
-                    clientId, explicitThreadMaxSize, connections.getMaxTotal());
+        if (explicitThreadMaxSize != null && maxTotal > explicitThreadMaxSize) {
+            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). This may limit throughput.",
+                    clientId, explicitThreadMaxSize, maxTotal);
         }
 
-        final Integer threadMaxSize = either(explicitThreadMaxSize, connections.getMaxTotal());
+        final Integer threadMaxSize = explicitThreadMaxSize != null
+                ? max(explicitThreadMaxSize, maxTotal)
+                : maxTotal;
 
         final Auth pick = pick(
                 merge(base.getAuth(), defaults.getAuth(), Defaulting::merge),
@@ -121,8 +124,8 @@ final class Defaulting {
                 base.getBaseUrl(),
                 either(base.getUrlResolution(), defaults.getUrlResolution()),
                 connections,
-                merge(base.getThreads(),
-                        merge(new Threads(threadMaxSize), defaults.getThreads()),
+                merge(new Threads(threadMaxSize),
+                        merge(base.getThreads(), defaults.getThreads(), Defaulting::merge),
                         Defaulting::merge),
                 pick,
                 pick,
@@ -146,14 +149,18 @@ final class Defaulting {
     }
 
     private static Connections merge(final Connections base, final Connections defaults) {
+        return merge("riptide.defaults", base, defaults);
+    }
+
+    private static Connections merge(final String clientId, final Connections base, final Connections defaults) {
         final int maxPerRoute = either(base.getMaxPerRoute(), defaults.getMaxPerRoute());
         final int configuredMaxTotal = either(base.getMaxTotal(), defaults.getMaxTotal());
         final int maxTotal = max(maxPerRoute, configuredMaxTotal);
 
         if (configuredMaxTotal < maxPerRoute) {
-            log.warn("connections.max-total ({}) is lower than connections.max-per-route ({}). " +
+            log.warn("[{}]: connections.max-total ({}) is lower than connections.max-per-route ({}). " +
                     "Effective max-total will be raised to {}.",
-                    configuredMaxTotal, maxPerRoute, maxTotal);
+                    clientId, configuredMaxTotal, maxPerRoute, maxTotal);
         }
 
         return new Connections(

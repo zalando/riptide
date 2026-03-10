@@ -103,16 +103,16 @@ final class DefaultingTest {
     }
 
     @Test
-    void shouldRespectDefaultThreadsMaxSizeWhenConnectionsMaxPerRouteIsHigher() {
-        // Bug case from issue #1642: explicit threads.max-size=15 must not be overridden
-        // by connections.max-per-route=30
+    void shouldRaiseThreadsMaxSizeToConnectionsMaxTotalWhenLower() {
+        // When explicit threads.max-size is lower than effective connections.max-total,
+        // thread pool is raised to max-total to avoid throughput bottleneck
         final RiptideProperties properties = new RiptideProperties();
         properties.getDefaults().getThreads().setMaxSize(15);
         properties.getDefaults().getConnections().setMaxPerRoute(30);
         properties.getClients().put("example", new Client());
         final RiptideProperties actual = Defaulting.withDefaults(properties);
 
-        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(15));
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(30));
     }
 
     @Test
@@ -128,8 +128,8 @@ final class DefaultingTest {
     }
 
     @Test
-    void shouldRespectClientThreadsMaxSizeOverDefaultAndConnections() {
-        // Client-level explicit value always wins over defaults and connections
+    void shouldRaiseClientThreadsMaxSizeToConnectionsMaxTotalWhenLower() {
+        // Client-level explicit threads.max-size is raised to connections.max-total if lower
         final RiptideProperties properties = new RiptideProperties();
         properties.getDefaults().getThreads().setMaxSize(15);
         properties.getDefaults().getConnections().setMaxPerRoute(30);
@@ -138,7 +138,7 @@ final class DefaultingTest {
         properties.getClients().put("example", client);
         final RiptideProperties actual = Defaulting.withDefaults(properties);
 
-        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(5));
+        assertThat(actual.getClients().get("example").getThreads().getMaxSize(), is(30));
     }
 
     @Test
