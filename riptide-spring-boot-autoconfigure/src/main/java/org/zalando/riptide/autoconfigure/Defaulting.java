@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
-import static com.google.common.collect.Maps.transformValues;
+import static com.google.common.collect.Maps.transformEntries;
 import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
@@ -88,13 +88,30 @@ final class Defaulting {
     private static RiptideProperties merge(final RiptideProperties base, final Defaults defaults) {
         return new RiptideProperties(
                 defaults,
-                ImmutableMap.copyOf(transformValues(base.getClients(), client ->
-                        merge(requireNonNull(client), defaults)))
+                ImmutableMap.copyOf(transformEntries(base.getClients(), (id, client) ->
+                        merge(id, requireNonNull(client), defaults)))
         );
     }
 
-    private static Client merge(final Client base, final Defaults defaults) {
-        final Connections connections = merge(base.getConnections(), defaults.getConnections(), Defaulting::merge);
+    private static Client merge(final String clientId, final Client base, final Defaults defaults) {
+        final Connections connections = merge(base.getConnections(), defaults.getConnections(),
+                (b, d) -> merge(clientId, b, d));
+
+        final int maxTotal = connections.getMaxTotal();
+
+        final Integer explicitThreadMaxSize = either(
+                base.getThreads() == null ? null : base.getThreads().getMaxSize(),
+                defaults.getThreads().getMaxSize());
+
+        if (explicitThreadMaxSize != null && maxTotal > explicitThreadMaxSize) {
+            log.warn("[{}]: threads.max-size ({}) is lower than connections.max-total ({}). " +
+                    "Effective max-size will be raised to {}.",
+                    clientId, explicitThreadMaxSize, maxTotal, maxTotal);
+        }
+
+        final Integer threadMaxSize = explicitThreadMaxSize != null
+                ? max(explicitThreadMaxSize, maxTotal)
+                : maxTotal;
 
         final Auth pick = pick(
                 merge(base.getAuth(), defaults.getAuth(), Defaulting::merge),
@@ -104,8 +121,8 @@ final class Defaulting {
                 base.getBaseUrl(),
                 either(base.getUrlResolution(), defaults.getUrlResolution()),
                 connections,
-                merge(base.getThreads(),
-                        merge(new Threads(connections.getMaxTotal()), defaults.getThreads()),
+                merge(new Threads(threadMaxSize),
+                        merge(base.getThreads(), defaults.getThreads(), Defaulting::merge),
                         Defaulting::merge),
                 pick,
                 pick,
@@ -129,8 +146,19 @@ final class Defaulting {
     }
 
     private static Connections merge(final Connections base, final Connections defaults) {
+        return merge("riptide.defaults", base, defaults);
+    }
+
+    private static Connections merge(final String clientId, final Connections base, final Connections defaults) {
         final int maxPerRoute = either(base.getMaxPerRoute(), defaults.getMaxPerRoute());
-        final int maxTotal = max(maxPerRoute, either(base.getMaxTotal(), defaults.getMaxTotal()));
+        final int configuredMaxTotal = either(base.getMaxTotal(), defaults.getMaxTotal());
+        final int maxTotal = max(maxPerRoute, configuredMaxTotal);
+
+        if (configuredMaxTotal < maxPerRoute) {
+            log.warn("[{}]: connections.max-total ({}) is lower than connections.max-per-route ({}). " +
+                    "Effective max-total will be raised to {}.",
+                    clientId, configuredMaxTotal, maxPerRoute, maxTotal);
+        }
 
         return new Connections(
                 either(base.getLeaseRequestTimeout(), defaults.getLeaseRequestTimeout()),
