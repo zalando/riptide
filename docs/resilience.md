@@ -67,16 +67,17 @@ riptide.clients:
       jitter: 25 milliseconds
 ```
 
-**What `retry:` config controls:** timing, backoff, jitter, and limits. It does **not** make
-Riptide retry arbitrary `4xx` or `5xx` responses automatically.
+**What `retry:` config controls:** timing, backoff, jitter, and limits. It does **not** by
+itself enable automatic retries for transport faults — enabling `retry:` alone only makes
+explicit `retry()` / `RetryException` retries respect the configured limits.
 
-**How retries are triggered:**
+**How retries are triggered (Spring Boot auto-config path):**
 
-| Trigger | Description |
-|---|---|
-| Socket fault (e.g. read timeout) | Automatic, but only for [safe and idempotent](../riptide-failsafe#safe-and-idempotent-methods) methods |
-| Connection fault (e.g. connection refused) | In the Spring Boot auto-config path, enabling [transient fault detection](../riptide-faults) adds a separate retry policy for transient connection faults that can apply to all methods |
-| Response-based (e.g. `503`) | Explicit — use `retry()` route or throw `RetryException` in your routing callback |
+| Trigger | Condition | Description |
+|---|---|---|
+| Socket fault (e.g. read timeout) | `retry` + `transient-fault-detection.enabled: true` | Automatic, but only for [safe and idempotent](../riptide-failsafe#safe-and-idempotent-methods) methods |
+| Connection fault (e.g. connection refused) | `retry` + `transient-fault-detection.enabled: true` | Automatic for **all** methods — a connection never established means the request never reached the server |
+| Response-based (e.g. `503`) | `retry` only (no transient fault detection needed) | Explicit — use `retry()` route or throw `RetryException` in your routing callback |
 
 `Retry-After` and `X-RateLimit-Reset` headers influence how long Riptide waits before the next
 attempt; they do not make a response eligible for retry on their own.
