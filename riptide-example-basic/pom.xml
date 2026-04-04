@@ -14,6 +14,11 @@
     <artifactId>riptide-example-basic</artifactId>
 
     <name>Riptide: Example (Basic)</name>
+
+    <properties>
+        <!-- Example modules are not published to Maven Central -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <description>Basic onboarding example: Spring Boot starter path, request routing, header extraction, and body deserialization</description>
 
     <dependencies>
