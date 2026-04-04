@@ -25,16 +25,41 @@ protocol and Java. Riptide allows users to leverage the power of HTTP with its u
  - **Upgrading from 3.x to 4.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-40-migration-guide).
  - **Upgrading from 2.x to 3.x?** Please refer to the [Migration Guide](MIGRATION.md#riptide-30-migration-guide).
 
+## Getting Started
+
+New to Riptide? Start here:
+
+1. **Pick your dependency** – see the table below.
+2. **Run the [basic example](riptide-example-basic)** – a self-contained module with complete imports and tests.
+3. **Read [docs/concepts.md](docs/concepts.md)** – explains routing trees, navigators, and bindings.
+
+### Dependency quick-reference
+
+| Use case | Dependency |
+|---|---|
+| Minimal / manual client | `riptide-core` |
+| Spring Boot application | `riptide-spring-boot-starter` |
+| Retries, circuit breaker, timeouts | `riptide-failsafe` |
+| Transient fault detection (socket errors) | `riptide-faults` |
+
 ## Example
 
 Usage typically looks like this:
 
 ```java
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
+import static org.zalando.riptide.Bindings.on;
+import static org.zalando.riptide.Navigators.series;
+import static org.zalando.riptide.Types.listOf;
+
 http.get("/repos/{org}/{repo}/contributors", "zalando", "riptide")
     .dispatch(series(),
-        on(SUCCESSFUL).call(listOf(User.class), users -> 
+        on(SUCCESSFUL).call(listOf(User.class), users ->
             users.forEach(System.out::println)));
 ```
+
+For a complete runnable example with full imports — including redirect routing and body
+deserialization — see the **[riptide-example-basic](riptide-example-basic)** module.
 
 Feel free to compare this e.g. to [Feign](https://github.com/Netflix/feign#basics) or
 [Retrofit](https://github.com/square/retrofit/blob/master/samples/src/main/java/com/example/retrofit/SimpleService.java).
@@ -290,7 +315,10 @@ The `Content-Type`- and `Accept`-header have type-safe methods in addition to th
 
 Riptide is special in the way it handles responses. Rather than having a single return value, you need to register
 callbacks. Traditionally, you would attach different callbacks for different response status codes. Alternatively, there
-are built-in routing capabilities on status code families (called series in Spring) as well as on content types. 
+are built-in routing capabilities on status code families (called series in Spring) as well as on content types.
+
+See [docs/concepts.md](docs/concepts.md) for an explanation of routing trees, navigators, and bindings.
+See [riptide-example-basic](riptide-example-basic) for a complete runnable example with full imports.
 
 ```java
 http.post("/sales-order")

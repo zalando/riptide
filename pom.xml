@@ -70,6 +70,7 @@
         <module>riptide-spring-boot-autoconfigure</module>
         <module>riptide-spring-boot-starter</module>
         <module>riptide-stream</module>
+        <module>riptide-example-basic</module>
     </modules>
 
     <properties>

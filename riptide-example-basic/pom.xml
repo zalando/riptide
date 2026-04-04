@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.zalando</groupId>
+        <artifactId>riptide-parent</artifactId>
+        <version>5.0.1-SNAPSHOT</version>
+        <relativePath>../riptide-parent</relativePath>
+    </parent>
+
+    <artifactId>riptide-example-basic</artifactId>
+
+    <name>Riptide: Example (Basic)</name>
+    <description>Basic onboarding example: Spring Boot starter path, request routing, header extraction, and body deserialization</description>
+
+    <dependencies>
+        <!-- Primary onboarding dependency: bring in riptide-core + autoconfigure via the starter -->
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>riptide-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Test infrastructure -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
