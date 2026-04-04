@@ -18,6 +18,8 @@
     <properties>
         <!-- Example modules are not published to Maven Central -->
         <maven.deploy.skip>true</maven.deploy.skip>
+        <!-- duplicate-finder fails on reactor builds because sibling target/classes don't exist at validate phase -->
+        <duplicate-finder.skip>true</duplicate-finder.skip>
     </properties>
     <description>Basic onboarding example: Spring Boot starter path, request routing, header extraction, and body deserialization</description>
 
