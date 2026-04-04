@@ -87,7 +87,7 @@ final class BasicRoutingExampleTest {
     private Http http;
 
     @Test
-    void should_capture_location_header_from_redirect_response() throws Exception {
+    void shouldCaptureLocationHeaderFromRedirectResponse() throws Exception {
         SERVER.enqueue(new MockResponse()
                 .setResponseCode(FOUND.value())
                 .setHeader(LOCATION, "/next"));
@@ -99,7 +99,7 @@ final class BasicRoutingExampleTest {
     }
 
     @Test
-    void should_deserialize_successful_json_response() throws Exception {
+    void shouldDeserializeSuccessfulJsonResponse() throws Exception {
         SERVER.enqueue(new MockResponse()
                 .setResponseCode(OK.value())
                 .setHeader(CONTENT_TYPE, "application/json")
