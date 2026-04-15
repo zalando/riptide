@@ -56,3 +56,40 @@ on(SUCCESSFUL).dispatch(contentType(),
 | `ThrowingConsumer<T>`                  | `on(..).call(Class<T>, ThrowingConsumer<T>)`        |
 | `ThrowingConsumer<T>`                  | `on(..).call(TypeToken<T>, ThrowingConsumer<T>)`    |
 | `RoutingTree`                          | `on(..).dispatch(..)`                               |
+
+### Common Patterns
+
+#### Redirect routing — extracting a Location header
+
+A route is a callback over `ClientHttpResponse` or a decoded body. To inspect a response header,
+use `on(..).call(ThrowingConsumer<ClientHttpResponse>)`:
+
+```java
+http.get("/start")
+    .dispatch(series(),
+        on(REDIRECTION).call(response -> {
+            URI next = response.getHeaders().getLocation();
+            // continue with next request or store URI
+        }));
+```
+
+> **Note on automatic redirect following:** The Apache HTTP client (used by default) follows
+> redirects automatically, so a `3xx` response may never reach your routing callback unless you
+> disable redirect handling on the client. To observe `Location` headers yourself, configure
+> `HttpClientCustomizer` to call `builder.disableRedirectHandling()`. See
+> [riptide-example-basic](../riptide-example-basic) for a working example.
+
+#### Body deserialization
+
+To decode the response body into a typed object, pass the target class as the first argument:
+
+```java
+http.get("/users/me")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(User.class, user -> {
+            // user is already deserialized
+        }));
+```
+
+For a complete, runnable example with full imports — including both patterns above — see
+[riptide-example-basic](../riptide-example-basic).
