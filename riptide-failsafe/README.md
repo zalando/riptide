@@ -67,6 +67,27 @@ Please visit the [Failsafe readme](https://github.com/jhalterman/failsafe#readme
 
 ### Retries
 
+**What retry config controls:** The `RetryPolicy` controls timing, backoff, jitter, and limits.
+Enabling retry config does **not** make Riptide automatically retry arbitrary `4xx` or `5xx`
+responses.
+
+**How retries are triggered:**
+
+- **Socket faults** (e.g. read timeout) — Riptide retries automatically, but only for
+  [safe and idempotent methods](#safe-and-idempotent-methods). Non-idempotent requests are
+  not retried on socket timeout unless you explicitly mark them idempotent.
+- **Connection faults** (e.g. connection refused) — When using the Spring Boot auto-config
+  path with `transient-fault-detection.enabled: true`, connection faults are retried for
+  **all** methods (idempotent or not), because a connection that was never established
+  means the request never reached the server. Without that auto-configured transient fault
+  detection path, configure a retry policy for connection faults explicitly.
+- **Response-based retries** — You must trigger these explicitly, either by calling `retry()`
+  in your routing callback or by throwing `RetryException`. Receiving a `503` does not cause
+  a retry by itself.
+
+`Retry-After` and `X-RateLimit-Reset` headers influence the delay between retries once a retry
+has already been triggered; they do not make a response eligible for retry on their own.
+
 **Beware** when using `retryOn` to retry conditionally on certain exception types.
 You'll need to register `RetryException` in order for the `retry()` route to work:
 
@@ -88,10 +109,21 @@ retryClient.get()
                     throw new RetryException(response); // we will retry this one
                 }  else {
                     throw new AnyOtherException(response); // we wont retry this one
-                }  
+                }
             }
         )
     ).join()
+```
+
+To explicitly retry a `503 Service Unavailable`:
+
+```java
+http.get("/users/me")
+    .dispatch(series(),
+        on(SUCCESSFUL).call(User.class, this::greet),
+        on(SERVER_ERROR).dispatch(status(),
+            on(SERVICE_UNAVAILABLE).call(retry())),
+        anySeries().call(problemHandling()))
 ```
 
 Failsafe supports dynamically computed delays using a custom function.

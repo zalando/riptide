@@ -124,6 +124,18 @@ Required for `retry`, `circuit-breaker`, `backup-request` and `timeout` support.
 </dependency>
 ```
 
+> **Retry semantics:** The `retry:` configuration controls timing, backoff, jitter, and limits.
+> It does **not** by itself enable automatic retries for transport faults.
+>
+> | Config combination | What retries automatically |
+> |---|---|
+> | `retry` only | Nothing — only explicit `retry()` / `RetryException` in your routing callback |
+> | `retry` + `transient-fault-detection` | Socket faults (safe/idempotent methods only); connection faults (all methods) |
+>
+> To retry on a specific response status (e.g. `503`), use the `retry()` route or throw
+> `RetryException` in your routing callback regardless of which combination above you use.
+> See [riptide-failsafe](../riptide-failsafe) for details.
+
 #### [Transient Fault](../riptide-faults) detection
 
 Required when `transient-fault-detection` is enabled.

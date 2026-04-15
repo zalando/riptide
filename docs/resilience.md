@@ -67,6 +67,24 @@ riptide.clients:
       jitter: 25 milliseconds
 ```
 
+**What `retry:` config controls:** timing, backoff, jitter, and limits. It does **not** by
+itself enable automatic retries for transport faults — enabling `retry:` alone only makes
+explicit `retry()` / `RetryException` retries respect the configured limits.
+
+**How retries are triggered (Spring Boot auto-config path):**
+
+| Trigger | Condition | Description |
+|---|---|---|
+| Socket fault (e.g. read timeout) | `retry` + `transient-fault-detection.enabled: true` | Automatic, but only for [safe and idempotent](../riptide-failsafe#safe-and-idempotent-methods) methods |
+| Connection fault (e.g. connection refused) | `retry` + `transient-fault-detection.enabled: true` | Automatic for **all** methods — a connection never established means the request never reached the server |
+| Response-based (e.g. `503`) | `retry` only (no transient fault detection needed) | Explicit — use `retry()` route or throw `RetryException` in your routing callback |
+
+`Retry-After` and `X-RateLimit-Reset` headers influence how long Riptide waits before the next
+attempt; they do not make a response eligible for retry on their own.
+
+For detailed semantics, idempotency rules, and code examples see
+[riptide-failsafe](../riptide-failsafe).
+
 ## Circuit Breaker
 
 > Handle faults that might take a variable amount of time to recover from, when connecting to a remote service or resource. This can improve the stability and resiliency of an application.
