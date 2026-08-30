@@ -34,26 +34,12 @@ public class FailSafeExecutorAutoConfigurationTest {
 
     @Test
     public void shouldContainExecutorsConfiguredForFailSafePolicies() {
-        final var customExecutorTestRetryPolicyExecutorService = applicationContext.getBean("customExecutorTestRetryPolicyExecutorService");
-        final var customExecutorTestCircuitBreakerExecutorService = applicationContext.getBean("customExecutorTestCircuitBreakerExecutorService", ExecutorService.class);
-        final var customExecutorTestBackupRequestExecutorService = applicationContext.getBean("customExecutorTestBackupRequestExecutorService", ExecutorService.class);
-        final var customExecutorTestTimeoutExecutorService = applicationContext.getBean("customExecutorTestTimeoutExecutorService", ExecutorService.class);
-        Assertions.assertThat(customExecutorTestRetryPolicyExecutorService)
+        final var consolidatedExecutor = applicationContext.getBean(
+                "customExecutorTestFailsafeExecutorService", ExecutorService.class);
+        Assertions.assertThat(consolidatedExecutor)
                 .isNotNull()
-                .hasFieldOrPropertyWithValue("corePoolSize",2)
+                .hasFieldOrPropertyWithValue("corePoolSize", 2)
                 .hasFieldOrPropertyWithValue("maximumPoolSize", 13);
-        Assertions.assertThat(customExecutorTestCircuitBreakerExecutorService)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("corePoolSize",2)
-                .hasFieldOrPropertyWithValue("maximumPoolSize", 10);
-        Assertions.assertThat(customExecutorTestBackupRequestExecutorService)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("corePoolSize",2)
-                .hasFieldOrPropertyWithValue("maximumPoolSize", 12);
-        Assertions.assertThat(customExecutorTestTimeoutExecutorService)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("corePoolSize",2)
-                .hasFieldOrPropertyWithValue("maximumPoolSize", 11);
     }
 
 }

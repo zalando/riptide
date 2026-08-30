@@ -48,15 +48,62 @@ final class FailsafePluginFactory {
 
     }
 
-    public static Plugin createCircuitBreakerPlugin(
-            final CircuitBreaker<ClientHttpResponse> breaker,
+    public static Plugin createFailsafePlugin(
+            final Client client,
+            @Nullable final CircuitBreaker<ClientHttpResponse> breaker,
             final List<TaskDecorator> decorators,
             @Nullable final ExecutorService executorService) {
 
-        return new FailsafePlugin()
+        FailsafePlugin plugin = new FailsafePlugin()
                 .withExecutor(executorService)
-                .withPolicy(breaker)
                 .withDecorator(composite(decorators));
+
+        // Policy order (outermost to innermost): Retry -> CircuitBreaker -> BackupRequest -> Timeout
+        // Retry must be outermost so that retries pass back through the circuit breaker (recording each attempt).
+        // Timeout must be innermost so it bounds each attempt, not the whole retry sequence.
+
+        // 1. Retry
+        if (client.getRetry().getEnabled()) {
+            if (client.getTransientFaultDetection().getEnabled()) {
+                plugin = plugin
+                        .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
+                                .handleIf(toCheckedPredicate(transientSocketFaults()))
+                                .build())
+                                .withPredicate(new IdempotencyPredicate()))
+                        .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
+                                .handleIf(toCheckedPredicate(transientConnectionFaults()))
+                                .build())
+                                .withPredicate(alwaysTrue()))
+                        .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()));
+            } else {
+                plugin = plugin
+                        .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()));
+            }
+        }
+
+        // 2. Circuit breaker
+        if (breaker != null) {
+            plugin = plugin.withPolicy(breaker);
+        }
+
+        // 3. Backup request
+        if (client.getBackupRequest().getEnabled()) {
+            final TimeSpan delay = client.getBackupRequest().getDelay();
+            plugin = plugin.withPolicy(RequestPolicies.of(
+                    new BackupRequest<>(delay.getAmount(), delay.getUnit()),
+                    new IdempotencyPredicate()));
+        }
+
+        // 4. Timeout
+        if (client.getTimeouts().getEnabled()) {
+            final Duration timeout = client.getTimeouts().getGlobal().toDuration();
+            plugin = plugin.withPolicy(
+                    Timeout.<ClientHttpResponse>builder(timeout)
+                            .withInterrupt()
+                            .build());
+        }
+
+        return plugin;
     }
 
     public static CircuitBreaker<ClientHttpResponse> createCircuitBreaker(
@@ -83,32 +130,6 @@ final class FailsafePluginFactory {
                 .onClose(event -> listener.onClose());
 
         return breakerBuilder.build();
-    }
-
-    public static Plugin createRetryFailsafePlugin(
-            final Client client,
-            final List<TaskDecorator> decorators,
-            @Nullable final ExecutorService executorService) {
-
-        if (client.getTransientFaultDetection().getEnabled()) {
-            return new FailsafePlugin()
-                    .withExecutor(executorService)
-                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
-                            .handleIf(toCheckedPredicate(transientSocketFaults()))
-                            .build())
-                            .withPredicate(new IdempotencyPredicate()))
-                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client)
-                            .handleIf(toCheckedPredicate(transientConnectionFaults()))
-                            .build())
-                            .withPredicate(alwaysTrue()))
-                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
-                    .withDecorator(composite(decorators));
-        } else {
-            return new FailsafePlugin()
-                    .withExecutor(executorService)
-                    .withPolicy(new RetryRequestPolicy(getRetryPolicyBuilder(client).handle(RetryException.class).build()))
-                    .withDecorator(composite(decorators));
-        }
     }
 
     private static RetryPolicyBuilder<ClientHttpResponse> getRetryPolicyBuilder(Client client) {
@@ -149,38 +170,6 @@ final class FailsafePluginFactory {
 
         policyBuilder.withDelayFn(delayFunction());
         return policyBuilder;
-    }
-
-    public static Plugin createBackupRequestPlugin(
-            final Client client,
-            final List<TaskDecorator> decorators,
-            @Nullable final ExecutorService executorService) {
-
-        final TimeSpan delay = client.getBackupRequest().getDelay();
-
-        return new FailsafePlugin()
-                .withExecutor(executorService)
-                .withPolicy(RequestPolicies.of(
-                        new BackupRequest<>(delay.getAmount(), delay.getUnit()),
-                        new IdempotencyPredicate()))
-                .withDecorator(composite(decorators));
-    }
-
-    public static Plugin createTimeoutPlugin(
-            final Client client,
-            final List<TaskDecorator> decorators,
-            @Nullable final ExecutorService executorService) {
-
-        final Duration timeout = client.getTimeouts().getGlobal().toDuration();
-
-        return new FailsafePlugin()
-                .withExecutor(executorService)
-                .withPolicy(
-                        Timeout.<ClientHttpResponse>builder(timeout)
-                                .withInterrupt()
-                                .build()
-                )
-                .withDecorator(composite(decorators));
     }
 
     private static ContextualSupplier<ClientHttpResponse, Duration> delayFunction() {

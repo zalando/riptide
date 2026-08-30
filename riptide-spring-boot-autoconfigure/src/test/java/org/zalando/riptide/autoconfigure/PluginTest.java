@@ -88,8 +88,7 @@ final class PluginTest {
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
-                instanceOf(FailsafePlugin.class), // backup requests
-                instanceOf(FailsafePlugin.class)))); // timeouts
+                instanceOf(FailsafePlugin.class)))); // consolidated failsafe (backup-request + timeouts)
     }
 
     @Test
