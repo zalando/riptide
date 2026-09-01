@@ -10,6 +10,7 @@ import org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 import java.nio.file.Paths;
 
 import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasToString;
 import static org.hamcrest.Matchers.is;
@@ -174,4 +175,19 @@ final class DefaultingTest {
         assertThat(actual.getHeuristic().getDefaultLifeTime(), hasToString("1 hours"));
     }
 
+    @Test
+    void shouldPreferClientValidateAfterInactivityOverDefault() {
+        final RiptideProperties properties = new RiptideProperties();
+        properties.getDefaults().getConnections().setValidateAfterInactivity(TimeSpan.of(2, SECONDS));
+        final Connections connections = new Connections();
+        connections.setValidateAfterInactivity(TimeSpan.of(10, SECONDS));
+        final Client client = new Client();
+        client.setConnections(connections);
+        properties.getClients().put("example", client);
+
+        final RiptideProperties actual = Defaulting.withDefaults(properties);
+
+        assertThat(actual.getClients().get("example").getConnections().getValidateAfterInactivity(),
+                hasToString("10 seconds"));
+    }
 }

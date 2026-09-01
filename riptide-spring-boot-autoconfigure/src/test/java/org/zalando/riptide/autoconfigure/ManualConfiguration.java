@@ -206,6 +206,7 @@ public class ManualConfiguration {
                                     .setConnectTimeout(5, SECONDS)
                                     .setSocketTimeout(5, SECONDS)
                                     .setTimeToLive(30, SECONDS)
+                                    .setValidateAfterInactivity(2, SECONDS)
                                     .build())
                             .setMaxConnPerRoute(2)
                             .setMaxConnTotal(20)

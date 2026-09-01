@@ -5,6 +5,7 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.function.Resolver;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
         "riptide.clients.example.connections.connect-timeout: 12 minutes",
         "riptide.clients.example.connections.socket-timeout: 34 hours",
         "riptide.clients.example.connections.time-to-live: 1 day",
+        "riptide.clients.example.connections.validate-after-inactivity: 7 seconds",
         "riptide.clients.example.connections.max-per-route: 24",
         "riptide.clients.example.connections.max-total: 24",
 })
@@ -67,7 +69,7 @@ final class ClientConfigurationTest {
     }
 
     @Test
-    void shouldApplyTimeouts() throws NoSuchFieldException, IllegalAccessException {
+    void shouldConfigureExampleClientConnectionSettings() throws NoSuchFieldException, IllegalAccessException {
         Field connManagerField = exampleHttpClient.getClass().getDeclaredField("connManager");
         connManagerField.setAccessible(true);
         PoolingHttpClientConnectionManager connManager =
@@ -84,6 +86,8 @@ final class ClientConfigurationTest {
 
         assertThat(connectionConfig.getSocketTimeout(), is(Timeout.of(34, TimeUnit.HOURS)));
         assertThat(connectionConfig.getConnectTimeout(), is(Timeout.of(12, TimeUnit.MINUTES)));
-    }
 
+        assertThat(connectionConfig.getTimeToLive(), is(TimeValue.of(1, TimeUnit.DAYS)));
+        assertThat(connectionConfig.getValidateAfterInactivity(), is(TimeValue.of(7, TimeUnit.SECONDS)));
+    }
 }
