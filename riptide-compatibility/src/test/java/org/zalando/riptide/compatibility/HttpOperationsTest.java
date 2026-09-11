@@ -23,6 +23,7 @@ import tools.jackson.databind.json.JsonMapper;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
@@ -305,6 +306,44 @@ final class HttpOperationsTest {
 
         var recordedRequest = getRecordedRequest(server);
         verifyRequest(recordedRequest, "/departments/1/users", POST.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+    }
+
+    @Test
+    void shouldExchangeUriTemplate() {
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}"));
+        final User requestBody = new User("D. Fault", "1984-09-13");
+        final RequestEntity<User> request = RequestEntity.put("/departments/{id}/users", 1)
+                .header("Test", "true")
+                .body(requestBody);
+
+        final User responseBody = new HttpOperations(http).exchange(request, User.class).getBody();
+
+        assertEquals(requestBody, responseBody);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users", PUT.toString());
+        verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
+        assertEquals("true", recordedRequest.getHeaders().get("Test"));
+    }
+
+    @Test
+    void shouldExchangeUriTemplateWithNamedVariables() {
+        server.enqueue(jsonMockResponse("{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}"));
+        final User requestBody = new User("D. Fault", "1984-09-13");
+        final Map<String, Integer> variables = new LinkedHashMap<>();
+        variables.put("userId", 2);
+        variables.put("departmentId", 1);
+        final RequestEntity<User> request = RequestEntity
+                .method(PUT, "/departments/{departmentId}/users/{userId}", variables)
+                .body(requestBody);
+
+        final User responseBody = new HttpOperations(http).exchange(request, User.class).getBody();
+
+        assertEquals(requestBody, responseBody);
+
+        var recordedRequest = getRecordedRequest(server);
+        verifyRequest(recordedRequest, "/departments/1/users/2", PUT.toString());
         verifyRequestBody(recordedRequest, "{\"name\":\"D. Fault\",\"birthday\":\"1984-09-13\"}");
     }
 

@@ -301,6 +301,15 @@ public final class HttpOperations implements RestOperations {
         final HttpMethod method = entity.getMethod();
         Assert.notNull(method, "HttpMethod is required");
         @SuppressWarnings("unchecked") final TypeToken<T> type = (TypeToken<T>) TypeToken.of(responseType.getType());
+
+        if (entity instanceof RequestEntity.UriTemplateRequestEntity<?> templateEntity) {
+            final String template = templateEntity.getUriTemplate();
+            final Object[] variables = templateEntity.getVars();
+
+            return exchange(template, method, entity, type, variables == null ?
+                    extract(template, templateEntity.getVarsMap()) : variables);
+        }
+
         return exchange(entity.getUrl(), method, entity, type);
     }
 
