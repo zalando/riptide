@@ -27,17 +27,12 @@ riptide.clients:
       enabled: true
       fixed-delay: 50 milliseconds
       max-retries: 5
-      threads:
-        max-size: 10
-        min-size: 2
-        enabled: true
-        keep-alive: 5 minutes
-        queue-size: 10
     circuit-breaker:
       enabled: true
       failure-threshold: 3 out of 5
       delay: 30 seconds
       success-threshold: 5 out of 5
+    failsafe:
       threads:
         max-size: 10
         min-size: 2
@@ -298,36 +293,19 @@ riptide:
         max-retries: 5
         max-duration: 2 seconds
         jitter: 25 milliseconds
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       circuit-breaker:
         enabled: true
         failure-threshold: 3 out of 5
         failure-rate-threshold: 3 out of 5 in 5 seconds
         delay: 30 seconds
         success-threshold: 5 out of 5
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       backup-request:
         enabled: true
         delay: 75 milliseconds
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       timeouts:
         enabled: true
         global: 500 milliseconds
+      failsafe:
         threads:
           max-size: 10
           min-size: 2
@@ -413,6 +391,13 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── max-per-route`             | `int`             | `20`                                                                                                                                                                                                          |
 | `│   │   ├── max-total`                 | `int`             | `20` (or at least `max-per-route`); a warning is logged if the configured value is overridden                                                                                                                 |
 | `│   │   └── mode`                      | `String`          | `streaming` (alternative is `buffering`)                                                                                                                                                                      |
+| `│   ├── failsafe`                      |                   | shared thread pool for `retry`/`circuit-breaker`/`backup-request`/`timeouts`; see [custom executor](#customization)                                                                                          |
+| `│   │   └── threads`                   |                   |                                                                                                                                                                                                               |
+| `│   │       ├── enabled`               | `boolean`         | `false`                                                                                                                                                                                                       |
+| `│   │       ├── min-size`              | `int`             | `1`                                                                                                                                                                                                           |
+| `│   │       ├── max-size`              | `int`             | `1`                                                                                                                                                                                                           |
+| `│   │       ├── keep-alive`            | `TimeSpan`        | `1 minute`                                                                                                                                                                                                    |
+| `│   │       └── queue-size`            | `int`             | `0` (no queue)                                                                                                                                                                                                |
 | `│   ├── logging`                       |                   |                                                                                                                                                                                                               |
 | `│   │   └── enabled`                   | `boolean`         | `false`                                                                                                                                                                                                       |
 | `│   ├── metrics`                       |                   |                                                                                                                                                                                                               |
@@ -501,6 +486,13 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── time-to-live`          | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
 | `        │   ├── max-per-route`         | `int`             | see `defaults`                                                                                                                                                                                                |
 | `        │   └── max-total`             | `int`             | see `defaults`                                                                                                                                                                                                |
+| `        ├── failsafe`                  |                   | shared thread pool for `retry`/`circuit-breaker`/`backup-request`/`timeouts`                                                                                                                                 |
+| `        │   └── threads`               |                   |                                                                                                                                                                                                               |
+| `        │       ├── enabled`           | `boolean`         | see `defaults`                                                                                                                                                                                                |
+| `        │       ├── min-size`          | `int`             | see `defaults`                                                                                                                                                                                                |
+| `        │       ├── max-size`          | `int`             | see `defaults`                                                                                                                                                                                                |
+| `        │       ├── keep-alive`        | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
+| `        │       └── queue-size`        | `int`             | see `defaults`                                                                                                                                                                                                |
 | `        ├── logging`                   |                   |                                                                                                                                                                                                               |
 | `        │   └── enabled`               | `boolean`         | see `defaults`                                                                                                                                                                                                |
 | `        ├── metrics`                   |                   |                                                                                                                                                                                                               |
@@ -636,7 +628,7 @@ public ClientHttpMessageConverters exampleHttpMessageConverters() {
 
 The following code can be used if you cannot use your client name in the method name (e.g. your client name is `my-client`):
 ```java
-@Bean(name = "my-clientCircuitBreakerExecutorService")
+@Bean(name = "my-clientHttpMessageConverters")
 public ClientHttpMessageConverters httpMessageConverters() {
     return new ClientHttpMessageConverters(singletonList(new Jaxb2RootElementHttpMessageConverter()));
 }
@@ -664,15 +656,19 @@ The following table shows all beans with their respective name (for the `example
 | `exampleFaultClassifier`               | `FaultClassifier`                             |
 | `exampleCircuitBreakerListener`        | `CircuitBreakerListener`                      |
 | `exampleAuthorizationProvider`         | `AuthorizationProvider`                       |
-| `exampleRetryPolicyExecutorService`    | `ExecutorService`                             |
-| `exampleCircuitBreakerExecutorService` | `ExecutorService`                             |
-| `exampleBackupRequestExecutorService`  | `ExecutorService`                             |
-| `exampleTimeoutExecutorService`        | `ExecutorService`                             |
+| `exampleFailsafeExecutorService`        | `ExecutorService` (shared by retry/circuit-breaker/backup-request/timeouts, only if `failsafe.threads.enabled`) |
 
 If you override a bean then all of its dependencies (see the [graph](#customization)), will **not** be registered,
 unless required by some other bean.
 
-Riptide uses Failsafe underneath to manage resiliency flows, and Failsafe supports custom thread pool executors. For more details, refer to the [riptide-failsafe](https://github.com/zalando/riptide/tree/main/riptide-failsafe#custom-executor) documentation. To configure a custom thread pool executor for retry, circuit breaker, backup requests, and timeout features, follow the configuration steps below.
+Riptide uses Failsafe underneath to manage resiliency flows. `retry`, `circuit-breaker`, `backup-request` and
+`timeouts` are merged into a single `FailsafePlugin` per client and share one thread pool executor, configured via
+`failsafe.threads`. For more details, refer to the [riptide-failsafe](https://github.com/zalando/riptide/tree/main/riptide-failsafe#custom-executor) documentation.
+
+> The previous per-policy `retry.threads`/`circuit-breaker.threads`/`backup-request.threads`/`timeouts.threads`
+> settings are no longer supported. Configuring any of them now throws a `LegacyFailsafeThreadsException` at
+> startup; migrate to `failsafe.threads` below.
+
 ```yaml
       retry:
         enabled: true
@@ -680,36 +676,19 @@ Riptide uses Failsafe underneath to manage resiliency flows, and Failsafe suppor
         max-retries: 5
         max-duration: 2 seconds
         jitter: 25 milliseconds
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       circuit-breaker:
         enabled: true
         failure-threshold: 3 out of 5
         failure-rate-threshold: 3 out of 5 in 5 seconds
         delay: 30 seconds
         success-threshold: 5 out of 5
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       backup-request:
         enabled: true
         delay: 75 milliseconds
-        threads:
-          max-size: 10
-          min-size: 2
-          enabled: true
-          keep-alive: 5 minutes
-          queue-size: 10
       timeouts:
         enabled: true
         global: 500 milliseconds
+      failsafe:
         threads:
           max-size: 10
           min-size: 2

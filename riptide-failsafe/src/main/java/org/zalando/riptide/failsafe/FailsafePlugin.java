@@ -52,6 +52,10 @@ public final class FailsafePlugin implements Plugin {
         return new FailsafePlugin(policies.append(policy), decorators, executorService);
     }
 
+    public FailsafePlugin withPolicies(final List<RequestPolicy> requestPolicies) {
+        return new FailsafePlugin(policies.concat(requestPolicies), decorators, executorService);
+    }
+
     public FailsafePlugin withExecutor(@Nullable final ExecutorService executorService) {
         if (executorService instanceof ThreadPoolExecutor
                 && ((ThreadPoolExecutor) executorService).getCorePoolSize() == 1) {

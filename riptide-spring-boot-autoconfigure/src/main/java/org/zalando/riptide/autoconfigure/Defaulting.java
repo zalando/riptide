@@ -39,6 +39,7 @@ import static org.zalando.riptide.autoconfigure.RiptideProperties.BackupRequest;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.CircuitBreaker;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Client;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Defaults;
+import static org.zalando.riptide.autoconfigure.RiptideProperties.Failsafe;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Retry;
 import static org.zalando.riptide.autoconfigure.RiptideProperties.Threads;
 
@@ -74,6 +75,7 @@ final class Defaulting {
                 defaults.getCircuitBreaker(),
                 defaults.getBackupRequest(),
                 defaults.getTimeouts(),
+                defaults.getFailsafe(),
                 defaults.getRequestCompression(),
                 defaults.getCertificatePinning(),
                 defaults.getCaching(),
@@ -134,6 +136,7 @@ final class Defaulting {
                 merge(base.getCircuitBreaker(), defaults.getCircuitBreaker(), Defaulting::merge),
                 merge(base.getBackupRequest(), defaults.getBackupRequest(), Defaulting::merge),
                 merge(base.getTimeouts(), defaults.getTimeouts(), Defaulting::merge),
+                merge(base.getFailsafe(), defaults.getFailsafe(), Defaulting::merge),
                 merge(base.getRequestCompression(), defaults.getRequestCompression(), Defaulting::merge),
                 merge(base.getCertificatePinning(), defaults.getCertificatePinning(), Defaulting::merge),
                 merge(base.getCaching(), defaults.getCaching(), Defaulting::merge),
@@ -269,6 +272,12 @@ final class Defaulting {
         return new Timeouts(
                 either(base.getEnabled(), defaults.getEnabled()),
                 either(base.getGlobal(), defaults.getGlobal()),
+                either(base.getThreads(), defaults.getThreads())
+        );
+    }
+
+    private static Failsafe merge(final Failsafe base, final Failsafe defaults) {
+        return new Failsafe(
                 either(base.getThreads(), defaults.getThreads())
         );
     }

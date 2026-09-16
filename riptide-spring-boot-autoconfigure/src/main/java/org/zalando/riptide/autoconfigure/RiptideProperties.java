@@ -109,6 +109,9 @@ public final class RiptideProperties {
         private Timeouts timeouts = new Timeouts(false, null, null);
 
         @NestedConfigurationProperty
+        private Failsafe failsafe = new Failsafe(new Threads(false, null, null, null, null));
+
+        @NestedConfigurationProperty
         private RequestCompression requestCompression = new RequestCompression(false);
 
         @NestedConfigurationProperty
@@ -195,6 +198,9 @@ public final class RiptideProperties {
 
         @NestedConfigurationProperty
         private Timeouts timeouts;
+
+        @NestedConfigurationProperty
+        private Failsafe failsafe;
 
         @NestedConfigurationProperty
         private RequestCompression requestCompression;
@@ -306,6 +312,13 @@ public final class RiptideProperties {
         private TimeSpan maxDuration;
         private Double jitterFactor;
         private TimeSpan jitter;
+
+        /**
+         * @deprecated no longer supported; configure {@code riptide.clients.<id>.failsafe.threads}
+         * instead. Setting this field now throws {@link LegacyFailsafeThreadsException} at
+         * startup.
+         */
+        @Deprecated
         private Threads threads;
 
         @Getter
@@ -330,6 +343,13 @@ public final class RiptideProperties {
         private RatioInTimeSpan failureRateThreshold;
         private TimeSpan delay;
         private Ratio successThreshold;
+
+        /**
+         * @deprecated no longer supported; configure {@code riptide.clients.<id>.failsafe.threads}
+         * instead. Setting this field now throws {@link LegacyFailsafeThreadsException} at
+         * startup.
+         */
+        @Deprecated
         private Threads threads;
     }
 
@@ -340,6 +360,13 @@ public final class RiptideProperties {
     public static final class BackupRequest {
         private Boolean enabled;
         private TimeSpan delay;
+
+        /**
+         * @deprecated no longer supported; configure {@code riptide.clients.<id>.failsafe.threads}
+         * instead. Setting this field now throws {@link LegacyFailsafeThreadsException} at
+         * startup.
+         */
+        @Deprecated
         private Threads threads;
     }
 
@@ -350,6 +377,21 @@ public final class RiptideProperties {
     public static final class Timeouts {
         private Boolean enabled;
         private TimeSpan global;
+
+        /**
+         * @deprecated no longer supported; configure {@code riptide.clients.<id>.failsafe.threads}
+         * instead. Setting this field now throws {@link LegacyFailsafeThreadsException} at
+         * startup.
+         */
+        @Deprecated
+        private Threads threads;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static final class Failsafe {
         private Threads threads;
     }
 

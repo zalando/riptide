@@ -3,7 +3,7 @@ package org.zalando.riptide.autoconfigure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.failsafe.CircuitBreaker;
-import dev.failsafe.Timeout;
+import dev.failsafe.Policy;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
@@ -36,7 +36,6 @@ import org.zalando.riptide.chaos.LatencyInjection;
 import org.zalando.riptide.chaos.Probability;
 import org.zalando.riptide.compatibility.HttpOperations;
 import org.zalando.riptide.compression.RequestCompressionPlugin;
-import org.zalando.riptide.failsafe.BackupRequest;
 import org.zalando.riptide.failsafe.CircuitBreakerListener;
 import org.zalando.riptide.failsafe.FailsafePlugin;
 import org.zalando.riptide.httpclient.ApacheClientHttpRequestFactory;
@@ -250,11 +249,8 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerLogbookPlugin(id, client),
                 registerOpenTracingPlugin(id, client),
                 registerOpenTelemetryPlugin(id, client),
-                registerCircuitBreakerFailsafePlugin(id, client),
-                registerRetryPolicyFailsafePlugin(id, client),
                 registerAuthorizationPlugin(id, client),
-                registerBackupRequestFailsafePlugin(id, client),
-                registerTimeoutFailsafePlugin(id, client),
+                registerFailsafePluginWithConfiguredPolicies(id, client),
                 registerOriginalStackTracePlugin(id, client),
                 registerCustomPlugin(id));
 
@@ -408,38 +404,6 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerCircuitBreakerFailsafePlugin(final String id, final Client client) {
-        if (client.getCircuitBreaker().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(name(id, CircuitBreaker.class, FailsafePlugin.class),
-                    () -> {
-                        log.debug("Client [{}]: Registering [CircuitBreakerFailsafePlugin]", id);
-                        return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createCircuitBreakerPlugin")
-                                .addConstructorArgValue(registerCircuitBreaker(id, client))
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(createExecutor(id + "-circuit-breaker", "failsafe.circuitbreaker.executor", client, client.getCircuitBreaker().getThreads()));
-                    });
-            return Optional.of(pluginId);
-        }
-        return Optional.empty();
-    }
-
-    private Optional<String> registerRetryPolicyFailsafePlugin(final String id, final Client client) {
-        if (client.getRetry().getEnabled()) {
-
-            final String pluginId = registry.registerIfAbsent(name(id, "RetryPolicy", FailsafePlugin.class), () -> {
-                log.debug("Client [{}]: Registering [RetryPolicyFailsafePlugin]", id);
-                return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("createRetryFailsafePlugin")
-                        .addConstructorArgValue(client)
-                        .addConstructorArgValue(createTaskDecorators(id, client))
-                        .addConstructorArgValue(createExecutor(id + "-retry-policy", "failsafe.retry.executor", client, client.getRetry().getThreads()));
-            });
-            return Optional.of(pluginId);
-        }
-        return Optional.empty();
-    }
-
     private Optional<String> registerAuthorizationPlugin(final String id, final Client client) {
         if (client.getAuth().getEnabled()) {
             final String pluginId = registry.registerIfAbsent(id, AuthorizationPlugin.class, () -> {
@@ -452,35 +416,50 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerBackupRequestFailsafePlugin(final String id, final Client client) {
-        if (client.getBackupRequest().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(name(id, BackupRequest.class, FailsafePlugin.class),
-                    () -> {
-                        log.debug("Client [{}]: Registering [BackupRequestFailsafePlugin]", id);
-                        return genericBeanDefinition(FailsafePluginFactory.class)
-                                .setFactoryMethod("createBackupRequestPlugin")
-                                .addConstructorArgValue(client)
-                                .addConstructorArgValue(createTaskDecorators(id, client))
-                                .addConstructorArgValue(createExecutor(id + "-backup-request", "failsafe.backuprequest.executor", client, client.getBackupRequest().getThreads()));
-                    });
+    private Optional<String> registerFailsafePluginWithConfiguredPolicies(final String id, final Client client) {
+        if(client.getTimeouts().getEnabled() || client.getRetry().getEnabled() || client.getBackupRequest().getEnabled() || client.getCircuitBreaker().getEnabled()){
+            final Object executor = createExecutor(id + "-failsafe", "failsafe.executor", client,
+                    resolveFailsafeThreads(id, client));
+
+            final BeanMetadataElement circuitBreaker = client.getCircuitBreaker().getEnabled()
+                    ? registerCircuitBreaker(id, client)
+                    : null;
+
+            final String pluginId = registry.registerIfAbsent(name(id, Policy.class, FailsafePlugin.class), () -> {
+                log.debug("Client [{}]: Registering [FailsafePlugin]", id);
+                return genericBeanDefinition(FailsafePluginFactory.class)
+                        .setFactoryMethod("createFailsafePlugin")
+                        .addConstructorArgValue(client)
+                        .addConstructorArgValue(createTaskDecorators(id, client))
+                        .addConstructorArgValue(executor)
+                        .addConstructorArgValue(circuitBreaker);
+            });
             return Optional.of(pluginId);
         }
         return Optional.empty();
     }
 
-    private Optional<String> registerTimeoutFailsafePlugin(final String id, final Client client) {
-        if (client.getTimeouts().getEnabled()) {
-            final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
-                log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
-                return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("createTimeoutPlugin")
-                        .addConstructorArgValue(client)
-                        .addConstructorArgValue(createTaskDecorators(id, client))
-                        .addConstructorArgValue(createExecutor(id + "-timeout","failsafe.timeout.executor", client, client.getTimeouts().getThreads()));
-            });
-            return Optional.of(pluginId);
+    /**
+     * Resolves the single, shared thread pool configuration for a client's merged
+     * {@link FailsafePlugin}. The deprecated per-policy {@code *.threads} configs are no longer
+     * supported; using one throws {@link LegacyFailsafeThreadsException}.
+     */
+    @Nullable
+    private RiptideProperties.Threads resolveFailsafeThreads(final String id, final Client client) {
+        rejectLegacyThreads(id, "retry.threads", client.getRetry().getEnabled(), client.getRetry().getThreads());
+        rejectLegacyThreads(id, "circuit-breaker.threads", client.getCircuitBreaker().getEnabled(), client.getCircuitBreaker().getThreads());
+        rejectLegacyThreads(id, "backup-request.threads", client.getBackupRequest().getEnabled(), client.getBackupRequest().getThreads());
+        rejectLegacyThreads(id, "timeouts.threads", client.getTimeouts().getEnabled(), client.getTimeouts().getThreads());
+
+        final RiptideProperties.Threads failsafeThreads = client.getFailsafe().getThreads();
+        return failsafeThreads != null && failsafeThreads.getEnabled() ? failsafeThreads : null;
+    }
+
+    private static void rejectLegacyThreads(final String id, final String property,
+            final boolean policyEnabled, @Nullable final RiptideProperties.Threads threads) {
+        if (policyEnabled && threads != null && Boolean.TRUE.equals(threads.getEnabled())) {
+            throw new LegacyFailsafeThreadsException(id, property);
         }
-        return Optional.empty();
     }
 
     private Optional<String> registerOriginalStackTracePlugin(final String id, final Client client) {

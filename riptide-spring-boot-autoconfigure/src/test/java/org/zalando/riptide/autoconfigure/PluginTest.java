@@ -13,6 +13,7 @@ import org.zalando.riptide.Http;
 import org.zalando.riptide.OriginalStackTracePlugin;
 import org.zalando.riptide.Plugin;
 import org.zalando.riptide.failsafe.FailsafePlugin;
+import org.zalando.riptide.failsafe.RequestPolicy;
 import org.zalando.riptide.logbook.LogbookPlugin;
 import org.zalando.riptide.micrometer.MicrometerPlugin;
 import org.zalando.riptide.opentelemetry.OpenTelemetryPlugin;
@@ -25,7 +26,9 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 @SpringBootTest(classes = PluginTest.TestConfiguration.class, webEnvironment = NONE)
@@ -83,13 +86,27 @@ final class PluginTest {
 
     @Test
     void shouldUseBackupRequestPlugin() throws Exception {
-        assertThat(getPlugins(baz), contains(asList(
+        final List<Plugin> plugins = getPlugins(baz);
+        assertThat(plugins, contains(asList(
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(Plugin.class), // internal plugin
                 instanceOf(MicrometerPlugin.class),
-                instanceOf(FailsafePlugin.class), // backup requests
-                instanceOf(FailsafePlugin.class)))); // timeouts
+                instanceOf(FailsafePlugin.class))));
+
+        final List<FailsafePlugin> failsafePlugins = plugins.stream()
+                .filter(plugin -> plugin instanceof FailsafePlugin)
+                .map(plugin -> (FailsafePlugin) plugin)
+                .toList();
+
+        assertThat("There should be exactly one FailsafePlugin", failsafePlugins, hasSize(1));
+
+        final List<RequestPolicy> requestPolicies = getRequestPolicies(failsafePlugins.get(0));
+        assertThat(requestPolicies, contains(asList(
+                instanceOf(RequestPolicy.class),            // DefaultRequestPolicy wrapping Timeout
+                instanceOf(RequestPolicy.class))));         // ConditionalRequestPolicy wrapping BackupRequest
+        assertThat(requestPolicies.get(0).getClass().getSimpleName(), is("DefaultRequestPolicy"));
+        assertThat(requestPolicies.get(1).getClass().getSimpleName(), is("ConditionalRequestPolicy"));
     }
 
     @Test
@@ -107,6 +124,13 @@ final class PluginTest {
     @Test
     void shouldUseOpenTelemetryPlugin() throws Exception {
         assertThat(getPlugins(github), hasItem(instanceOf(OpenTelemetryPlugin.class)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<RequestPolicy> getRequestPolicies(final FailsafePlugin failsafePlugin) throws Exception {
+        final Field field = FailsafePlugin.class.getDeclaredField("policies");
+        field.setAccessible(true);
+        return (List<RequestPolicy>) field.get(failsafePlugin);
     }
 
     private List<Plugin> getPlugins(final Http http) throws Exception {
