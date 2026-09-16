@@ -22,6 +22,7 @@ riptide.clients:
       connect-timeout: 150 milliseconds
       socket-timeout: 100 milliseconds
       time-to-live: 30 seconds
+      validate-after-inactivity: 2 seconds
       max-per-route: 16
     retry:
       enabled: true
@@ -277,6 +278,7 @@ riptide:
         connect-timeout: 150 milliseconds
         socket-timeout: 100 milliseconds
         time-to-live: 30 seconds
+        validate-after-inactivity: 2 seconds
         max-per-route: 16
       threads:
         min-size: 4
@@ -388,6 +390,7 @@ For a complete overview of available properties, they type and default value ple
 | `│   │   ├── connect-timeout`           | `TimeSpan`        | `5 seconds`                                                                                                                                                                                                   |
 | `│   │   ├── socket-timeout`            | `TimeSpan`        | `5 seconds`                                                                                                                                                                                                   |
 | `│   │   ├── time-to-live`              | `TimeSpan`        | `30 seconds`                                                                                                                                                                                                  |
+| `│   │   ├── validate-after-inactivity` | `TimeSpan`        | `2 seconds`                                                                                                                                                                                                   |
 | `│   │   ├── max-per-route`             | `int`             | `20`                                                                                                                                                                                                          |
 | `│   │   ├── max-total`                 | `int`             | `20` (or at least `max-per-route`); a warning is logged if the configured value is overridden                                                                                                                 |
 | `│   │   └── mode`                      | `String`          | `streaming` (alternative is `buffering`)                                                                                                                                                                      |
@@ -484,6 +487,7 @@ For a complete overview of available properties, they type and default value ple
 | `        │   ├── connect-timeout`       | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
 | `        │   ├── socket-timeout`        | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
 | `        │   ├── time-to-live`          | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
+| `        │   ├── validate-after-inactivity` | `TimeSpan`        | see `defaults`                                                                                                                                                                                                |
 | `        │   ├── max-per-route`         | `int`             | see `defaults`                                                                                                                                                                                                |
 | `        │   └── max-total`             | `int`             | see `defaults`                                                                                                                                                                                                |
 | `        ├── failsafe`                  |                   | shared thread pool for `retry`/`circuit-breaker`/`backup-request`/`timeouts`                                                                                                                                 |
@@ -750,4 +754,4 @@ more details, check the [contribution guidelines](CONTRIBUTING.md).
 ## Alternatives
 
 In case you don't want to use this Spring Boot Starter you always have the possibility to wire everything up by hand.
-Feel free to take a look at [this example](src/test/java/org/zalando/riptide/spring/ManualConfiguration.java).
+Feel free to take a look at [this example](../riptide-spring-boot-autoconfigure/src/test/java/org/zalando/riptide/spring/ManualConfiguration.java).

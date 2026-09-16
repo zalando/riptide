@@ -62,6 +62,7 @@ public final class RiptideProperties {
                 TimeSpan.of(5, SECONDS),
                 TimeSpan.of(5, SECONDS),
                 TimeSpan.of(30, SECONDS),
+                TimeSpan.of(2, SECONDS),
                 20,
                 20,
                 Mode.STREAMING
@@ -237,6 +238,7 @@ public final class RiptideProperties {
         private TimeSpan connectTimeout;
         private TimeSpan socketTimeout;
         private TimeSpan timeToLive;
+        private TimeSpan validateAfterInactivity;
         private Integer maxPerRoute;
         private Integer maxTotal;
         private Mode mode;

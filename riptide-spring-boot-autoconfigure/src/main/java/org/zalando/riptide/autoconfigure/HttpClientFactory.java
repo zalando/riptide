@@ -97,6 +97,8 @@ final class HttpClientFactory {
         final ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(connections.getConnectTimeout().toTimeout())
                 .setSocketTimeout(connections.getSocketTimeout().toTimeout())
+                .setTimeToLive(connections.getTimeToLive().toTimeValue())
+                .setValidateAfterInactivity(connections.getValidateAfterInactivity().toTimeValue())
                 .build();
 
         connectionManager.setDefaultConnectionConfig(connectionConfig);
