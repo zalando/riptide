@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.zalando</groupId>
         <artifactId>riptide-parent</artifactId>
-        <version>5.1.1-SNAPSHOT</version>
+        <version>5.1.3-SNAPSHOT</version>
         <relativePath>../riptide-parent</relativePath>
     </parent>
 
