@@ -75,7 +75,7 @@ final class SeriesDispatchTest {
         unit.get(url)
                 .dispatch(series(),
                         on(SERVER_ERROR).call(response ->
-                                assertThat(response.getStatusCode().value(), is(599))),
+                                assertThat(HttpStatus.Series.valueOf(response.getStatusCode().value()), is(SERVER_ERROR))),
                         anySeries().call(response -> fail("Unexpected fallback route")))
                 .join();
     }
