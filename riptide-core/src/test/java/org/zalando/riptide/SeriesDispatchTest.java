@@ -1,5 +1,6 @@
 package org.zalando.riptide;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpStatus;
@@ -9,7 +10,9 @@ import java.net.URI;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withRawStatus;
 import static org.zalando.riptide.Bindings.anySeries;
@@ -43,6 +46,24 @@ final class SeriesDispatchTest {
         unit.get(url)
                 .dispatch(series(),
                         on(expected).call(response -> assertThat(HttpStatus.Series.valueOf(response.getStatusCode().value()), is(expected))),
+                        anySeries().call(response -> fail("Unexpected fallback route")))
+                .join();
+    }
+
+    @Test
+    void shouldDispatchInvalidServerErrorStatus() {
+        final MockSetup setup = new MockSetup();
+        final MockRestServiceServer server = setup.getServer();
+        final Http unit = setup.getHttp();
+
+        final URI url = URI.create("https://api.example.com");
+
+        server.expect(requestTo(url)).andRespond(withRawStatus(699));
+
+        unit.get(url)
+                .dispatch(series(),
+                        on(SERVER_ERROR).call(response ->
+                                assertThat(HttpStatus.Series.resolve(response.getStatusCode().value()), is(nullValue()))),
                         anySeries().call(response -> fail("Unexpected fallback route")))
                 .join();
     }
