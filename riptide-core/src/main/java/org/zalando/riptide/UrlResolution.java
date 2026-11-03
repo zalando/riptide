@@ -42,7 +42,7 @@ public enum UrlResolution {
             }
 
             return builder
-                    .replaceQuery(uri.getRawQuery())
+                    .query(uri.getRawQuery())
                     .build()
                     .toUri();
         }
