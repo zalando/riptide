@@ -33,6 +33,7 @@ class FlowIdSpanDecoratorTest {
             mockedBaggage.when(Baggage::current).thenReturn(baggage);
 
             decorator.onRequest(span, arguments);
+            decorator.decorateRequest(arguments);
 
             verify(span).setAttribute(ExtensionAttributes.FLOW_ID, FLOW_ID);
             verify(arguments).withHeader(FLOW_ID_HEADER, FLOW_ID);
@@ -49,6 +50,7 @@ class FlowIdSpanDecoratorTest {
             mockedBaggage.when(Baggage::current).thenReturn(baggage);
 
             decorator.onRequest(span, arguments);
+            decorator.decorateRequest(arguments);
 
             verify(span).setAttribute(ExtensionAttributes.FLOW_ID, FLOW_ID);
             verify(arguments, never()).withHeader(FLOW_ID_HEADER, FLOW_ID);
@@ -65,6 +67,7 @@ class FlowIdSpanDecoratorTest {
             mockedBaggage.when(Baggage::current).thenReturn(baggage);
 
             decorator.onRequest(span, arguments);
+            decorator.decorateRequest(arguments);
 
             verify(span, never()).setAttribute(anyString(), anyString());
             verify(arguments, never()).withHeader(anyString(), anyString());

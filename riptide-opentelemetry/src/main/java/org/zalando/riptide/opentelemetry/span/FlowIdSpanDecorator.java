@@ -18,14 +18,21 @@ public class FlowIdSpanDecorator implements SpanDecorator {
     private final boolean propagateFlowId;
 
     @Override
+    public RequestArguments decorateRequest(final RequestArguments arguments) {
+        if (!propagateFlowId) {
+            return arguments;
+        }
+
+        return Optional.ofNullable(Baggage.current().getEntryValue(FLOW_ID.getKey()))
+                .map(flowId -> arguments.withHeader(FLOW_ID_HEADER, flowId))
+                .orElse(arguments);
+    }
+
+    @Override
     public void onRequest(Span span, RequestArguments arguments) {
         Optional.ofNullable(Baggage.current().getEntryValue(FLOW_ID.getKey()))
             .ifPresent(flowId -> {
                 span.setAttribute(FLOW_ID, flowId);
-
-                if (propagateFlowId) {
-                    arguments.withHeader(FLOW_ID_HEADER, flowId);
-                }
             });
     }
 }
