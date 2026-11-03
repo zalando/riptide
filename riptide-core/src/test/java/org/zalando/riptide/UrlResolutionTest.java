@@ -16,21 +16,21 @@ final class UrlResolutionTest {
     static Stream<Arguments> appendCases() {
         return Stream.of(
                 Arguments.of(
-                        "https://example.com/orders?tenant=india&apiKey=abc123",
+                        "https://example.com/orders?tenant=merchant-x&apiKey=abc123",
                         "?page=2",
-                        "https://example.com/orders?tenant=india&apiKey=abc123&page=2"),
+                        "https://example.com/orders?tenant=merchant-x&apiKey=abc123&page=2"),
                 Arguments.of(
-                        "https://example.com/api?tenant=india",
+                        "https://example.com/api?tenant=merchant-x",
                         "orders?page=2",
-                        "https://example.com/api/orders?tenant=india&page=2"),
+                        "https://example.com/api/orders?tenant=merchant-x&page=2"),
                 Arguments.of(
                         "https://example.com/orders?tag=red&tag=blue",
                         "?page=2",
                         "https://example.com/orders?tag=red&tag=blue&page=2"),
                 Arguments.of(
-                        "https://example.com/orders?tenant=india",
+                        "https://example.com/orders?tenant=merchant-x",
                         "orders",
-                        "https://example.com/orders/orders?tenant=india"),
+                        "https://example.com/orders/orders?tenant=merchant-x"),
                 Arguments.of(
                         "https://example.com/orders",
                         "?page=2",
