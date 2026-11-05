@@ -275,7 +275,7 @@ class OpenTelemetryPluginTest {
     }
 
     @Test
-    void shouldPropagateFlowIdHeaderWhenEnabled() throws IOException {
+    void shouldUseBaggageFlowIdForFlowIdHeaderWhenAvailable() throws IOException {
         final RequestExecution execution = Mockito.mock(RequestExecution.class);
         final RequestArguments arguments = RequestArguments.create()
                 .withMethod(HttpMethod.GET)
@@ -285,7 +285,7 @@ class OpenTelemetryPluginTest {
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         final OpenTelemetryPlugin plugin = new OpenTelemetryPlugin(
-                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator(true));
+                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator());
         final Baggage baggage = Baggage.builder()
                 .put(ExtensionAttributes.FLOW_ID.getKey(), "flow-id-value")
                 .build();
@@ -300,10 +300,12 @@ class OpenTelemetryPluginTest {
 
         assertThat(forwardedArguments.getValue().getHeaders().get(FlowIdSpanDecorator.FLOW_ID_HEADER),
                 is(List.of("flow-id-value")));
+        assertThat(otelTesting.getSpans().get(0).getAttributes()
+                .get(ExtensionAttributes.FLOW_ID), is("flow-id-value"));
     }
 
     @Test
-    void shouldNotPropagateFlowIdHeaderWhenDisabled() throws IOException {
+    void shouldUseTraceIdForFlowIdHeaderWhenFlowIdIsAbsent() throws IOException {
         final RequestExecution execution = Mockito.mock(RequestExecution.class);
         final RequestArguments arguments = RequestArguments.create()
                 .withMethod(HttpMethod.GET)
@@ -313,35 +315,7 @@ class OpenTelemetryPluginTest {
                 .thenReturn(CompletableFuture.completedFuture(null));
 
         final OpenTelemetryPlugin plugin = new OpenTelemetryPlugin(
-                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator(false));
-        final Baggage baggage = Baggage.builder()
-                .put(ExtensionAttributes.FLOW_ID.getKey(), "flow-id-value")
-                .build();
-
-        try (final Scope ignored = baggage.storeInContext(Context.current()).makeCurrent()) {
-            plugin.aroundAsync(execution).execute(arguments).join();
-        }
-
-        final ArgumentCaptor<RequestArguments> forwardedArguments =
-                ArgumentCaptor.forClass(RequestArguments.class);
-        Mockito.verify(execution).execute(forwardedArguments.capture());
-
-        assertThat(forwardedArguments.getValue().getHeaders().get(FlowIdSpanDecorator.FLOW_ID_HEADER),
-                is(nullValue()));
-    }
-
-    @Test
-    void shouldNotPropagateFlowIdHeaderWhenFlowIdIsAbsent() throws IOException {
-        final RequestExecution execution = Mockito.mock(RequestExecution.class);
-        final RequestArguments arguments = RequestArguments.create()
-                .withMethod(HttpMethod.GET)
-                .withUri(URI.create("https://example.com"));
-
-        Mockito.when(execution.execute(Mockito.any()))
-                .thenReturn(CompletableFuture.completedFuture(null));
-
-        final OpenTelemetryPlugin plugin = new OpenTelemetryPlugin(
-                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator(true));
+                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator());
 
         plugin.aroundAsync(execution).execute(arguments).join();
 
@@ -349,8 +323,9 @@ class OpenTelemetryPluginTest {
                 ArgumentCaptor.forClass(RequestArguments.class);
         Mockito.verify(execution).execute(forwardedArguments.capture());
 
+        assertThat(otelTesting.getSpans(), hasSize(1));
         assertThat(forwardedArguments.getValue().getHeaders().get(FlowIdSpanDecorator.FLOW_ID_HEADER),
-                is(nullValue()));
+                is(List.of(otelTesting.getSpans().get(0).getTraceId())));
     }
 
     @Test

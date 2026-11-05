@@ -7,7 +7,7 @@ import org.zalando.riptide.RequestArguments;
 import java.io.IOException;
 
 public interface SpanDecorator {
-    default RequestArguments decorateRequest(final RequestArguments arguments) {
+    default RequestArguments decorateRequest(final Span span, final RequestArguments arguments) {
         return arguments;
     }
 

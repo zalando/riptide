@@ -85,7 +85,7 @@ public class OpenTelemetryPlugin implements Plugin {
                                 .setParent(context)
                                 .startSpan();
 
-        final RequestArguments decoratedArguments = spanDecorator.decorateRequest(arguments);
+        final RequestArguments decoratedArguments = spanDecorator.decorateRequest(span, arguments);
         spanDecorator.onRequest(span, decoratedArguments);
 
         final Map<String, String> headers = new HashMap<>();

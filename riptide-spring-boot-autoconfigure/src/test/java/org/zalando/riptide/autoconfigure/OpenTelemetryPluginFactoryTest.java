@@ -1,5 +1,6 @@
 package org.zalando.riptide.autoconfigure;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.util.ReflectionUtils;
@@ -21,12 +22,10 @@ public class OpenTelemetryPluginFactoryTest {
 
     private static final Field SPAN_DECORATOR_FIELD = ReflectionUtils.findField(OpenTelemetryPlugin.class, "spanDecorator");
     private static final Field DECORATORS_FIELD = ReflectionUtils.findField(CompositeSpanDecorator.class, "decorators");
-    private static final Field PROPAGATE_FLOW_ID_FIELD = ReflectionUtils.findField(FlowIdSpanDecorator.class, "propagateFlowId");
 
     static {
         SPAN_DECORATOR_FIELD.setAccessible(true);
         DECORATORS_FIELD.setAccessible(true);
-        PROPAGATE_FLOW_ID_FIELD.setAccessible(true);
     }
 
     @ParameterizedTest
@@ -38,7 +37,7 @@ public class OpenTelemetryPluginFactoryTest {
         final boolean isRetryEnabled,
         final String message
     ) throws IllegalAccessException {
-        final Plugin plugin = OpenTelemetryPluginFactory.create(createTestClient(isRetryEnabled, false));
+        final Plugin plugin = OpenTelemetryPluginFactory.create(createTestClient(isRetryEnabled));
 
         assertThat(plugin)
             .isNotNull()
@@ -54,18 +53,9 @@ public class OpenTelemetryPluginFactoryTest {
             .withFailMessage(message)
             .isEqualTo(isRetryEnabled);
     }
-
-
-    @ParameterizedTest
-    @CsvSource({
-        "true, FlowIdSpanDecorator should be added when client telemetry is enabled",
-        "false, FlowIdSpanDecorator should be added when client telemetry is disabled"
-    })
-    void shouldAlwaysAddFlowIdSpanDecorator(
-        final boolean isFlowIdPropagationEnabled,
-        final String message
-    ) throws IllegalAccessException {
-        final Plugin plugin = OpenTelemetryPluginFactory.create(createTestClient(false, isFlowIdPropagationEnabled));
+    @Test
+    void shouldAlwaysAddFlowIdSpanDecorator() throws IllegalAccessException {
+        final Plugin plugin = OpenTelemetryPluginFactory.create(createTestClient(false));
 
         assertThat(plugin)
             .isNotNull()
@@ -78,39 +68,7 @@ public class OpenTelemetryPluginFactoryTest {
 
         assertThat(innerCompositeDecorator).isPresent();
         assertThat(getDecorator(innerCompositeDecorator.get(), FlowIdSpanDecorator.class))
-            .withFailMessage(message)
             .isPresent();
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "true, flow id propagation should be enabled",
-        "false, flow id propagation should be enabled be disabled"
-    })
-    void shouldAddFlowIdHeaderWhenPropagateFlowIdEnabled(
-        final boolean isFlowIdPropagationEnabled,
-        final String message
-    ) throws IllegalAccessException {
-        final Plugin plugin = OpenTelemetryPluginFactory.create(createTestClient(false, isFlowIdPropagationEnabled));
-
-        assertThat(plugin)
-            .isNotNull()
-            .isInstanceOf(OpenTelemetryPlugin.class);
-
-        final Optional<CompositeSpanDecorator> innerCompositeDecorator = getDecorator(
-            (SpanDecorator) SPAN_DECORATOR_FIELD.get(plugin),
-            CompositeSpanDecorator.class
-        );
-
-        assertThat(innerCompositeDecorator).isPresent();
-
-        final Optional<FlowIdSpanDecorator> decoratorCandidate = getDecorator(innerCompositeDecorator.get(), FlowIdSpanDecorator.class);
-        assertThat(decoratorCandidate).isNotEmpty();
-
-        final FlowIdSpanDecorator decorator = decoratorCandidate.get();
-        assertThat(PROPAGATE_FLOW_ID_FIELD.getBoolean(decorator))
-            .withFailMessage(message)
-            .isEqualTo(isFlowIdPropagationEnabled);
     }
 
     private static <T extends SpanDecorator> Optional<T> getDecorator(
@@ -123,12 +81,10 @@ public class OpenTelemetryPluginFactoryTest {
             .findFirst();
     }
 
-    private static RiptideProperties.Client createTestClient(final boolean retryEnabled,
-                                                             final boolean propagateFlowId) {
+    private static RiptideProperties.Client createTestClient(final boolean retryEnabled) {
         final RiptideProperties.Client client = new RiptideProperties.Client();
         final RiptideProperties.Telemetry telemetry = new RiptideProperties.Telemetry();
         telemetry.setAttributes(Map.of("service.name", "test-service"));
-        telemetry.setPropagateFlowId(propagateFlowId);
         client.setTelemetry(telemetry);
 
         final RiptideProperties.Retry retry = new RiptideProperties.Retry();

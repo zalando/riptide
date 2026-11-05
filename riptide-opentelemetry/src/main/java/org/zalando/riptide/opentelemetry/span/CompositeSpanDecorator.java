@@ -17,10 +17,10 @@ public class CompositeSpanDecorator implements SpanDecorator {
     private final Iterable<SpanDecorator> decorators;
 
     @Override
-    public RequestArguments decorateRequest(final RequestArguments arguments) {
+    public RequestArguments decorateRequest(final Span span, final RequestArguments arguments) {
         RequestArguments decoratedArguments = arguments;
         for (final SpanDecorator decorator : decorators) {
-            decoratedArguments = decorator.decorateRequest(decoratedArguments);
+            decoratedArguments = decorator.decorateRequest(span, decoratedArguments);
         }
         return decoratedArguments;
     }
