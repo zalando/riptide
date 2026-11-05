@@ -5,27 +5,32 @@ import io.opentelemetry.api.trace.Span;
 import org.zalando.riptide.RequestArguments;
 
 import java.util.Optional;
-
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 
 import static org.zalando.riptide.opentelemetry.span.ExtensionAttributes.FLOW_ID;
 
-@RequiredArgsConstructor
 public class FlowIdSpanDecorator implements SpanDecorator {
 
     public static final String FLOW_ID_HEADER = "X-Flow-ID";
 
-    private final boolean propagateFlowId;
+    @Override
+    public RequestArguments decorateRequest(final Span span, final RequestArguments arguments) {
+        return arguments.withHeader(FLOW_ID_HEADER, flowId(span));
+    }
 
     @Override
-    public void onRequest(Span span, RequestArguments arguments) {
-        Optional.ofNullable(Baggage.current().getEntryValue(FLOW_ID.getKey()))
-            .ifPresent(flowId -> {
-                span.setAttribute(FLOW_ID, flowId);
+    public void onRequest(final Span span, final RequestArguments arguments) {
+        // withHeader appends the Flow ID, so the last value is the one sent to the downstream service.
+        arguments.getHeaders().getOrDefault(FLOW_ID_HEADER, java.util.List.of()).stream()
+                .reduce((first, second) -> second)
+                .ifPresent(flowId -> span.setAttribute(FLOW_ID, flowId));
+    }
 
-                if (propagateFlowId) {
-                    arguments.withHeader(FLOW_ID_HEADER, flowId);
-                }
-            });
+    private String flowId(final Span span) {
+        return Optional.ofNullable(Baggage.current().getEntryValue(FLOW_ID.getKey()))
+                .orElseGet(() -> span.getSpanContext().isValid()
+                        ? span.getSpanContext().getTraceId()
+                        // An invalid context reports a non-unique trace ID for every request.
+                        : UUID.randomUUID().toString());
     }
 }

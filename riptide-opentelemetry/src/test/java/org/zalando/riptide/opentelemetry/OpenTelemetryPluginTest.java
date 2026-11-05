@@ -1,10 +1,12 @@
 package org.zalando.riptide.opentelemetry;
 
 import com.google.common.collect.ImmutableMap;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.EventData;
@@ -23,12 +25,15 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.*;
+import org.zalando.riptide.opentelemetry.span.ExtensionAttributes;
+import org.zalando.riptide.opentelemetry.span.FlowIdSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
@@ -267,6 +272,60 @@ class OpenTelemetryPluginTest {
                         .withUri(URI.create("https://example.com"))
                         .withAttribute(OpenTelemetryPlugin.OPERATION_NAME, "client"));
         otelTesting.assertTraces().singleElement().singleElement().hasName(newName);
+    }
+
+    @Test
+    void shouldUseBaggageFlowIdForFlowIdHeaderWhenAvailable() throws IOException {
+        final RequestExecution execution = Mockito.mock(RequestExecution.class);
+        final RequestArguments arguments = RequestArguments.create()
+                .withMethod(HttpMethod.GET)
+                .withUri(URI.create("https://example.com"));
+
+        Mockito.when(execution.execute(Mockito.any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        final OpenTelemetryPlugin plugin = new OpenTelemetryPlugin(
+                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator());
+        final Baggage baggage = Baggage.builder()
+                .put(ExtensionAttributes.FLOW_ID.getKey(), "flow-id-value")
+                .build();
+
+        try (final Scope ignored = baggage.storeInContext(Context.current()).makeCurrent()) {
+            plugin.aroundAsync(execution).execute(arguments).join();
+        }
+
+        final ArgumentCaptor<RequestArguments> forwardedArguments =
+                ArgumentCaptor.forClass(RequestArguments.class);
+        Mockito.verify(execution).execute(forwardedArguments.capture());
+
+        assertThat(forwardedArguments.getValue().getHeaders().get(FlowIdSpanDecorator.FLOW_ID_HEADER),
+                is(List.of("flow-id-value")));
+        assertThat(otelTesting.getSpans().get(0).getAttributes()
+                .get(ExtensionAttributes.FLOW_ID), is("flow-id-value"));
+    }
+
+    @Test
+    void shouldUseTraceIdForFlowIdHeaderWhenFlowIdIsAbsent() throws IOException {
+        final RequestExecution execution = Mockito.mock(RequestExecution.class);
+        final RequestArguments arguments = RequestArguments.create()
+                .withMethod(HttpMethod.GET)
+                .withUri(URI.create("https://example.com"));
+
+        Mockito.when(execution.execute(Mockito.any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        final OpenTelemetryPlugin plugin = new OpenTelemetryPlugin(
+                otelTesting.getOpenTelemetry(), new FlowIdSpanDecorator());
+
+        plugin.aroundAsync(execution).execute(arguments).join();
+
+        final ArgumentCaptor<RequestArguments> forwardedArguments =
+                ArgumentCaptor.forClass(RequestArguments.class);
+        Mockito.verify(execution).execute(forwardedArguments.capture());
+
+        assertThat(otelTesting.getSpans(), hasSize(1));
+        assertThat(forwardedArguments.getValue().getHeaders().get(FlowIdSpanDecorator.FLOW_ID_HEADER),
+                is(List.of(otelTesting.getSpans().get(0).getTraceId())));
     }
 
     @Test

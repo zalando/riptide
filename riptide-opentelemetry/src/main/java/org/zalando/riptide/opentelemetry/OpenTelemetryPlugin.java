@@ -85,15 +85,16 @@ public class OpenTelemetryPlugin implements Plugin {
                                 .setParent(context)
                                 .startSpan();
 
-        spanDecorator.onRequest(span, arguments);
+        final RequestArguments decoratedArguments = spanDecorator.decorateRequest(span, arguments);
+        spanDecorator.onRequest(span, decoratedArguments);
 
         final Map<String, String> headers = new HashMap<>();
         try (final Scope ignored = context.with(span).makeCurrent()) {
             this.propagator.inject(Context.current(), headers, Map::put);
 
-            return execution.execute(arguments.withHeaders(Multimaps.forMap(headers).asMap()))
-                            .whenComplete(decorateOnResponse(span, arguments))
-                            .whenComplete(decorateOnError(span, arguments))
+            return execution.execute(decoratedArguments.withHeaders(Multimaps.forMap(headers).asMap()))
+                            .whenComplete(decorateOnResponse(span, decoratedArguments))
+                            .whenComplete(decorateOnError(span, decoratedArguments))
                             .whenComplete((r, t) -> span.end());
         }
     }

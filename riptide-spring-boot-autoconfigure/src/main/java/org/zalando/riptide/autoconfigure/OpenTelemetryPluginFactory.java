@@ -22,7 +22,7 @@ final class OpenTelemetryPluginFactory {
         if (client.getRetry().getEnabled()) {
             decorators.add(new RetrySpanDecorator());
         }
-        decorators.add(new FlowIdSpanDecorator(clientTelemetryConfig.getPropagateFlowId()));
+        decorators.add(new FlowIdSpanDecorator());
         return new OpenTelemetryPlugin(decorators.toArray(new SpanDecorator[0]));
     }
 }
