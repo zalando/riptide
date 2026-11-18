@@ -1,10 +1,12 @@
 package org.zalando.riptide.opentelemetry;
 
 import com.google.common.collect.ImmutableMap;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import io.opentelemetry.sdk.trace.data.EventData;
@@ -30,6 +32,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.zalando.riptide.*;
 import org.zalando.riptide.opentelemetry.span.HttpHostSpanDecorator;
+import org.zalando.riptide.opentelemetry.span.ExtensionAttributes;
 import org.zalando.riptide.opentelemetry.span.SpanDecorator;
 import org.zalando.riptide.opentelemetry.span.StaticSpanDecorator;
 
@@ -82,7 +85,7 @@ class OpenTelemetryPluginTest {
                             .setConnectionManager(cm)
                             .build()))
             .baseUrl(getBaseUrl(server))
-            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(),
+            .plugin(new OpenTelemetryPlugin(otelTesting.getOpenTelemetry(), true,
                     environmentDecorator))
             .build();
 
@@ -248,6 +251,23 @@ class OpenTelemetryPluginTest {
     void shouldObtainTracerFromGlobalTelemetry() {
         OpenTelemetryPlugin plugin = new OpenTelemetryPlugin();
         assertThat(plugin.getTracer(), notNullValue());
+    }
+
+    @Test
+    void shouldPropagateFlowIdHeader() {
+        server.enqueue(textMockResponse("Hello, world!"));
+
+        final Context context = Baggage.builder()
+                .put(ExtensionAttributes.FLOW_ID.getKey(), "flow-id-value")
+                .build()
+                .storeInContext(Context.current());
+
+        try (final Scope ignored = context.makeCurrent()) {
+            unit.get("/").call(pass()).join();
+        }
+
+        verify(server, 1, "/", "GET", headers ->
+                assertThat(headers.get("X-Flow-ID"), is("flow-id-value")));
     }
 
     @Test

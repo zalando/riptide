@@ -40,13 +40,23 @@ public class OpenTelemetryPlugin implements Plugin {
     private final Tracer tracer;
     private final TextMapPropagator propagator;
     private final SpanDecorator spanDecorator;
+    private final boolean propagateFlowId;
 
     public OpenTelemetryPlugin(final SpanDecorator... decorators) {
-        this(GlobalOpenTelemetry.get(), decorators);
+        this(GlobalOpenTelemetry.get(), false, decorators);
+    }
+
+    public OpenTelemetryPlugin(final boolean propagateFlowId, final SpanDecorator... decorators) {
+        this(GlobalOpenTelemetry.get(), propagateFlowId, decorators);
     }
 
     public OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator... decorators) {
-        this(telemetry, CompositeSpanDecorator.composite(
+        this(telemetry, false, decorators);
+    }
+
+    public OpenTelemetryPlugin(final OpenTelemetry telemetry, final boolean propagateFlowId,
+                               final SpanDecorator... decorators) {
+        this(telemetry, propagateFlowId, CompositeSpanDecorator.composite(
                 new HttpMethodSpanDecorator(),
                 new HttpStatusCodeSpanDecorator(),
                 new ErrorSpanDecorator(),
@@ -56,15 +66,20 @@ public class OpenTelemetryPlugin implements Plugin {
         ));
     }
 
-    private OpenTelemetryPlugin(final OpenTelemetry telemetry, final SpanDecorator spanDecorator) {
+    private OpenTelemetryPlugin(final OpenTelemetry telemetry, final boolean propagateFlowId,
+                                final SpanDecorator spanDecorator) {
         this.telemetry = telemetry;
         this.tracer = telemetry.getTracer("riptide-opentelemetry");
-        this.propagator = telemetry.getPropagators().getTextMapPropagator();
+        final TextMapPropagator propagator = telemetry.getPropagators().getTextMapPropagator();
+        this.propagator = propagateFlowId
+                ? TextMapPropagator.composite(propagator, new FlowIdPropagator())
+                : propagator;
         this.spanDecorator = spanDecorator;
+        this.propagateFlowId = propagateFlowId;
     }
 
     public OpenTelemetryPlugin withSpanDecorators(final SpanDecorator... decorators) {
-        return new OpenTelemetryPlugin(telemetry, CompositeSpanDecorator.composite(decorators));
+        return new OpenTelemetryPlugin(telemetry, propagateFlowId, CompositeSpanDecorator.composite(decorators));
     }
 
     @Override
