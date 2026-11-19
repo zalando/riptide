@@ -21,7 +21,7 @@ public class OpenTelemetryPluginFactoryTest {
 
     private static final Field SPAN_DECORATOR_FIELD = ReflectionUtils.findField(OpenTelemetryPlugin.class, "spanDecorator");
     private static final Field DECORATORS_FIELD = ReflectionUtils.findField(CompositeSpanDecorator.class, "decorators");
-    private static final Field PROPAGATE_FLOW_ID_FIELD = ReflectionUtils.findField(FlowIdSpanDecorator.class, "propagateFlowId");
+    private static final Field PROPAGATE_FLOW_ID_FIELD = ReflectionUtils.findField(OpenTelemetryPlugin.class, "propagateFlowId");
 
     static {
         SPAN_DECORATOR_FIELD.setAccessible(true);
@@ -87,7 +87,7 @@ public class OpenTelemetryPluginFactoryTest {
         "true, flow id propagation should be enabled",
         "false, flow id propagation should be enabled be disabled"
     })
-    void shouldAddFlowIdHeaderWhenPropagateFlowIdEnabled(
+    void shouldConfigureFlowIdHeaderPropagation(
         final boolean isFlowIdPropagationEnabled,
         final String message
     ) throws IllegalAccessException {
@@ -97,18 +97,7 @@ public class OpenTelemetryPluginFactoryTest {
             .isNotNull()
             .isInstanceOf(OpenTelemetryPlugin.class);
 
-        final Optional<CompositeSpanDecorator> innerCompositeDecorator = getDecorator(
-            (SpanDecorator) SPAN_DECORATOR_FIELD.get(plugin),
-            CompositeSpanDecorator.class
-        );
-
-        assertThat(innerCompositeDecorator).isPresent();
-
-        final Optional<FlowIdSpanDecorator> decoratorCandidate = getDecorator(innerCompositeDecorator.get(), FlowIdSpanDecorator.class);
-        assertThat(decoratorCandidate).isNotEmpty();
-
-        final FlowIdSpanDecorator decorator = decoratorCandidate.get();
-        assertThat(PROPAGATE_FLOW_ID_FIELD.getBoolean(decorator))
+        assertThat(PROPAGATE_FLOW_ID_FIELD.getBoolean(plugin))
             .withFailMessage(message)
             .isEqualTo(isFlowIdPropagationEnabled);
     }
